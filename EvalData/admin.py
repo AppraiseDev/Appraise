@@ -1,0 +1,170 @@
+"""
+EvalData admin.py
+"""
+# pylint: disable=C0330
+from datetime import datetime
+from django.contrib import admin
+from .models import Market, Metadata, TextSegment, TextPair
+
+
+# TODO:chrife: find a way to use SELECT-based filtering widgets
+class BaseMetadataAdmin(admin.ModelAdmin):
+    """
+    Model admin for abstract base metadata object model.
+    """
+    list_display = [
+      'modifiedBy', 'dateModified'
+    ]
+    list_filter = [
+      'activated', 'completed', 'retired'
+    ]
+    search_fields = [
+      'createdBy__username', 'activatedBy__username', 'completedBy__username',
+      'retiredBy__username', 'modifiedBy__username'
+    ]
+
+    # pylint: disable=C0111,R0903
+    class Meta:
+        abstract = True
+
+    fieldsets = (
+        ('Advanced options', {
+            'classes': ('collapse',),
+            'fields': ('activated', 'completed', 'retired')
+        }),
+    )
+
+    def save_model(self, request, obj, form, change):
+        """
+        Given a model instance save it to the database.
+        """
+        if not hasattr(obj, 'createdBy') or obj.createdBy is None:
+            obj.createdBy = request.user
+            obj.dateCreated = datetime.now()
+            obj.save()
+
+        if obj.activated:
+            if not hasattr(obj, 'activatedBy') or obj.activatedBy is None:
+                obj.activatedBy = request.user
+                obj.dateActivated = datetime.now()
+                obj.save()
+
+        if obj.completed:
+            if not hasattr(obj, 'completedBy') or obj.completedBy is None:
+                obj.completedBy = request.user
+                obj.dateCompleted = datetime.now()
+                obj.save()
+
+        if obj.retired:
+            if not hasattr(obj, 'retiredBy') or obj.retiredBy is None:
+                obj.retiredBy = request.user
+                obj.dateRetired = datetime.now()
+                obj.save()
+
+        obj.modifiedBy = request.user
+        obj.dateModified = datetime.now()
+        obj.save()
+
+        super(BaseMetadataAdmin, self).save_model(request, obj, form, change)
+
+
+class MarketAdmin(BaseMetadataAdmin):
+    """
+    Model admin for Market instances.
+    """
+    list_display = [
+      'sourceLanguageCode', 'targetLanguageCode', 'domainName'
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      'sourceLanguageCode', 'targetLanguageCode', 'domainName'
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      'marketID'
+    ] + BaseMetadataAdmin.search_fields
+
+    fieldsets = (
+      (None, {
+        'fields': (['sourceLanguageCode', 'targetLanguageCode',
+          'domainName'])
+      }),
+    ) + BaseMetadataAdmin.fieldsets
+
+
+class MetadataAdmin(BaseMetadataAdmin):
+    """
+    Model admin for Metadata instances.
+    """
+    list_display = [
+      'market', 'corpusName', 'versionInfo', 'source'
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      'market__marketID', 'corpusName', 'versionInfo'
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      'market__marketID', 'corpusName', 'versionInfo', 'source'
+    ] + BaseMetadataAdmin.search_fields
+
+    fieldsets = (
+      (None, {
+        'fields': (['market', 'corpusName', 'versionInfo', 'source'])
+      }),
+    ) + BaseMetadataAdmin.fieldsets
+
+
+class TextSegmentAdmin(BaseMetadataAdmin):
+    """
+    Model admin for TextSegment instances.
+    """
+    list_display = [
+      'metadata', 'itemID', 'itemType', 'segmentID', 'segmentText'
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      'metadata__corpusName', 'metadata__versionInfo',
+      'metadata__market__sourceLanguageCode',
+      'metadata__market__targetLanguageCode',
+      'metadata__market__domainName',
+      'itemType'
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      'segmentID', 'segmentText'
+    ] + BaseMetadataAdmin.search_fields
+
+    fieldsets = (
+      (None, {
+        'fields': (['metadata', 'itemID', 'itemType', 'segmentID',
+          'segmentText'])
+      }),
+    ) + BaseMetadataAdmin.fieldsets
+
+
+class TextPairAdmin(BaseMetadataAdmin):
+    """
+    Model admin for TextPair instances.
+    """
+    list_display = [
+      '__str__', 'itemID', 'itemType', 'sourceID', 'sourceText', 'targetID',
+      'targetText'
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      'metadata__corpusName', 'metadata__versionInfo',
+      'metadata__market__sourceLanguageCode',
+      'metadata__market__targetLanguageCode',
+      'metadata__market__domainName',
+      'itemType'
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      'sourceID', 'sourceText', 'targetID', 'targetText'
+    ] + BaseMetadataAdmin.search_fields
+
+    fieldsets = (
+      (None, {
+        'fields': (['metadata', 'itemID', 'itemType', 'sourceID',
+          'sourceText', 'targetID', 'targetText'])
+      }),
+    ) + BaseMetadataAdmin.fieldsets
+
+
+admin.site.register(Market, MarketAdmin)
+admin.site.register(Metadata, MetadataAdmin)
+admin.site.register(TextSegment, TextSegmentAdmin)
+admin.site.register(TextPair, TextPairAdmin)
