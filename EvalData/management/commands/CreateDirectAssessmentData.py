@@ -1,5 +1,10 @@
+"""
+Appraise evaluation framework
+"""
+# pylint: disable=W0611
 from django.core.management.base import BaseCommand, CommandError
 
+# pylint: disable=C0111
 class Command(BaseCommand):
     help = 'Creates JSON file containing DirectAssessmentTask data'
 
@@ -23,7 +28,12 @@ class Command(BaseCommand):
         parser.add_argument(
           'system_text', type=str, help='Path to system text file'
         )
-
+        parser.add_argument(
+          'json_file', type=str, help='Path to JSON output file'
+        )
+        parser.add_argument(
+          '--ids-file', type=str, required=False, help='Path to ids file'
+        )
         parser.add_argument(
           '--redundant', type=int, required=False, help='Number of redundant items'
         )
@@ -40,9 +50,8 @@ class Command(BaseCommand):
           '--randomize', required=False, action='store_true', help='Randomize extracted work items'
         )
 
-
     def handle(self, *args, **options):
         self.stdout.write("I would do something now...")
         self.stdout.write(options['source_text'])
         self.stdout.write(options['reference_text'])
-        self.stdout.write(options['systems_text'])
+        self.stdout.write(options['system_text'])
