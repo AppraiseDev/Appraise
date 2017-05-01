@@ -56,6 +56,10 @@ class CampaignTeam(BaseMetadata):
         value=MAX_SMALLINTEGER_VALUE))
     )
 
+    class Meta:
+        verbose_name = 'Team'
+        verbose_name_plural = 'Teams'
+
     def __str__(self):
         return '{0} ({1})'.format(
           self.teamName, self.owner
@@ -130,8 +134,8 @@ class CampaignData(BaseMetadata):
 
     # pylint: disable=C0111,R0903
     class Meta:
-        verbose_name = 'Campaign data batch'
-        verbose_name_plural = 'Campaign data batches'
+        verbose_name = 'Batch'
+        verbose_name_plural = 'Batches'
 
     def __str__(self):
         return self.dataFile.name
