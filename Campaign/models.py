@@ -12,7 +12,8 @@ from EvalData.models import BaseMetadata, Market, Metadata
 
 MAX_TEAMNAME_LENGTH = 50
 MAX_SMALLINTEGER_VALUE = 32767
-MAX_FILEFILED_SIZE = 10
+MAX_FILEFILED_SIZE = 10 # TODO: this does not get enforced currently; remove?
+MAX_CAMPAIGNNAME_LENGTH = 50
 
 
 class CampaignTeam(BaseMetadata):
@@ -154,3 +155,33 @@ class CampaignData(BaseMetadata):
                 )
 
         super(CampaignData, self).clean_fields(exclude)
+
+
+class Campaign(BaseMetadata):
+    """
+    Models an evaluation campaign.
+    """
+    campaignName = models.CharField(
+      max_length=MAX_CAMPAIGNNAME_LENGTH,
+      verbose_name=_('Campaign name'),
+      help_text=_(f('(max. {value} characters)',
+        value=MAX_CAMPAIGNNAME_LENGTH))
+    )
+
+    teams = models.ManyToManyField(
+      CampaignTeam,
+      related_name='%(app_label)s_%(class)s_team',
+      related_query_name="%(app_label)s_%(class)ss",
+      verbose_name=_('Teams')
+    )
+
+    batches = models.ManyToManyField(
+      CampaignData,
+      related_name='%(app_label)s_%(class)s_batches',
+      related_query_name="%(app_label)s_%(class)ss",
+      verbose_name=_('Batches')
+    )
+
+    # pylint: disable=E1136
+    def __str__(self):
+        return self.campaignName
