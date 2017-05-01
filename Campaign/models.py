@@ -170,7 +170,7 @@ class Campaign(BaseMetadata):
 
     teams = models.ManyToManyField(
       CampaignTeam,
-      related_name='%(app_label)s_%(class)s_team',
+      related_name='%(app_label)s_%(class)s_teams',
       related_query_name="%(app_label)s_%(class)ss",
       verbose_name=_('Teams')
     )
