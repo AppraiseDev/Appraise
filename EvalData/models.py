@@ -473,3 +473,45 @@ class TextPair(EvalItem):
             return False
 
         return super(TextPair, self).is_valid()
+
+
+class DirectAssessmentTask(BaseMetadata):
+    campaign = models.ForeignKey(
+      'Campaign.Campaign',
+      on_delete=models.PROTECT,
+      related_name='%(app_label)s_%(class)s_campaign',
+      related_query_name="%(app_label)s_%(class)ss",
+      verbose_name=_('Campaign')
+    )
+
+    items = models.ManyToManyField(
+      TextPair,
+      related_name='%(app_label)s_%(class)s_items',
+      related_query_name="%(app_label)s_%(class)ss",
+      verbose_name=_('Items')
+    )
+
+    # pylint: disable=E1101
+    def is_valid(self):
+        """
+        Validates the current DA task, checking campaign and items exist.
+        """
+        if not hasattr(self, 'campaign') or not self.campaign.is_valid():
+            return False
+        
+        if not hasattr(self, 'items'):
+            return False
+        
+        for item in self.items:
+            if not item.is_valid():
+                return False
+        
+        return True
+
+    # pylint: disable=E1136
+    def __str__(self):
+        return '{0}.{1}[1..{2}]'.format(
+          self.__class__.__name__,
+          self.campaign,
+          self.items.count()
+        )
