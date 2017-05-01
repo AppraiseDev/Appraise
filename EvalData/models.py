@@ -31,6 +31,7 @@ MAX_SOURCE_LENGTH = 250
 MAX_SEGMENTTEXT_LENGTH = 250
 MAX_SEGMENTID_LENGTH = 50
 MAX_ITEMTYPE_LENGTH = 5
+MAX_REQUIREDANNOTATIONS_VALUE = 5
 
 SET_ITEMTYPE_CHOICES = (
   ('SRC', 'Source text'),
@@ -492,6 +493,12 @@ class DirectAssessmentTask(BaseMetadata):
       related_name='%(app_label)s_%(class)s_items',
       related_query_name="%(app_label)s_%(class)ss",
       verbose_name=_('Items')
+    )
+
+    requiredAnnotations = models.PositiveSmallIntegerField(
+      verbose_name=_('Required annotations'),
+      help_text=_(f('(value in range=[1,{value}])',
+        value=MAX_REQUIREDANNOTATIONS_VALUE))
     )
 
     # pylint: disable=E1101
