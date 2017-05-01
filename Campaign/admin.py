@@ -13,7 +13,7 @@ class CampaignTeamAdmin(BaseMetadataAdmin):
     Model admin for CampaignTeam instances.
     """
     list_display = [
-      'teamName', 'owner', 'campaignMembers', 'requiredAnnotations',
+      'teamName', 'owner', 'teamMembers', 'requiredAnnotations',
       'requiredHours', 'completionStatus'
     ] + BaseMetadataAdmin.list_display
     list_filter = [

@@ -73,12 +73,12 @@ class CampaignTeam(BaseMetadata):
             return False
 
     # pylint: disable=C0103,E1101
-    def campaignMembers(self):
+    def teamMembers(self):
         """
         Proxy method returning members count.
         """
         return self.members.count()
-    campaignMembers.short_description = '# of campaign members'
+    teamMembers.short_description = '# of team members'
 
     # TODO: Connect to actual data, producing correct completion status.
     def completionStatus(self):
