@@ -476,6 +476,9 @@ class TextPair(EvalItem):
 
 
 class DirectAssessmentTask(BaseMetadata):
+    """
+    Models a direct assessment evaluation task.
+    """
     campaign = models.ForeignKey(
       'Campaign.Campaign',
       on_delete=models.PROTECT,
@@ -514,4 +517,30 @@ class DirectAssessmentTask(BaseMetadata):
           self.__class__.__name__,
           self.campaign,
           self.items.count()
+        )
+
+
+class DirectAssessmentResult(BaseMetadata):
+    """
+    Models a direct assessment evaluation result.
+    """
+    score = models.PositiveSmallIntegerField(
+      verbose_name=_('Score'),
+      help_text=_('(value in range=[1,100])')
+    )
+
+    item = models.ForeignKey(
+      TextPair,
+      on_delete=models.PROTECT,
+      related_name='%(app_label)s_%(class)s_item',
+      related_query_name="%(app_label)s_%(class)ss",
+      verbose_name=_('Item')
+    )
+
+    # pylint: disable=E1136
+    def __str__(self):
+        return '{0}.{1}={2}'.format(
+          self.__class__.__name__,
+          self.item,
+          self.score
         )

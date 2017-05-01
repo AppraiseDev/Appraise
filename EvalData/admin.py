@@ -5,7 +5,7 @@ EvalData admin.py
 from datetime import datetime
 from django.contrib import admin
 from .models import Market, Metadata, TextSegment, TextPair
-from .models import DirectAssessmentTask
+from .models import DirectAssessmentTask, DirectAssessmentResult
 
 
 # TODO:chrife: find a way to use SELECT-based filtering widgets
@@ -186,6 +186,25 @@ class DirectAssessmentTaskAdmin(BaseMetadataAdmin):
     ) + BaseMetadataAdmin.fieldsets
 
 
+class DirectAssessmentResultAdmin(BaseMetadataAdmin):
+    """
+    Model admin for DirectAssessmentResult instances.
+    """
+    list_display = [
+      '__str__'
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      # nothing model specific
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      # nothing model specific
+    ] + BaseMetadataAdmin.search_fields
+
+    fieldsets = (
+      (None, {
+        'fields': (['score', 'item'])
+      }),
+    ) + BaseMetadataAdmin.fieldsets
 
 
 admin.site.register(Market, MarketAdmin)
@@ -193,3 +212,4 @@ admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(TextSegment, TextSegmentAdmin)
 admin.site.register(TextPair, TextPairAdmin)
 admin.site.register(DirectAssessmentTask, DirectAssessmentTaskAdmin)
+admin.site.register(DirectAssessmentResult, DirectAssessmentResultAdmin)
