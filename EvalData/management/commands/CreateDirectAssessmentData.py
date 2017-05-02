@@ -3,6 +3,7 @@ Appraise evaluation framework
 """
 # pylint: disable=W0611
 from django.core.management.base import BaseCommand, CommandError
+from random import seed, shuffle
 
 # pylint: disable=C0111
 class Command(BaseCommand):
@@ -71,16 +72,70 @@ class Command(BaseCommand):
         # TODO: add exclude argument which prevents creation of redundant data?
 
     def handle(self, *args, **options):
-        # Load source text
-        # Load reference text
-        # Load system text
-        # Validate equal line counts for all files
         # Initialize random number generator
         # Extract batch size number of pairs, randomizing order if requested
         # Serialize pairs into JSON format
         # Write out JSON output file
 
+        # TODO: implement support for ids file
+        if options['ids_file'] is not None:
+            print("WOOHOO")
+
+
+        # TODO: add parameter to set encoding
+        # TODO: need to use OrderedDict to preserve segment IDs' order!
+        source_text = Command._load_text_from_file(options['source_text'], 'utf8')
+        print('Loaded {0} source segments'.format(len(source_text.keys())))
+
+        reference_text = Command._load_text_from_file(options['reference_text'], 'utf8')
+        print('Loaded {0} reference segments'.format(len(reference_text.keys())))
+
+        system_text = Command._load_text_from_file(options['system_text'], 'utf8')
+        print('Loaded {0} system segments'.format(len(system_text.keys())))
+
+        try:
+            assert(
+                 len(source_text.keys())
+              == len(reference_text.keys())
+              == len(system_text.keys())
+            )
+
+            # TODO: add check for ids
+
+        except AssertionError:
+            raise CommandError(
+              'Segment counts for input files do not match'
+            )
+
+        segment_ids = [segment_id for segment_id in source_text.keys()]
+        if options['random_seed'] is not None:
+            seed(options['random_seed'])
+            self.stdout.write(
+              'Seeded random number generator with seed={0}'.format(
+                options['random_seed'])
+            )
+        
+        if options['randomize']:
+            shuffle(segment_ids)
+        
+        for segment_id in segment_ids[:options['batch_size']]:
+            print(segment_id)
+
+
         self.stdout.write("I would do something now...")
         self.stdout.write(options['source_text'])
         self.stdout.write(options['reference_text'])
         self.stdout.write(str(options['annotations']))
+        print(options['random_seed'])
+
+    @staticmethod
+    def _load_text_from_file(file_path, encoding='utf8'):
+        segment_id = 0
+        file_text = {}
+
+        with open(file_path, encoding=encoding) as input_file:
+            for current_line in input_file:
+                segment_id += 1
+                file_text[segment_id] = current_line.strip()
+        
+        return file_text
