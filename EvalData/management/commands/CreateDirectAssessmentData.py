@@ -35,8 +35,12 @@ class Command(BaseCommand):
           help='Path to reference text file'
         )
         parser.add_argument(
+          'badref_text', type=str,
+          help='Path to bad reference text folder'
+        )
+        parser.add_argument(
           'system_text', type=str,
-          help='Path to system text file'
+          help='Path to system text folder'
         )
         parser.add_argument(
           'json_file', type=str,
@@ -73,6 +77,67 @@ class Command(BaseCommand):
         # TODO: add optional parameters to set source, reference and system IDs
 
         # TODO: add exclude argument which prevents creation of redundant data?
+
+###
+#
+# Fake BAD REF generation
+# Simply insert "BAD" and "REF" somewhere into the reference text
+#
+# We end up having three folders:
+# 1) for candidate translations
+# 2) for bad references
+# 3) for segment ids
+#
+# We should think about using one folder, allowing two special files:
+# - $fileName.badRef
+# - $fileName.segmentIds
+#
+# We operate on k files, one per submitted system.
+#
+# When sampling data, we need to read in candidate translations in a stable order.
+# This works by creating a sorted list of file names and then shuffling it once.
+# Given the random seed value, this should be reproducible.
+#
+# For this to work, we have to ALWAYS seed the RNG. By default, we should use msec after midnight.
+# This also means that we have to expose/print the seed value every time so that users know it.
+#
+# Once the random order of file names has been created, we read in candidate translations.
+# For each, we compute the MD5 hash of the .strip()ed Unicode text, preserving case information.
+# The MD5 hash will act as unique key for the segment text. If multiple segments share the same
+# segment text, they will end up being mapped to the same key. In this case, the only difference
+# is (potentially) in the bad reference text. This should be identical for identical candidate
+# translations but there is no hard guarantee for this. Hence, we agree to always use the bad
+# reference text from the first system being mapped to the respective MD5 key. The segment ID
+# will always be the same and hence is not an issue. Should the segment ID not match, we have
+# an inconsistent state and should abort sampling. It is fine if files do not align wrt. the
+# number of translations contained within each of the files as long as identical candidate text
+# has identical segment IDs. There is a potential problem if multiple translations map to the
+# different source segments, thus ending up with different IDs. I have no idea what we can do
+# about this case.
+#
+# Number of blocks = d
+# distance for checks = (d/2)
+# default number d = 10
+#
+# Block defined as 10 items
+# Randomly ordered
+# 7 candidate translations
+# 2 reference translations
+# 1 bad reference (specific to candiate translation)
+#
+# 7,2,1 specification
+# Can be different for other scenarios
+# --block-spec="7S2R1B"
+#
+# Question for Yvette:
+#
+# DO BAD REFERENCES HAVE TO BE IDENTICAL FOR IDENTICAL SYSTEM TRANSLATIONS?
+#
+# Requirement for Christian:
+#
+# I WANT THE SAMPLING TO BE REPRODUCIBLE GIVEN THE SAME RANDOM SEED VALUE
+#
+###
 
     def handle(self, *args, **options):
         # Initialize random number generator
@@ -212,5 +277,5 @@ class Command(BaseCommand):
             for current_line in input_file:
                 segment_id += 1
                 file_text[segment_id] = current_line.strip()
-        
+
         return file_text
