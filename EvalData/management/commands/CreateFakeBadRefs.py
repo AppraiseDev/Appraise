@@ -73,6 +73,11 @@ class Command(BaseCommand):
                 makedirs(target_path)
                 self.stdout.write('OK')
 
+                # Write random number generator seed value to file.
+                seed_value_file = path.join(target_path, "seed_value.txt")
+                with open(seed_value_file, mode='w') as output_file:
+                    output_file.write('{0}\r\n'.format(random_seed))
+
             # pylint: disable=W0702
             except:
                 self.stdout.write('FAIL')
