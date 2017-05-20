@@ -67,8 +67,7 @@ class Command(BaseCommand):
         source_glob = '{0}{1}{2}'.format(source_path, path.sep, filter_expr)
         for source_file in iglob(source_glob):
             # Check if we are dealing with an .ids file here and skip those
-            if source_file.endswith(EXTENSION_FOR_IDS_FILES) \
-              or source_file.endswith(EXTENSION_FOR_BAD_FILES):
+            if source_file.endswith(EXTENSION_FOR_IDS_FILES):
                 continue
 
             _msg = '{0}Creating ids file for source file {1} ... '.format(
@@ -79,7 +78,7 @@ class Command(BaseCommand):
             try:
                 # Compute target file path, which is a copy of the source file
                 target_file = Command._create_target_file_name(
-                  source_file, target_path, path.splitext(source_file)[1]
+                  source_file, target_path, path.splitext(source_file)[1].strip('.')
                 )
 
                 # If target file already exists, skip and continue
@@ -90,6 +89,7 @@ class Command(BaseCommand):
                     copyfile(source_file, target_file)
 
                 # If ids file already exists in source folder, copy to target
+                # pylint: disable=W0101
                 source_ids_file = Command._create_target_file_name(
                   source_file, source_path
                 )
