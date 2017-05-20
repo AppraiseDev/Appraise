@@ -130,6 +130,7 @@ class Command(BaseCommand):
         with open(source_file, encoding=encoding) as input_file:
             with open(target_file, mode='w', encoding=encoding) as output_file:
                 segment_id = 1
+                # pylint: disable=W0612
                 for current_line in input_file:
                     output_file.write(str(segment_id))
                     output_file.write('\r\n')
