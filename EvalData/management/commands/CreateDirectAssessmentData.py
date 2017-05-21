@@ -27,44 +27,24 @@ class Command(BaseCommand):
           help='Target language code'
         )
         parser.add_argument(
-          'source_text', type=str,
+          'source_file', type=str,
           help='Path to source text file'
         )
         parser.add_argument(
-          'reference_text', type=str,
+          'reference_file', type=str,
           help='Path to reference text file'
         )
         parser.add_argument(
-          'badref_text', type=str,
-          help='Path to bad reference text folder'
+          'systems_path', type=str,
+          help='Path to systems text folder'
         )
         parser.add_argument(
-          'system_text', type=str,
-          help='Path to system text folder'
-        )
-        parser.add_argument(
-          'json_file', type=str,
+          'output_json_file', type=str,
           help='Path to JSON output file'
         )
         parser.add_argument(
-          '--ids-file', type=str, # required=False,
-          help='Path to ids file'
-        )
-        parser.add_argument(
-          '--annotations', type=int, default=1,
-          help='Number of required annotations per work item'
-        )
-        parser.add_argument(
-          '--redundant', type=int, default=0, # required=False,
-          help='Number of redundant items'
-        )
-        parser.add_argument(
-          '--refs', type=int, default=0, # required=False,
-          help='Number of reference items'
-        )
-        parser.add_argument(
-          '--bad-refs', type=int, default=0, # required=False,
-          help='Number of bad reference items'
+          '--block-definition', type=str, default="7:1:1:1",
+          help='Defines (candidates, redundant, reference, bad reference) per block'
         )
         parser.add_argument(
           '--random-seed', type=int, # required=False,
@@ -145,25 +125,101 @@ class Command(BaseCommand):
         # Serialize pairs into JSON format
         # Write out JSON output file
 
-        # TODO: implement support for ids file
-        if options['ids_file'] is not None:
+        batch_size = options['batch_size']
+
+        block_size = 10
+        block_annotations = 7
+        block_redundants = 1
+        block_references = 1
+        block_badrefs = 1
+
+        # IF BLOCK DEF IS GIVEN, DO SOMETHING WITH IT
+        if options['block_definition'] is not None:
             print("WOOHOO")
+
+        if (batch_size % block_size) > 0:
+            self.stdout.write('Batch size needs to be divisible by block size!')
+            return
+        
+        # CHECK THAT WE END UP WITH EVEN NUMBER OF BLOCKS
+
+        print('We will create {0} blocks'.format(int(batch_size / block_size)))
 
         # TODO: add parameter to set encoding
         # TODO: need to use OrderedDict to preserve segment IDs' order!
-        source_text = Command._load_text_from_file(options['source_text'], 'utf8')
-        print('Loaded {0} source segments'.format(len(source_text.keys())))
+        source_file = Command._load_text_from_file(options['source_file'], 'utf8')
+        print('Loaded {0} source segments'.format(len(source_file.keys())))
 
-        reference_text = Command._load_text_from_file(options['reference_text'], 'utf8')
-        print('Loaded {0} reference segments'.format(len(reference_text.keys())))
+        reference_file = Command._load_text_from_file(options['reference_file'], 'utf8')
+        print('Loaded {0} reference segments'.format(len(reference_file.keys())))
 
-        system_text = Command._load_text_from_file(options['system_text'], 'utf8')
-        print('Loaded {0} system segments'.format(len(system_text.keys())))
+        systems_files = []
+        systems_path = options['systems_path']
+        from glob import iglob
+        import os.path
+        for system_file in iglob('{0}{1}{2}'.format(systems_path, os.path.sep, "*.txt")):
+            systems_files.append(system_file)
+
+        systems_files.sort()
+        seed(123456)
+        shuffle(systems_files)
+        # ADD RANDOMIZED SHUFFLING HERE?
+
+        import hashlib
+        hashed_text = {}
+
+        for system_path in systems_files:
+            system_txt = Command._load_text_from_file(system_path, 'utf8')
+            system_bad = Command._load_text_from_file(system_path.replace('.txt', '.bad'), 'utf8')
+            system_ids = Command._load_text_from_file(system_path.replace('.txt', '.ids'), 'utf8')
+
+            for segment_id, segment_text in system_txt.items():
+                md5hash = hashlib.new('md5', segment_text.encode('utf8')).hexdigest()
+                if not md5hash in hashed_text.keys():
+                    hashed_text[md5hash] = {
+                      'segment_id': segment_id,
+                      'segment_text': segment_text,
+                      'segment_bad': system_bad[segment_id],
+                      'segment_ref': reference_file[segment_id],
+                      'segment_src': source_file[segment_id],
+                      'systems': [os.path.basename(system_path)]
+                    }
+                else:
+                    hashed_text[md5hash]['systems'].append(os.path.basename(system_path))
+
+            print('Loaded {0} system {1} segments'.format(len(system_txt.keys()), os.path.basename(system_path)))
+
+        all_keys = list(hashed_text.keys())
+        all_keys.sort()
+        shuffle(all_keys)
+
+        num_blocks = int(batch_size/block_size)
+        for block_id in range(num_blocks):
+            print('Creating block {0}'.format(block_id))
+
+            block_start = 7 * (block_id)
+            block_end = block_start + 7
+            block_hashes = all_keys[block_start:block_end]
+
+            for block_hash in block_hashes:
+                _s_id = hashed_text[block_hash]['segment_id']
+                _s_text = hashed_text[block_hash]['segment_text']
+                _s_systems = hashed_text[block_hash]['systems']
+                print(_s_id)
+                print(_s_text.encode('utf8'))
+                print(_s_systems)
+
+            # Get 7 random system outputs
+
+        return
+
+#        system_text = Command._load_text_from_file(, 'utf8')
+#        print('Loaded {0} system segments'.format(len(system_text.keys())))
 
         try:
             assert(
-                 len(source_text.keys())
-              == len(reference_text.keys())
+                 len(source_file.keys())
+              == len(reference_file.keys())
               == len(system_text.keys())
             )
 
@@ -174,7 +230,7 @@ class Command(BaseCommand):
               'Segment counts for input files do not match'
             )
 
-        segment_ids = [segment_id for segment_id in source_text.keys()]
+        segment_ids = [segment_id for segment_id in source_file.keys()]
         if options['random_seed'] is not None:
             seed(options['random_seed'])
             self.stdout.write(
@@ -186,7 +242,7 @@ class Command(BaseCommand):
             shuffle(segment_ids)
             self.stdout.write('Randomized work items')
         
-        sourceID = basename(options['source_text'])
+        sourceID = basename(options['source_file'])
 
         taskData = OrderedDict({
           'batchSize': options['batch_size'],
@@ -228,12 +284,12 @@ class Command(BaseCommand):
                 targetIDs.append(segment_id)
             
             elif segment_type =='REF':
-                targetID = basename(options['reference_text'])
-                targetText = reference_text[segment_id]
+                targetID = basename(options['reference_file'])
+                targetText = reference_file[segment_id]
                 
             elif segment_type =='BAD':
-                targetID = basename(options['reference_text'])
-                targetText = reference_text[segment_id]
+                targetID = basename(options['reference_file'])
+                targetText = reference_file[segment_id]
                 
             elif segment_type =='CHK':
                 shuffle(targetIDs)
@@ -245,7 +301,7 @@ class Command(BaseCommand):
 
             obj = OrderedDict()
             obj['sourceID'] = sourceID
-            obj['sourceText'] = source_text[segment_id]
+            obj['sourceText'] = source_file[segment_id]
             obj['targetID'] = targetID
             obj['targetText'] = targetText
             obj['itemID'] = segment_id
@@ -263,8 +319,8 @@ class Command(BaseCommand):
 
 
         self.stdout.write("I would do something now...")
-        self.stdout.write(options['source_text'])
-        self.stdout.write(options['reference_text'])
+        self.stdout.write(options['source_file'])
+        self.stdout.write(options['reference_file'])
         self.stdout.write(str(options['annotations']))
         print(options['random_seed'])
 
