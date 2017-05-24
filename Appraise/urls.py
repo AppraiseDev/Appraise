@@ -43,13 +43,22 @@ urlpatterns = [
       name='sign-in'
     ),
 
-    # login_required(...)
-
     url(r'^dashboard/sign-out/$',
-      auth_views.LogoutView.as_view(template_name='Dashboard/signout.html'),
+      auth_views.LogoutView.as_view(
+        template_name='Dashboard/signout.html',
+        extra_context=BASE_CONTEXT
+      ),
       name='sign-out'
     ),
-    url(r'^dashboard/reset-password/$', dashboard_views.reset_password, name='reset-password'),
+
+    url(r'^dashboard/change-password/$',
+      auth_views.PasswordChangeView.as_view(
+        template_name='Dashboard/change-password.html',
+        extra_context=BASE_CONTEXT
+      ),
+      name='change-password'
+    ),
+
     url(r'^dashboard/profile/$', dashboard_views.profile, name='profile'),
     url(r'^dashboard/$', dashboard_views.dashboard, name='dashboard'),
 ]

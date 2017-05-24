@@ -27,7 +27,7 @@ def register(request):
 def dashboard(request):
     pass
 
-def reset_password(request, template_name):
+def NOT_NEEDED_reset_password(request, template_name):
     """
     Renders password change view by connecting to django.contrib.auth.views.
     """
