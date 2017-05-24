@@ -5,14 +5,7 @@ from django.contrib.auth.views import password_change
 from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.shortcuts import render, reverse, redirect
-from Appraise.settings import STATIC_URL
-
-# Base context for all views.
-BASE_CONTEXT = {
-  'commit_tag': '#wmt17dev',
-  'title': 'Appraise evaluation system',
-  'static_url': STATIC_URL,
-}
+from Appraise.settings import STATIC_URL, BASE_CONTEXT
 
 def frontpage(request, extra_context=None):
     """

@@ -16,7 +16,16 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from django.contrib.auth.decorators import login_required
 from Dashboard import views as dashboard_views
+from Appraise.settings import BASE_CONTEXT
+
+# Base context for all views.
+#BASE_CON3TEXT = {
+#  'commit_tag': '#wmt17dev',
+#  'title': 'Appraise evaluation system',
+#  'static_url': STATIC_URL,
+#}
 
 # pylint: disable=C0330
 urlpatterns = [
@@ -27,9 +36,14 @@ urlpatterns = [
     #url(r'^dashboard/sign-in/?$', dashboard_views.signin, name='sign-in'),
 
     url(r'^dashboard/sign-in/$',
-      auth_views.LoginView.as_view(template_name='Dashboard/signin.html'),
+      auth_views.LoginView.as_view(
+        template_name='Dashboard/signin.html',
+        extra_context=BASE_CONTEXT
+      ),
       name='sign-in'
     ),
+
+    # login_required(...)
 
     url(r'^dashboard/sign-out/$',
       auth_views.LogoutView.as_view(template_name='Dashboard/signout.html'),
