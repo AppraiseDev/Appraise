@@ -32,8 +32,7 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
     url(r'^$', dashboard_views.frontpage, name='frontpage'),
-    url(r'^dashboard/register/$', dashboard_views.register, name='register'),
-    #url(r'^dashboard/sign-in/?$', dashboard_views.signin, name='sign-in'),
+    url(r'^dashboard/create-profile/$', dashboard_views.register, name='create-profile'),
 
     url(r'^dashboard/sign-in/$',
       auth_views.LoginView.as_view(
