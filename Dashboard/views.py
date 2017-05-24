@@ -25,7 +25,15 @@ def register(request):
 
 @login_required
 def dashboard(request):
-    pass
+    """
+    Appraise dashboard page.
+    """
+    context = {
+      'active_page': 'dashboard'
+    }
+    context.update(BASE_CONTEXT)
+
+    return render(request, 'Dashboard/dashboard.html', context)
 
 def NOT_NEEDED_reset_password(request, template_name):
     """
