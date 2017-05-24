@@ -15,7 +15,27 @@ Including another URLconf
 """
 from django.conf.urls import url
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
+from Dashboard import views as dashboard_views
 
+# pylint: disable=C0330
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+
+    url(r'^$', dashboard_views.frontpage, name='frontpage'),
+    url(r'^dashboard/register/$', dashboard_views.register, name='register'),
+    #url(r'^dashboard/sign-in/?$', dashboard_views.signin, name='sign-in'),
+
+    url(r'^dashboard/sign-in/$',
+      auth_views.LoginView.as_view(template_name='Dashboard/signin.html'),
+      name='sign-in'
+    ),
+
+    url(r'^dashboard/sign-out/$',
+      auth_views.LogoutView.as_view(template_name='Dashboard/signout.html'),
+      name='sign-out'
+    ),
+    url(r'^dashboard/reset-password/$', dashboard_views.reset_password, name='reset-password'),
+    url(r'^dashboard/profile/$', dashboard_views.profile, name='profile'),
+    url(r'^dashboard/$', dashboard_views.dashboard, name='dashboard'),
 ]
