@@ -1,10 +1,10 @@
 # pylint: disable=C0330
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AdminPasswordChangeForm
-from django.contrib.auth.views import login, logout
 from django.contrib.auth.views import password_change
-from django.contrib.auth.views import LoginView
 from django.contrib import messages
 from django.shortcuts import render, reverse, redirect
+
 from Appraise.settings import STATIC_URL, BASE_CONTEXT
 
 def frontpage(request, extra_context=None):
@@ -12,8 +12,6 @@ def frontpage(request, extra_context=None):
     Appraise front page.
     """
     context = {
-      'admin_url': reverse('admin:index') \
-        if request.user.is_superuser else None,
       'active_page': 'frontpage'
     }
     context.update(BASE_CONTEXT)
@@ -25,43 +23,9 @@ def frontpage(request, extra_context=None):
 def register(request):
     pass
 
+@login_required
 def dashboard(request):
     pass
-
-class SigninView(LoginView):
-    """
-    Customized sign-in view for Appraise.
-    """
-    pass
-
-def signin(request):
-    """
-    Renders login view by connecting to django.contrib.auth.views.
-    """
-    if request.user.username:
-        message = 'You are already logged in as "{0}".'.format(
-          request.user.username
-        )
-        messages.add_message(request, messages.INFO, message)
-        return redirect('dashboard')
-
-    context = {
-      'active_page': 'sign-in',
-      'is_special_page': True
-    }
-    context.update(BASE_CONTEXT)
-
-    return login(
-      request,
-      template_name='Dashboard/login.html',
-      extra_context=context
-    )
-
-def signout(request, next_page):
-    """
-    Renders logout view by connecting to django.contrib.auth.views.
-    """
-    return logout(request, next_page)
 
 def reset_password(request, template_name):
     """

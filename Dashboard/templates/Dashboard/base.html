@@ -38,7 +38,7 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li{% if active_page == 'dashboard' %} class="active"{% endif %}><a href="{{ static_url }}">Dashboard</a></li>
+            <li{% if active_page == 'dashboard' %} class="active"{% endif %}><a href="{% url 'dashboard' %}">Dashboard</a></li>
 {% if active_page == 'sign-in' %}
             <li class="active"><a name="#sign-in">Sign in</a></li>
 {% elif active_page == 'register' %}
