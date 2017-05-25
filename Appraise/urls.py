@@ -59,6 +59,6 @@ urlpatterns = [
       name='change-password'
     ),
 
-    url(r'^dashboard/profile/$', dashboard_views.profile, name='profile'),
+    url(r'^dashboard/profile/$', dashboard_views.profile, name='update-profile'),
     url(r'^dashboard/$', dashboard_views.dashboard, name='dashboard'),
 ]
