@@ -53,6 +53,7 @@ urlpatterns = [
     url(r'^dashboard/change-password/$',
       auth_views.PasswordChangeView.as_view(
         template_name='Dashboard/change-password.html',
+        success_url='/dashboard/',
         extra_context=BASE_CONTEXT
       ),
       name='change-password'
