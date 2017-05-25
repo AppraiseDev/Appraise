@@ -34,7 +34,7 @@ def create_profile(request):
     token = None
     languages = []
     language_choices = [x for x in LANGUAGE_CODES_AND_NAMES.items()]
-    language_choices.sort()
+    language_choices.sort(key=lambda x: x[1])
 
     focus_input = 'id_username'
 
@@ -150,11 +150,11 @@ def create_profile(request):
       'email': email,
       'token': token,
       'languages': languages,
-      'languages_list': languages_list,
+      'language_choices': language_choices,
       'title': 'Create profile',
     }
     context.update(BASE_CONTEXT)
-    
+
     return render(request, 'Dashboard/create-profile.html', context)
 
 @login_required
@@ -165,7 +165,7 @@ def update_profile(request):
     errors = None
     languages = set()
     language_choices = [x for x in LANGUAGE_CODES_AND_NAMES.items()]
-    language_choices.sort()
+    language_choices.sort(key=lambda x: x[1])
     focus_input = 'id_projects'
 
     if request.method == "POST":
@@ -215,6 +215,7 @@ def update_profile(request):
       'errors': errors,
       'focus_input': focus_input,
       'languages': languages,
+      'language_choices': language_choices,
       'title': 'Update profile',
     }
     context.update(BASE_CONTEXT)

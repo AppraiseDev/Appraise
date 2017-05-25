@@ -73,7 +73,7 @@
         <div class="input-group">
           <div class="input-group-addon">required</div>
           <select class="form-control" name="languages" id="id_languages" multiple="multiple">
-{% for code, name in languages_list %}
+{% for code, name in language_choices %}
             <option {% if code in languages %}selected="selected"{% endif %}value="{{code}}">{{name}}</option>
 {% endfor %}
           </select>
