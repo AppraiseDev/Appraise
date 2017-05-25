@@ -2,6 +2,23 @@ from uuid import uuid4
 from django.contrib.auth.models import Group
 from django.db import models
 
+LANGUAGE_CODES_AND_NAMES = {
+  'ces': 'Czech (čeština)',
+  'zho': 'Chinese (中文)',
+  'eng': 'English',
+  'fin': 'Finnish (suomi)',
+  'deu': 'German (deutsch)',
+  'lav': 'Latvian (latviešu)',
+  'rus': 'Russian (русский)',
+  'trk': 'Turkish (Türkçe)',
+  'fra': 'French (français)',
+  'hun': 'Hungarian (magyar)',
+  'plk': 'Polish (polski)',
+  'por': 'Portuguese (português)',
+  'ron': 'Romanian (română)',
+  'spa': 'Spanish (español)',
+  'swe': 'Swedish (svenska)',
+}
 
 def create_uuid4_token():
     """
