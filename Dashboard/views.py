@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AdminPasswordChangeForm
 from django.contrib.auth.views import password_change
 from django.contrib.auth.models import User, Group
+from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from django.shortcuts import render, reverse, redirect
 
@@ -41,11 +42,18 @@ def create_profile(request):
         token = request.POST.get('token', None)
         languages = request.POST.getlist('languages', None)
 
+        print(username)
+        print(email)
+        print(token)
+        print(languages)
+        print(request.POST)
+
         if username and email and token and languages:
             try:
                 # Check if given invite token is still active.
                 invite = UserInviteToken.objects.filter(token=token)
                 if not invite.exists() or not invite[0].active:
+                    print("INVALID_TOKEN")
                     raise ValueError('invalid_token')
 
                 # We now have a valid invite token...
@@ -54,6 +62,7 @@ def create_profile(request):
                 # Check if desired username is already in use.
                 current_user = User.objects.filter(username=username)
                 if current_user.exists():
+                    print("USER_EXISTS: {0}".format(current_user.username))
                     raise ValueError('invalid_username')
 
                 # Compute set of evaluation languages for this user.
@@ -74,7 +83,7 @@ def create_profile(request):
                 # Create new user account and add to group.
                 password = '{0}{1}'.format(
                   invite.group.name[:2].upper(),
-                  md5(invite.group.name).hexdigest()[:8]
+                  md5(invite.group.name.encode('utf-8')).hexdigest()[:8]
                 )
                 user = User.objects.create_user(username, email, password)
 
@@ -96,13 +105,16 @@ def create_profile(request):
 
             # For validation errors, invalidate the respective value.
             except ValueError as issue:
-                if issue.message == 'invalid_username':
+                if issue.args[0] == 'invalid_username':
+                    print("HERE")
                     username = None
 
-                elif issue.message == 'invalid_token':
+                elif issue.args[0] == 'invalid_token':
+                    print("THERE")
                     token = None
 
                 else:
+                    print("WHERE")
                     username = None
                     email = None
                     token = None
@@ -110,6 +122,8 @@ def create_profile(request):
 
             # For any other exception, clean up and ask user to retry.
             except:
+                from traceback import format_exc
+                print(format_exc())
                 username = None
                 email = None
                 token = None
