@@ -9,7 +9,7 @@ from django.contrib import messages
 from django.shortcuts import render, reverse, redirect
 
 from Appraise.settings import STATIC_URL, BASE_CONTEXT
-from .models import UserInviteToken
+from .models import UserInviteToken, LANGUAGE_CODES_AND_NAMES
 
 def frontpage(request, extra_context=None):
     """
@@ -33,6 +33,8 @@ def create_profile(request):
     email = None
     token = None
     languages = []
+    languages_list = [x for x in LANGUAGE_CODES_AND_NAMES.items()]
+    languages_list.sort()
 
     focus_input = 'id_username'
 
@@ -145,15 +147,16 @@ def create_profile(request):
         elif not languages:
             focus_input = 'id_languages'
             errors = ['invalid_languages']
-    
+
     context = {
-      'active_page': "OVERVIEW",
+      'active_page': "OVERVIEW", # TODO: check
       'errors': errors,
       'focus_input': focus_input,
       'username': username,
       'email': email,
       'token': token,
       'languages': languages,
+      'languages_list': languages_list,
       'title': 'Create profile',
     }
     context.update(BASE_CONTEXT)
