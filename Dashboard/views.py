@@ -33,8 +33,8 @@ def create_profile(request):
     email = None
     token = None
     languages = []
-    languages_list = [x for x in LANGUAGE_CODES_AND_NAMES.items()]
-    languages_list.sort()
+    language_choices = [x for x in LANGUAGE_CODES_AND_NAMES.items()]
+    language_choices.sort()
 
     focus_input = 'id_username'
 
@@ -43,12 +43,6 @@ def create_profile(request):
         email = request.POST.get('email', None)
         token = request.POST.get('token', None)
         languages = request.POST.getlist('languages', None)
-
-        print(username)
-        print(email)
-        print(token)
-        print(languages)
-        print(request.POST)
 
         if username and email and token and languages:
             try:
@@ -162,6 +156,70 @@ def create_profile(request):
     context.update(BASE_CONTEXT)
     
     return render(request, 'Dashboard/create-profile.html', context)
+
+@login_required
+def update_profile(request):
+    """
+    Renders the profile update view.
+    """
+    errors = None
+    languages = set()
+    language_choices = [x for x in LANGUAGE_CODES_AND_NAMES.items()]
+    language_choices.sort()
+    focus_input = 'id_projects'
+
+    if request.method == "POST":
+        languages = set(request.POST.getlist('languages', None))
+        if languages:
+            try:
+                # Compute set of evaluation languages for this user.
+                target_language_codes = set(LANGUAGE_CODES_AND_NAMES.keys())
+                eval_groups = []
+                for eval_language in target_language_codes:
+                    if eval_language in languages:
+                        eng2xyz = Group.objects.filter(name__endswith=eval_language)
+                        if eng2xyz.exists():
+                            eval_groups.extend(eng2xyz)
+
+                # Also, add user to WMT16 group.
+                wmt16_group = Group.objects.filter(name='WMT16')
+                if wmt16_group.exists():
+                    eval_groups.append(wmt16_group[0])
+
+                # Update group settings for the new user account.
+                for eval_group in eval_groups:
+                    eval_group.user_set.add(request.user)
+
+                # Redirect to WMT16 overview page.
+                return redirect('dashboard')
+
+            # For any other exception, clean up and ask user to retry.
+            except:
+                from traceback import format_exc
+                print(format_exc())
+
+                languages = set()
+
+        # Detect which input should get focus for next page rendering.
+        if not languages:
+            focus_input = 'id_languages'
+            errors = ['invalid_languages']
+
+    # Determine user target languages
+    for group in request.user.groups.all():
+        if 'eng2' in group.name or '2eng' in group.name:
+            languages.add(group.name[3:])
+
+    context = {
+      'active_page': "OVERVIEW",
+      'errors': errors,
+      'focus_input': focus_input,
+      'languages': languages,
+      'title': 'Update profile',
+    }
+    context.update(BASE_CONTEXT)
+
+    return render(request, 'Dashboard/update-profile.html', context)
 
 @login_required
 def dashboard(request):
