@@ -32,7 +32,10 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
     url(r'^$', dashboard_views.frontpage, name='frontpage'),
-    url(r'^dashboard/create-profile/$', dashboard_views.register, name='create-profile'),
+    url(r'^dashboard/create-profile/$',
+      dashboard_views.create_profile,
+      name='create-profile'
+    ),
 
     url(r'^dashboard/sign-in/$',
       auth_views.LoginView.as_view(
@@ -44,7 +47,7 @@ urlpatterns = [
 
     url(r'^dashboard/sign-out/$',
       auth_views.LogoutView.as_view(
-        template_name='Dashboard/signout.html',
+        template_name='Dashboard/signout.html', # TODO: this does not exist!
         extra_context=BASE_CONTEXT
       ),
       name='sign-out'
