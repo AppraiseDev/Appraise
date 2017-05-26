@@ -1,6 +1,7 @@
 from uuid import uuid4
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
 from django.db import models
+from django.db.utils import OperationalError
 
 LANGUAGE_CODES_AND_NAMES = {
   'ces': 'Czech (čeština)',
@@ -20,10 +21,15 @@ LANGUAGE_CODES_AND_NAMES = {
   'swe': 'Swedish (svenska)',
 }
 
-for code in LANGUAGE_CODES_AND_NAMES.keys():
-    if not Group.objects.filter(name=code).exists():
-        new_language_group = Group(name=code)
-        new_language_group.save()
+# Ensure that all languages have a corresponding group.
+try:
+    for code in LANGUAGE_CODES_AND_NAMES.keys():
+        if not Group.objects.filter(name=code).exists():
+            new_language_group = Group(name=code)
+            new_language_group.save()
+
+except OperationalError:
+    pass
 
 def create_uuid4_token():
     """
@@ -39,6 +45,13 @@ class UserInviteToken(models.Model):
     group = models.ForeignKey(
       Group,
       db_index=True
+    )
+  
+    user = models.ForeignKey(
+      User,
+      db_index=True,
+      blank=True,
+      null=True
     )
 
     token = models.CharField(
@@ -64,12 +77,12 @@ class UserInviteToken(models.Model):
         verbose_name = "User invite token"
         verbose_name_plural = "User invite tokens"
 
-    def __unicode__(self):
+    def __str__(self):
         """
         Returns a Unicode String for this UserInviteToken object.
         """
-        return u'<user-invite id="{0}" token="{1}" active="{2}">'.format(
-          self.id, self.token, self.active
+        return u'<user-invite id="{0}" token="{1}" active="{2}" group="{3}" />'.format(
+          self.id, self.token, self.active, self.group.name
         )
 
 

@@ -80,8 +80,9 @@ def create_profile(request):
 
                 user.save()
 
-                # Disable invite token.
+                # Disable invite token and attach to current user.
                 invite.active = False
+                invite.user = user
                 invite.save()
 
                 # Login user and redirect to WMT15 overview page.
