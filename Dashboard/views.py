@@ -49,7 +49,6 @@ def create_profile(request):
                 # Check if given invite token is still active.
                 invite = UserInviteToken.objects.filter(token=token)
                 if not invite.exists() or not invite[0].active:
-                    print("INVALID_TOKEN")
                     raise ValueError('invalid_token')
 
                 # We now have a valid invite token...
@@ -58,23 +57,14 @@ def create_profile(request):
                 # Check if desired username is already in use.
                 current_user = User.objects.filter(username=username)
                 if current_user.exists():
-                    print("USER_EXISTS: {0}".format(current_user.username))
                     raise ValueError('invalid_username')
 
                 # Compute set of evaluation languages for this user.
                 eval_groups = []
-
-                if False:
-                    for eval_language in ('2ces', '2deu', '2eng', '2fin', '2fra', '2hin', '2rus'):
-                        if eval_language in languages:
-                            eng2xyz = Group.objects.filter(name__endswith=eval_language)
-                            if eng2xyz.exists():
-                                eval_groups.extend(eng2xyz)
-
-                    # Also, add user to WMT15 group.
-                    wmt15_group = Group.objects.filter(name='WMT15')
-                    if wmt15_group.exists():
-                        eval_groups.append(wmt15_group[0])
+                for code in languages:
+                    language_group = Group.objects.filter(name=code)
+                    if language_group.exists():
+                        eval_groups.extend(language_group)
 
                 # Create new user account and add to group.
                 password = '{0}{1}'.format(
@@ -102,15 +92,12 @@ def create_profile(request):
             # For validation errors, invalidate the respective value.
             except ValueError as issue:
                 if issue.args[0] == 'invalid_username':
-                    print("HERE")
                     username = None
 
                 elif issue.args[0] == 'invalid_token':
-                    print("THERE")
                     token = None
 
                 else:
-                    print("WHERE")
                     username = None
                     email = None
                     token = None
@@ -119,7 +106,7 @@ def create_profile(request):
             # For any other exception, clean up and ask user to retry.
             except:
                 from traceback import format_exc
-                print(format_exc())
+                print(format_exc()) # TODO: need logger here!
                 username = None
                 email = None
                 token = None
@@ -173,18 +160,11 @@ def update_profile(request):
         if languages:
             try:
                 # Compute set of evaluation languages for this user.
-                target_language_codes = set(LANGUAGE_CODES_AND_NAMES.keys())
                 eval_groups = []
-                for eval_language in target_language_codes:
-                    if eval_language in languages:
-                        eng2xyz = Group.objects.filter(name__endswith=eval_language)
-                        if eng2xyz.exists():
-                            eval_groups.extend(eng2xyz)
-
-                # Also, add user to WMT16 group.
-                wmt16_group = Group.objects.filter(name='WMT16')
-                if wmt16_group.exists():
-                    eval_groups.append(wmt16_group[0])
+                for code in languages:
+                    language_group = Group.objects.filter(name=code)
+                    if language_group.exists():
+                        eval_groups.extend(language_group)
 
                 # Update group settings for the new user account.
                 for eval_group in eval_groups:
@@ -207,8 +187,8 @@ def update_profile(request):
 
     # Determine user target languages
     for group in request.user.groups.all():
-        if 'eng2' in group.name or '2eng' in group.name:
-            languages.add(group.name[3:])
+        if group.name.lower() in [x.lower() for x in LANGUAGE_CODES_AND_NAMES.keys()]:
+            languages.add(group.name.lower())
 
     context = {
       'active_page': "OVERVIEW",

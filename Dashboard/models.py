@@ -20,6 +20,11 @@ LANGUAGE_CODES_AND_NAMES = {
   'swe': 'Swedish (svenska)',
 }
 
+for code in LANGUAGE_CODES_AND_NAMES.keys():
+    if not Group.objects.filter(name=code).exists():
+        new_language_group = Group(name=code)
+        new_language_group.save()
+
 def create_uuid4_token():
     """
     Creates a new UUID4-based token.
