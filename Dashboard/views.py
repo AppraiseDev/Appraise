@@ -166,25 +166,12 @@ def update_profile(request):
                     if language_group.exists():
                         language_group = language_group[0]
                         if code in languages:
-                            print('Setting language {0} for user {1}'.format(code, request.user))
                             language_group.user_set.add(request.user)
                         else:
-                            print('Removing language {0} for user {1}'.format(code, request.user))
                             language_group.user_set.remove(request.user)
                         language_group.save()
 
-                if False:
-                    eval_groups = []
-                    for code in languages:
-                        language_group = Group.objects.filter(name=code)
-                        if language_group.exists():
-                            eval_groups.extend(language_group)
-
-                    # Update group settings for the new user account.
-                    for eval_group in eval_groups:
-                        eval_group.user_set.add(request.user)
-
-                # Redirect to WMT16 overview page.
+                # Redirect to dashboard.
                 return redirect('dashboard')
 
             # For any other exception, clean up and ask user to retry.
