@@ -13,7 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+from django.conf.urls import url, handler404, handler500
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
@@ -26,6 +26,10 @@ from Appraise.settings import BASE_CONTEXT
 #  'title': 'Appraise evaluation system',
 #  'static_url': STATIC_URL,
 #}
+
+# HTTP error handlers supporting COMMIT_TAG.
+handler404 = 'Dashboard.views._page_not_found'
+handler500 = 'Dashboard.views._server_error'
 
 # pylint: disable=C0330
 urlpatterns = [

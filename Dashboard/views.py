@@ -6,10 +6,21 @@ from django.contrib.auth.views import password_change
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
-from django.shortcuts import render, reverse, redirect
+from django.shortcuts import render, reverse, redirect, render_to_response
 
 from Appraise.settings import STATIC_URL, BASE_CONTEXT
 from .models import UserInviteToken, LANGUAGE_CODES_AND_NAMES
+
+
+# HTTP error handlers supporting COMMIT_TAG.
+def _page_not_found(request, template_name='404.html'):
+    """Custom HTTP 404 handler that preserves URL_PREFIX."""
+    return render_to_response('Dashboard/404.html', BASE_CONTEXT)
+
+
+def _server_error(request, template_name='500.html'):
+    """Custom HTTP 500 handler that preserves URL_PREFIX."""
+    return render_to_response('Dashboard/500.html', BASE_CONTEXT)
 
 def frontpage(request, extra_context=None):
     """
