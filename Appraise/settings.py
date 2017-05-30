@@ -26,6 +26,22 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1']
 
+import logging
+from logging.handlers import RotatingFileHandler
+
+# Logging settings for this Django project.
+LOG_PATH = os.getcwd()
+LOG_LEVEL = logging.DEBUG
+LOG_FILENAME = os.path.join(LOG_PATH, 'appraise.log')
+LOG_FORMAT = "[%(asctime)s] %(name)s::%(levelname)s %(message)s"
+LOG_DATE = "%m/%d/%Y @ %H:%M:%S"
+LOG_FORMATTER = logging.Formatter(LOG_FORMAT, LOG_DATE)
+
+LOG_HANDLER = RotatingFileHandler(filename=LOG_FILENAME, mode="a",
+  maxBytes=1024*1024, backupCount=5, encoding="utf-8")
+LOG_HANDLER.setLevel(level=LOG_LEVEL)
+LOG_HANDLER.setFormatter(LOG_FORMATTER)
+
 LOGIN_URL = '/dashboard/sign-in/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
