@@ -22,9 +22,19 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'j^g&cs_-8-%gwx**xmq64pcm6o2c3ovrxy&%9n@ez#b=qi!uc%'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1']
+if DEBUG:
+    ALLOWED_HOSTS = ['127.0.0.1']
+
+else:
+    ALLOWED_HOSTS = ['52.178.114.181', 'wmt17.appraise.cf']
+    ADMINS = [('Christian', 'cfedermann@gmail.com')]
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_BROWSER_XSS_FILTER = True
+    # SESSION_COOKIE_SECURE = True
+    # CSRF_COOKIE_SECURE = True
+    # X_FRAME_OPTIONS = 'DENY'
 
 import logging
 from logging.handlers import RotatingFileHandler
