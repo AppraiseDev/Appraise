@@ -1,7 +1,7 @@
 from uuid import uuid4
 from django.contrib.auth.models import Group, User
 from django.db import models
-from django.db.utils import OperationalError
+from django.db.utils import OperationalError, ProgrammingError
 
 LANGUAGE_CODES_AND_NAMES = {
   'ces': 'Czech (čeština)',
@@ -28,7 +28,7 @@ try:
             new_language_group = Group(name=code)
             new_language_group.save()
 
-except OperationalError:
+except (OperationalError, ProgrammingError):
     pass
 
 def create_uuid4_token():
