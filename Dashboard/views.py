@@ -112,7 +112,7 @@ def create_profile(request):
                 invite.user = user
                 invite.save()
 
-                # Login user and redirect to WMT15 overview page.
+                # Login user and redirect to dashboard page.
                 user = authenticate(username=username, password=password)
                 login(request, user)
                 return redirect('dashboard')
