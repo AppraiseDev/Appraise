@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'j^g&cs_-8-%gwx**xmq64pcm6o2c3ovrxy&%9n@ez#b=qi!uc%'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 if DEBUG:
     ALLOWED_HOSTS = ['127.0.0.1']
@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'Dashboard',
+    'EvalView',
     #'EvalData',
     #'Campaign',
 ]

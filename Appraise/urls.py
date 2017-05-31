@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from Dashboard import views as dashboard_views
+from EvalView import views as annotate_views
 from Appraise.settings import BASE_CONTEXT
 
 # Base context for all views.
@@ -72,4 +73,6 @@ urlpatterns = [
     ),
 
     url(r'^dashboard/$', dashboard_views.dashboard, name='dashboard'),
+
+    url(r'^annotate/$', annotate_views.direct_assessment, name='direct-assessment'),
 ]
