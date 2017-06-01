@@ -26,7 +26,7 @@ try:
     from local_settings import DEBUG, ADMINS, MANAGERS, DATABASES, \
       SECRET_KEY, ALLOWED_HOSTS, SECURE_CONTENT_TYPE_NOSNIFF, \
       SECURE_BROWSER_XSS_FILTER, SESSION_COOKIE_SECURE, \
-      CSRF_COOKIE_SECURE, X_FRAME_OPTIONS
+      CSRF_COOKIE_SECURE, X_FRAME_OPTIONS, WSGI_APPLICATION
 
 except ImportError:
     DEBUG = True
@@ -50,6 +50,8 @@ except ImportError:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
     X_FRAME_OPTIONS = 'DENY'
+
+    WSGI_APPLICATION = 'Appraise.wsgi.application'
 
 # Logging settings for this Django project.
 LOG_LEVEL = logging.DEBUG
@@ -109,20 +111,6 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = 'Appraise.wsgi.application'
-
-
-# Database
-# https://docs.djangoproject.com/en/1.11/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
