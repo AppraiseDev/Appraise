@@ -2,6 +2,8 @@
 Appraise evaluation framework
 """
 # pylint: disable=W0611
+from csv import DictWriter
+from datetime import datetime
 from hashlib import md5
 from os import path
 from traceback import format_exc
@@ -31,11 +33,16 @@ class Command(BaseCommand):
           '--create-group', type=bool, default=False,
           help='Create group if it does not exist yet'
         )
+        parser.add_argument(
+          '--output-file', type=str, default=None,
+          help='Output file path'
+        )
 
     def handle(self, *args, **options):
         group_name = options['group_name']
         number_of_tokens = options['number_of_tokens']
         create_group = options['create_group']
+        output_file = options['output_file']
 
         _msg = '\n[{0}]\n\n'.format(path.basename(__file__))
         self.stdout.write(_msg)
@@ -86,5 +93,23 @@ class Command(BaseCommand):
 
         self.stdout.write('\n      group name: {0}'.format(group_name))
         self.stdout.write('  group password: {0}\n\n'.format(group_password))
+
+        if output_file is not None:
+            with open(output_file, mode='w', encoding='utf8') as out_file:
+                csv_writer = DictWriter(out_file, ('key', 'value'))
+                date_created = datetime.utcnow().isoformat()
+
+                csv_rows = [
+                  {'key': 'group_name', 'value': group_name},
+                  {'key': 'group_password', 'value': group_password},
+                  {'key': 'number_of_tokens', 'value': number_of_tokens},
+                  {'key': 'date_created', 'value': date_created}
+                ]
+
+                for token in tokens:
+                    csv_rows.append({'key': 'token', 'value': token})
+
+                csv_writer.writeheader()
+                csv_writer.writerows(csv_rows)
 
         self.stdout.write('\n[DONE]\n\n')
