@@ -40,7 +40,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 # Logging settings for this Django project.
-LOG_PATH = os.getcwd()
+LOG_PATH = BASE_DIR
 LOG_LEVEL = logging.DEBUG
 LOG_FILENAME = os.path.join(LOG_PATH, 'appraise.log')
 LOG_FORMAT = "[%(asctime)s] %(name)s::%(levelname)s %(message)s"
