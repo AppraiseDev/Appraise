@@ -422,6 +422,8 @@ class TextSegment(EvalItem):
         return super(TextSegment, self).is_valid()
 
 
+# TODO: chrife: source, target should be refactored into item1, item2.
+#   For direct assessment, we will use candidate and reference.
 class TextPair(EvalItem):
     """
     Models a pair of two text segments.

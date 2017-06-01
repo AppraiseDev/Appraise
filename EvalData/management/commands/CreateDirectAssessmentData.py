@@ -54,6 +54,10 @@ class Command(BaseCommand):
           '--randomize', required=False, action='store_true',
           help='Randomize extracted work items'
         )
+        parser.add_argument(
+          '--batch-no', type=int, default=1,
+          help='Specifies desired batch no (default: 1)'
+        )
         # TODO: add optional parameters to set source, reference and system IDs
 
         # TODO: add exclude argument which prevents creation of redundant data?
@@ -135,7 +139,7 @@ class Command(BaseCommand):
 
         # IF BLOCK DEF IS GIVEN, DO SOMETHING WITH IT
         if options['block_definition'] is not None:
-            print("WOOHOO")
+            print("WOOHOO") 
 
         if (batch_size % block_size) > 0:
             self.stdout.write('Batch size needs to be divisible by block size!')
@@ -160,8 +164,10 @@ class Command(BaseCommand):
         for system_file in iglob('{0}{1}{2}'.format(systems_path, os.path.sep, "*.txt")):
             systems_files.append(system_file)
 
+        random_seed_value = 123456
+
         systems_files.sort()
-        seed(123456)
+        seed(random_seed_value)
         shuffle(systems_files)
         # ADD RANDOMIZED SHUFFLING HERE?
 
@@ -193,23 +199,102 @@ class Command(BaseCommand):
         all_keys.sort()
         shuffle(all_keys)
 
-        num_blocks = int(batch_size/block_size)
-        for block_id in range(num_blocks):
-            print('Creating block {0}'.format(block_id))
+        batch_no = options['batch_no']
 
-            block_start = 7 * (block_id)
-            block_end = block_start + 7
-            block_hashes = all_keys[block_start:block_end]
+        for batch_id in range(batch_no):
+            block_data = []
+            block_offset = batch_id * 10 * 7
 
-            for block_hash in block_hashes:
-                _s_id = hashed_text[block_hash]['segment_id']
-                _s_text = hashed_text[block_hash]['segment_text']
-                _s_systems = hashed_text[block_hash]['systems']
-                print(_s_id)
-                print(_s_text.encode('utf8'))
-                print(_s_systems)
+            num_blocks = int(batch_size/block_size)
+            for block_id in range(num_blocks):
+                print('Creating block {0}'.format(block_id))
 
-            # Get 7 random system outputs
+                # Get 7 random system outputs
+                block_start = block_offset + 7 * (block_id)
+                block_end = block_start + 7
+                block_hashes = all_keys[block_start:block_end]
+
+                current_block = {
+                  'systems': block_hashes
+                }
+
+                block_data.append(current_block)
+
+            # Compute redundant, reference, bad reference bits
+            for block_id in range(num_blocks):
+                check_id = int((block_id + (num_blocks/2)) % num_blocks)
+                print('Add checks for block {0} to block {1}'.format(check_id, block_id))
+
+                check_systems = block_data[check_id]['systems']
+                check_systems.sort()
+                shuffle(check_systems)
+
+                block_data[block_id]['redundant'] = check_systems[0]
+                block_data[block_id]['reference'] = check_systems[1]
+                block_data[block_id]['badref'] = check_systems[2]
+
+            # Direct assessment is reference-based for WMT17
+            sourceID = basename(options['reference_file'])
+
+            taskData = OrderedDict({
+              'batchSize': options['batch_size'],
+              'sourceLanguage': options['source_language'],
+              'targetLanguage': options['target_language'],
+              'requiredAnnotations': 1,
+              'randomSeed': random_seed_value
+            })
+            itemsData = []
+            _item = 0
+
+            for block_id in range(num_blocks):
+                all_items = [(x, 'TGT') for x in block_data[block_id]['systems']]
+                all_items.append((block_data[block_id]['redundant'], 'CHK'))
+                all_items.append((block_data[block_id]['reference'], 'REF'))
+                all_items.append((block_data[block_id]['badref'], 'BAD'))
+                shuffle(all_items)
+
+                for current_item, current_type in all_items:
+                    item_data = hashed_text[current_item]
+
+                    item_id = item_data['segment_id']
+                    item_text = item_data['segment_text']
+                    item_bad = item_data['segment_bad']
+                    item_ref = item_data['segment_ref']
+                    item_src = item_data['segment_src']
+                    item_systems = item_data['systems']
+
+                    targetID = '+'.join(item_systems)
+                    targetText = item_text
+                    if current_type == 'REF':
+                        targetID = basename(options['reference_file'])
+                        targetText = item_ref
+                    elif current_item == 'BAD':
+                        targetText = item_bad
+
+                    obj = OrderedDict()
+                    obj['_item'] = _item
+                    obj['_block'] = block_id + (10 * batch_no)
+                    obj['sourceID'] = sourceID
+                    obj['sourceText'] = item_ref
+                    obj['targetID'] = targetID
+                    obj['targetText'] = targetText
+                    obj['itemID'] = item_id
+                    obj['itemType'] = current_type
+
+                    itemsData.append(obj)
+                    _item += 1
+
+            outputData = OrderedDict({
+              'task': taskData,
+              'items': itemsData
+            })
+            print(json.dumps(outputData, indent=2))
+            json_data = json.dumps(outputData, indent=2)
+
+            with open(options['output_json_file'], mode='w', encoding='utf8') as output_file:
+                self.stdout.write('Creating {0} ... '.format(options['output_json_file']), ending='')
+                output_file.write(str(json_data))
+                self.stdout.write('OK')
 
         return
 
@@ -217,12 +302,7 @@ class Command(BaseCommand):
 #        print('Loaded {0} system segments'.format(len(system_text.keys())))
 
         try:
-            assert(
-                 len(source_file.keys())
-              == len(reference_file.keys())
-              == len(system_text.keys())
-            )
-
+            pass
             # TODO: add check for ids
 
         except AssertionError:
@@ -242,17 +322,9 @@ class Command(BaseCommand):
             shuffle(segment_ids)
             self.stdout.write('Randomized work items')
         
-        sourceID = basename(options['source_file'])
 
-        taskData = OrderedDict({
-          'batchSize': options['batch_size'],
-          'sourceLanguage': options['source_language'],
-          'targetLanguage': options['target_language'],
-          'requiredAnnotations': options['annotations'],
-          'randomized': options['randomize'],
-          'randomSeed': options['random_seed']
-        })
-        itemsData = []
+
+
 
         _ref = options['refs']
         _bad = options['bad_refs']
