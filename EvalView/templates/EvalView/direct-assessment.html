@@ -6,25 +6,54 @@
 #slider .ui-slider-handle { border-color: #729fcf; }
 </style>
 
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-<script src="{{STATIC_URL}}js/jquery-2.1.4.min.js"></script>
-<!--<script src="http://code.jquery.com/jquery-1.10.2.js"></script>-->
-<script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+<script src="http://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script>
 <!--
+var idleTime = 0;
+var idleTimeoutInSeconds = 5;
+
 $(document).ready(function() {
   $('input[name="start_timestamp"]').val(Date.now()/1000.0);
   $('#slider').slider({orientation: "horizontal", range: "min", change: update_score});
   $('input[name="score"]').val(-1);
+
+  //Increment the idle time counter every second.
+  var idleInterval = setInterval(timerIncrement, 1000);
+
+  // Zero idle timer on mouse movement.
+  $(this).mousemove(function (e) {
+    idleTime = 0;
+  });
+
+  // Zero idle timer on key presses.
+  $(this).keypress(function (e) {
+    idleTime = 0;
+  });
 });
+
+function timerIncrement() {
+  idleTime = idleTime + 1;
+  if (idleTime > idleTimeoutInSeconds) {
+    alert('Annotation has been paused after ' + idleTimeoutInSeconds+ ' seconds of inactiviy.\nClick "OK" to continue annotation.');
+    reset_timer();
+  }
+}
 
 function add_end_timestamp()
 {
   $('input[name="end_timestamp"]').val(Date.now()/1000.0);
 }
 
+function reset_timer()
+{
+  idleTime = 0;
+  $('input[name="start_timestamp"]').val(Date.now()/1000.0);
+}
+
 function reset_form()
 {
+  idleTime = 0;
   $('input[name="start_timestamp"]').val(Date.now()/1000.0);
   $('#slider').slider('option', 'value', 0);
   $('input[name="score"]').val(-1);
@@ -107,9 +136,7 @@ function update_score()
 <div class="row">
 <div class="col-sm-12">
 <blockquote>
-<p>
 <div id="slider"></div>
-</P>
 <small>How accurately does the above candidate text convey the original semantics of the reference text? Slider ranges from <emph>Not a all</emph> (left) to <emph>Perfectly</emph> (right).</small>
 </blockquote>
 </div>
@@ -125,8 +152,10 @@ function update_score()
     </td>
     <td style="width:50%;text-align:right;">
       <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn"><i class="icon-repeat"></i> Reset</button>
+<!--
       &nbsp;
       <button name="submit_button" accesskey="3" type="submit" class="btn btn-danger" value="FLAG_ERROR"><i class="icon-white icon-exclamation-sign"></i> Skip Item</button>
+-->
     </td>
   </tr>
   </table>

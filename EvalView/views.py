@@ -21,7 +21,9 @@ def direct_assessment(request):
       request.user.username or "Anonymous"))
 
     context = {
-      'active_page': 'direct-assessment'
+      'active_page': 'direct-assessment',
+      'reference_text': 'foo',
+      'candidate_text': 'bar'
     }
     context.update(BASE_CONTEXT)
 
