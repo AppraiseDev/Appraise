@@ -50,6 +50,7 @@ class Command(BaseCommand):
         self.stdout.write('      group_name: {0}'.format(group_name))
         self.stdout.write('number_of_tokens: {0}'.format(number_of_tokens))
         self.stdout.write('    create_group: {0}'.format(create_group))
+        self.stdout.write('     output_file: {0}'.format(output_file))
 
         self.stdout.write('\n[INIT]\n\n')
 
@@ -76,6 +77,17 @@ class Command(BaseCommand):
             self.stdout.write('\n[FAIL]\n\n')
             return
 
+        group_password = '{0}{1}'.format(
+          group_name[:2].upper(),
+          md5(group_name.encode('utf-8')).hexdigest()[:8]
+        )
+
+        date_created = datetime.utcnow().isoformat()
+
+        self.stdout.write('      group name: {0}'.format(group_name))
+        self.stdout.write('  group password: {0}'.format(group_password))
+        self.stdout.write('    date created: {0}\n\n'.format(date_created))
+
         tokens = []
         group = Group.objects.filter(name=group_name).get()
         for _ in range(number_of_tokens):
@@ -84,20 +96,11 @@ class Command(BaseCommand):
             new_token.save()
 
             tokens.append(new_token.token)
-            self.stdout.write(new_token.token)
-
-        group_password = '{0}{1}'.format(
-          group_name[:2].upper(),
-          md5(group_name.encode('utf-8')).hexdigest()[:8]
-        )
-
-        self.stdout.write('\n      group name: {0}'.format(group_name))
-        self.stdout.write('  group password: {0}\n\n'.format(group_password))
+            self.stdout.write('           token: {0}'.format(new_token.token))
 
         if output_file is not None:
-            with open(output_file, mode='w', encoding='utf8') as out_file:
+            with open(output_file, mode='a', encoding='utf8') as out_file:
                 csv_writer = DictWriter(out_file, ('key', 'value'))
-                date_created = datetime.utcnow().isoformat()
 
                 csv_rows = [
                   {'key': 'group_name', 'value': group_name},
