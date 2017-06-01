@@ -2,7 +2,8 @@
 Appraise evaluation framework
 """
 # pylint: disable=W0611
-from csv import DictWriter
+from collections import defaultdict
+from csv import DictWriter, DictReader
 from datetime import datetime
 from hashlib import md5
 from os import path
@@ -99,8 +100,56 @@ class Command(BaseCommand):
             self.stdout.write('           token: {0}'.format(new_token.token))
 
         if output_file is not None:
-            with open(output_file, mode='a', encoding='utf8') as out_file:
-                csv_writer = DictWriter(out_file, ('key', 'value'))
+            csv_fields = ('key', 'value')
+            csv_data = defaultdict(set)
+
+            if path.exists(output_file):
+                with open(output_file, mode='r', encoding='utf-8') as in_file:
+                    csv_reader = DictReader(in_file, csv_fields)
+                    for csv_line in csv_reader:
+                        if not 'key' in csv_line.keys() or \
+                          not 'value' in csv_line.keys():
+                            continue
+
+                        csv_data[csv_line['key']].add(csv_line['value'])
+
+                # Validate pre-existing CSV content
+                #
+                # 1. 'key' --> set({'value'})
+                # 2. 'group_name' --> set({group_name})
+                # 3. 'group_password' --> set({group_password})
+                invalid_csv_file = False
+
+                if not 'key' in csv_data.keys() or \
+                  csv_data['key'] != {'value'}:
+                    invalid_csv_file = True
+
+                if not 'group_name' in csv_data.keys() or \
+                  csv_data['group_name'] != {group_name}:
+                    invalid_csv_file = True
+
+                if not 'group_password' in csv_data.keys() or \
+                  csv_data['group_password'] != {group_password}:
+                    invalid_csv_file = True
+
+                if invalid_csv_file:
+                    _msg = '\n{0}Incompatible output file given: {1}'.format(
+                      WARNING_MSG, path.abspath(output_file)
+                    )
+                    self.stdout.write(_msg)
+                    self.stdout.write('      File needs (key, value) ' \
+                      'headers and group name and password have to match.')
+                    self.stdout.write('\n[FAIL]\n\n')
+                    return
+
+                if 'token' in csv_data.keys():
+                    combined_tokens = list(csv_data['token'])
+                    combined_tokens.extend(tokens)
+                    tokens = combined_tokens
+                    number_of_tokens = len(tokens)
+
+            with open(output_file, mode='w', encoding='utf-8') as out_file:
+                csv_writer = DictWriter(out_file, csv_fields)
 
                 csv_rows = [
                   {'key': 'group_name', 'value': group_name},
