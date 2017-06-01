@@ -23,12 +23,19 @@ def direct_assessment(request):
 
     if request.method == "POST":
         score = request.POST.get('score', None)
-        LOGGER.info('score={0}'.format(score))
+        item_id = request.POST.get('item_id', None)
+        LOGGER.info('score={0}, item_id={1}'.format(score, item_id))
+
+        # If item_id is valid, create annotation result
+
+    # Get item_id for next available item for direct assessment
+    item_id = 'foo'
 
     context = {
       'active_page': 'direct-assessment',
       'reference_text': 'foo',
-      'candidate_text': 'bar'
+      'candidate_text': 'bar',
+      'item_id': item_id,
     }
     context.update(BASE_CONTEXT)
 
