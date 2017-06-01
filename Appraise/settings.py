@@ -80,8 +80,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'Dashboard',
     'EvalView',
-    #'EvalData',
-    #'Campaign',
+    'EvalData',
+    'Campaign',
 ]
 
 MIDDLEWARE = [
