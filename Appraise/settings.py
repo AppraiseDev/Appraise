@@ -51,8 +51,6 @@ except ImportError:
     CSRF_COOKIE_SECURE = False
     X_FRAME_OPTIONS = 'DENY'
 
-TEMPLATE_DEBUG = DEBUG
-
 # Logging settings for this Django project.
 LOG_LEVEL = logging.DEBUG
 LOG_FILENAME = os.path.join(BASE_DIR, 'appraise.log')
