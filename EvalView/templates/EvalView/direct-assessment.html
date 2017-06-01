@@ -117,6 +117,7 @@ function update_score()
 </div>
 
 <form action="{{action_url}}" method="post" onsubmit="javascript:add_end_timestamp();">
+{% csrf_token %}
 
 <input name="end_timestamp" type="hidden" value="" />
 <input name="task_id" type="hidden" value="{{task_id}}" />

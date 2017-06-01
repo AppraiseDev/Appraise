@@ -12,6 +12,7 @@ LOGGER = logging.getLogger('Dashboard.views')
 LOGGER.addHandler(LOG_HANDLER)
 
 
+# pylint: disable=C0330
 @login_required
 def direct_assessment(request):
     """
@@ -19,6 +20,10 @@ def direct_assessment(request):
     """
     LOGGER.info('Rendering direct assessment view for user "{0}".'.format(
       request.user.username or "Anonymous"))
+
+    if request.method == "POST":
+        score = request.POST.get('score', None)
+        LOGGER.info('score={0}'.format(score))
 
     context = {
       'active_page': 'direct-assessment',
