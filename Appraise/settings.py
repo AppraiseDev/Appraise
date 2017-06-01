@@ -9,40 +9,53 @@ https://docs.djangoproject.com/en/1.11/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
+import logging
 import os
+
+from logging.handlers import RotatingFileHandler
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'j^g&cs_-8-%gwx**xmq64pcm6o2c3ovrxy&%9n@ez#b=qi!uc%'
+# Try to load local settings, otherwise use defaults.
+try:
+    # pylint: disable=W0611
+    from local_settings import DEBUG, ADMINS, MANAGERS, DATABASES, \
+      SECRET_KEY, ALLOWED_HOSTS, SECURE_CONTENT_TYPE_NOSNIFF, \
+      SECURE_BROWSER_XSS_FILTER, SESSION_COOKIE_SECURE, \
+      CSRF_COOKIE_SECURE, X_FRAME_OPTIONS
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+except ImportError:
+    DEBUG = True
 
-if DEBUG:
+    ADMINS = ()
+    MANAGERS = ADMINS
+
+    # pylint: disable=C0330
+    DATABASES = {
+      'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'development.db'),
+      }
+    }
+
+    SECRET_KEY = 'j^g&cs_-8-%gwx**xmq64pcm6o2c3ovrxy&%9n@ez#b=qi!uc%'
     ALLOWED_HOSTS = ['127.0.0.1']
 
-else:
-    ALLOWED_HOSTS = ['52.178.114.181', 'wmt17.appraise.cf']
-    ADMINS = [('Christian', 'cfedermann@gmail.com')]
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_BROWSER_XSS_FILTER = True
-    # SESSION_COOKIE_SECURE = True
-    # CSRF_COOKIE_SECURE = True
-    # X_FRAME_OPTIONS = 'DENY'
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    X_FRAME_OPTIONS = 'DENY'
 
-import logging
-from logging.handlers import RotatingFileHandler
+TEMPLATE_DEBUG = DEBUG
 
 # Logging settings for this Django project.
-LOG_PATH = BASE_DIR
 LOG_LEVEL = logging.DEBUG
-LOG_FILENAME = os.path.join(LOG_PATH, 'appraise.log')
+LOG_FILENAME = os.path.join(BASE_DIR, 'appraise.log')
 LOG_FORMAT = "[%(asctime)s] %(name)s::%(levelname)s %(message)s"
 LOG_DATE = "%m/%d/%Y @ %H:%M:%S"
 LOG_FORMATTER = logging.Formatter(LOG_FORMAT, LOG_DATE)
