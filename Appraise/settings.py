@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Try to load local settings, otherwise use defaults.
 try:
     # pylint: disable=W0611
-    from local_settings import DEBUG, ADMINS, MANAGERS, DATABASES, \
+    from Appraise.local_settings import DEBUG, ADMINS, MANAGERS, DATABASES, \
       SECRET_KEY, ALLOWED_HOSTS, SECURE_CONTENT_TYPE_NOSNIFF, \
       SECURE_BROWSER_XSS_FILTER, SESSION_COOKIE_SECURE, \
       CSRF_COOKIE_SECURE, X_FRAME_OPTIONS, WSGI_APPLICATION
