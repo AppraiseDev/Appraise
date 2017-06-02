@@ -335,7 +335,12 @@ class Metadata(BaseMetadata):
         verbose_name = 'Metadata record'
 
     def __str__(self):
-        return '{0}["{1}"]'.format(self.corpusName, self.versionInfo)
+        marketName = str(self.market)[:7].replace('_', '-')
+        return '{0}/{1}["{2}"]'.format(
+          marketName,
+          self.corpusName,
+          self.versionInfo
+        )
 
 
 class EvalItem(BaseMetadata):
