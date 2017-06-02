@@ -520,7 +520,12 @@ class DirectAssessmentTask(BaseMetadata):
     )
 
     batchNo = models.PositiveIntegerField(
-      verbose_name=_('Batch no'),
+      verbose_name=_('Batch number'),
+      help_text=_('(1-based)')
+    )
+
+    currentItemNo = models.PositiveIntegerField(
+      verbose_name=_('Current item number'),
       help_text=_('(1-based)')
     )
 
