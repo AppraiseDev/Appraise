@@ -508,6 +508,15 @@ class DirectAssessmentTask(BaseMetadata):
         value=MAX_REQUIREDANNOTATIONS_VALUE))
     )
 
+    assignedTo = models.ForeignKey(
+      User,
+      on_delete=models.PROTECT,
+      related_name='%(app_label)s_%(class)s_assignedTo',
+      related_query_name="%(app_label)s_%(class)ss",
+      verbose_name=_('Assigned to'),
+      help_text=_('(user working on this task)')
+    )
+
     # pylint: disable=E1101
     def is_valid(self):
         """
@@ -542,6 +551,10 @@ class DirectAssessmentResult(BaseMetadata):
       verbose_name=_('Score'),
       help_text=_('(value in range=[1,100])')
     )
+
+    ###
+    # TODO: add duration, start and end time fields
+    ###
 
     item = models.ForeignKey(
       TextPair,
