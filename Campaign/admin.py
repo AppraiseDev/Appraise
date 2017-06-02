@@ -25,7 +25,7 @@ class CampaignTeamAdmin(BaseMetadataAdmin):
 
     fieldsets = (
       (None, {
-        'fields': ('teamName', 'owner', 'requiredAnnotations',
+        'fields': ('teamName', 'owner', 'members', 'requiredAnnotations',
           'requiredHours')
       }),
     ) + BaseMetadataAdmin.fieldsets
