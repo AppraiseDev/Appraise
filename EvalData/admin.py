@@ -181,7 +181,7 @@ class DirectAssessmentTaskAdmin(BaseMetadataAdmin):
 
     fieldsets = (
       (None, {
-        'fields': (['campaign', 'items', 'requiredAnnotations'])
+        'fields': (['campaign', 'items', 'requiredAnnotations', 'assignedTo'])
       }),
     ) + BaseMetadataAdmin.fieldsets
 
