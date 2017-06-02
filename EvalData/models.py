@@ -577,9 +577,15 @@ class DirectAssessmentResult(BaseMetadata):
       help_text=_('(value in range=[1,100])')
     )
 
-    ###
-    # TODO: add duration, start and end time fields
-    ###
+    start_time = models.FloatField(
+      verbose_name=_('Start time'),
+      help_text=_('(in seconds)')
+    )
+
+    end_time = models.FloatField(
+      verbose_name=_('End time'),
+      help_text=_('(in seconds)')
+    )
 
     item = models.ForeignKey(
       TextPair,
