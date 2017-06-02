@@ -10,10 +10,10 @@ from django.utils.translation import ugettext_lazy as _
 
 from EvalData.models import BaseMetadata, Market, Metadata
 
-MAX_TEAMNAME_LENGTH = 50
+MAX_TEAMNAME_LENGTH = 250
 MAX_SMALLINTEGER_VALUE = 32767
 MAX_FILEFILED_SIZE = 10 # TODO: this does not get enforced currently; remove?
-MAX_CAMPAIGNNAME_LENGTH = 50
+MAX_CAMPAIGNNAME_LENGTH = 250
 
 
 class CampaignTeam(BaseMetadata):
