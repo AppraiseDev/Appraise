@@ -511,10 +511,17 @@ class DirectAssessmentTask(BaseMetadata):
     assignedTo = models.ForeignKey(
       User,
       on_delete=models.PROTECT,
+      blank=True,
+      null=True,
       related_name='%(app_label)s_%(class)s_assignedTo',
       related_query_name="%(app_label)s_%(class)ss",
       verbose_name=_('Assigned to'),
       help_text=_('(user working on this task)')
+    )
+
+    batchNo = models.PositiveIntegerField(
+      verbose_name=_('Batch No'),
+      help_text=_('(1-based)')
     )
 
     # pylint: disable=E1101

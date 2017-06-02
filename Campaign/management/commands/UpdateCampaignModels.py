@@ -13,7 +13,7 @@ from Campaign.models import Campaign, CampaignTeam
 INFO_MSG = 'INFO: '
 WARNING_MSG = 'WARN: '
 
-# pylint: disable=C0111,C0330
+# pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
     help = 'Updates object instances required for Campaign app'
 
