@@ -17,7 +17,6 @@ WARNING_MSG = 'WARN: '
 class Command(BaseCommand):
     help = 'Updates object instances required for EvalData app'
 
-    # py lint: disable=C0330
     def add_arguments(self, parser):
         pass
 
@@ -40,7 +39,7 @@ class Command(BaseCommand):
             self.stdout.write(_msg)
             return
 
-        # Ensure that all languages have a corresponding group.
+        # Ensure that all Market and Metadata instances exist.
         for source, target in news_task_pairs:
             try:
                 # Create NewsTask Market instance, if needed

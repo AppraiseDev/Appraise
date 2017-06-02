@@ -13,11 +13,10 @@ from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 INFO_MSG = 'INFO: '
 WARNING_MSG = 'WARN: '
 
-# pylint: disable=C0111
+# pylint: disable=C0111,C0330
 class Command(BaseCommand):
     help = 'Updates object instances required for Dashboard app'
 
-    # py lint: disable=C0330
     def add_arguments(self, parser):
         pass
 
