@@ -71,6 +71,10 @@ class Command(BaseCommand):
 
                 for new_item in new_items:
                     new_item.metadata = batch.metadata
+
+                    if activate:
+                        new_item.activate()
+
                     new_item.save()
 
                 new_task = DirectAssessmentTask(
