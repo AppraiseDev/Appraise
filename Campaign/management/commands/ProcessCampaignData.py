@@ -14,9 +14,15 @@ class Command(BaseCommand):
           'campaign_name', type=str,
           help='Name of the campaign you want to process data for'
         )
+        parser.add_argument(
+          '--activate', type=bool, default=False,
+          help='Activate tasks after creation'
+        )
 
     def handle(self, *args, **options):
         campaign_name = options['campaign_name']
+        activate = options['activate']
+
         campaign = Campaign.objects.filter(campaignName=campaign_name)
 
         if not campaign.exists():
@@ -34,6 +40,7 @@ class Command(BaseCommand):
             self.stdout.write(_msg)
             return
 
+        # TODO: add rollback in case of errors
         for batch in campaign.batches.all():
             batch_name = batch.dataFile.name
             batch_file = batch.dataFile
@@ -70,12 +77,20 @@ class Command(BaseCommand):
                   campaign=campaign,
                   requiredAnnotations=batch_task['task']['requiredAnnotations'],
                   batchNo=batch_task['task']['batchNo'],
+                  batchData=batch,
                   createdBy=superusers[0]
                 )
                 new_task.save()
 
                 for new_item in new_items:
                     new_task.items.add(new_item)
+
+                if activate:
+                    new_task.activate()
+
                 new_task.save()
 
-                return
+                _msg = 'Success processing batch {0}, task {1}'.format(
+                  str(batch), batch_task['task']['batchNo']
+                )
+                self.stdout.write(_msg)

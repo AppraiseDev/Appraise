@@ -170,18 +170,18 @@ class DirectAssessmentTaskAdmin(BaseMetadataAdmin):
     Model admin for DirectAssessmentTask instances.
     """
     list_display = [
-      # nothing model specific
+      'dataName', 'batchNo', 'campaign', 'requiredAnnotations', 'assignedTo'
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      # nothing model specific
+      'batchData', 'campaign__campaignName'
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      # nothing model specific
+      'campaign__campaignName', 'assignedTo'
     ] + BaseMetadataAdmin.search_fields
 
     fieldsets = (
       (None, {
-        'fields': (['campaign', 'items', 'requiredAnnotations', 'assignedTo'])
+        'fields': (['batchData', 'batchNo', 'campaign', 'items', 'requiredAnnotations', 'assignedTo'])
       }),
     ) + BaseMetadataAdmin.fieldsets
 

@@ -163,13 +163,13 @@ class BaseMetadata(models.Model):
         Also sets respective dates for all three states.
         """
         self.activated = activated
-        self.dateActivated = datetime.now if activated else None
+        self.dateActivated = datetime.now() if activated else None
 
         self.completed = completed
-        self.dateCompleted = datetime.now if completed else None
+        self.dateCompleted = datetime.now() if completed else None
 
         self.retired = retired
-        self.dateRetired = datetime.now if retired else None
+        self.dateRetired = datetime.now() if retired else None
 
         self.save()
 
@@ -520,9 +520,22 @@ class DirectAssessmentTask(BaseMetadata):
     )
 
     batchNo = models.PositiveIntegerField(
-      verbose_name=_('Batch No'),
+      verbose_name=_('Batch no'),
       help_text=_('(1-based)')
     )
+
+    batchData = models.ForeignKey(
+      'Campaign.CampaignData',
+      on_delete=models.PROTECT,
+      blank=True,
+      null=True,
+      related_name='%(app_label)s_%(class)s_batchData',
+      related_query_name="%(app_label)s_%(class)ss",
+      verbose_name=_('Batch data')
+    )
+
+    def dataName(self):
+        return str(self.batchData)
 
     # pylint: disable=E1101
     def is_valid(self):
