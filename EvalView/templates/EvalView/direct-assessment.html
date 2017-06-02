@@ -12,27 +12,29 @@
 <script>
 <!--
 var idleTime = 0;
-var idleTimeoutInSeconds = 5;
+//var idleTimeoutInSeconds = 5;
 
 $(document).ready(function() {
   $('input[name="start_timestamp"]').val(Date.now()/1000.0);
   $('#slider').slider({orientation: "horizontal", range: "min", change: update_score});
   $('input[name="score"]').val(-1);
 
-  //Increment the idle time counter every second.
-  var idleInterval = setInterval(timerIncrement, 1000);
+  // Increment the idle time counter every second.
+  //var idleInterval = setInterval(timerIncrement, 1000);
 
   // Zero idle timer on mouse movement.
-  $(this).mousemove(function (e) {
-    idleTime = 0;
-  });
+  //$(this).mousemove(function (e) {
+  //  idleTime = 0;
+  //});
 
   // Zero idle timer on key presses.
-  $(this).keypress(function (e) {
-    idleTime = 0;
-  });
+  //$(this).keypress(function (e) {
+  //  idleTime = 0;
+  //});
 });
 
+// Uncomment this to activate timeout functionality
+/*
 function timerIncrement() {
   idleTime = idleTime + 1;
   if (idleTime > idleTimeoutInSeconds) {
@@ -41,15 +43,16 @@ function timerIncrement() {
   }
 }
 
-function add_end_timestamp()
-{
-  $('input[name="end_timestamp"]').val(Date.now()/1000.0);
-}
-
 function reset_timer()
 {
   idleTime = 0;
   $('input[name="start_timestamp"]').val(Date.now()/1000.0);
+}
+*/
+
+function add_end_timestamp()
+{
+  $('input[name="end_timestamp"]').val(Date.now()/1000.0);
 }
 
 function reset_form()
