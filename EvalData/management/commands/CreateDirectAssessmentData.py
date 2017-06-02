@@ -5,6 +5,7 @@ Appraise evaluation framework
 import json
 from django.core.management.base import BaseCommand, CommandError
 from collections import defaultdict, OrderedDict
+from math import floor
 from os.path import basename
 from random import seed, shuffle
 
@@ -57,6 +58,10 @@ class Command(BaseCommand):
         parser.add_argument(
           '--batch-no', type=int, default=1,
           help='Specifies desired batch no (default: 1)'
+        )
+        parser.add_argument(
+          '--all-batches', required=False, action='store_false',
+          help='Produces all possible batches at once'
         )
         # TODO: add optional parameters to set source, reference and system IDs
 
@@ -193,21 +198,39 @@ class Command(BaseCommand):
                 else:
                     hashed_text[md5hash]['systems'].append(os.path.basename(system_path))
 
-            print('Loaded {0} system {1} segments'.format(len(system_txt.keys()), os.path.basename(system_path)))
+            print('Loaded {0} system {1} segments'.format(
+              len(system_txt.keys()), os.path.basename(system_path))
+            )
 
         all_keys = list(hashed_text.keys())
         all_keys.sort()
         shuffle(all_keys)
 
-        batch_no = options['batch_no']
+        total_batches = int(floor(len(all_keys) / (10 * 7)))
+        print('Total number of batches is {0}'.format(total_batches))
 
-        for batch_id in range(batch_no):
+        batch_no = options['batch_no']
+        all_batches = options['all_batches']
+
+        # If we don't produce all batches, our batch_id will be batch_no-1.
+        # This is because batch numbers are one-based, ids zero-indexed.
+        #
+        # If we produce all batches, we just use range(total_batches).
+        # This implicitly gives us zero-indexed ids already.
+        batch_nos = [batch_no-1] if not all_batches \
+          else list(range(total_batches))
+
+        json_data = []
+        for batch_id in batch_nos: # range(batch_no):
             block_data = []
             block_offset = batch_id * 10 * 7
 
             num_blocks = int(batch_size/block_size)
             for block_id in range(num_blocks):
-                print('Creating block {0}'.format(block_id))
+                # Human readable ids are one-based, hence +1
+                print('Creating batch {0:05}/{1:05}, block {2:02}'.format(
+                  batch_id+1, total_batches, block_id+1)
+                )
 
                 # Get 7 random system outputs
                 block_start = block_offset + 7 * (block_id)
@@ -223,7 +246,12 @@ class Command(BaseCommand):
             # Compute redundant, reference, bad reference bits
             for block_id in range(num_blocks):
                 check_id = int((block_id + (num_blocks/2)) % num_blocks)
-                print('Add checks for block {0} to block {1}'.format(check_id, block_id))
+                # Human readable ids are one-based, hence +1
+                print('Add checks for batch {0:05}/{1:05}, ' \
+                  'block {2:02} to block {3:02}'.format(
+                    batch_id+1, total_batches, check_id+1, block_id+1
+                  )
+                )
 
                 check_systems = block_data[check_id]['systems']
                 check_systems.sort()
@@ -236,7 +264,9 @@ class Command(BaseCommand):
             # Direct assessment is reference-based for WMT17
             sourceID = basename(options['reference_file'])
 
+            # Remember, batch numbers are one-based
             taskData = OrderedDict({
+              'batchNo': batch_id+1,
               'batchSize': options['batch_size'],
               'sourceLanguage': options['source_language'],
               'targetLanguage': options['target_language'],
@@ -288,113 +318,17 @@ class Command(BaseCommand):
               'task': taskData,
               'items': itemsData
             })
-            print(json.dumps(outputData, indent=2))
-            json_data = json.dumps(outputData, indent=2)
 
-            with open(options['output_json_file'], mode='w', encoding='utf8') as output_file:
-                self.stdout.write('Creating {0} ... '.format(options['output_json_file']), ending='')
-                output_file.write(str(json_data))
-                self.stdout.write('OK')
+            json_data.append(outputData)
 
-        return
+        print(json.dumps(json_data, indent=2))
+        json_data = json.dumps(json_data, indent=2)
 
-#        system_text = Command._load_text_from_file(, 'utf8')
-#        print('Loaded {0} system segments'.format(len(system_text.keys())))
+        with open(options['output_json_file'], mode='w', encoding='utf8') as output_file:
+            self.stdout.write('Creating {0} ... '.format(options['output_json_file']), ending='')
+            output_file.write(str(json_data))
+            self.stdout.write('OK')
 
-        try:
-            pass
-            # TODO: add check for ids
-
-        except AssertionError:
-            raise CommandError(
-              'Segment counts for input files do not match'
-            )
-
-        segment_ids = [segment_id for segment_id in source_file.keys()]
-        if options['random_seed'] is not None:
-            seed(options['random_seed'])
-            self.stdout.write(
-              'Seeded random number generator with seed={0}'.format(
-                options['random_seed'])
-            )
-        
-        if options['randomize']:
-            shuffle(segment_ids)
-            self.stdout.write('Randomized work items')
-        
-
-
-
-
-        _ref = options['refs']
-        _bad = options['bad_refs']
-        _chk = options['redundant']
-        _tgt = options['batch_size'] - (_ref + _bad + _chk)
-
-        # Randomize segment type
-        #
-        # It can be one of the following:
-        # - TGT: system translation output;
-        # - REF: reference text;
-        # - BAD: bad reference text;
-        # - CHK: redundant system translation.
-        itemTypes = ['TGT'] * _tgt \
-          + ['REF'] * _ref \
-          + ['BAD'] * _bad \
-          + ['CHK'] * _chk
-        
-        targetIDs = []
-        itemTypeID = 0
-        shuffle(itemTypes)
-        for segment_id in segment_ids[:options['batch_size']]:
-            segment_type = itemTypes[itemTypeID]
-
-            # TODO: this can fail for sequences where CHKs come before TGTs
-            if segment_type == 'TGT':
-                targetID = basename(options['system_text'])
-                targetText = system_text[segment_id]
-                targetIDs.append(segment_id)
-            
-            elif segment_type =='REF':
-                targetID = basename(options['reference_file'])
-                targetText = reference_file[segment_id]
-                
-            elif segment_type =='BAD':
-                targetID = basename(options['reference_file'])
-                targetText = reference_file[segment_id]
-                
-            elif segment_type =='CHK':
-                shuffle(targetIDs)
-                segment_id = targetIDs[0]
-                targetID = basename(options['system_text'])
-                targetText = system_text[segment_id]
-            
-            assert(targetText is not None)
-
-            obj = OrderedDict()
-            obj['sourceID'] = sourceID
-            obj['sourceText'] = source_file[segment_id]
-            obj['targetID'] = targetID
-            obj['targetText'] = targetText
-            obj['itemID'] = segment_id
-            obj['itemType'] = segment_type
-
-            itemTypeID += 1
-
-            itemsData.append(obj)
-
-        outputData = OrderedDict({
-          'task': taskData,
-          'items': itemsData
-        })
-        print(json.dumps(outputData, indent=2))
-
-
-        self.stdout.write("I would do something now...")
-        self.stdout.write(options['source_file'])
-        self.stdout.write(options['reference_file'])
-        self.stdout.write(str(options['annotations']))
-        print(options['random_seed'])
 
     @staticmethod
     def _load_text_from_file(file_path, encoding='utf8'):
