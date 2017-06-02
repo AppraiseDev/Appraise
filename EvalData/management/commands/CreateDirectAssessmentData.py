@@ -52,7 +52,7 @@ class Command(BaseCommand):
           help='Random generator seed value'
         )
         parser.add_argument(
-          '--randomize', required=False, action='store_true',
+          '--randomize', action='store_false',
           help='Randomize extracted work items'
         )
         parser.add_argument(
@@ -60,7 +60,7 @@ class Command(BaseCommand):
           help='Specifies desired batch no (default: 1)'
         )
         parser.add_argument(
-          '--all-batches', required=False, action='store_false',
+          '--all-batches', action='store_true',
           help='Produces all possible batches at once'
         )
         # TODO: add optional parameters to set source, reference and system IDs
