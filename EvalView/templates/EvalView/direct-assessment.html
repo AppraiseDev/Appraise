@@ -91,10 +91,10 @@ function update_score()
   <table style="width:100%">
   <tr>
     <td style="width:33%;text-align:left;">
-      <strong id="task_progress">1/1</strong>
+      <strong id="task_progress">{{completed_blocks}}/10 blocks</strong>
     </td>
     <td style="width:33%;text-align:center;">
-      <strong>Segment #{{segment_id}}</strong>
+      <strong>Segment #{{item_id}}</strong>
     </td>
     <td style="width:33%;text-align:right;">
       <strong>{{language_pair|safe}}</strong>
@@ -124,6 +124,7 @@ function update_score()
 {% csrf_token %}
 
 <input name="end_timestamp" type="hidden" value="" />
+<input name="item_id" type="hidden" value="{{item_id}}" />
 <input name="task_id" type="hidden" value="{{task_id}}" />
 <input name="start_timestamp" type="hidden" value="" />
 <input name="score" type="hidden" value="-1" />

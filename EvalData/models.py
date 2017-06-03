@@ -524,11 +524,6 @@ class DirectAssessmentTask(BaseMetadata):
       help_text=_('(1-based)')
     )
 
-    currentItemNo = models.PositiveIntegerField(
-      verbose_name=_('Current item number'),
-      help_text=_('(1-based)')
-    )
-
     batchData = models.ForeignKey(
       'Campaign.CampaignData',
       on_delete=models.PROTECT,
@@ -541,6 +536,26 @@ class DirectAssessmentTask(BaseMetadata):
 
     def dataName(self):
         return str(self.batchData)
+
+    def completed_items(self):
+        return self.items.filter(
+          activated=True,
+          completed=True
+        ).count()
+
+    def next_item(self):
+        return self.items.filter(
+          activated=True,
+          completed=False
+        ).first()
+
+    @classmethod
+    def get_task_for_user(cls, user):
+        return cls.objects.filter(
+          assignedTo=user,
+          activated=True,
+          completed=False
+        ).first()
 
     # pylint: disable=E1101
     def is_valid(self):
