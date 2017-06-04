@@ -202,7 +202,7 @@ class DirectAssessmentResultAdmin(BaseMetadataAdmin):
 
     fieldsets = (
       (None, {
-        'fields': (['score', 'start_time', 'end_time', 'item'])
+        'fields': (['score', 'start_time', 'end_time', 'item', 'task'])
       }),
     ) + BaseMetadataAdmin.fieldsets
 

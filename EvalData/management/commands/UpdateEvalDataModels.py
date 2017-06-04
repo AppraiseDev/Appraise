@@ -7,7 +7,8 @@ from django.contrib.auth.models import User
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db.utils import OperationalError, ProgrammingError
-from EvalData.models import Market, Metadata
+from EvalData.models import Market, Metadata, DirectAssessmentTask, \
+  DirectAssessmentResult
 
 
 INFO_MSG = 'INFO: '
@@ -85,5 +86,27 @@ class Command(BaseCommand):
                 )
 
             self.stdout.write(_msg)
+
+        # Ensure that all DirectAssessmentResults link back to tasks.
+        tasks = DirectAssessmentTask.objects.filter(
+          activated=True,
+          completed=False
+        )
+
+        fixed_results = 0
+        for task in tasks:
+            for item in task.items.all():
+                results = DirectAssessmentResult.objects.filter(
+                  item=item
+                )
+
+                for result in results:
+                    if result.task != task:
+                        result.task = task
+                        result.save()
+                        fixed_results += 1
+
+        _msg = 'Fixed task mappings for {0} results'.format(fixed_results)
+        self.stdout.write(_msg)
 
         self.stdout.write('\n[DONE]\n\n')

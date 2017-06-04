@@ -543,10 +543,30 @@ class DirectAssessmentTask(BaseMetadata):
         ).count()
 
     def next_item(self):
-        return self.items.filter(
+        next_item = self.items.filter(
           activated=True,
           completed=False
         ).first()
+
+        if not next_item:
+            LOGGER.info('No next item found for task {0}'.format(self.id))
+            annotations = DirectAssessmentResult.objects.filter(
+              task=self,
+              activated=False,
+              completed=True
+            ).count()
+
+            LOGGER.info(
+              'Annotations={0}/{1}'.format(
+                annotations, self.requiredAnnotations
+              )
+            )
+            if annotations == self.requiredAnnotations * 100:
+                LOGGER.info('Completing task {0}'.format(self.id))
+                self.complete()
+                self.save()
+
+        return next_item
 
     @classmethod
     def get_task_for_user(cls, user):
@@ -607,6 +627,16 @@ class DirectAssessmentResult(BaseMetadata):
       related_name='%(app_label)s_%(class)s_item',
       related_query_name="%(app_label)s_%(class)ss",
       verbose_name=_('Item')
+    )
+
+    task = models.ForeignKey(
+      DirectAssessmentTask,
+      blank=True,
+      null=True,
+      on_delete=models.PROTECT,
+      related_name='%(app_label)s_%(class)s_task',
+      related_query_name="%(app_label)s_%(class)ss",
+      verbose_name=_('Task')
     )
 
     # pylint: disable=E1136
