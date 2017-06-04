@@ -170,7 +170,7 @@ class DirectAssessmentTaskAdmin(BaseMetadataAdmin):
     Model admin for DirectAssessmentTask instances.
     """
     list_display = [
-      'dataName', 'batchNo', 'campaign', 'requiredAnnotations', 'assignedTo'
+      'dataName', 'batchNo', 'campaign', 'requiredAnnotations'
     ] + BaseMetadataAdmin.list_display
     list_filter = [
       'batchData', 'campaign__campaignName'
@@ -191,7 +191,7 @@ class DirectAssessmentResultAdmin(BaseMetadataAdmin):
     Model admin for DirectAssessmentResult instances.
     """
     list_display = [
-      '__str__'
+      '__str__', 'score', 'start_time', 'end_time'
     ] + BaseMetadataAdmin.list_display
     list_filter = [
       # nothing model specific
@@ -202,7 +202,7 @@ class DirectAssessmentResultAdmin(BaseMetadataAdmin):
 
     fieldsets = (
       (None, {
-        'fields': (['score', 'item'])
+        'fields': (['score', 'start_time', 'end_time', 'item'])
       }),
     ) + BaseMetadataAdmin.fieldsets
 

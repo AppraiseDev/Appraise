@@ -65,6 +65,7 @@ def direct_assessment(request):
     if request.method == "POST":
         score = request.POST.get('score', None)
         item_id = request.POST.get('item_id', None)
+        task_id = request.POST.get('task_id', None)
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
         LOGGER.info('score={0}, item_id={1}'.format(score, item_id))
@@ -75,14 +76,18 @@ def direct_assessment(request):
             LOGGER.info('start={0}, end={1}, duration={2}'.format(start_timestamp, end_timestamp, duration))
 
             current_item = current_task.next_item()
-            if current_item.itemID != int(item_id):
-                LOGGER.debug('Item ID {0} does not match current item {1}, will not save result!'.format(item_id, current_item.itemID))
+            if current_item.itemID != int(item_id) \
+              or current_item.id != int(task_id):
+                LOGGER.debug(
+                  'Item ID {0} does not match current item {1}, will ' \
+                  'not save result!'.format(item_id, current_item.itemID)
+                )
             
             else:
                 new_result = DirectAssessmentResult(
                   score=score,
-                  start_time=start_timestamp,
-                  end_time=end_timestamp,
+                  start_time=float(start_timestamp),
+                  end_time=float(end_timestamp),
                   item=current_item,
                   createdBy=request.user
                 )
@@ -108,6 +113,7 @@ def direct_assessment(request):
 
     completed_items = current_task.completed_items()
     completed_blocks = int(completed_items / 10)
+    print(completed_items, completed_blocks)
 
     language_pair = current_item.metadata.market
 
@@ -116,6 +122,7 @@ def direct_assessment(request):
       'reference_text': current_item.sourceText,
       'candidate_text': current_item.targetText,
       'item_id': current_item.itemID,
+      'task_id': current_item.id,
       'completed_blocks': completed_blocks,
       'language_pair': language_pair,
     }

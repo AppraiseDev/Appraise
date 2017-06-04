@@ -508,15 +508,14 @@ class DirectAssessmentTask(BaseMetadata):
         value=MAX_REQUIREDANNOTATIONS_VALUE))
     )
 
-    assignedTo = models.ForeignKey(
+    assignedTo = models.ManyToManyField(
       User,
-      on_delete=models.PROTECT,
       blank=True,
       null=True,
       related_name='%(app_label)s_%(class)s_assignedTo',
       related_query_name="%(app_label)s_%(class)ss",
       verbose_name=_('Assigned to'),
-      help_text=_('(user working on this task)')
+      help_text=_('(users working on this task)')
     )
 
     batchNo = models.PositiveIntegerField(
@@ -539,7 +538,7 @@ class DirectAssessmentTask(BaseMetadata):
 
     def completed_items(self):
         return self.items.filter(
-          activated=True,
+          activated=False,
           completed=True
         ).count()
 
