@@ -94,6 +94,7 @@ class Command(BaseCommand):
         )
 
         fixed_results = 0
+        completed_results = 0
         for task in tasks:
             for item in task.items.all():
                 results = DirectAssessmentResult.objects.filter(
@@ -105,8 +106,16 @@ class Command(BaseCommand):
                         result.task = task
                         result.save()
                         fixed_results += 1
+                    
+                    if not result.completed:
+                        result.complete()
+                        result.save()
+                        completed_results += 1
 
         _msg = 'Fixed task mappings for {0} results'.format(fixed_results)
+        self.stdout.write(_msg)
+
+        _msg = 'Completed {0} results'.format(completed_results)
         self.stdout.write(_msg)
 
         self.stdout.write('\n[DONE]\n\n')

@@ -25,29 +25,6 @@ def seconds_to_timedelta(value):
     _secs = value % 60
     return timedelta(days=_days, hours=_hours, minutes=_mins, seconds=_secs)
 
-DUMMY_DATA = [
-  {
-    'ref':"Petr Tlucho\u0159 is one of three MPs who have been accused by the prosecution service of taking bribes in the form of lucrative positions from the then Prime Minister Ne\u010das and his former chief of staff Jana Nagyova in return for a political concession.",
-    'tgt':"Peter Tlucho\u0159 is one of three Members, who should, according to the indictment from the Prime Minister and his former cabinet chief Ne\u010dase Jany Nagyov\u00e9 political newsstand, a lucrative post for political concessions."
-  },
-  {
-    'ref':"Indeed, the USA soccer star and the Dexter actress share incredibly similar face shapes and eyes.",
-    'tgt':"Soccer star Hope Sol and actress Dexter Jennifer Carpenter have really incredibly similar face and eyes.",
-  },
-  {
-    'ref':"It purifies the blood, strengthens blood circulation, it is also said to prevent the greying of hair, and it is packed with minerals.",
-    'tgt':"Cleans blood, strengthens blood circulation, even supposedly prevents hair greasing and is literally charged with minerals.",
-  },
-  {
-    'ref':"The Chinese and the Russians tend to split the prizes for the men, and the Chinese and the Canadians for the women.",
-    'tgt':"The Chinese and the Russians tend to split the prizes for the men, and the Chinese and the Canadians for the women.",
-  },
-  {
-    'ref':"\"If you suffocate people and they don't have any other options but to protest, it breaks out,\" said Seyoum Teshome, a university lecturer in central Ethiopia.",
-    'tgt':"\"When you suffocate people and they have no choice but to protest, there will be a breach,\" said Seyoum Teshome, who lectured at the University of Central Ethiopia.",
-  },
-]
-
 # pylint: disable=C0330
 @login_required
 def direct_assessment(request):
@@ -89,8 +66,10 @@ def direct_assessment(request):
                   start_time=float(start_timestamp),
                   end_time=float(end_timestamp),
                   item=current_item,
+                  task=current_task,
                   createdBy=request.user
                 )
+                new_result.complete()
                 new_result.save()
 
                 current_item.complete()

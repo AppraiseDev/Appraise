@@ -16,12 +16,20 @@ EvalData models.py
 
 """
 # pylint: disable=C0103,C0330
+import logging
 from datetime import datetime
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.text import format_lazy as f
 from django.utils.translation import ugettext_lazy as _
+
+from Appraise.settings import LOG_LEVEL, LOG_HANDLER, STATIC_URL, BASE_CONTEXT
+
+# Setup logging support.
+logging.basicConfig(level=LOG_LEVEL)
+LOGGER = logging.getLogger('EvalData.models')
+LOGGER.addHandler(LOG_HANDLER)
 
 MAX_DOMAINNAME_LENGTH = 20
 MAX_LANGUAGECODE_LENGTH = 10
@@ -558,7 +566,7 @@ class DirectAssessmentTask(BaseMetadata):
 
             LOGGER.info(
               'Annotations={0}/{1}'.format(
-                annotations, self.requiredAnnotations
+                annotations, self.requiredAnnotations * 100
               )
             )
             if annotations == self.requiredAnnotations * 100:
