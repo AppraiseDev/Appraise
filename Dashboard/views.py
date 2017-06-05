@@ -19,6 +19,8 @@ LOGGER = logging.getLogger('Dashboard.views')
 LOGGER.addHandler(LOG_HANDLER)
 
 
+HITS_REQUIRED_BEFORE_ENGLISH_ALLOWED = 5
+
 # HTTP error handlers supporting COMMIT_TAG.
 def _page_not_found(request, template_name='404.html'):
     """Custom HTTP 404 handler that preserves URL_PREFIX."""
@@ -239,6 +241,50 @@ def dashboard(request):
       'active_page': 'dashboard'
     }
     context.update(BASE_CONTEXT)
+
+    from EvalData.models import DirectAssessmentTask, DirectAssessmentResult
+    annotations = DirectAssessmentResult.get_completed_for_user(request.user)
+    hits = int(annotations/100)
+
+    # If user still has an assigned task, only offer link to this task.
+    current_task = DirectAssessmentTask.get_task_for_user(request.user)
+
+    # Otherwise, compute set of language codes eligible for next task.
+    languages = []
+    if not current_task:
+        for code in LANGUAGE_CODES_AND_NAMES:
+            if request.user.groups.filter(name=code).exists():
+                if not code in languages:
+                    languages.append(code)
+
+        if hits < HITS_REQUIRED_BEFORE_ENGLISH_ALLOWED:
+            if len(languages) > 1 and 'eng' in languages:
+                languages.remove('eng')
+
+        # Remove any language for which no free task is available.
+        for code in languages:
+            next_task_available = DirectAssessmentTask.get_next_free_task_for_language(code)
+            if not next_task_available:
+                languages.remove(code)
+
+        print("languages = {0}".format(languages))
+
+    duration = DirectAssessmentResult.get_time_for_user(request.user)
+    days = duration.days
+    hours = int((duration.total_seconds() - (days * 86400)) / 3600)
+    minutes = int(((duration.total_seconds() - (days * 86400)) % 3600) / 60)
+    seconds = int((duration.total_seconds() - (days * 86400)) % 60)
+
+    context.update({
+      'annotations': annotations,
+      'hits': hits,
+      'days': days,
+      'hours': hours,
+      'minutes': minutes,
+      'seconds': seconds,
+      'current_task': current_task,
+      'languages': [(x, LANGUAGE_CODES_AND_NAMES[x]) for x in languages],
+    })
 
     return render(request, 'Dashboard/dashboard.html', context)
 
