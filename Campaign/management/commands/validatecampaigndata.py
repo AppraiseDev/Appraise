@@ -42,14 +42,32 @@ class Command(BaseCommand):
             batch_name = batch.dataFile.name
             batch_file = batch.dataFile
 
+            print(batch_name)
+
             try:
-                batch_json = loads(str(batch_file.read(), encoding="utf-8"))
+                if batch_name.endswith('.zip'):
+                    from zipfile import ZipFile, is_zipfile
+                    if not is_zipfile(batch_file):
+                        print('NOT A ZIP')
+                        continue
+
+                    batch_zip = ZipFile(batch_file)
+                    batch_json_files = [x for x in batch_zip.namelist() if x.endswith('.json')]
+                    for batch_json_file in batch_json_files:
+                        batch_data = batch_zip.read(batch_json_file).decode('utf-8')
+                        batch_json = loads(batch_data, encoding='utf-8')
+
+                else:
+                    batch_json = loads(str(batch_file.read(), encoding="utf-8"))
+
                 batch.dataValid = True
                 batch.save()
 
                 validated_batches += 1
 
             except:
+                from traceback import format_exc
+                print(format_exc())
                 continue
 
         _msg = 'Validated {0} batches'.format(validated_batches)
