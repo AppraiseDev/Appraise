@@ -118,4 +118,21 @@ class Command(BaseCommand):
         _msg = 'Completed {0} results'.format(completed_results)
         self.stdout.write(_msg)
 
+        # Check which DirectAssessmentTask instances can be activated.
+        activated_items = 0
+        for task in DirectAssessmentTask.objects.filter(activated=False):
+            if task.campaign.activated:
+                for item in task.items.all():
+                    if not item.activated:
+                        item.activate()
+                        item.save()
+                        activated_items += 1
+
+                task.activate()
+                task.save()
+                activated_items += 1
+
+        _msg = 'Activated {0} items and tasks'.format(activated_items)
+        self.stdout.write(_msg  )
+
         self.stdout.write('\n[DONE]\n\n')

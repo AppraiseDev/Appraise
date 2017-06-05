@@ -642,7 +642,7 @@ class DirectAssessmentTask(BaseMetadata):
         return None
 
     @classmethod
-    def import_from_json(cls, campaign, batch_user, batch_data):
+    def import_from_json(cls, campaign, batch_user, batch_data, max_count):
         """
         Creates new DirectAssessmentTask instances based on JSON input.
         """
@@ -651,11 +651,32 @@ class DirectAssessmentTask(BaseMetadata):
         batch_file = batch_data.dataFile
         batch_json = loads(str(batch_file.read(), encoding="utf-8"))
 
+        current_count = 0
+        max_length_id = 0
+        max_length_text = 0
         for batch_task in batch_json:
+            if max_count > 0 and current_count >= max_count:
+                _msg = 'Stopping after max_count={0} iterations'.format(
+                  max_count
+                )
+                LOGGER.info(_msg)
+                return
+
             print(batch_name, batch_task['task']['batchNo'])
 
             new_items = []
             for item in batch_task['items']:
+                current_length_id = len(item['targetID'])
+                current_length_text = len(item['targetText'])
+
+                if current_length_id > max_length_id:
+                    print(current_length_id, item['targetID'])
+                    max_length_id = current_length_id
+
+                if current_length_text > max_length_text:
+                    print(current_length_text, item['targetText'].encode('utf-8'))
+                    max_length_text = current_length_text
+
                 new_item = TextPair(
                     sourceID=item['sourceID'],
                     sourceText=item['sourceText'],
@@ -673,6 +694,8 @@ class DirectAssessmentTask(BaseMetadata):
                 )
                 LOGGER.warn(_msg)
                 continue
+
+            current_count += 1
 
             for new_item in new_items:
                 new_item.metadata = batch_meta
@@ -697,6 +720,11 @@ class DirectAssessmentTask(BaseMetadata):
             )
             LOGGER.info(_msg)
 
+        _msg = 'Max length ID={0}, text={1}'.format(
+          max_length_id, max_length_text
+        )
+        LOGGER.info(_msg)
+
     # pylint: disable=E1101
     def is_valid(self):
         """
@@ -704,7 +732,7 @@ class DirectAssessmentTask(BaseMetadata):
         """
         if not hasattr(self, 'campaign') or not self.campaign.is_valid():
             return False
-        
+
         if not hasattr(self, 'items'):
             return False
 
