@@ -91,13 +91,13 @@ function update_score()
   <table style="width:100%">
   <tr>
     <td style="width:33%;text-align:left;">
-      <strong id="task_progress">{{completed_blocks}}/10 blocks</strong>
+      <strong id="task_progress">{{completed_blocks}}/10 blocks, {{items_left_in_block}} items left in block</strong>
     </td>
     <td style="width:33%;text-align:center;">
       <strong>Segment #{{item_id}}</strong>
     </td>
     <td style="width:33%;text-align:right;">
-      <strong>{{language_pair|safe}}</strong>
+      <strong>{% if source_language %}{{source_language}} &rarr; {% endif %}{{target_language}}</strong>
     </td>
   </tr>
   </table>

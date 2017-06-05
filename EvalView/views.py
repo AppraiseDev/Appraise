@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.views import generic
 
 from EvalData.models import DirectAssessmentTask, DirectAssessmentResult, \
-  TextPair
+  TextPair, seconds_to_timedelta
 from Appraise.settings import LOG_LEVEL, LOG_HANDLER, STATIC_URL, BASE_CONTEXT
 
 # Setup logging support.
@@ -14,30 +14,33 @@ LOGGER = logging.getLogger('Dashboard.views')
 LOGGER.addHandler(LOG_HANDLER)
 
 
-from datetime import timedelta
-def seconds_to_timedelta(value):
-    """
-    Converst the given value in secodns to datetime.timedelta.
-    """
-    _days =  value // 86400
-    _hours = (value // 3600) % 24
-    _mins = (value // 60) % 60
-    _secs = value % 60
-    return timedelta(days=_days, hours=_hours, minutes=_mins, seconds=_secs)
-
 # pylint: disable=C0330
 @login_required
-def direct_assessment(request):
+def direct_assessment(request, code=None):
     """
     Direct assessment annotation view.
     """
     LOGGER.info('Rendering direct assessment view for user "{0}".'.format(
       request.user.username or "Anonymous"))
 
+    # If language code has been given, find a free task and assign to user.
     current_task = DirectAssessmentTask.get_task_for_user(user=request.user)
     if not current_task:
-        LOGGER.info('No current task detected, redirecting to dashboard')
-        return redirect('dashboard')
+        if code is None:
+            LOGGER.info('No current task detected, redirecting to dashboard')
+            return redirect('dashboard')
+
+        LOGGER.info('Identifying next task for code "{0}"'.format(code))
+        next_task = DirectAssessmentTask.get_next_free_task_for_language(code)
+
+        if next_task is None:
+            LOGGER.info('No next task detected, redirecting to dashboard')
+            return redirect('dashboard')
+
+        next_task.assignedTo.add(request.user)
+        next_task.save()
+
+        current_task = next_task
 
     if request.method == "POST":
         score = request.POST.get('score', None)
@@ -59,7 +62,7 @@ def direct_assessment(request):
                   'Item ID {0} does not match current item {1}, will ' \
                   'not save result!'.format(item_id, current_item.itemID)
                 )
-            
+
             else:
                 new_result = DirectAssessmentResult(
                   score=score,
@@ -94,7 +97,8 @@ def direct_assessment(request):
     completed_blocks = int(completed_items / 10)
     print(completed_items, completed_blocks)
 
-    language_pair = current_item.metadata.market
+    source_language = current_task.marketSourceLanguage()
+    target_language = current_task.marketTargetLanguage()
 
     context = {
       'active_page': 'direct-assessment',
@@ -103,7 +107,9 @@ def direct_assessment(request):
       'item_id': current_item.itemID,
       'task_id': current_item.id,
       'completed_blocks': completed_blocks,
-      'language_pair': language_pair,
+      'items_left_in_block': 10 - completed_items - completed_blocks * 10,
+      'source_language': source_language,
+      'target_language': target_language,
     }
     context.update(BASE_CONTEXT)
 
