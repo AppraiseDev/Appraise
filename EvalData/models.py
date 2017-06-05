@@ -25,6 +25,7 @@ from django.utils.text import format_lazy as f
 from django.utils.translation import ugettext_lazy as _
 
 from Appraise.settings import LOG_LEVEL, LOG_HANDLER, STATIC_URL, BASE_CONTEXT
+from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 
 # Setup logging support.
 logging.basicConfig(level=LOG_LEVEL)
@@ -530,7 +531,6 @@ class DirectAssessmentTask(BaseMetadata):
     assignedTo = models.ManyToManyField(
       User,
       blank=True,
-      null=True,
       related_name='%(app_label)s_%(class)s_assignedTo',
       related_query_name="%(app_label)s_%(class)ss",
       verbose_name=_('Assigned to'),
@@ -557,6 +557,18 @@ class DirectAssessmentTask(BaseMetadata):
 
     def marketName(self):
         return str(self.items.first().metadata.market)
+
+    def marketSourceLanguage(self):
+        tokens = str(self.items.first().metadata.market).split('_')
+        if len(tokens) == 3 and tokens[0] in LANGUAGE_CODES_AND_NAMES.keys():
+            return LANGUAGE_CODES_AND_NAMES[tokens[0]]
+        return None
+
+    def marketTargetLanguage(self):
+        tokens = str(self.items.first().metadata.market).split('_')
+        if len(tokens) == 3 and tokens[1] in LANGUAGE_CODES_AND_NAMES.keys():
+            return LANGUAGE_CODES_AND_NAMES[tokens[1]]
+        return None
 
     def completed_items(self):
         return self.items.filter(
@@ -588,6 +600,9 @@ class DirectAssessmentTask(BaseMetadata):
                 self.complete()
                 self.save()
 
+                self.batchData.complete()
+                self.batchData.save()
+
         return next_item
 
     @classmethod
@@ -597,6 +612,24 @@ class DirectAssessmentTask(BaseMetadata):
           activated=True,
           completed=False
         ).first()
+
+    @classmethod
+    def get_next_free_task_for_language(cls, code):
+        active_tasks = cls.objects.filter(
+          activated=True,
+          completed=False,
+        )
+
+        for active_task in active_tasks:
+            market = active_task.items.first().metadata.market
+            if not market.targetLanguageCode == code:
+                continue
+
+            active_users = active_task.assignedTo.count()
+            if active_users < active_task.requiredAnnotations:
+                return active_task
+
+        return None
 
     # pylint: disable=E1101
     def is_valid(self):
