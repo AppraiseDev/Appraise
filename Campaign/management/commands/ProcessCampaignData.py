@@ -14,10 +14,15 @@ class Command(BaseCommand):
           'campaign_name', type=str,
           help='Name of the campaign you want to process data for'
         )
+        parser.add_argument(
+          '--max-count', type=int, default=-1,
+          help='Defines maximum number of batches to be processed'
+        )
         # TODO: add argument to specify batch user
 
     def handle(self, *args, **options):
         campaign_name = options['campaign_name']
+        max_count = options['max_count']
 
         # Identify Campaign instance for given name
         campaign = Campaign.objects.filter(campaignName=campaign_name).first()
@@ -36,5 +41,11 @@ class Command(BaseCommand):
         # TODO: add rollback in case of errors
         for batch_data in campaign.batches.filter(dataValid=True):            
             DirectAssessmentTask.import_from_json(
-              campaign, batch_user, batch_data
+              campaign, batch_user, batch_data, max_count
             )
+            batch_data.dataReady = True
+            batch_data.activate()
+            batch_data.save()
+
+        campaign.activate()
+        campaign.save()

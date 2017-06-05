@@ -33,7 +33,7 @@ class Command(BaseCommand):
 
             for key, value in system_scores.items():
                 normalized_score = float(sum(value) / len(value))
-                normalized_scores[normalized_score] = key
+                normalized_scores[normalized_score] = (key, len(value), normalized_score)
 
         for key in sorted(normalized_scores, reverse=True):
             value = normalized_scores[key]
