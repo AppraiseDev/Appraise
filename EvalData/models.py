@@ -17,7 +17,9 @@ EvalData models.py
 """
 # pylint: disable=C0103,C0330
 import logging
+from collections import defaultdict
 from datetime import datetime, timedelta
+from json import loads
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -98,24 +100,28 @@ class BaseMetadata(models.Model):
 
     activated = models.BooleanField(
       blank=True,
+      db_index=True,
       default=False,
       verbose_name=_('Activated?')
     )
 
     completed = models.BooleanField(
       blank=True,
+      db_index=True,
       default=False,
       verbose_name=_('Completed?')
     )
 
     retired = models.BooleanField(
       blank=True,
+      db_index=True,
       default=False,
       verbose_name=_('Retired?')
     )
 
     createdBy = models.ForeignKey(
       User,
+      db_index=True,
       on_delete=models.PROTECT,
       editable=False,
       related_name='%(app_label)s_%(class)s_created_by',
@@ -126,6 +132,7 @@ class BaseMetadata(models.Model):
     activatedBy = models.ForeignKey(
       User,
       blank=True,
+      db_index=True,
       on_delete=models.PROTECT,
       editable=False,
       null=True,
@@ -137,6 +144,7 @@ class BaseMetadata(models.Model):
     completedBy = models.ForeignKey(
       User,
       blank=True,
+      db_index=True,
       on_delete=models.PROTECT,
       editable=False,
       null=True,
@@ -148,6 +156,7 @@ class BaseMetadata(models.Model):
     retiredBy = models.ForeignKey(
       User,
       blank=True,
+      db_index=True,
       on_delete=models.PROTECT,
       editable=False,
       null=True,
@@ -159,6 +168,7 @@ class BaseMetadata(models.Model):
     modifiedBy = models.ForeignKey(
       User,
       blank=True,
+      db_index=True,
       on_delete=models.PROTECT,
       editable=False,
       null=True,
@@ -631,6 +641,62 @@ class DirectAssessmentTask(BaseMetadata):
 
         return None
 
+    @classmethod
+    def import_from_json(cls, campaign, batch_user, batch_data):
+        """
+        Creates new DirectAssessmentTask instances based on JSON input.
+        """
+        batch_meta = batch_data.metadata
+        batch_name = batch_data.dataFile.name
+        batch_file = batch_data.dataFile
+        batch_json = loads(str(batch_file.read(), encoding="utf-8"))
+
+        for batch_task in batch_json:
+            print(batch_name, batch_task['task']['batchNo'])
+
+            new_items = []
+            for item in batch_task['items']:
+                new_item = TextPair(
+                    sourceID=item['sourceID'],
+                    sourceText=item['sourceText'],
+                    targetID=item['targetID'],
+                    targetText=item['targetText'],
+                    createdBy=batch_user,
+                    itemID=item['itemID'],
+                    itemType=item['itemType']
+                )
+                new_items.append(new_item)
+
+            if not len(new_items) == 100:
+                _msg = 'Expected 100 items for task but found {0}'.format(
+                    len(new_items)
+                )
+                LOGGER.warn(_msg)
+                continue
+
+            for new_item in new_items:
+                new_item.metadata = batch_meta
+                new_item.save()
+
+            new_task = DirectAssessmentTask(
+                campaign=campaign,
+                requiredAnnotations=batch_task['task']['requiredAnnotations'],
+                batchNo=batch_task['task']['batchNo'],
+                batchData=batch_data,
+                createdBy=batch_user,
+            )
+            new_task.save()
+
+            for new_item in new_items:
+                new_task.items.add(new_item)
+
+            new_task.save()
+
+            _msg = 'Success processing batch {0}, task {1}'.format(
+                str(batch_data), batch_task['task']['batchNo']
+            )
+            LOGGER.info(_msg)
+
     # pylint: disable=E1101
     def is_valid(self):
         """
@@ -724,3 +790,15 @@ class DirectAssessmentResult(BaseMetadata):
             durations.append(duration)
 
         return seconds_to_timedelta(sum(durations))
+
+    @classmethod
+    def get_system_scores(cls):
+        system_scores = defaultdict(list)
+        for result in cls.objects.filter(completed=True):
+            system_ids = result.item.targetID.split('+')
+            score = result.score
+
+            for system_id in system_ids:
+                system_scores[system_id].append(score)
+
+        return system_scores
