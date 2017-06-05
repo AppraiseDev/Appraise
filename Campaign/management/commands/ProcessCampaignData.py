@@ -41,7 +41,7 @@ class Command(BaseCommand):
             return
 
         # TODO: add rollback in case of errors
-        for batch in campaign.batches.all():
+        for batch in campaign.batches.filter(activated=True, completed=False):
             batch_name = batch.dataFile.name
             batch_file = batch.dataFile
             batch_json = loads(str(batch_file.read(), encoding="utf-8"))
