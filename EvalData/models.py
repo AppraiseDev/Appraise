@@ -38,9 +38,9 @@ MAX_DOMAINNAME_LENGTH = 20
 MAX_LANGUAGECODE_LENGTH = 10
 MAX_CORPUSNAME_LENGTH = 100
 MAX_VERSIONINFO_LENGTH = 20
-MAX_SOURCE_LENGTH = 5000
-MAX_SEGMENTTEXT_LENGTH = 5000
-MAX_SEGMENTID_LENGTH = 250
+MAX_SOURCE_LENGTH = 2000
+MAX_SEGMENTTEXT_LENGTH = 2000
+MAX_SEGMENTID_LENGTH = 1000
 MAX_ITEMTYPE_LENGTH = 5
 MAX_REQUIREDANNOTATIONS_VALUE = 50
 
@@ -337,6 +337,7 @@ class Metadata(BaseMetadata):
     """
     market = models.ForeignKey(
       Market,
+      db_index=True,
       on_delete=models.PROTECT
     )
 
@@ -392,6 +393,7 @@ class EvalItem(BaseMetadata):
 
     metadata = models.ForeignKey(
       Metadata,
+      db_index=True,
       on_delete=models.PROTECT
     )
 
@@ -519,6 +521,7 @@ class DirectAssessmentTask(BaseMetadata):
     """
     campaign = models.ForeignKey(
       'Campaign.Campaign',
+      db_index=True,
       on_delete=models.PROTECT,
       related_name='%(app_label)s_%(class)s_campaign',
       related_query_name="%(app_label)s_%(class)ss",
@@ -541,6 +544,7 @@ class DirectAssessmentTask(BaseMetadata):
     assignedTo = models.ManyToManyField(
       User,
       blank=True,
+      db_index=True,
       related_name='%(app_label)s_%(class)s_assignedTo',
       related_query_name="%(app_label)s_%(class)ss",
       verbose_name=_('Assigned to'),
@@ -556,6 +560,7 @@ class DirectAssessmentTask(BaseMetadata):
       'Campaign.CampaignData',
       on_delete=models.PROTECT,
       blank=True,
+      db_index=True,
       null=True,
       related_name='%(app_label)s_%(class)s_batchData',
       related_query_name="%(app_label)s_%(class)ss",
@@ -587,10 +592,18 @@ class DirectAssessmentTask(BaseMetadata):
         ).count()
 
     def next_item(self):
-        next_item = self.items.filter(
-          activated=True,
-          completed=False
-        ).first()
+        ###
+        # This is SUPER SLOW using SQLite!
+        ###
+        #
+        #next_item = self.items.filter(
+        #  activated=True,
+        #  completed=False
+        #).first()
+        next_item = None
+        for item in self.items.all():
+            if item.activated and not item.completed:
+                next_item = item
 
         if not next_item:
             LOGGER.info('No next item found for task {0}'.format(self.id))
@@ -772,6 +785,7 @@ class DirectAssessmentResult(BaseMetadata):
 
     item = models.ForeignKey(
       TextPair,
+      db_index=True,
       on_delete=models.PROTECT,
       related_name='%(app_label)s_%(class)s_item',
       related_query_name="%(app_label)s_%(class)ss",
@@ -781,6 +795,7 @@ class DirectAssessmentResult(BaseMetadata):
     task = models.ForeignKey(
       DirectAssessmentTask,
       blank=True,
+      db_index=True,
       null=True,
       on_delete=models.PROTECT,
       related_name='%(app_label)s_%(class)s_task',
