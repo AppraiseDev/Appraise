@@ -28,7 +28,7 @@ class Command(BaseCommand):
             return
 
         normalized_scores = OrderedDict()
-        for task in DirectAssessmentTask.objects.filter(campaign=campaign):
+        for task in DirectAssessmentTask.objects.filter(campaign=campaign, completed=True):
             system_scores = DirectAssessmentResult.get_system_scores()
 
             for key, value in system_scores.items():
