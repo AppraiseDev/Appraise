@@ -17,7 +17,7 @@ EvalData models.py
 """
 # pylint: disable=C0103,C0330
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -48,6 +48,17 @@ SET_ITEMTYPE_CHOICES = (
   ('BAD', 'Bad reference'),
   ('CHK', 'Redundant check')
 )
+
+def seconds_to_timedelta(value):
+    """
+    Converst the given value in secodns to datetime.timedelta.
+    """
+    _days =  value // 86400
+    _hours = (value // 3600) % 24
+    _mins = (value // 60) % 60
+    _secs = value % 60
+    return timedelta(days=_days, hours=_hours, minutes=_mins, seconds=_secs)
+
 
 # pylint: disable=C0103,R0903
 class BaseMetadata(models.Model):
@@ -544,6 +555,9 @@ class DirectAssessmentTask(BaseMetadata):
     def dataName(self):
         return str(self.batchData)
 
+    def marketName(self):
+        return str(self.items.first().metadata.market)
+
     def completed_items(self):
         return self.items.filter(
           activated=False,
@@ -594,11 +608,11 @@ class DirectAssessmentTask(BaseMetadata):
         
         if not hasattr(self, 'items'):
             return False
-        
+
         for item in self.items:
             if not item.is_valid():
                 return False
-        
+
         return True
 
     # pylint: disable=E1136
@@ -654,3 +668,26 @@ class DirectAssessmentResult(BaseMetadata):
           self.item,
           self.score
         )
+
+    @classmethod
+    def get_completed_for_user(cls, user):
+        return cls.objects.filter(
+          createdBy=user,
+          activated=False,
+          completed=True
+        ).count()
+
+    @classmethod
+    def get_time_for_user(cls, user):
+        results = cls.objects.filter(
+          createdBy=user,
+          activated=False,
+          completed=True
+        )
+
+        durations = []
+        for result in results:
+            duration = result.end_time - result.start_time
+            durations.append(duration)
+
+        return seconds_to_timedelta(sum(durations))

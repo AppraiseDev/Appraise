@@ -106,7 +106,7 @@ class Command(BaseCommand):
                         result.task = task
                         result.save()
                         fixed_results += 1
-                    
+
                     if not result.completed:
                         result.complete()
                         result.save()
