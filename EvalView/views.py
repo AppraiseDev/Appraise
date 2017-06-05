@@ -107,7 +107,7 @@ def direct_assessment(request, code=None):
       'item_id': current_item.itemID,
       'task_id': current_item.id,
       'completed_blocks': completed_blocks,
-      'items_left_in_block': 10 - completed_items - completed_blocks * 10,
+      'items_left_in_block': 10 - (completed_items - completed_blocks * 10),
       'source_language': source_language,
       'target_language': target_language,
     }
