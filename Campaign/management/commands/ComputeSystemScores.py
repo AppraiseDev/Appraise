@@ -1,13 +1,14 @@
+from collections import defaultdict, OrderedDict
 from json import loads
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
 from Campaign.models import Campaign
-from EvalData.models import DirectAssessmentTask
+from EvalData.models import DirectAssessmentTask, DirectAssessmentResult
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
-    help = 'Validates campaign data batches'
+    help = 'Computes system scores over all results'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -26,15 +27,14 @@ class Command(BaseCommand):
             self.stdout.write(_msg)
             return
 
-        # Identify batch user who needs to be a superuser
-        batch_user = User.objects.filter(is_superuser=True).first()
-        if not batch_user:
-            _msg = 'Failure to identify batch user'
-            self.stdout.write(_msg)
-            return
+        normalized_scores = OrderedDict()
+        for task in DirectAssessmentTask.objects.filter(campaign=campaign):
+            system_scores = DirectAssessmentResult.get_system_scores()
 
-        # TODO: add rollback in case of errors
-        for batch_data in campaign.batches.filter(dataValid=True):            
-            DirectAssessmentTask.import_from_json(
-              campaign, batch_user, batch_data
-            )
+            for key, value in system_scores.items():
+                normalized_score = float(sum(value) / len(value))
+                normalized_scores[normalized_score] = key
+
+        for key in sorted(normalized_scores, reverse=True):
+            value = normalized_scores[key]
+            print('{0:03.2f} {1}'.format(key, value))

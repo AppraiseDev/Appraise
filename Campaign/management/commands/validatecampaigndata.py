@@ -1,8 +1,12 @@
+"""
+Appraise
+"""
+# pylint: disable=C0330,W0611
 from json import loads
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
-from Campaign.models import Campaign, CampaignData, CampaignTeam
+from Campaign.models import Campaign
 
 class Command(BaseCommand):
     help = 'Validates campaign data batches'
@@ -12,14 +16,9 @@ class Command(BaseCommand):
           'campaign_name', type=str,
           help='Name of the campaign you want to process data for'
         )
-        parser.add_argument(
-          '--activate', type=bool, default=False,
-          help='Activate tasks after creation'
-        )
 
     def handle(self, *args, **options):
         campaign_name = options['campaign_name']
-        activate = options['activate']
 
         campaign = Campaign.objects.filter(campaignName=campaign_name)
 
@@ -39,7 +38,6 @@ class Command(BaseCommand):
             return
 
         validated_batches = 0
-        activated_batches = 0
         for batch in campaign.batches.filter(dataValid=False, dataReady=False):
             batch_name = batch.dataFile.name
             batch_file = batch.dataFile
@@ -47,20 +45,12 @@ class Command(BaseCommand):
             try:
                 batch_json = loads(str(batch_file.read(), encoding="utf-8"))
                 batch.dataValid = True
-                batch.dataReady = True
-                validated_batches += 1
-
-                if activate:
-                    batch.activate()
-                    activated_batches += 1
-
                 batch.save()
+
+                validated_batches += 1
 
             except:
                 continue
 
         _msg = 'Validated {0} batches'.format(validated_batches)
-        self.stdout.write(_msg)
-
-        _msg = 'Activated {0} batches'.format(activated_batches)
         self.stdout.write(_msg)
