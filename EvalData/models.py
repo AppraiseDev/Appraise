@@ -823,6 +823,9 @@ class DirectAssessmentResult(BaseMetadata):
     def get_system_scores(cls):
         system_scores = defaultdict(list)
         for result in cls.objects.filter(completed=True):
+            if result.item.itemType is not in ('TGT', 'CHK'):
+                continue
+
             system_ids = result.item.targetID.split('+')
             score = result.score
 
