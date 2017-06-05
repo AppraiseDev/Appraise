@@ -26,7 +26,7 @@
             <p>We are currently finalising the registration process for annotator accounts. Once this has been completed, direct assessment tasks will be become available from this page. Please check back in a little while.</p>
 {% endif %}
             <h3>User status</h3>
-            <p>{{annotations}} annotation{{annotations|pluralize}}, {{hits}} HIT{{hits|pluralize}} completed. Total annotation duration {{hours|stringformat:"02d"}}h{{minutes|stringformat:"02d"}}m{{seconds|stringformat:"02d"}}s.</p>
+            <p>{{annotations}} annotation{{annotations|pluralize}}, {{hits}} HIT{{hits|pluralize}} completed. Total annotation duration {% if days %}{{days|stringformat:"02d"}}d{% endif %}{{hours|stringformat:"02d"}}h{{minutes|stringformat:"02d"}}m{{seconds|stringformat:"02d"}}s.</p>
           </div>
         </div>
       </div>
