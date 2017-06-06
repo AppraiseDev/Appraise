@@ -4,9 +4,9 @@ EvalData admin.py
 # pylint: disable=C0330
 from datetime import datetime
 from django.contrib import admin
+from django.utils.timezone import utc
 from .models import Market, Metadata, TextSegment, TextPair
 from .models import DirectAssessmentTask, DirectAssessmentResult
-
 
 # TODO:chrife: find a way to use SELECT-based filtering widgets
 class BaseMetadataAdmin(admin.ModelAdmin):
@@ -39,31 +39,33 @@ class BaseMetadataAdmin(admin.ModelAdmin):
         """
         Given a model instance save it to the database.
         """
+        utc_now = datetime.utcnow().replace(tzinfo=utc)
+        
         if not hasattr(obj, 'createdBy') or obj.createdBy is None:
             obj.createdBy = request.user
-            obj.dateCreated = datetime.now()
+            obj.dateCreated = utc_now
             obj.save()
 
         if obj.activated:
             if not hasattr(obj, 'activatedBy') or obj.activatedBy is None:
                 obj.activatedBy = request.user
-                obj.dateActivated = datetime.now()
+                obj.dateActivated = utc_now
                 obj.save()
 
         if obj.completed:
             if not hasattr(obj, 'completedBy') or obj.completedBy is None:
                 obj.completedBy = request.user
-                obj.dateCompleted = datetime.now()
+                obj.dateCompleted = utc_now
                 obj.save()
 
         if obj.retired:
             if not hasattr(obj, 'retiredBy') or obj.retiredBy is None:
                 obj.retiredBy = request.user
-                obj.dateRetired = datetime.now()
+                obj.dateRetired = utc_now
                 obj.save()
 
         obj.modifiedBy = request.user
-        obj.dateModified = datetime.now()
+        obj.dateModified = utc_now
         obj.save()
 
         super(BaseMetadataAdmin, self).save_model(request, obj, form, change)

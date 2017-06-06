@@ -193,14 +193,16 @@ class BaseMetadata(models.Model):
         Sets boolean states for current model instance.
         Also sets respective dates for all three states.
         """
+        utc_now = datetime.utcnow().replace(tzinfo=utc)
+        
         self.activated = activated
-        self.dateActivated = datetime.now() if activated else None
+        self.dateActivated = utc_now if activated else None
 
         self.completed = completed
-        self.dateCompleted = datetime.now() if completed else None
+        self.dateCompleted = utc_now if completed else None
 
         self.retired = retired
-        self.dateRetired = datetime.now() if retired else None
+        self.dateRetired = utc_now if retired else None
 
         self.save()
 
