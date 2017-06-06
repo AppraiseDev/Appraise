@@ -20,6 +20,7 @@ import logging
 from collections import defaultdict
 from datetime import datetime, timedelta
 from json import loads
+from zipfile import ZipFile, is_zipfile
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -595,7 +596,6 @@ class DirectAssessmentTask(BaseMetadata):
         ###
         # This is SUPER SLOW using SQLite!
         ###
-        #
         #next_item = self.items.filter(
         #  activated=True,
         #  completed=False
@@ -662,7 +662,26 @@ class DirectAssessmentTask(BaseMetadata):
         batch_meta = batch_data.metadata
         batch_name = batch_data.dataFile.name
         batch_file = batch_data.dataFile
-        batch_json = loads(str(batch_file.read(), encoding="utf-8"))
+        batch_json = None
+
+        if batch_name.endswith('.zip'):
+            if not is_zipfile(batch_file):
+                _msg = 'Batch {0} not a valid ZIP archive'.format(batch_name)
+                LOGGER.warn(_msg)
+                return
+
+            batch_zip = ZipFile(batch_file)
+            batch_json_files = [x for x in batch_zip.namelist() if x.endswith('.json')]
+            # TODO: implement proper support for multiple json files in archive.
+            for batch_json_file in batch_json_files:
+                batch_content = batch_zip.read(batch_json_file).decode('utf-8')
+                batch_json = loads(batch_content, encoding='utf-8')
+
+        else:
+            batch_json = loads(str(batch_file.read(), encoding="utf-8"))
+
+        from datetime import datetime
+        t1 = datetime.now()
 
         current_count = 0
         max_length_id = 0
@@ -673,6 +692,9 @@ class DirectAssessmentTask(BaseMetadata):
                   max_count
                 )
                 LOGGER.info(_msg)
+
+                t2 = datetime.now()
+                print(t2-t1)
                 return
 
             print(batch_name, batch_task['task']['batchNo'])
@@ -701,6 +723,8 @@ class DirectAssessmentTask(BaseMetadata):
                 )
                 new_items.append(new_item)
 
+            print(new_items[0].id)
+
             if not len(new_items) == 100:
                 _msg = 'Expected 100 items for task but found {0}'.format(
                     len(new_items)
@@ -710,9 +734,12 @@ class DirectAssessmentTask(BaseMetadata):
 
             current_count += 1
 
-            for new_item in new_items:
-                new_item.metadata = batch_meta
-                new_item.save()
+
+            #for new_item in new_items:
+            #    new_item.metadata = batch_meta
+            #    new_item.save()
+            batch_meta.textpair_set.add(*new_items, bulk=False)
+            batch_meta.save()
 
             new_task = DirectAssessmentTask(
                 campaign=campaign,
@@ -723,9 +750,9 @@ class DirectAssessmentTask(BaseMetadata):
             )
             new_task.save()
 
-            for new_item in new_items:
-                new_task.items.add(new_item)
-
+            #for new_item in new_items:
+            #    new_task.items.add(new_item)
+            new_task.items.add(*new_items)
             new_task.save()
 
             _msg = 'Success processing batch {0}, task {1}'.format(
@@ -737,6 +764,9 @@ class DirectAssessmentTask(BaseMetadata):
           max_length_id, max_length_text
         )
         LOGGER.info(_msg)
+
+        t2 = datetime.now()
+        print(t2-t1)
 
     # pylint: disable=E1101
     def is_valid(self):
