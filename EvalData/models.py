@@ -723,8 +723,6 @@ class DirectAssessmentTask(BaseMetadata):
                 )
                 new_items.append(new_item)
 
-            print(new_items[0].id)
-
             if not len(new_items) == 100:
                 _msg = 'Expected 100 items for task but found {0}'.format(
                     len(new_items)
