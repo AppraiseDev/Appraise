@@ -3,6 +3,7 @@ Appraise
 """
 # pylint: disable=C0330,W0611
 from json import loads
+from zipfile import ZipFile, is_zipfile
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
@@ -46,9 +47,9 @@ class Command(BaseCommand):
 
             try:
                 if batch_name.endswith('.zip'):
-                    from zipfile import ZipFile, is_zipfile
                     if not is_zipfile(batch_file):
-                        print('NOT A ZIP')
+                        _msg = 'Batch {0} not a valid ZIP archive'.format(batch_name)
+                        self.stdout.write(_msg)
                         continue
 
                     batch_zip = ZipFile(batch_file)
