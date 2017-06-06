@@ -60,15 +60,16 @@ class Command(BaseCommand):
           'USFD', 'Tilde', 'Tartu-Riga-Zurich', 'UFAL', 'Helsinki', 'Aalto',
           'HZSK-apertium', 'LIMSI-CNRS', 'LIUM', 'PROMT', 'uedin', 'RWTH',
           'HunterCollege', 'QT21', 'NRC', 'AFRL', 'TALP-UPC', 'LMU-Munich',
-          'XMU', 'CASICT', 'URMT', 'KIT', 'UU'        ]
+          'XMU', 'CASICT', 'URMT', 'KIT', 'UU'
+        ]
 
         # Initially, remove everybody from the members relationship.
         team.members.clear()
 
         # Then, add associated group members to this campaign team.
         for group_name in news_task_groups:
-            group = Group.objects.filter(name=group_name)
-            if group.exists():
+            group = Group.objects.filter(name=group_name).first()
+            if group:
                 for user in group.user_set.all():
                     team.members.add(user)
                     _msg = 'Updated team {0}, adding user {1}'.format(
