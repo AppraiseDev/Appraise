@@ -87,6 +87,9 @@ function update_score()
 
 {% block content %}
 
+<form action="{{action_url}}" method="post" onsubmit="javascript:add_end_timestamp();">
+{% csrf_token %}
+
 <div class="alert alert-info">
   <table style="width:100%">
   <tr>
@@ -114,14 +117,11 @@ function update_score()
 <div class="row">
 <div class="col-sm-12">
 <blockquote>
-<p><strong>{{reference_text}}</strong></p>
+<p><strong>{{reference_text|safe}}</strong></p>
 <small>Reference</small>
 </blockquote>
 </div>
 </div>
-
-<form action="{{action_url}}" method="post" onsubmit="javascript:add_end_timestamp();">
-{% csrf_token %}
 
 <input name="end_timestamp" type="hidden" value="" />
 <input name="item_id" type="hidden" value="{{item_id}}" />
@@ -133,7 +133,7 @@ function update_score()
 <div class="row">
 <div class="col-sm-12">
 <blockquote>
-<p><strong>{{candidate_text}}</strong></p>
+<p><strong>{{candidate_text|safe}}</strong></p>
 <small>Candidate translation</small>
 </blockquote>
 </div>
