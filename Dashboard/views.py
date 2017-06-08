@@ -317,6 +317,7 @@ def group_status(request):
 
     context.update({
       'group_status': list(sorted_status),
+      'total_completed': sum(group_data.values())
     })
 
     return render(request, 'Dashboard/group-status.html', context)
