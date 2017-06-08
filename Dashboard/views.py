@@ -1,6 +1,7 @@
 # pylint: disable=C0330
 import logging
 
+from collections import defaultdict
 from hashlib import md5
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AdminPasswordChangeForm
@@ -287,3 +288,36 @@ def dashboard(request):
     })
 
     return render(request, 'Dashboard/dashboard.html', context)
+
+
+@login_required
+def group_status(request):
+    """
+    Appraise group status page.
+    """
+    context = {
+      'active_page': 'group-status'
+    }
+    context.update(BASE_CONTEXT)
+
+    from EvalData.models import DirectAssessmentTask
+
+    group_data = defaultdict(int)
+    for completed_task in DirectAssessmentTask.objects.filter(completed=True):
+        for user in completed_task.assignedTo.all():
+            for group in user.groups.all():
+                if not group.name in LANGUAGE_CODES_AND_NAMES.keys():
+                    group_data[group] += 1
+
+    group_status = []
+    for group in group_data:
+        group_status.append((group, group_data[group]))
+
+    sorted_status = sorted(group_status, key=lambda x: x[1], reverse=True)
+
+    context.update({
+      'group_status': list(sorted_status),
+    })
+
+    return render(request, 'Dashboard/group-status.html', context)
+

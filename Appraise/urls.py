@@ -74,6 +74,8 @@ urlpatterns = [
 
     url(r'^dashboard/$', dashboard_views.dashboard, name='dashboard'),
 
+    url(r'^group-status/$', dashboard_views.group_status, name='group-status'),
+
     url(r'^direct-assessment/$', evalview_views.direct_assessment, name='direct-assessment'),
     url(r'^direct-assessment/(?P<code>[a-z]{3})/$', evalview_views.direct_assessment, name='direct-assessment'),
 ]
