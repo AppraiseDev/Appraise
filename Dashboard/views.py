@@ -2,6 +2,7 @@
 import logging
 
 from collections import defaultdict
+from datetime import datetime
 from hashlib import md5
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AdminPasswordChangeForm
@@ -303,11 +304,14 @@ def group_status(request):
     from EvalData.models import DirectAssessmentTask
 
     group_data = defaultdict(int)
-    for completed_task in DirectAssessmentTask.objects.filter(completed=True):
-        for user in completed_task.assignedTo.all():
-            for group in user.groups.all():
-                if not group.name in LANGUAGE_CODES_AND_NAMES.keys():
-                    group_data[group] += 1
+    t1 = datetime.now()
+    qs = DirectAssessmentTask.objects.filter(completed=True)
+    for group_name in qs.values_list('assignedTo__groups__name', flat=True):
+        #for user in completed_task.all(): #.assignedTo.all():
+        #    for group in user.groups.all():
+        if not group_name in LANGUAGE_CODES_AND_NAMES.keys():
+            group_data[group_name] += 1
+    t2 = datetime.now()
 
     group_status = []
     for group in group_data:
@@ -317,7 +321,8 @@ def group_status(request):
 
     context.update({
       'group_status': list(sorted_status),
-      'total_completed': sum(group_data.values())
+      'total_completed': sum(group_data.values()),
+      'debug_time': t2-t1
     })
 
     return render(request, 'Dashboard/group-status.html', context)
@@ -328,7 +333,6 @@ def system_status(request):
     """
     Appraise system status page.
     """
-    from datetime import datetime
     t1 = datetime.now()
     context = {
       'active_page': 'system-status'
