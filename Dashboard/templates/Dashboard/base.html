@@ -65,7 +65,7 @@
 {% if request.user.is_superuser %}
                 <li><a href="{% url 'admin:index' %}">Admin backend</a></li>
 {% endif %}
-                <li class="disabled"><a href="#">Campaign status</a></li>
+                <li><a href="{% url 'group-status' %}">Campaign status</a></li>
 {% endif %}
               </ul>
             </li>
