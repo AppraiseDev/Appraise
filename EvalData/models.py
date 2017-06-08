@@ -391,6 +391,7 @@ class EvalItem(BaseMetadata):
 
     itemType = models.CharField(
       choices=SET_ITEMTYPE_CHOICES,
+      db_index=True,
       max_length=MAX_ITEMTYPE_LENGTH,
       verbose_name=_('Item type')
     )
@@ -868,9 +869,9 @@ class DirectAssessmentResult(BaseMetadata):
     @classmethod
     def get_system_scores(cls):
         system_scores = defaultdict(list)
-        for result in cls.objects.filter(completed=True):
-            if result.item.itemType not in ('TGT', 'CHK'):
-                continue
+        for result in cls.objects.filter(completed=True, item__itemType__in=('TGT', 'CHK')):
+            #if not result.completed or result.item.itemType not in ('TGT', 'CHK'):
+            #    continue
 
             system_ids = result.item.targetID.split('+')
             score = result.score
