@@ -881,7 +881,7 @@ class DirectAssessmentResult(BaseMetadata):
         return system_scores
 
     @classmethod
-    def get_system_status(cls):
+    def get_system_status(cls, sort_index=3):
         system_scores = cls.get_system_scores()
         non_english_codes = ('cs', 'de', 'fi', 'lv', 'tr', 'tr')
 
@@ -902,7 +902,7 @@ class DirectAssessmentResult(BaseMetadata):
                 x = data[code][key]
                 z = sum(x)/total_annotations
                 output_local.append((key, len(x), sum(x)/len(x), z))
-            
-            output_data[code] = list(sorted(output_local, key=lambda x: x[3], reverse=True))
-        
+
+            output_data[code] = list(sorted(output_local, key=lambda x: x[sort_index], reverse=True))
+
         return output_data

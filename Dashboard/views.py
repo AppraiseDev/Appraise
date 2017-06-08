@@ -322,3 +322,33 @@ def group_status(request):
 
     return render(request, 'Dashboard/group-status.html', context)
 
+
+@login_required
+def system_status(request):
+    """
+    Appraise system status page.
+    """
+    context = {
+      'active_page': 'system-status'
+    }
+    context.update(BASE_CONTEXT)
+
+    from EvalData.models import DirectAssessmentResult
+
+    system_data = DirectAssessmentResult.get_system_status(sort_index=1)
+    sorted_status = []
+    total_completed = 0
+    for code in system_data:
+        if not system_data[code]:
+            continue
+
+        for data in system_data[code]:
+            sorted_status.append((code, data[0], data[1]))
+            total_completed += data[1]
+
+    context.update({
+      'system_status': sorted_status,
+      'total_completed': total_completed,
+    })
+
+    return render(request, 'Dashboard/system-status.html', context)
