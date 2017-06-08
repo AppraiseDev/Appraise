@@ -869,12 +869,13 @@ class DirectAssessmentResult(BaseMetadata):
     @classmethod
     def get_system_scores(cls):
         system_scores = defaultdict(list)
-        for result in cls.objects.filter(completed=True, item__itemType__in=('TGT', 'CHK')):
+        qs = cls.objects.filter(completed=True, item__itemType__in=('TGT', 'CHK'))
+        for result in qs.values_list('item__targetID', 'score'):
             #if not result.completed or result.item.itemType not in ('TGT', 'CHK'):
             #    continue
 
-            system_ids = result.item.targetID.split('+')
-            score = result.score
+            system_ids = result[0].split('+') #result.item.targetID.split('+')
+            score = result[1] #.score
 
             for system_id in system_ids:
                 system_scores[system_id].append(score)

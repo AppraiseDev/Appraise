@@ -354,7 +354,7 @@ def system_status(request):
     context.update({
       'system_status': sorted_status,
       'total_completed': total_completed,
-      'debug_time': str((t4-t3, t3-t2, t2-t1))
+      'debug_time': t3-t2,
     })
 
     return render(request, 'Dashboard/system-status.html', context)
