@@ -346,12 +346,11 @@ def system_status(request):
     Appraise system status page.
     """
     t1 = datetime.now()
+
     context = {
       'active_page': 'system-status'
     }
     context.update(BASE_CONTEXT)
-
-    from EvalData.models import DirectAssessmentResult
 
     t2 = datetime.now()
     system_data = DirectAssessmentResult.get_system_status(sort_index=1)
@@ -370,7 +369,8 @@ def system_status(request):
     context.update({
       'system_status': sorted_status,
       'total_completed': total_completed,
-      'debug_time': t3-t2,
+      'debug_times': (t2-t1, t3-t2, t4-t3, t4-t1),
+      'template_debug': 'debug' in request.GET,
     })
 
     return render(request, 'Dashboard/system-status.html', context)
