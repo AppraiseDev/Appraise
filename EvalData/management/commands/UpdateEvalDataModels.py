@@ -2,13 +2,15 @@
 Appraise evaluation framework
 """
 # pylint: disable=W0611
+from datetime import datetime
 from os import path
 from django.contrib.auth.models import User
 
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models import Count, Q
 from django.db.utils import OperationalError, ProgrammingError
 from EvalData.models import Market, Metadata, DirectAssessmentTask, \
-  DirectAssessmentResult
+  DirectAssessmentResult, TextPair
 
 
 INFO_MSG = 'INFO: '
@@ -87,52 +89,74 @@ class Command(BaseCommand):
 
             self.stdout.write(_msg)
 
-        # Ensure that all DirectAssessmentResults link back to tasks.
-        tasks = DirectAssessmentTask.objects.filter(
-          activated=True,
-          completed=False
+#        tr1 = datetime.now()
+#        active_items = TextPair.objects.filter(activated=True)
+#        print(active_items.count())
+#        active_items.update(activated=False)
+#        tr2 = datetime.now()
+#        print('reset', tr2-tr1)
+
+        t1 = datetime.now()
+        results = DirectAssessmentResult.objects.filter(completed=False)
+        results.update(activated=False, completed=True)
+        t2 = datetime.now()
+        print('Processed DirectAssessmentResult instances', t2-t1)
+
+        bad_results = DirectAssessmentResult.objects.filter(
+          Q(item=None) | Q(task=None)
         )
-
-        fixed_results = 0
-        completed_results = 0
-        for task in tasks:
-            for item in task.items.all():
-                results = DirectAssessmentResult.objects.filter(
-                  item=item
-                )
-
-                for result in results:
-                    if result.task != task:
-                        result.task = task
-                        result.save()
-                        fixed_results += 1
-
-                    if not result.completed:
-                        result.complete()
-                        result.save()
-                        completed_results += 1
-
-        _msg = 'Fixed task mappings for {0} results'.format(fixed_results)
-        self.stdout.write(_msg)
-
-        _msg = 'Completed {0} results'.format(completed_results)
-        self.stdout.write(_msg)
+        print('Identified bad DirectAssessmentResult instances', bad_results.count())
 
         # Check which DirectAssessmentTask instances can be activated.
+        #
+        # Iterate over all tasks
+        # If completed_items >= 100, complete task
+        # Otherwise, if campagin active, activate items and task
         activated_items = 0
-        for task in DirectAssessmentTask.objects.filter(activated=False):
-            if task.campaign.activated:
-                for item in task.items.all():
-                    if not item.activated:
-                        item.activate()
-                        item.save()
-                        activated_items += 1
+        completed_tasks = 0
 
-                task.activate()
-                task.save()
-                activated_items += 1
+        tasks_to_complete = []
+        tasks_to_activate = []
+        items_to_activate = []
 
-        _msg = 'Activated {0} items and tasks'.format(activated_items)
-        self.stdout.write(_msg  )
+        t1 = datetime.now()
+        task_data = DirectAssessmentTask.objects.values(
+          'id', 'activated', 'completed'
+        )
+        task_data = task_data.annotate(
+          results=Count('evaldata_directassessmentresults')
+        )
+        for task in task_data:
+            if task['results'] >= 100:
+                if task['activated']:
+                    tasks_to_complete.append(task['id'])
+                    completed_tasks += 1
+
+            elif task['completed']:
+                tasks_to_activate.append(task['id'])
+
+        ttc = DirectAssessmentTask.objects.filter(id__in=tasks_to_complete)
+        ttc.update(activated=False, completed=True)
+
+        tta = DirectAssessmentTask.objects.filter(id__in=tasks_to_activate)
+        tta.update(activated=True, completed=False)
+
+        t2 = datetime.now()
+        print('Processed DirectAssessmentTask instances', t2-t1)
+
+        item_data = TextPair.objects.filter(
+          evaldata_directassessmenttasks__campaign__activated=True,
+          activated=False
+        )
+        item_data.update(activated=True)
+
+        t3 = datetime.now()
+        print('Processed TextPair instances', t3-t2)
+
+        task_ids = DirectAssessmentTask.objects.filter(campaign__activated=True)
+        task_ids.update(activated=True)
+
+        t4 = datetime.now()
+        print('Processed related DirectAssessmentTask instances', t4-t3)
 
         self.stdout.write('\n[DONE]\n\n')
