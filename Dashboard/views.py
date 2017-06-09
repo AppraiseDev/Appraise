@@ -306,33 +306,35 @@ def group_status(request):
     """
     Appraise group status page.
     """
+    t1 = datetime.now()
+
     context = {
       'active_page': 'group-status'
     }
     context.update(BASE_CONTEXT)
 
-    from EvalData.models import DirectAssessmentTask
-
     group_data = defaultdict(int)
-    t1 = datetime.now()
+    t2 = datetime.now()
     qs = DirectAssessmentTask.objects.filter(completed=True)
     for group_name in qs.values_list('assignedTo__groups__name', flat=True):
         #for user in completed_task.all(): #.assignedTo.all():
         #    for group in user.groups.all():
         if not group_name in LANGUAGE_CODES_AND_NAMES.keys():
             group_data[group_name] += 1
-    t2 = datetime.now()
+    t3 = datetime.now()
 
     group_status = []
     for group in group_data:
         group_status.append((group, group_data[group]))
 
     sorted_status = sorted(group_status, key=lambda x: x[1], reverse=True)
+    t4 = datetime.now()
 
     context.update({
       'group_status': list(sorted_status),
       'total_completed': sum(group_data.values()),
-      'debug_time': t2-t1
+      'debug_times': (t2-t1, t3-t2, t4-t3, t4-t1),
+      'template_debug': 'debug' in request.GET,
     })
 
     return render(request, 'Dashboard/group-status.html', context)
