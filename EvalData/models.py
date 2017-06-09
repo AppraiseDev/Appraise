@@ -22,6 +22,7 @@ from datetime import datetime, timedelta
 from json import loads
 from zipfile import ZipFile, is_zipfile
 from django.db import models
+from django.db.models import Count
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.text import format_lazy as f
@@ -590,24 +591,32 @@ class DirectAssessmentTask(BaseMetadata):
             return LANGUAGE_CODES_AND_NAMES[tokens[1]]
         return None
 
-    def completed_items(self):
-        return self.items.filter(
+    def completed_items_for_user(self, user):
+        results = DirectAssessmentResult.objects.filter(
+          task=self,
           activated=False,
-          completed=True
-        ).count()
+          completed=True,
+          createdBy=user
+        ).values_list('item_id', flat=True)
 
-    def next_item(self):
-        ###
-        # This is SUPER SLOW using SQLite!
-        ###
-        #next_item = self.items.filter(
-        #  activated=True,
-        #  completed=False
-        #).first()
+        return len(set(results))
+
+    def next_item_for_user(self, user, return_completed_items=False):
         next_item = None
+        completed_items = 0
         for item in self.items.all():
-            if item.activated and not item.completed:
+            result = DirectAssessmentResult.objects.filter(
+              item=item,
+              activated=False,
+              completed=True,
+              createdBy=user
+            )
+
+            if not result.exists():
                 next_item = item
+                break
+
+            completed_items += 1
 
         if not next_item:
             LOGGER.info('No next item found for task {0}'.format(self.id))
@@ -615,20 +624,25 @@ class DirectAssessmentTask(BaseMetadata):
               task=self,
               activated=False,
               completed=True
-            ).count()
+            ).values_list('item_id', flat=True)
+            uniqueAnnotations = len(set(annotations))
 
             LOGGER.info(
-              'Annotations={0}/{1}'.format(
-                annotations, self.requiredAnnotations * 100
+              'Unique annotations={0}/{1}'.format(
+                uniqueAnnotations, self.requiredAnnotations * 100
               )
             )
-            if annotations == self.requiredAnnotations * 100:
+            if uniqueAnnotations >= self.requiredAnnotations * 100:
                 LOGGER.info('Completing task {0}'.format(self.id))
                 self.complete()
                 self.save()
 
-                self.batchData.complete()
-                self.batchData.save()
+                # Not sure why I would complete the batch here?
+                # self.batchData.complete()
+                # self.batchData.save()
+
+        if return_completed_items:
+            return (next_item, completed_items)
 
         return next_item
 
