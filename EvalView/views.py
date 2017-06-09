@@ -1,7 +1,9 @@
 import logging
 
+from datetime import datetime
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
+from django.utils.timezone import utc
 from django.views import generic
 
 from EvalData.models import DirectAssessmentTask, DirectAssessmentResult, \
@@ -14,12 +16,14 @@ LOGGER = logging.getLogger('Dashboard.views')
 LOGGER.addHandler(LOG_HANDLER)
 
 
-# pylint: disable=C0330
+# pylint: disable=C0103,C0330
 @login_required
 def direct_assessment(request, code=None):
     """
     Direct assessment annotation view.
     """
+    t1 = datetime.now()
+
     LOGGER.info('Rendering direct assessment view for user "{0}".'.format(
       request.user.username or "Anonymous"))
 
@@ -42,6 +46,7 @@ def direct_assessment(request, code=None):
 
         current_task = next_task
 
+    t2 = datetime.now()
     if request.method == "POST":
         score = request.POST.get('score', None)
         item_id = request.POST.get('item_id', None)
@@ -55,7 +60,7 @@ def direct_assessment(request, code=None):
             LOGGER.debug(float(end_timestamp))
             LOGGER.info('start={0}, end={1}, duration={2}'.format(start_timestamp, end_timestamp, duration))
 
-            current_item = current_task.next_item()
+            current_item = current_task.next_item_for_user(request.user)
             if current_item.itemID != int(item_id) \
               or current_item.id != int(task_id):
                 LOGGER.debug(
@@ -64,41 +69,40 @@ def direct_assessment(request, code=None):
                 )
 
             else:
-                new_result = DirectAssessmentResult(
+                utc_now = datetime.utcnow().replace(tzinfo=utc)
+
+                # pylint: disable=E1101
+                DirectAssessmentResult.objects.create(
                   score=score,
                   start_time=float(start_timestamp),
                   end_time=float(end_timestamp),
                   item=current_item,
                   task=current_task,
-                  createdBy=request.user
+                  createdBy=request.user,
+                  activated=False,
+                  completed=True,
+                  dateCompleted=utc_now,
                 )
-                new_result.complete()
-                new_result.save()
 
-                current_item.complete()
-                current_item.save()
+    t3 = datetime.now()
 
-
-
-            # 1) Create results object, save
-            # 2) Complete item, save
-            # 3) If no more items, complete task and redirect to dashboard
-
-        # If item_id is valid, create annotation result
-
-    # Get item_id for next available item for direct assessment
-
-    current_item = current_task.next_item()
+    current_item, completed_items = current_task.next_item_for_user(request.user, return_completed_items=True)
     if not current_item:
         LOGGER.info('No current item detected, redirecting to dashboard')
         return redirect('dashboard')
 
-    completed_items = current_task.completed_items()
+    # completed_items_check = current_task.completed_items_for_user(request.user)
     completed_blocks = int(completed_items / 10)
-    print(completed_items, completed_blocks)
+    LOGGER.info(
+      'completed_items={0}, completed_blocks={1}'.format(
+        completed_items, completed_blocks
+      )
+    )
 
     source_language = current_task.marketSourceLanguage()
     target_language = current_task.marketTargetLanguage()
+
+    t4 = datetime.now()
 
     context = {
       'active_page': 'direct-assessment',
@@ -110,6 +114,8 @@ def direct_assessment(request, code=None):
       'items_left_in_block': 10 - (completed_items - completed_blocks * 10),
       'source_language': source_language,
       'target_language': target_language,
+      'debug_times': (t2-t1, t3-t2, t4-t3, t4-t1),
+      'template_debug': 'debug' in request.GET,
     }
     context.update(BASE_CONTEXT)
 
