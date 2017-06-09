@@ -13,7 +13,9 @@ from django.contrib import messages
 from django.shortcuts import render, reverse, redirect, render_to_response
 
 from Appraise.settings import LOG_LEVEL, LOG_HANDLER, STATIC_URL, BASE_CONTEXT
+from EvalData.models import DirectAssessmentTask, DirectAssessmentResult
 from .models import UserInviteToken, LANGUAGE_CODES_AND_NAMES
+
 
 # Setup logging support.
 logging.basicConfig(level=LOG_LEVEL)
@@ -239,17 +241,19 @@ def dashboard(request):
     """
     Appraise dashboard page.
     """
+    t1 = datetime.now()
+
     context = {
       'active_page': 'dashboard'
     }
     context.update(BASE_CONTEXT)
 
-    from EvalData.models import DirectAssessmentTask, DirectAssessmentResult
     annotations = DirectAssessmentResult.get_completed_for_user(request.user)
     hits = int(annotations/100)
 
     # If user still has an assigned task, only offer link to this task.
     current_task = DirectAssessmentTask.get_task_for_user(request.user)
+    t2 = datetime.now()
 
     # Otherwise, compute set of language codes eligible for next task.
     languages = []
@@ -271,11 +275,15 @@ def dashboard(request):
 
         print("languages = {0}".format(languages))
 
+    t3 = datetime.now()
+
     duration = DirectAssessmentResult.get_time_for_user(request.user)
     days = duration.days
     hours = int((duration.total_seconds() - (days * 86400)) / 3600)
     minutes = int(((duration.total_seconds() - (days * 86400)) % 3600) / 60)
     seconds = int((duration.total_seconds() - (days * 86400)) % 60)
+
+    t4 = datetime.now()
 
     context.update({
       'annotations': annotations,
@@ -286,6 +294,8 @@ def dashboard(request):
       'seconds': seconds,
       'current_task': current_task,
       'languages': [(x, LANGUAGE_CODES_AND_NAMES[x]) for x in languages],
+      'debug_times': (t2-t1, t3-t2, t4-t3, t4-t1),
+      'template_debug': 'debug' in request.GET,
     })
 
     return render(request, 'Dashboard/dashboard.html', context)
