@@ -210,7 +210,15 @@ class Command(BaseCommand):
         all_keys.sort()
         shuffle(all_keys)
 
-        total_batches = int(floor(len(all_keys) / (10 * 7)))
+        items_per_batch = 10 * 7
+
+        missing_items = items_per_batch - len(all_keys) % items_per_batch
+        print('Missing items is {0}/{1}'.format(missing_items, items_per_batch))
+
+        all_keys.extend(all_keys[0:missing_items])
+        print('Added {0} missing items rotating keys'.format(missing_items))
+
+        total_batches = int(floor(len(all_keys) / items_per_batch))
         print('Total number of batches is {0}'.format(total_batches))
 
         batch_no = options['batch_no']
@@ -308,7 +316,7 @@ class Command(BaseCommand):
 
                     obj = OrderedDict()
                     obj['_item'] = _item
-                    obj['_block'] = block_id + (10 * batch_no)
+                    obj['_block'] = block_id + (10 * (batch_no-1))
                     obj['sourceID'] = sourceID
                     obj['sourceText'] = item_ref if not source_based else item_src
                     obj['targetID'] = targetID
