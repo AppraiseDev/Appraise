@@ -316,7 +316,7 @@ class Command(BaseCommand):
 
                     obj = OrderedDict()
                     obj['_item'] = _item
-                    obj['_block'] = block_id + (10 * (batch_no-1))
+                    obj['_block'] = block_id + (10 * batch_id)
                     obj['sourceID'] = sourceID
                     obj['sourceText'] = item_ref if not source_based else item_src
                     obj['targetID'] = targetID
