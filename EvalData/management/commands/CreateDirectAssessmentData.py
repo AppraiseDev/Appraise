@@ -63,6 +63,10 @@ class Command(BaseCommand):
           '--all-batches', action='store_true',
           help='Produces all possible batches at once'
         )
+        parser.add_argument(
+          '--source-based', action='store_true',
+          help='Creates source-based work items'
+        )
         # TODO: add optional parameters to set source, reference and system IDs
 
         # TODO: add exclude argument which prevents creation of redundant data?
@@ -211,6 +215,7 @@ class Command(BaseCommand):
 
         batch_no = options['batch_no']
         all_batches = options['all_batches']
+        source_based = options['source_based']
 
         # If we don't produce all batches, our batch_id will be batch_no-1.
         # This is because batch numbers are one-based, ids zero-indexed.
@@ -305,7 +310,7 @@ class Command(BaseCommand):
                     obj['_item'] = _item
                     obj['_block'] = block_id + (10 * batch_no)
                     obj['sourceID'] = sourceID
-                    obj['sourceText'] = item_ref
+                    obj['sourceText'] = item_ref if not source_based else item_src
                     obj['targetID'] = targetID
                     obj['targetText'] = targetText
                     obj['itemID'] = item_id
