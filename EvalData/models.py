@@ -909,6 +909,19 @@ class DirectAssessmentResult(BaseMetadata):
         return seconds_to_timedelta(sum(durations))
 
     @classmethod
+    def get_system_annotations(cls):
+        system_scores = defaultdict(list)
+        qs = cls.objects.filter(completed=True, item__itemType__in=('TGT', 'CHK'))
+        for result in qs.values_list('item__targetID', 'score', 'createdBy', 'item__segmentID'):
+            systemID = result[0]
+            score = result[1]
+            annotatorID = result[2]
+            segmentID = result[3]
+            system_scores[systemID].append((annotatorID, segmentID, score))
+
+        return system_scores
+
+    @classmethod
     def get_system_scores(cls):
         system_scores = defaultdict(list)
         qs = cls.objects.filter(completed=True, item__itemType__in=('TGT', 'CHK'))
