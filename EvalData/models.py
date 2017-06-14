@@ -927,7 +927,7 @@ class DirectAssessmentResult(BaseMetadata):
     @classmethod
     def get_system_status(cls, sort_index=3):
         system_scores = cls.get_system_scores()
-        non_english_codes = ('cs', 'de', 'fi', 'lv', 'tr', 'tr')
+        non_english_codes = ('cs', 'de', 'fi', 'lv', 'tr', 'tr', 'ru', 'zh')
 
         codes = ['en-{0}'.format(x) for x in non_english_codes] \
           + ['{0}-en'.format(x) for x in non_english_codes]

@@ -253,6 +253,20 @@ def dashboard(request):
 
     # If user still has an assigned task, only offer link to this task.
     current_task = DirectAssessmentTask.get_task_for_user(request.user)
+
+    # Check if marketTargetLanguage for current_task matches user languages.
+    if current_task:
+        code = current_task.marketTargetLanguageCode()
+        print(request.user.groups.all())
+        if code not in request.user.groups.values_list('name', flat=True):
+            LOGGER.info('Language {0} not in user languages for user {1}. ' \
+              'Giving up task {2}'.format(code, request.user.username,
+              current_task)
+            )
+
+            current_task.assignedTo.remove(request.user)
+            current_task = None
+
     t2 = datetime.now()
 
     # Otherwise, compute set of language codes eligible for next task.
