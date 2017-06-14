@@ -193,7 +193,7 @@ class DirectAssessmentResultAdmin(BaseMetadataAdmin):
     Model admin for DirectAssessmentResult instances.
     """
     list_display = [
-      '__str__', 'score', 'start_time', 'end_time'
+      '__str__', 'score', 'start_time', 'end_time', 'duration', 'item_type'
     ] + BaseMetadataAdmin.list_display
     list_filter = [
       # nothing model specific

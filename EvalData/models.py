@@ -585,10 +585,22 @@ class DirectAssessmentTask(BaseMetadata):
             return LANGUAGE_CODES_AND_NAMES[tokens[0]]
         return None
 
+    def marketSourceLanguageCode(self):
+        tokens = str(self.items.first().metadata.market).split('_')
+        if len(tokens) == 3 and tokens[0] in LANGUAGE_CODES_AND_NAMES.keys():
+            return tokens[0]
+        return None
+
     def marketTargetLanguage(self):
         tokens = str(self.items.first().metadata.market).split('_')
         if len(tokens) == 3 and tokens[1] in LANGUAGE_CODES_AND_NAMES.keys():
             return LANGUAGE_CODES_AND_NAMES[tokens[1]]
+        return None
+
+    def marketTargetLanguageCode(self):
+        tokens = str(self.items.first().metadata.market).split('_')
+        if len(tokens) == 3 and tokens[1] in LANGUAGE_CODES_AND_NAMES.keys():
+            return tokens[1]
         return None
 
     def completed_items_for_user(self, user):
@@ -659,8 +671,17 @@ class DirectAssessmentTask(BaseMetadata):
         active_tasks = cls.objects.filter(
           activated=True,
           completed=False,
-        )
+          items__metadata__market__targetLanguageCode=code
+        ).values_list('id', 'requiredAnnotations') \
+         .annotate(active_users=Count('assignedTo'))
 
+        for active_task in active_tasks:
+            if active_task[2] < active_task[1]:
+                return cls.objects.get(pk=active_task[0])
+
+        return None
+
+        # TODO: this needs to be removed.
         for active_task in active_tasks:
             market = active_task.items.first().metadata.market
             if not market.targetLanguageCode == code:
@@ -856,6 +877,13 @@ class DirectAssessmentResult(BaseMetadata):
           self.item,
           self.score
         )
+
+    def duration(self):
+        d = self.end_time-self.start_time
+        return round(d, 1)
+
+    def item_type(self):
+        return self.item.itemType
 
     @classmethod
     def get_completed_for_user(cls, user):
