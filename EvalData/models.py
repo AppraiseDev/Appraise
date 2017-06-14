@@ -912,12 +912,13 @@ class DirectAssessmentResult(BaseMetadata):
     def get_system_annotations(cls):
         system_scores = defaultdict(list)
         qs = cls.objects.filter(completed=True, item__itemType__in=('TGT', 'CHK'))
-        for result in qs.values_list('item__targetID', 'score', 'createdBy', 'item__itemID'):
+        for result in qs.values_list('item__targetID', 'score', 'createdBy', 'item__itemID', 'item__metadata__market__str'):
             systemID = result[0]
             score = result[1]
             annotatorID = result[2]
             segmentID = result[3]
-            system_scores[systemID].append((annotatorID, segmentID, score))
+            marketID = result[4]
+            system_scores[marketID].append((systemID, annotatorID, segmentID, score))
 
         return system_scores
 
