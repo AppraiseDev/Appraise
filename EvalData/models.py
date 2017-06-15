@@ -964,3 +964,14 @@ class DirectAssessmentResult(BaseMetadata):
             output_data[code] = list(sorted(output_local, key=lambda x: x[sort_index], reverse=True))
 
         return output_data
+
+    @classmethod
+    def completed_results_for_user_and_campaign(cls, user, campaign):
+        results = cls.objects.filter(
+          activated=False,
+          completed=True,
+          createdBy=user,
+          task__campaign=campaign
+        ).values_list('item_id', flat=True)
+
+        return len(set(results))
