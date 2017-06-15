@@ -196,7 +196,7 @@ class DirectAssessmentResultAdmin(BaseMetadataAdmin):
       '__str__', 'score', 'start_time', 'end_time', 'duration', 'item_type'
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      # nothing model specific
+      'item__itemType', 'task__completed'
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
       # nothing model specific
