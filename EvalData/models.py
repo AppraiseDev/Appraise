@@ -613,7 +613,16 @@ class DirectAssessmentTask(BaseMetadata):
 
         return len(set(results))
 
+    def is_trusted_user(self, user):
+        from Campaign.models import TrustedUser
+        trusted_user = TrustedUser.objects.filter(\
+          user=user, campaign=self.campaign
+        )
+        return trusted_user.exists()
+
     def next_item_for_user(self, user, return_completed_items=False):
+        trusted_user = self.is_trusted_user(user)
+
         next_item = None
         completed_items = 0
         for item in self.items.all():
@@ -625,8 +634,12 @@ class DirectAssessmentTask(BaseMetadata):
             )
 
             if not result.exists():
-                next_item = item
-                break
+                print('identified next item: {0}/{1} for trusted={2}'.format(
+                  item.id, item.itemType, trusted_user
+                ))
+                if not trusted_user or item.itemType == 'TGT':
+                    next_item = item
+                    break
 
             completed_items += 1
 
@@ -672,7 +685,8 @@ class DirectAssessmentTask(BaseMetadata):
           activated=True,
           completed=False,
           items__metadata__market__targetLanguageCode=code
-        ).values_list('id', 'requiredAnnotations') \
+        ).order_by('id') \
+         .values_list('id', 'requiredAnnotations') \
          .annotate(active_users=Count('assignedTo'))
 
         for active_task in active_tasks:
