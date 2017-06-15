@@ -5,7 +5,7 @@ Campaign admin.py
 from django.contrib import admin
 
 from EvalData.admin import BaseMetadataAdmin
-from .models import CampaignTeam, CampaignData, Campaign
+from .models import CampaignTeam, CampaignData, Campaign, TrustedUser
 
 
 class CampaignTeamAdmin(BaseMetadataAdmin):
@@ -73,6 +73,28 @@ class CampaignAdmin(BaseMetadataAdmin):
       }),
     ) + BaseMetadataAdmin.fieldsets
 
+
+class TrustedUserAdmin(BaseMetadataAdmin):
+    """
+    Model admin for Campaign instances.
+    """
+    list_display = [
+      'user', 'campaign'
+    ]
+    list_filter = [
+      'campaign'
+    ]
+    search_fields = [
+      # nothing model specific
+    ]
+
+    fieldsets = (
+      (None, {
+        'fields': ('user', 'campaign')
+      }),
+    )
+
 admin.site.register(CampaignTeam, CampaignTeamAdmin)
 admin.site.register(CampaignData, CampaignDataAdmin)
 admin.site.register(Campaign, CampaignAdmin)
+admin.site.register(TrustedUser, TrustedUserAdmin)

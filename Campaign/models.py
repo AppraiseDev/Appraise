@@ -189,3 +189,18 @@ class Campaign(BaseMetadata):
     # pylint: disable=E1136
     def __str__(self):
         return self.campaignName
+
+
+class TrustedUser(models.Model):
+    user = models.ForeignKey(
+      User,
+      verbose_name=_('User')
+    )
+
+    campaign = models.ForeignKey(
+      Campaign,
+      verbose_name=_('Campaign')
+    )
+
+    def __str__(self):
+        return '{0}/{1}'.format(self.user.username, self.campaign.campaignName)

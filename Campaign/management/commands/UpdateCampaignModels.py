@@ -7,7 +7,7 @@ from django.contrib.auth.models import Group, User
 
 from django.core.management.base import BaseCommand, CommandError
 from django.db.utils import OperationalError, ProgrammingError
-from Campaign.models import Campaign, CampaignTeam
+from Campaign.models import Campaign, CampaignTeam, TrustedUser
 
 
 INFO_MSG = 'INFO: '
@@ -60,7 +60,7 @@ class Command(BaseCommand):
           'USFD', 'Tilde', 'Tartu-Riga-Zurich', 'UFAL', 'Helsinki', 'Aalto',
           'HZSK-apertium', 'LIMSI-CNRS', 'LIUM', 'PROMT', 'uedin', 'RWTH',
           'HunterCollege', 'QT21', 'NRC', 'AFRL', 'TALP-UPC', 'LMU-Munich',
-          'XMU', 'CASICT', 'URMT', 'KIT', 'UU'
+          'XMU', 'CASICT', 'URMT', 'KIT', 'UU', 'FBK'
         ]
 
         # Initially, remove everybody from the members relationship.
@@ -85,5 +85,22 @@ class Command(BaseCommand):
             )
             self.stdout.write(_msg)
         team.save()
+
+        MINIMUM_RESULTS_UNTIL_TRUSTED = 300
+        from EvalData.models import DirectAssessmentResult
+        for u in User.objects.all():
+            for c in Campaign.objects.all():
+                if TrustedUser.objects.filter(user=u, campaign=c).exists():
+                    continue
+
+                completed_hits = DirectAssessmentResult.completed_results_for_user_and_campaign(u, c)
+                if completed_hits >= MINIMUM_RESULTS_UNTIL_TRUSTED:
+                    TrustedUser.objects.create(
+                      user=u, campaign=c
+                    )
+                    _msg = 'Created trusted user {0} for campaign {1}'.format(
+                      u.username, c.campaignName
+                    )
+                    self.stdout.write(_msg)
 
         self.stdout.write('\n[DONE]\n\n')
