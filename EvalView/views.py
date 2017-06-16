@@ -139,6 +139,7 @@ def direct_assessment(request, code=None, campaign_name=None):
       'template_debug': 'debug' in request.GET,
       'campaign': campaign.campaignName,
       'datask_id': current_task.id,
+      'trusted_user': current_task.is_trusted_user(request.user),
     }
     context.update(BASE_CONTEXT)
 
