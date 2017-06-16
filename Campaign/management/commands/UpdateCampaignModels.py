@@ -60,7 +60,7 @@ class Command(BaseCommand):
           'USFD', 'Tilde', 'Tartu-Riga-Zurich', 'UFAL', 'Helsinki', 'Aalto',
           'HZSK-apertium', 'LIMSI-CNRS', 'LIUM', 'PROMT', 'uedin', 'RWTH',
           'HunterCollege', 'QT21', 'NRC', 'AFRL', 'TALP-UPC', 'LMU-Munich',
-          'XMU', 'CASICT', 'URMT', 'KIT', 'UU', 'FBK'
+          'XMU', 'CASICT', 'URMT', 'KIT', 'UU', 'FBK', 'JHU'
         ]
 
         # Initially, remove everybody from the members relationship.
