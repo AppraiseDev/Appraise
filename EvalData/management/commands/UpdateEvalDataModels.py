@@ -159,4 +159,57 @@ class Command(BaseCommand):
         t4 = datetime.now()
         print('Processed related DirectAssessmentTask instances', t4-t3)
 
+        # Metrics Task language pairs
+        metrics_task_languages = (
+          'ces', 'deu', 'fin', 'lav', 'trk', 'zho'
+        )
+        metrics_task_pairs = [('eng', x) for x in metrics_task_languages]
+
+        # Ensure that all Market and Metadata instances exist.
+        for source, target in metrics_task_pairs:
+            try:
+                # Create MetricsTask Market instance, if needed
+                market = Market.objects.filter(
+                  sourceLanguageCode=source,
+                  targetLanguageCode=target,
+                  domainName='MetricsTask'
+                )
+
+                if not market.exists():
+                    new_market = Market(
+                      sourceLanguageCode=source,
+                      targetLanguageCode=target,
+                      domainName='MetricsTask',
+                      createdBy=superusers[0]
+                    )
+                    new_market.save()
+                    market = new_market
+
+                else:
+                    market = market[0]
+
+                metadata = Metadata.objects.filter(market=market)
+
+                if not metadata.exists():
+                    new_metadata = Metadata(
+                      market=market,
+                      corpusName='MetricsTest2017',
+                      versionInfo='1.0',
+                      source='official',
+                      createdBy=superusers[0]
+                    )
+                    new_metadata.save()
+
+            except (OperationalError, ProgrammingError):
+                _msg = 'Failure processing source={0}, target={1}'.format(
+                  source, target
+                )
+
+            finally:
+                _msg = 'Success processing source={0}, target={1}'.format(
+                  source, target
+                )
+
+            self.stdout.write(_msg)
+
         self.stdout.write('\n[DONE]\n\n')

@@ -270,6 +270,7 @@ def dashboard(request):
     t2 = datetime.now()
 
     # Otherwise, compute set of language codes eligible for next task.
+    campaign_languages = {}
     languages = []
     if not current_task:
         for code in LANGUAGE_CODES_AND_NAMES:
@@ -282,12 +283,18 @@ def dashboard(request):
                 languages.remove('eng')
 
         # Remove any language for which no free task is available.
-        for code in languages:
-            next_task_available = DirectAssessmentTask.get_next_free_task_for_language(code)
-            if not next_task_available:
-                languages.remove(code)
+        from Campaign.models import Campaign
+        for campaign in Campaign.objects.all():
+            campaign_languages[campaign.campaignName] = []
+            campaign_languages[campaign.campaignName].extend(languages)
+            for code in languages:
+                next_task_available = DirectAssessmentTask.get_next_free_task_for_language_and_campaign(code, campaign)
+                if not next_task_available:
+                    campaign_languages[campaign.campaignName].remove(code)
 
-        print("languages = {0}".format(languages))
+            print("campaign = {0} languages = {1}".format(
+              campaign.campaignName, campaign_languages[campaign.campaignName]
+            ))
 
     t3 = datetime.now()
 
@@ -299,6 +306,13 @@ def dashboard(request):
 
     t4 = datetime.now()
 
+    all_languages = []
+    for key, values in campaign_languages.items():
+        for value in values:
+            all_languages.append((value, LANGUAGE_CODES_AND_NAMES[value], key))
+
+    print(str(all_languages).encode('utf-8'))
+
     context.update({
       'annotations': annotations,
       'hits': hits,
@@ -307,7 +321,7 @@ def dashboard(request):
       'minutes': minutes,
       'seconds': seconds,
       'current_task': current_task,
-      'languages': [(x, LANGUAGE_CODES_AND_NAMES[x]) for x in languages],
+      'languages': all_languages,
       'debug_times': (t2-t1, t3-t2, t4-t3, t4-t1),
       'template_debug': 'debug' in request.GET,
     })

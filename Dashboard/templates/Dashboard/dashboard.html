@@ -13,12 +13,12 @@
           <div class="panel-body">
 {% if current_task %}
             <h3>Current HIT</h3>
-            <p>Continue annotation for <a href="{% url 'direct-assessment' %}">{{current_task.marketTargetLanguage}}</a>.</p>
+            <p>Continue annotation for <a href="{% url 'direct-assessment' %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
 {% elif languages %}
             <h3>Next HIT</h3>
             <p>Start annotation for:
-{% for code, language in languages%}
-              <a href="{% url 'direct-assessment' code %}">{{language}}</a>{% if not forloop.last %} &middot; {% endif %}
+{% for code, language, campaign in languages%}
+              <a href="{% url 'direct-assessment' code campaign %}">{{campaign}}:{{language}}</a>{% if not forloop.last %} &middot; {% endif %}
 {% endfor %}
             <p><small>You will be assigned a free annotation task for the selected target language.</small></p>
 {% else %}

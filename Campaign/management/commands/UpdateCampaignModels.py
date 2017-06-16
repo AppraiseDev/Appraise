@@ -103,4 +103,42 @@ class Command(BaseCommand):
                     )
                     self.stdout.write(_msg)
 
+        # Ensure that MetricsTask campaign team exists.
+        metrics_task_name = 'MetricsTask'
+        metrics_task_annotations = 48
+        metrics_task_hours = 24
+        team = CampaignTeam.objects.filter(teamName=metrics_task_name)
+        if not team.exists():
+            new_team = CampaignTeam(
+              teamName=metrics_task_name,
+              owner=superusers[0],
+              requiredAnnotations=metrics_task_annotations,
+              requiredHours=metrics_task_hours,
+              createdBy=superusers[0]
+            )
+            new_team.save()
+            team = new_team
+
+        else:
+            team = team[0]
+
+        team.requiredAnnotations = metrics_task_annotations
+        team.requiredHours = metrics_task_hours
+        team.save()
+
+        # Ensure that all users are trusted for MetricsTask.
+        c = Campaign.objects.filter(campaignName='MetricsTask')
+        if c.exists():
+            c = c[0]
+            for u in User.objects.all():
+                trusted_used = TrustedUser.objects.filter(user=u, campaign=c)
+                if not trusted_used.exists():
+                    TrustedUser.objects.create(
+                      user=u, campaign=c
+                    )
+                    _msg = 'Created trusted user {0} for campaign {1}'.format(
+                      u.username, c.campaignName
+                    )
+                    self.stdout.write(_msg)
+
         self.stdout.write('\n[DONE]\n\n')

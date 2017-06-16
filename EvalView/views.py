@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.timezone import utc
 from django.views import generic
 
+from Campaign.models import Campaign
 from EvalData.models import DirectAssessmentTask, DirectAssessmentResult, \
   TextPair, seconds_to_timedelta
 from Appraise.settings import LOG_LEVEL, LOG_HANDLER, STATIC_URL, BASE_CONTEXT
@@ -18,11 +19,20 @@ LOGGER.addHandler(LOG_HANDLER)
 
 # pylint: disable=C0103,C0330
 @login_required
-def direct_assessment(request, code=None):
+def direct_assessment(request, code=None, campaign_name=None):
     """
     Direct assessment annotation view.
     """
     t1 = datetime.now()
+
+    campaign = None
+    if campaign_name:
+        campaign = Campaign.objects.filter(campaignName=campaign_name)
+        if not campaign.exists():
+            LOGGER.info('No campaign named "{0}" exists, redirecting to dashboard')
+            return redirect('dashboard')
+
+        campaign = campaign[0]
 
     LOGGER.info('Rendering direct assessment view for user "{0}".'.format(
       request.user.username or "Anonymous"))
@@ -30,12 +40,15 @@ def direct_assessment(request, code=None):
     # If language code has been given, find a free task and assign to user.
     current_task = DirectAssessmentTask.get_task_for_user(user=request.user)
     if not current_task:
-        if code is None:
+        if code is None or campaign is None:
             LOGGER.info('No current task detected, redirecting to dashboard')
+            LOGGER.info('- code={0}, campaign={1}'.format(code, campaign))
             return redirect('dashboard')
 
-        LOGGER.info('Identifying next task for code "{0}"'.format(code))
-        next_task = DirectAssessmentTask.get_next_free_task_for_language(code)
+        LOGGER.info('Identifying next task for code "{0}", campaign="{1}"' \
+          .format(code, campaign))
+        next_task = DirectAssessmentTask \
+          .get_next_free_task_for_language_and_campaign(code, campaign)
 
         if next_task is None:
             LOGGER.info('No next task detected, redirecting to dashboard')
@@ -45,6 +58,14 @@ def direct_assessment(request, code=None):
         next_task.save()
 
         current_task = next_task
+
+    if current_task:
+        if not campaign:
+            campaign = current_task.campaign
+
+        elif campaign.campaignName != current_task.campaign.campaignName:
+            LOGGER.info('Incompatible campaign specified, using item campaign instead!')
+            campaign = current_task.campaign
 
     t2 = datetime.now()
     if request.method == "POST":
@@ -116,6 +137,8 @@ def direct_assessment(request, code=None):
       'target_language': target_language,
       'debug_times': (t2-t1, t3-t2, t4-t3, t4-t1),
       'template_debug': 'debug' in request.GET,
+      'campaign': campaign.campaignName,
+      'datask_id': current_task.id,
     }
     context.update(BASE_CONTEXT)
 

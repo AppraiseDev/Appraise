@@ -652,12 +652,16 @@ class DirectAssessmentTask(BaseMetadata):
             ).values_list('item_id', flat=True)
             uniqueAnnotations = len(set(annotations))
 
+            required_user_results = 100
+            if trusted_user:
+                required_user_results = 70
+
             LOGGER.info(
               'Unique annotations={0}/{1}'.format(
-                uniqueAnnotations, self.requiredAnnotations * 100
+                uniqueAnnotations, self.requiredAnnotations * required_user_results
               )
             )
-            if uniqueAnnotations >= self.requiredAnnotations * 100:
+            if uniqueAnnotations >= self.requiredAnnotations * required_user_results:
                 LOGGER.info('Completing task {0}'.format(self.id))
                 self.complete()
                 self.save()
@@ -680,12 +684,19 @@ class DirectAssessmentTask(BaseMetadata):
         ).first()
 
     @classmethod
-    def get_next_free_task_for_language(cls, code):
+    def get_next_free_task_for_language(cls, code, campaign=None):
         active_tasks = cls.objects.filter(
           activated=True,
           completed=False,
           items__metadata__market__targetLanguageCode=code
-        ).order_by('id') \
+        )
+
+        if campaign:
+            active_tasks = active_tasks.filter(
+              campaign=campaign
+            )
+
+        active_tasks = active_tasks.order_by('id') \
          .values_list('id', 'requiredAnnotations') \
          .annotate(active_users=Count('assignedTo'))
 
@@ -706,6 +717,10 @@ class DirectAssessmentTask(BaseMetadata):
                 return active_task
 
         return None
+
+    @classmethod
+    def get_next_free_task_for_language_and_campaign(cls, code, campaign):
+        return cls.get_next_free_task_for_language(code, campaign)
 
     @classmethod
     def import_from_json(cls, campaign, batch_user, batch_data, max_count):

@@ -175,7 +175,7 @@ class DirectAssessmentTaskAdmin(BaseMetadataAdmin):
       'dataName', 'batchNo', 'campaign', 'requiredAnnotations'
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'batchData', 'campaign__campaignName'
+      'campaign__campaignName', 'campaign__batches__market__targetLanguageCode', 'campaign__batches__market__sourceLanguageCode', 'batchData'
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
       'campaign__campaignName', 'assignedTo'

@@ -74,7 +74,7 @@ class CampaignAdmin(BaseMetadataAdmin):
     ) + BaseMetadataAdmin.fieldsets
 
 
-class TrustedUserAdmin(BaseMetadataAdmin):
+class TrustedUserAdmin(admin.ModelAdmin):
     """
     Model admin for Campaign instances.
     """
