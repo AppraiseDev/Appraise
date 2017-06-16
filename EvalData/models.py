@@ -696,12 +696,14 @@ class DirectAssessmentTask(BaseMetadata):
               campaign=campaign
             )
 
+        # It seems that assignedTo is converted to an integer count.
         active_tasks = active_tasks.order_by('id') \
-         .values_list('id', 'requiredAnnotations') \
-         .annotate(active_users=Count('assignedTo'))
+         .values_list('id', 'requiredAnnotations', 'assignedTo')
 
         for active_task in active_tasks:
-            if active_task[2] < active_task[1]:
+            print(active_task)
+            active_users = active_task[2] or 0
+            if active_users < active_task[1]:
                 return cls.objects.get(pk=active_task[0])
 
         return None
