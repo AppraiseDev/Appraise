@@ -48,7 +48,7 @@ def direct_assessment(request, code=None, campaign_name=None):
         LOGGER.info('Identifying next task for code "{0}", campaign="{1}"' \
           .format(code, campaign))
         next_task = DirectAssessmentTask \
-          .get_next_free_task_for_language_and_campaign(code, campaign)
+          .get_next_free_task_for_language(code, campaign, request.user)
 
         if next_task is None:
             LOGGER.info('No next task detected, redirecting to dashboard')

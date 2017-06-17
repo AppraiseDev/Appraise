@@ -677,14 +677,19 @@ class DirectAssessmentTask(BaseMetadata):
 
     @classmethod
     def get_task_for_user(cls, user):
-        return cls.objects.filter(
+        for active_task in cls.objects.filter(
           assignedTo=user,
           activated=True,
           completed=False
-        ).first()
+        ).order_by('-id'):
+            next_item = active_task.next_item_for_user(user)
+            if next_item is not None:
+                return active_task
+
+        return None
 
     @classmethod
-    def get_next_free_task_for_language(cls, code, campaign=None):
+    def get_next_free_task_for_language(cls, code, campaign=None, user=None):
         active_tasks = cls.objects.filter(
           activated=True,
           completed=False,
@@ -699,7 +704,10 @@ class DirectAssessmentTask(BaseMetadata):
         for active_task in active_tasks.order_by('id'):
             active_users = active_task.assignedTo.count()
             if active_users < active_task.requiredAnnotations:
-                return active_task
+                if user and not user in active_task.assignedTo.all():
+                    return active_task
+
+        return None
 
         # It seems that assignedTo is converted to an integer count.
         active_tasks = active_tasks.order_by('id') \

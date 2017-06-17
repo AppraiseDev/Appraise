@@ -288,7 +288,7 @@ def dashboard(request):
             campaign_languages[campaign.campaignName] = []
             campaign_languages[campaign.campaignName].extend(languages)
             for code in languages:
-                next_task_available = DirectAssessmentTask.get_next_free_task_for_language_and_campaign(code, campaign)
+                next_task_available = DirectAssessmentTask.get_next_free_task_for_language(code, campaign, request.user)
                 if not next_task_available:
                     campaign_languages[campaign.campaignName].remove(code)
 
