@@ -80,4 +80,8 @@ urlpatterns = [
     url(r'^direct-assessment/$', evalview_views.direct_assessment, name='direct-assessment'),
     url(r'^direct-assessment/(?P<code>[a-z]{3})/$', evalview_views.direct_assessment, name='direct-assessment'),
     url(r'^direct-assessment/(?P<code>[a-z]{3})/(?P<campaign_name>[a-zA-Z]+)/$', evalview_views.direct_assessment, name='direct-assessment'),
+
+    url(r'^multimodal-assessment/$', evalview_views.multimodal_assessment, name='multimodal-assessment'),
+    url(r'^multimodal-assessment/(?P<code>[a-z]{3})/$', evalview_views.multimodal_assessment, name='multimodal-assessment'),
+    url(r'^multimodal-assessment/(?P<code>[a-z]{3})/(?P<campaign_name>[a-zA-Z]+)/$', evalview_views.multimodal_assessment, name='multimodal-assessment'),
 ]

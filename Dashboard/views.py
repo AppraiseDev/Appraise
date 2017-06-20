@@ -14,6 +14,7 @@ from django.shortcuts import render, reverse, redirect, render_to_response
 
 from Appraise.settings import LOG_LEVEL, LOG_HANDLER, STATIC_URL, BASE_CONTEXT
 from EvalData.models import DirectAssessmentTask, DirectAssessmentResult
+from EvalData.models import MultiModalAssessmentTask, MultiModalAssessmentResult
 from .models import UserInviteToken, LANGUAGE_CODES_AND_NAMES
 
 
@@ -271,6 +272,7 @@ def dashboard(request):
 
     # Otherwise, compute set of language codes eligible for next task.
     campaign_languages = {}
+    multimodal_languages = {}
     languages = []
     if not current_task:
         for code in LANGUAGE_CODES_AND_NAMES:
@@ -285,15 +287,31 @@ def dashboard(request):
         # Remove any language for which no free task is available.
         from Campaign.models import Campaign
         for campaign in Campaign.objects.all():
-            campaign_languages[campaign.campaignName] = []
-            campaign_languages[campaign.campaignName].extend(languages)
+            is_multi_modal_campaign = 'multimodal' in campaign.campaignName.lower()
+
+            if is_multi_modal_campaign:
+                multimodal_languages[campaign.campaignName] = []
+                multimodal_languages[campaign.campaignName].extend(languages)
+
+            else:
+                campaign_languages[campaign.campaignName] = []
+                campaign_languages[campaign.campaignName].extend(languages)
+
             for code in languages:
-                next_task_available = DirectAssessmentTask.get_next_free_task_for_language(code, campaign, request.user)
+                next_task_available = None
+                if not is_multi_modal_campaign:
+                    next_task_available = DirectAssessmentTask.get_next_free_task_for_language(code, campaign, request.user)
+                else:
+                    next_task_available = MultiModalAssessmentTask.get_next_free_task_for_language(code, campaign, request.user)
+
                 if not next_task_available:
-                    campaign_languages[campaign.campaignName].remove(code)
+                    if not is_multi_modal_campaign:
+                        campaign_languages[campaign.campaignName].remove(code)
+                    else:
+                        multimodal_languages[campaign.campaignName].remove(code)
 
             print("campaign = {0} languages = {1}".format(
-              campaign.campaignName, campaign_languages[campaign.campaignName]
+              campaign.campaignName, campaign_languages[campaign.campaignName] if not is_multi_modal_campaign else multimodal_languages[campaign.campaignName]
             ))
 
     t3 = datetime.now()
@@ -313,6 +331,13 @@ def dashboard(request):
 
     print(str(all_languages).encode('utf-8'))
 
+    mmt_languages = []
+    for key, values in multimodal_languages.items():
+        for value in values:
+            mmt_languages.append((value, LANGUAGE_CODES_AND_NAMES[value], key))
+
+    print(str(mmt_languages).encode('utf-8'))
+
     context.update({
       'annotations': annotations,
       'hits': hits,
@@ -322,6 +347,7 @@ def dashboard(request):
       'seconds': seconds,
       'current_task': current_task,
       'languages': all_languages,
+      'multimodal': mmt_languages,
       'debug_times': (t2-t1, t3-t2, t4-t3, t4-t1),
       'template_debug': 'debug' in request.GET,
     })

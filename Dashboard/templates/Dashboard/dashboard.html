@@ -14,13 +14,25 @@
 {% if current_task %}
             <h3>Current HIT</h3>
             <p>Continue annotation for <a href="{% url 'direct-assessment' %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
-{% elif languages %}
+{% elif languages or multimodal %}
+{% if languages %}
             <h3>Next HIT</h3>
             <p>Start annotation for:
-{% for code, language, campaign in languages%}
+{% for code, language, campaign in languages %}
               <a href="{% url 'direct-assessment' code campaign %}">{{campaign}}:{{language}}</a>{% if not forloop.last %} &middot; {% endif %}
 {% endfor %}
+            </p>
+{% endif %}
+{% if multimodal %}
+            <h3>Multimodal HIT</h3>
+            <p>Start annotation for:
+{% for code, language, campaign in multimodal %}
+              <a href="{% url 'multimodal-assessment' code campaign %}">{{campaign}}:{{language}}</a>{% if not forloop.last %} &middot; {% endif %}
+{% endfor %}
+            </p>
+{% endif %}
             <p><small>You will be assigned a free annotation task for the selected target language.</small></p>
+
 {% else %}
             <h3>Next HIT</h3>
             <p>We are currently finalising the registration process for annotator accounts. Once this has been completed, direct assessment tasks will be become available from this page. Please check back in a little while.</p>

@@ -5,8 +5,9 @@ EvalData admin.py
 from datetime import datetime
 from django.contrib import admin
 from django.utils.timezone import utc
-from .models import Market, Metadata, TextSegment, TextPair
+from .models import Market, Metadata, TextSegment, TextPair, TextPairWithImage
 from .models import DirectAssessmentTask, DirectAssessmentResult
+from .models import MultiModalAssessmentTask, MultiModalAssessmentResult
 
 # TODO:chrife: find a way to use SELECT-based filtering widgets
 class BaseMetadataAdmin(admin.ModelAdmin):
@@ -167,6 +168,33 @@ class TextPairAdmin(BaseMetadataAdmin):
     ) + BaseMetadataAdmin.fieldsets
 
 
+class TextPairWithImageAdmin(BaseMetadataAdmin):
+    """
+    Model admin for TextPairWithImage instances.
+    """
+    list_display = [
+      '__str__', 'itemID', 'itemType', 'sourceID', 'sourceText', 'targetID',
+      'targetText', 'imageURL'
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      'metadata__corpusName', 'metadata__versionInfo',
+      'metadata__market__sourceLanguageCode',
+      'metadata__market__targetLanguageCode',
+      'metadata__market__domainName',
+      'itemType'
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      'sourceID', 'sourceText', 'targetID', 'targetText'
+    ] + BaseMetadataAdmin.search_fields
+
+    fieldsets = (
+      (None, {
+        'fields': (['metadata', 'itemID', 'itemType', 'sourceID',
+          'sourceText', 'targetID', 'targetText', 'imageURL'])
+      }),
+    ) + BaseMetadataAdmin.fieldsets
+
+
 class DirectAssessmentTaskAdmin(BaseMetadataAdmin):
     """
     Model admin for DirectAssessmentTask instances.
@@ -208,10 +236,54 @@ class DirectAssessmentResultAdmin(BaseMetadataAdmin):
       }),
     ) + BaseMetadataAdmin.fieldsets
 
+class MultiModalAssessmentTaskAdmin(BaseMetadataAdmin):
+    """
+    Model admin for MultiModalAssessmentTask instances.
+    """
+    list_display = [
+      'dataName', 'batchNo', 'campaign', 'requiredAnnotations'
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      'campaign__campaignName', 'campaign__batches__market__targetLanguageCode', 'campaign__batches__market__sourceLanguageCode', 'batchData'
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      'campaign__campaignName', 'assignedTo'
+    ] + BaseMetadataAdmin.search_fields
+
+    fieldsets = (
+      (None, {
+        'fields': (['batchData', 'batchNo', 'campaign', 'items', 'requiredAnnotations', 'assignedTo'])
+      }),
+    ) + BaseMetadataAdmin.fieldsets
+
+
+class MultiModalAssessmentResultAdmin(BaseMetadataAdmin):
+    """
+    Model admin for MultiModalAssessmentResult instances.
+    """
+    list_display = [
+      '__str__', 'score', 'start_time', 'end_time', 'duration', 'item_type'
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      'item__itemType', 'task__completed'
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      # nothing model specific
+    ] + BaseMetadataAdmin.search_fields
+
+    fieldsets = (
+      (None, {
+        'fields': (['score', 'start_time', 'end_time', 'item', 'task'])
+      }),
+    ) + BaseMetadataAdmin.fieldsets
+
 
 admin.site.register(Market, MarketAdmin)
 admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(TextSegment, TextSegmentAdmin)
 admin.site.register(TextPair, TextPairAdmin)
+admin.site.register(TextPairWithImage, TextPairWithImageAdmin)
 admin.site.register(DirectAssessmentTask, DirectAssessmentTaskAdmin)
 admin.site.register(DirectAssessmentResult, DirectAssessmentResultAdmin)
+admin.site.register(MultiModalAssessmentTask, MultiModalAssessmentTaskAdmin)
+admin.site.register(MultiModalAssessmentResult, MultiModalAssessmentResultAdmin)
