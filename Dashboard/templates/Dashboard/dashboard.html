@@ -13,7 +13,11 @@
           <div class="panel-body">
 {% if current_task %}
             <h3>Current HIT</h3>
+{% if current_type == 'multimodal' %}
+            <p>Continue annotation for <a href="{% url 'multimodal-assessment' %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
+{% elif current_type == 'direct' %}
             <p>Continue annotation for <a href="{% url 'direct-assessment' %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
+{% endif %}
 {% elif languages or multimodal %}
 {% if languages %}
             <h3>Next HIT</h3>

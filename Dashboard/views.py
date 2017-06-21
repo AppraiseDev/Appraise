@@ -268,6 +268,22 @@ def dashboard(request):
             current_task.assignedTo.remove(request.user)
             current_task = None
 
+    if not current_task:
+        current_task = MultiModalAssessmentTask.get_task_for_user(request.user)
+
+    # Check if marketTargetLanguage for current_task matches user languages.
+    if current_task:
+        code = current_task.marketTargetLanguageCode()
+        print(request.user.groups.all())
+        if code not in request.user.groups.values_list('name', flat=True):
+            LOGGER.info('Language {0} not in user languages for user {1}. ' \
+              'Giving up task {2}'.format(code, request.user.username,
+              current_task)
+            )
+
+            current_task.assignedTo.remove(request.user)
+            current_task = None
+
     t2 = datetime.now()
 
     # Otherwise, compute set of language codes eligible for next task.
@@ -338,6 +354,10 @@ def dashboard(request):
 
     print(str(mmt_languages).encode('utf-8'))
 
+    is_multi_modal_campaign = False
+    if current_task:
+        is_multi_modal_campaign = 'multimodal' in current_task.campaign.campaignName.lower()
+
     context.update({
       'annotations': annotations,
       'hits': hits,
@@ -346,6 +366,7 @@ def dashboard(request):
       'minutes': minutes,
       'seconds': seconds,
       'current_task': current_task,
+      'current_type': 'direct' if not is_multi_modal_campaign else 'multimodal',
       'languages': all_languages,
       'multimodal': mmt_languages,
       'debug_times': (t2-t1, t3-t2, t4-t3, t4-t1),
