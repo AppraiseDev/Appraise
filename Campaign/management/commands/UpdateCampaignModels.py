@@ -141,4 +141,42 @@ class Command(BaseCommand):
                     )
                     self.stdout.write(_msg)
 
+        # Ensure that MetricsTask campaign team exists.
+        multimodal_task_name = 'MultiModalTask'
+        multimodal_task_annotations = 100
+        multimodal_task_hours = 50
+        team = CampaignTeam.objects.filter(teamName=multimodal_task_name)
+        if not team.exists():
+            new_team = CampaignTeam(
+              teamName=multimodal_task_name,
+              owner=superusers[0],
+              requiredAnnotations=multimodal_task_annotations,
+              requiredHours=multimodal_task_hours,
+              createdBy=superusers[0]
+            )
+            new_team.save()
+            team = new_team
+
+        else:
+            team = team[0]
+
+        team.requiredAnnotations = multimodal_task_annotations
+        team.requiredHours = multimodal_task_hours
+        team.save()
+
+        # Ensure that all users are trusted for MultiModalTask.
+        c = Campaign.objects.filter(campaignName='MultiModalTask')
+        if c.exists():
+            c = c[0]
+            for u in User.objects.all():
+                trusted_used = TrustedUser.objects.filter(user=u, campaign=c)
+                if not trusted_used.exists():
+                    TrustedUser.objects.create(
+                      user=u, campaign=c
+                    )
+                    _msg = 'Created trusted user {0} for campaign {1}'.format(
+                      u.username, c.campaignName
+                    )
+                    self.stdout.write(_msg)
+
         self.stdout.write('\n[DONE]\n\n')
