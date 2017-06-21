@@ -61,7 +61,7 @@ LOG_DATE = "%m/%d/%Y @ %H:%M:%S"
 LOG_FORMATTER = logging.Formatter(LOG_FORMAT, LOG_DATE)
 
 LOG_HANDLER = RotatingFileHandler(filename=LOG_FILENAME, mode="a",
-  maxBytes=1024*1024, backupCount=5, encoding="utf-8")
+  maxBytes=50*1024*1024, backupCount=5, encoding="utf-8")
 LOG_HANDLER.setLevel(level=LOG_LEVEL)
 LOG_HANDLER.setFormatter(LOG_FORMATTER)
 
