@@ -1052,12 +1052,16 @@ class DirectAssessmentResult(BaseMetadata):
         return system_scores
 
     @classmethod
-    def write_csv(cls, srcCode, tgtCode, domain, csvFile):
+    def write_csv(cls, srcCode, tgtCode, domain, csvFile, allData=False):
         x = cls.get_csv(srcCode, tgtCode, domain)
-        s=['username,email,segmentID,score,durationInSeconds']
+        s=['username,email,segmentID,score,durationInSeconds,itemType']
+        if allData:
+            s[0]='systemID,'+s[0]
+
         for l in x:
             for i in x[l]:
-                s.append(','.join([str(a) for a in i[1:]]))
+                e = i[1:] if not allData else i
+                s.append(','.join([str(a) for a in e]))
 
         from os.path import join
         from Appraise.settings import BASE_DIR
