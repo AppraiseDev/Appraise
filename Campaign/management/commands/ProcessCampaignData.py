@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
 from Campaign.models import Campaign
-from EvalData.models import DirectAssessmentTask
+from EvalData.models import DirectAssessmentTask, MultiModalAssessmentTask
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
