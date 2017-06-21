@@ -1028,8 +1028,8 @@ class DirectAssessmentResult(BaseMetadata):
     @classmethod
     def get_csv(cls, srcCode, tgtCode, domain):
         system_scores = defaultdict(list)
-        qs = cls.objects.filter(completed=True, item__itemType__in=('TGT', 'CHK'))
-        for result in qs.values_list('item__targetID', 'score', 'start_time', 'end_time', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode', 'item__metadata__market__domainName'):
+        qs = cls.objects.filter(completed=True)
+        for result in qs.values_list('item__targetID', 'score', 'start_time', 'end_time', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode', 'item__metadata__market__domainName', 'item__itemType'):
 
             if not domain == result[8] or not srcCode == result[6] or not tgtCode == result[7]:
                 continue
@@ -1043,10 +1043,11 @@ class DirectAssessmentResult(BaseMetadata):
             segmentID = result[5]
             marketID = '{0}-{1}'.format(result[6], result[7])
             domainName = result[8]
+            itemType = result[9]
             user = User.objects.get(pk=annotatorID)
             username = user.username
             useremail = user.email
-            system_scores[marketID+'-'+domainName].append((systemID, username, useremail, segmentID, score, duration))
+            system_scores[marketID+'-'+domainName].append((systemID, username, useremail, segmentID, score, duration, itemType))
 
         return system_scores
 
