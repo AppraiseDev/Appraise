@@ -163,7 +163,7 @@ def multimodal_assessment(request, code=None, campaign_name=None):
 
         campaign = campaign[0]
 
-    LOGGER.info('Rendering direct assessment view for user "{0}".'.format(
+    LOGGER.info('Rendering multimodal assessment view for user "{0}".'.format(
       request.user.username or "Anonymous"))
 
     # If language code has been given, find a free task and assign to user.
