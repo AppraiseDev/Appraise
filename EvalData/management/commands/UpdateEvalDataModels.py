@@ -212,4 +212,58 @@ class Command(BaseCommand):
 
             self.stdout.write(_msg)
 
+
+        # MultiModal Task language pairs
+        multimodal_task_languages = (
+          'deu', 'fra'
+        )
+        multimodal_task_pairs = [('eng', x) for x in multimodal_task_languages]
+
+        # Ensure that all Market and Metadata instances exist.
+        for source, target in multimodal_task_pairs:
+            try:
+                # Create MultiModalTask Market instance, if needed
+                market = Market.objects.filter(
+                  sourceLanguageCode=source,
+                  targetLanguageCode=target,
+                  domainName='MultiModalTask'
+                )
+
+                if not market.exists():
+                    new_market = Market(
+                      sourceLanguageCode=source,
+                      targetLanguageCode=target,
+                      domainName='MultiModalTask',
+                      createdBy=superusers[0]
+                    )
+                    new_market.save()
+                    market = new_market
+
+                else:
+                    market = market[0]
+
+                metadata = Metadata.objects.filter(market=market)
+
+                if not metadata.exists():
+                    new_metadata = Metadata(
+                      market=market,
+                      corpusName='MultiModalTest2017',
+                      versionInfo='1.0',
+                      source='official',
+                      createdBy=superusers[0]
+                    )
+                    new_metadata.save()
+
+            except (OperationalError, ProgrammingError):
+                _msg = 'Failure processing source={0}, target={1}'.format(
+                  source, target
+                )
+
+            finally:
+                _msg = 'Success processing source={0}, target={1}'.format(
+                  source, target
+                )
+
+            self.stdout.write(_msg)
+
         self.stdout.write('\n[DONE]\n\n')
