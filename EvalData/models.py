@@ -1050,6 +1050,21 @@ class DirectAssessmentResult(BaseMetadata):
 
         return system_scores
 
+    @classmethod
+    def write_csv(cls, srcCode, tgtCode, domain, csvFile):
+        x = cls.get_csv(srcCode, tgtCode, domain)
+        s=['username,email,segmentID,score,durationInSeconds']
+        for l in x:
+            for i in x[l]:
+                s.append(','.join([str(a) for a in i[1:]]))
+
+        from os.path import join
+        from Appraise.settings import BASE_DIR
+        media_file_path = join(BASE_DIR, 'media', csvFile)
+        with open(media_file_path, 'w') as outfile:
+            for c in s:
+                outfile.write(c)
+                outfile.write('\n')
 
     @classmethod
     def get_system_scores(cls):
