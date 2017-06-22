@@ -10,7 +10,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Count, Q
 from django.db.utils import OperationalError, ProgrammingError
 from EvalData.models import Market, Metadata, DirectAssessmentTask, \
-  DirectAssessmentResult, TextPair
+  DirectAssessmentResult, TextPair, TextPairWithImage
 
 
 INFO_MSG = 'INFO: '
@@ -265,5 +265,45 @@ class Command(BaseCommand):
                 )
 
             self.stdout.write(_msg)
+
+        t1 = datetime.now()
+        task_data = MultiModalAssessmentTask.objects.values(
+          'id', 'activated', 'completed'
+        )
+        task_data = task_data.annotate(
+          results=Count('evaldata_multimodalassessmentresults')
+        )
+        for task in task_data:
+            if task['results'] >= 100:
+                if task['activated']:
+                    tasks_to_complete.append(task['id'])
+                    completed_tasks += 1
+
+            elif task['completed']:
+                tasks_to_activate.append(task['id'])
+
+        ttc = MultiModalAssessmentTask.objects.filter(id__in=tasks_to_complete)
+        ttc.update(activated=False, completed=True)
+
+        tta = MultiModalAssessmentTask.objects.filter(id__in=tasks_to_activate)
+        tta.update(activated=True, completed=False)
+
+        t2 = datetime.now()
+        print('Processed MultiModalAssessmentTask instances', t2-t1)
+
+        item_data = TextPairWithImage.objects.filter(
+          evaldata_multimodalassessmenttasks__campaign__activated=True,
+          activated=False
+        )
+        item_data.update(activated=True)
+
+        t3 = datetime.now()
+        print('Processed TextPairWithImage instances', t3-t2)
+
+        task_ids = MultiModalAssessmentTask.objects.filter(campaign__activated=True)
+        task_ids.update(activated=True)
+
+        t4 = datetime.now()
+        print('Processed related MultiModalAssessmentTask instances', t4-t3)
 
         self.stdout.write('\n[DONE]\n\n')
