@@ -10,7 +10,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Count, Q
 from django.db.utils import OperationalError, ProgrammingError
 from EvalData.models import Market, Metadata, DirectAssessmentTask, \
-  DirectAssessmentResult, TextPair, TextPairWithImage
+  DirectAssessmentResult, TextPair, MultiModalAssessmentTask, \
+  MultiModalAssessmentResult, TextPairWithImage
 
 
 INFO_MSG = 'INFO: '
