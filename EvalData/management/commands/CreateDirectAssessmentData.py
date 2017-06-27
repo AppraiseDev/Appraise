@@ -67,6 +67,10 @@ class Command(BaseCommand):
           '--source-based', action='store_true',
           help='Creates source-based work items'
         )
+        parser.add_argument(
+          '--unicode', action='store_true',
+          help='Expects text files in Unicode encoding'
+        )
         # TODO: add optional parameters to set source, reference and system IDs
 
         # TODO: add exclude argument which prevents creation of redundant data?
@@ -139,6 +143,7 @@ class Command(BaseCommand):
         # Write out JSON output file
 
         batch_size = options['batch_size']
+        unicode_enc = options['unicode']
 
         block_size = 10
         block_annotations = 7
@@ -160,10 +165,11 @@ class Command(BaseCommand):
 
         # TODO: add parameter to set encoding
         # TODO: need to use OrderedDict to preserve segment IDs' order!
-        source_file = Command._load_text_from_file(options['source_file'], 'utf8')
+        encoding = 'utf16' if unicode_enc else 'utf8'
+        source_file = Command._load_text_from_file(options['source_file'], encoding)
         print('Loaded {0} source segments'.format(len(source_file.keys())))
 
-        reference_file = Command._load_text_from_file(options['reference_file'], 'utf8')
+        reference_file = Command._load_text_from_file(options['reference_file'], encoding)
         print('Loaded {0} reference segments'.format(len(reference_file.keys())))
 
         systems_files = []
@@ -184,12 +190,12 @@ class Command(BaseCommand):
         hashed_text = {}
 
         for system_path in systems_files:
-            system_txt = Command._load_text_from_file(system_path, 'utf8')
-            system_bad = Command._load_text_from_file(system_path.replace('.txt', '.bad'), 'utf8')
-            system_ids = Command._load_text_from_file(system_path.replace('.txt', '.ids'), 'utf8')
+            system_txt = Command._load_text_from_file(system_path, encoding)
+            system_bad = Command._load_text_from_file(system_path.replace('.txt', '.bad'), encoding)
+            system_ids = Command._load_text_from_file(system_path.replace('.txt', '.ids'), encoding)
 
             for segment_id, segment_text in system_txt.items():
-                md5hash = hashlib.new('md5', segment_text.encode('utf8')).hexdigest()
+                md5hash = hashlib.new('md5', segment_text.encode(encoding)).hexdigest()
                 if not md5hash in hashed_text.keys():
                     hashed_text[md5hash] = {
                       'segment_id': segment_id,

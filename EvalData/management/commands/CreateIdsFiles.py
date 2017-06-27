@@ -34,12 +34,17 @@ class Command(BaseCommand):
           '--filter-expr', type=str, default='*',
           help='Filter expression for file names'
         )
+        parser.add_argument(
+          '--unicode', action='store_true',
+          help='Expects text files in Unicode encoding'
+        )
 
     def handle(self, *args, **options):
         # Initialize random number generator
         source_path = options['source_path']
         target_path = options['target_path']
         filter_expr = options['filter_expr']
+        unicode_enc = options['unicode']
 
         _msg = '\n[{0}]\n\n'.format(path.basename(__file__))
         self.stdout.write(_msg)
@@ -105,7 +110,8 @@ class Command(BaseCommand):
 
                 else:
                     # Otherwise, process file, creating bad refs and ids file
-                    Command.create_ids_for_file(source_file, target_ids_file)
+                    encoding = 'utf16' if unicode_enc else 'utf8'
+                    Command.create_ids_for_file(source_file, target_ids_file, encoding=encoding)
 
                 self.stdout.write('OK')
 
