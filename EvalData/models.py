@@ -764,6 +764,35 @@ class DirectAssessmentTask(BaseMetadata):
               campaign=campaign
             )
 
+            # Appen crowd users may only contribute three HITs per campaign.
+            if user.groups.filter(name='Appen').exists():
+                completed_items = DirectAssessmentResult.objects.filter(
+                  activated=False,
+                  completed=True,
+                  createdBy=user,
+                  task__campaign=campaign,
+                ).values_list('item_id', 'task_id')
+
+                completed_tasks = defaultdict(list)
+                for item in completed_items:
+                    completed_tasks[item[1]].append(item[0])
+
+                validated_tasks = 0
+                for task_id in completed_tasks:
+                    if len(completed_tasks[task_id]) >= 100:
+                        validated_tasks += 1
+
+                if validated_tasks >= 3:
+                    _msg = 'User {0} has already completed {1} tasks and ' \
+                      'created {2} results for campaign {3}'.format(
+                      user.username,
+                      validated_tasks,
+                      len(completed_items),
+                      campaign.campaignName
+                    )
+                    LOGGER.info(_msg)
+                    return None
+
         for active_task in active_tasks.order_by('id'):
             active_users = active_task.assignedTo.count()
             if active_users < active_task.requiredAnnotations:
@@ -1313,6 +1342,35 @@ class MultiModalAssessmentTask(BaseMetadata):
             active_tasks = active_tasks.filter(
               campaign=campaign
             )
+
+            # Appen crowd users may only contribute three HITs per campaign.
+            if user.groups.filter(name='Appen').exists():
+                completed_items = DirectAssessmentResult.objects.filter(
+                  activated=False,
+                  completed=True,
+                  createdBy=user,
+                  task__campaign=campaign,
+                ).values_list('item_id', 'task_id')
+
+                completed_tasks = defaultdict(list)
+                for item in completed_items:
+                    completed_tasks[item[1]].append(item[0])
+
+                validated_tasks = 0
+                for task_id in completed_tasks:
+                    if len(completed_tasks[task_id]) >= 100:
+                        validated_tasks += 1
+
+                if validated_tasks >= 3:
+                    _msg = 'User {0} has already completed {1} tasks and ' \
+                      'created {2} results for campaign {3}'.format(
+                      user.username,
+                      validated_tasks,
+                      len(completed_items),
+                      campaign.campaignName
+                    )
+                    LOGGER.info(_msg)
+                    return None
 
         for active_task in active_tasks.order_by('id'):
             active_users = active_task.assignedTo.count()
