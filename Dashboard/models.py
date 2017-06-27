@@ -19,6 +19,10 @@ LANGUAGE_CODES_AND_NAMES = {
   'ron': 'Romanian (română)',
   'spa': 'Spanish (español)',
   'swe': 'Swedish (svenska)',
+  'ara': 'Arabic (العربية)',
+  'ita': 'Italian (italiano)',
+  'jpn': 'Japanese (日本語)',
+  'kor': 'Korean (한국어)',
 }
 
 # Ensure that all languages have a corresponding group.
