@@ -1063,12 +1063,12 @@ class DirectAssessmentResult(BaseMetadata):
         from Dashboard.models import LANGUAGE_CODES_AND_NAMES
         group_status = defaultdict(list)
         qs = cls.objects.filter(completed=True)
-        for result in qs.values_list('item__targetID', 'score', 'start_time', 'end_time', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode', 'item__metadata__market__domainName', 'item__itemType', 'task__id'):
-            if result[9].lower() != 'tgt':
+        for result in qs.values_list('createdBy', 'item__itemType', 'task__id'):
+            if result[1].lower() != 'tgt':
                 continue
 
-            annotatorID = result[4]
-            taskID = result[10]
+            annotatorID = result[0]
+            taskID = result[2]
             user = User.objects.get(pk=annotatorID)
             usergroups = ';'.join([x.name for x in user.groups.all() if not x.name in LANGUAGE_CODES_AND_NAMES.keys()])
             if not usergroups:
