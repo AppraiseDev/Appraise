@@ -309,7 +309,8 @@ class Command(BaseCommand):
 
         # Appen language pairs
         appen_languages = (
-          'ara', 'deu', 'spa', 'fra', 'ita', 'jpn', 'kor', 'por', 'rus', 'zho'
+          'ara', 'deu', 'spa', 'fra', 'ita', 'jpn', 'kor', 'por', 'rus', 'zho',
+          'cat', 'swe', 'nob', 'dan', 'trk', 'ces', 'nld', 'plk'
         )
         appen_pairs = [(x, 'eng') for x in appen_languages] \
           + [('eng', x) for x in appen_languages]
