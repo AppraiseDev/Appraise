@@ -396,7 +396,7 @@ def group_status(request):
 
     group_status = []
     for group in group_data:
-        group_status.append((group, group_data[group][0]))
+        group_status.append((group, group_data[group][0], group_data[group][1]))
 
     print(group_status)
 
@@ -423,7 +423,8 @@ def group_status(request):
 
     context.update({
       'group_status': list(sorted_status),
-      'total_completed': sum([x[1] for x in group_status]),
+      'sum_completed': sum([x[1] for x in group_status]),
+      'sum_total': sum([x[2] for x in group_status]),
       'debug_times': (t2-t1, t3-t2, t4-t3, t4-t1),
       'template_debug': 'debug' in request.GET,
     })
