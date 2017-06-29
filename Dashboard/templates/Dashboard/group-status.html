@@ -1,4 +1,5 @@
 {% extends 'Dashboard/base.html' %}
+{% load humanize %}
 
 {% block content %}
   <div class="page-header">
@@ -15,7 +16,7 @@
       </tr>
 {% endfor %}
       <tr>
-        <td>Total</td><td>{{sum_completed}}</td><td>{{sum_total}}</td>
+        <td>Total</td><td>{{sum_completed|intcomma}}</td><td>{{sum_total|intcomma}}</td>
       </tr>
     </table>
   </div>
