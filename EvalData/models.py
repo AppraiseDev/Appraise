@@ -1061,7 +1061,7 @@ class DirectAssessmentResult(BaseMetadata):
     @classmethod
     def compute_accurate_group_status(cls):
         from Dashboard.models import LANGUAGE_CODES_AND_NAMES
-        group_status = defaultdict(list)
+        user_status = defaultdict(list)
         qs = cls.objects.filter(completed=True)
         for result in qs.values_list('createdBy', 'item__itemType', 'task__id'):
             if result[1].lower() != 'tgt':
@@ -1069,12 +1069,16 @@ class DirectAssessmentResult(BaseMetadata):
 
             annotatorID = result[0]
             taskID = result[2]
+            user_status[annotatorID].append(taskID)
+
+        group_status = defaultdict(list)
+        for annotatorID in user_status:
             user = User.objects.get(pk=annotatorID)
             usergroups = ';'.join([x.name for x in user.groups.all() if not x.name in LANGUAGE_CODES_AND_NAMES.keys()])
             if not usergroups:
                 usergroups = 'NoGroupInfo'
-
-            group_status[usergroups].append(taskID)
+            
+            group_status[usergroups] = user_status[annotatorID]
 
         group_hits = {}
         for group_name in group_status:
