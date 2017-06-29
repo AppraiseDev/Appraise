@@ -250,7 +250,7 @@ def dashboard(request):
     context.update(BASE_CONTEXT)
 
     annotations = DirectAssessmentResult.get_completed_for_user(request.user)
-    hits = int(annotations/100)
+    hits, total_hits = DirectAssessmentResult.get_hit_status_for_user(request.user)
 
     # If user still has an assigned task, only offer link to this task.
     current_task = DirectAssessmentTask.get_task_for_user(request.user)
@@ -361,6 +361,7 @@ def dashboard(request):
     context.update({
       'annotations': annotations,
       'hits': hits,
+      'total_hits': total_hits,
       'days': days,
       'hours': hours,
       'minutes': minutes,
