@@ -1078,7 +1078,7 @@ class DirectAssessmentResult(BaseMetadata):
             if not usergroups:
                 usergroups = 'NoGroupInfo'
             
-            group_status[usergroups] = user_status[annotatorID]
+            group_status[usergroups].extend(user_status[annotatorID])
 
         group_hits = {}
         for group_name in group_status:
