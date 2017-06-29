@@ -23,6 +23,9 @@ LANGUAGE_CODES_AND_NAMES = {
   'ita': 'Italian (italiano)',
   'jpn': 'Japanese (日本語)',
   'kor': 'Korean (한국어)',
+  'nob': 'Norwegian (Bokmål)',
+  'nld': 'Dutch (Nederlands)',
+  'cat': 'Catalan (català)',
 }
 
 # Ensure that all languages have a corresponding group.
