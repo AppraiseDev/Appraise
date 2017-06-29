@@ -392,35 +392,47 @@ def group_status(request):
     t2 = datetime.now()
     group_data = DirectAssessmentResult.compute_accurate_group_status()
     t3 = datetime.now()
-    
-    print(group_data)
 
     group_status = []
     for group in group_data:
         group_status.append((group, group_data[group][0], group_data[group][1]))
 
-    print(group_status)
-
     sorted_status = sorted(group_status, key=lambda x: x[1], reverse=True)
     t4 = datetime.now()
 
-    if False:
-        group_data = defaultdict(int)
-        t2 = datetime.now()
-        qs = DirectAssessmentTask.objects.filter(completed=True)
-        for group_name in qs.values_list('assignedTo__groups__name', flat=True):
-            #for user in completed_task.all(): #.assignedTo.all():
-            #    for group in user.groups.all():
-            if not group_name in LANGUAGE_CODES_AND_NAMES.keys():
-                group_data[group_name] += 1
-        t3 = datetime.now()
+    context.update({
+      'group_status': list(sorted_status),
+      'sum_completed': sum([x[1] for x in group_status]),
+      'sum_total': sum([x[2] for x in group_status]),
+      'debug_times': (t2-t1, t3-t2, t4-t3, t4-t1),
+      'template_debug': 'debug' in request.GET,
+    })
 
-        group_status = []
-        for group in group_data:
-            group_status.append((group, group_data[group]))
+    return render(request, 'Dashboard/group-status.html', context)
 
-        sorted_status = sorted(group_status, key=lambda x: x[1], reverse=True)
-        t4 = datetime.now()
+
+@login_required
+def multimodal_status(request):
+    """
+    Appraise group status page.
+    """
+    t1 = datetime.now()
+
+    context = {
+      'active_page': 'group-status'
+    }
+    context.update(BASE_CONTEXT)
+
+    t2 = datetime.now()
+    group_data = MultiModalAssessmentResult.compute_accurate_group_status()
+    t3 = datetime.now()
+
+    group_status = []
+    for group in group_data:
+        group_status.append((group, group_data[group][0], group_data[group][1]))
+
+    sorted_status = sorted(group_status, key=lambda x: x[1], reverse=True)
+    t4 = datetime.now()
 
     context.update({
       'group_status': list(sorted_status),

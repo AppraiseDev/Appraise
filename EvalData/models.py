@@ -1096,7 +1096,7 @@ class DirectAssessmentResult(BaseMetadata):
             usergroups = ';'.join([x.name for x in user.groups.all() if not x.name in LANGUAGE_CODES_AND_NAMES.keys()])
             if not usergroups:
                 usergroups = 'NoGroupInfo'
-            
+
             group_status[usergroups].extend(user_status[annotatorID])
 
         group_hits = {}
@@ -1695,6 +1695,40 @@ class MultiModalAssessmentResult(BaseMetadata):
             durations.append(duration)
 
         return seconds_to_timedelta(sum(durations))
+
+    @classmethod
+    def compute_accurate_group_status(cls):
+        from Dashboard.models import LANGUAGE_CODES_AND_NAMES
+        user_status = defaultdict(list)
+        qs = cls.objects.filter(completed=True)
+        for result in qs.values_list('createdBy', 'item__itemType', 'task__id'):
+            if result[1].lower() != 'tgt':
+                continue
+
+            annotatorID = result[0]
+            taskID = result[2]
+            user_status[annotatorID].append(taskID)
+
+        group_status = defaultdict(list)
+        for annotatorID in user_status:
+            user = User.objects.get(pk=annotatorID)
+            usergroups = ';'.join([x.name for x in user.groups.all() if not x.name in LANGUAGE_CODES_AND_NAMES.keys()])
+            if not usergroups:
+                usergroups = 'NoGroupInfo'
+
+            group_status[usergroups].extend(user_status[annotatorID])
+
+        group_hits = {}
+        for group_name in group_status:
+            task_ids = set(group_status[group_name])
+            completed_tasks = 0
+            for task_id in task_ids:
+                if group_status[group_name].count(task_id) >= 70:
+                    completed_tasks += 1
+
+            group_hits[group_name] = (completed_tasks, len(task_ids))
+
+        return group_hits
 
     @classmethod
     def get_system_annotations(cls):
