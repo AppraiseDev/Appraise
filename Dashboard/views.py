@@ -479,3 +479,39 @@ def system_status(request):
     })
 
     return render(request, 'Dashboard/system-status.html', context)
+
+
+@login_required
+def multimodal_systems(request):
+    """
+    Appraise system status page.
+    """
+    t1 = datetime.now()
+
+    context = {
+      'active_page': 'system-status'
+    }
+    context.update(BASE_CONTEXT)
+
+    t2 = datetime.now()
+    system_data = MultiModalAssessmentResult.get_system_status(sort_index=1)
+    t3 = datetime.now()
+    sorted_status = []
+    total_completed = 0
+    for code in system_data:
+        if not system_data[code]:
+            continue
+
+        for data in system_data[code]:
+            sorted_status.append((code, data[0], data[1]))
+            total_completed += data[1]
+
+    t4 = datetime.now()
+    context.update({
+      'system_status': sorted_status,
+      'total_completed': total_completed,
+      'debug_times': (t2-t1, t3-t2, t4-t3, t4-t1),
+      'template_debug': 'debug' in request.GET,
+    })
+
+    return render(request, 'Dashboard/system-status.html', context)
