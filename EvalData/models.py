@@ -1059,6 +1059,47 @@ class DirectAssessmentResult(BaseMetadata):
         return system_scores
 
     @classmethod
+    def dump_all_results_to_csv_file(cls, csv_file):
+        from Dashboard.models import LANGUAGE_CODES_AND_NAMES
+        system_scores = defaultdict(list)
+        qs = cls.objects.filter(completed=True)
+        for result in qs.values_list('item__targetID', 'score', 'start_time', 'end_time', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode', 'item__metadata__market__domainName', 'item__itemType', 'task__id'):
+
+            systemID = result[0]
+            score = result[1]
+            start_time = result[2]
+            end_time = result[3]
+            duration = round(float(end_time)-float(start_time), 1)
+            annotatorID = result[4]
+            segmentID = result[5]
+            marketID = '{0}-{1}'.format(result[6], result[7])
+            domainName = result[8]
+            itemType = result[9]
+            taskID = result[10]
+            user = User.objects.get(pk=annotatorID)
+            username = user.username
+            useremail = user.email
+            usergroups = ';'.join([x.name for x in user.groups.all() if not x.name in LANGUAGE_CODES_AND_NAMES.keys()])
+            if not usergroups:
+                usergroups = 'NoGroupInfo'
+
+            system_scores[marketID+'-'+domainName].append((taskID,systemID, username, useremail, usergroups, segmentID, score, start_time, end_time, duration, itemType))
+
+        x = system_scores
+        s=['taskID,systemID,username,email,groups,segmentID,score,startTime,endTime,durationInSeconds,itemType']
+        for l in x:
+            for i in x[l]:
+                s.append(','.join([str(a) for a in i]))
+
+        from os.path import join
+        from Appraise.settings import BASE_DIR
+        media_file_path = join(BASE_DIR, 'media', csv_file)
+        with open(media_file_path, 'w') as outfile:
+            for c in s:
+                outfile.write(c)
+                outfile.write('\n')
+
+    @classmethod
     def get_csv(cls, srcCode, tgtCode, domain):
         system_scores = defaultdict(list)
         qs = cls.objects.filter(completed=True)
