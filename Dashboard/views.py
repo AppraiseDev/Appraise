@@ -388,26 +388,42 @@ def group_status(request):
     }
     context.update(BASE_CONTEXT)
 
-    group_data = defaultdict(int)
     t2 = datetime.now()
-    qs = DirectAssessmentTask.objects.filter(completed=True)
-    for group_name in qs.values_list('assignedTo__groups__name', flat=True):
-        #for user in completed_task.all(): #.assignedTo.all():
-        #    for group in user.groups.all():
-        if not group_name in LANGUAGE_CODES_AND_NAMES.keys():
-            group_data[group_name] += 1
+    group_data = DirectAssessmentResult.compute_accurate_group_status()
     t3 = datetime.now()
+    
+    print(group_data)
 
     group_status = []
     for group in group_data:
-        group_status.append((group, group_data[group]))
+        group_status.append((group, group_data[group][0]))
+
+    print(group_status)
 
     sorted_status = sorted(group_status, key=lambda x: x[1], reverse=True)
     t4 = datetime.now()
 
+    if False:
+        group_data = defaultdict(int)
+        t2 = datetime.now()
+        qs = DirectAssessmentTask.objects.filter(completed=True)
+        for group_name in qs.values_list('assignedTo__groups__name', flat=True):
+            #for user in completed_task.all(): #.assignedTo.all():
+            #    for group in user.groups.all():
+            if not group_name in LANGUAGE_CODES_AND_NAMES.keys():
+                group_data[group_name] += 1
+        t3 = datetime.now()
+
+        group_status = []
+        for group in group_data:
+            group_status.append((group, group_data[group]))
+
+        sorted_status = sorted(group_status, key=lambda x: x[1], reverse=True)
+        t4 = datetime.now()
+
     context.update({
       'group_status': list(sorted_status),
-      'total_completed': sum(group_data.values()),
+      'total_completed': sum([x[1] for x in group_status]),
       'debug_times': (t2-t1, t3-t2, t4-t3, t4-t1),
       'template_debug': 'debug' in request.GET,
     })

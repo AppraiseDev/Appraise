@@ -1059,6 +1059,37 @@ class DirectAssessmentResult(BaseMetadata):
         return system_scores
 
     @classmethod
+    def compute_accurate_group_status(cls):
+        from Dashboard.models import LANGUAGE_CODES_AND_NAMES
+        group_status = defaultdict(list)
+        qs = cls.objects.filter(completed=True)
+        for result in qs.values_list('item__targetID', 'score', 'start_time', 'end_time', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode', 'item__metadata__market__domainName', 'item__itemType', 'task__id'):
+            if result[9].lower() != 'tgt':
+                continue
+
+            annotatorID = result[4]
+            taskID = result[10]
+            user = User.objects.get(pk=annotatorID)
+            usergroups = ';'.join([x.name for x in user.groups.all() if not x.name in LANGUAGE_CODES_AND_NAMES.keys()])
+            if not usergroups:
+                usergroups = 'NoGroupInfo'
+
+            group_status[usergroups].append(taskID)
+
+        group_hits = {}
+        for group_name in group_status:
+            task_ids = set(group_status[group_name])
+            completed_tasks = 0
+            for task_id in task_ids:
+                if group_status[group_name].count(task_id) >= 70:
+                    completed_tasks += 1
+
+            group_hits[group_name] = (completed_tasks, len(task_ids))
+
+        return group_hits
+
+
+    @classmethod
     def dump_all_results_to_csv_file(cls, csv_file):
         from Dashboard.models import LANGUAGE_CODES_AND_NAMES
         system_scores = defaultdict(list)
