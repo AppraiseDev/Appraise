@@ -37,7 +37,7 @@ class Command(BaseCommand):
         user_instances = {}
         for active_task in active_tasks:
             annotators = list(active_task.evaldata_directassessmentresult_task.values_list('createdBy__id', flat=True))
-            for unique_annotator in annotators:
+            for unique_annotator in set(annotators):
                 if annotators.count(unique_annotator) >= 100:
                     if unique_annotator in user_instances:
                         user = user_instances[unique_annotator]
@@ -46,8 +46,12 @@ class Command(BaseCommand):
                         user = User.objects.get(pk=unique_annotator)
                         user_instances[unique_annotator] = user
 
-                    active_task.assignedTo.add(user)
-                    active_task.save()
+                    if not active_task.assignedTo.filter(id=unique_annotator).exists():
+                        print("Adding user {0} to task {1} due to annotation count {2}".format(
+                          user.username, active_task.id, annotators.count(unique_annotator)
+                        ))
+                        active_task.assignedTo.add(user)
+                        active_task.save()
 
             assigned_users = active_task.assignedTo.all()
             for assigned_user in assigned_users:
