@@ -47,6 +47,7 @@ class Command(BaseCommand):
                         user_instances[unique_annotator] = user
 
                     active_task.assignedTo.add(user)
+                    active_task.save()
 
             assigned_users = active_task.assignedTo.all()
             for assigned_user in assigned_users:
