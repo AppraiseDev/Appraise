@@ -515,3 +515,37 @@ def multimodal_systems(request):
     })
 
     return render(request, 'Dashboard/system-status.html', context)
+
+
+@login_required
+def metrics_status(request):
+    """
+    Appraise system status page.
+    """
+    t1 = datetime.now()
+
+    context = {
+      'active_page': 'system-status'
+    }
+    context.update(BASE_CONTEXT)
+
+    t2 = datetime.now()
+    task_data = DirectAssessmentTask.objects.filter(id__in=[x+5427 for x in range(48)])
+    t3 = datetime.now()
+    task_status = []
+    for t in task_data.order_by('id'):
+        source_language = t.items.first().metadata.market.sourceLanguageCode
+        target_language = t.items.first().metadata.market.targetLanguageCode
+        annotators = t.assignedTo.count()
+        results = t.evaldata_directassessmentresult_task.count()
+        task_status.append((
+          t.id, source_language, target_language, annotators, round(annotators/15.0), results, round(results/15*70.0)
+        ))
+    t4 = datetime.now()
+    context.update({
+      'task_status': task_status,
+      'debug_times': (t2-t1, t3-t2, t4-t3, t4-t1),
+      'template_debug': 'debug' in request.GET,
+    })
+
+    return render(request, 'Dashboard/metrics-status.html', context)
