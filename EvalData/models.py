@@ -1118,7 +1118,7 @@ class DirectAssessmentResult(BaseMetadata):
         system_scores = defaultdict(list)
         user_data = {}
         qs = cls.objects.filter(completed=True)
-        for result in qs.values_list('item__targetID', 'score', 'start_time', 'end_time', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode', 'item__metadata__market__domainName', 'item__itemType', 'task__id'):
+        for result in qs.values_list('item__targetID', 'score', 'start_time', 'end_time', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode', 'item__metadata__market__domainName', 'item__itemType', 'task__id', 'campaign__campaignName'):
 
             systemID = result[0]
             score = result[1]
@@ -1131,6 +1131,7 @@ class DirectAssessmentResult(BaseMetadata):
             domainName = result[8]
             itemType = result[9]
             taskID = result[10]
+            campaignName = result[11]
 
             if annotatorID in user_data:
                 username = user_data[annotatorID][0]
@@ -1149,10 +1150,10 @@ class DirectAssessmentResult(BaseMetadata):
                   username, useremail, usergroups
                 )
 
-            system_scores[marketID+'-'+domainName].append((taskID,systemID, username, useremail, usergroups, segmentID, score, start_time, end_time, duration, itemType))
+            system_scores[marketID+'-'+domainName].append((taskID,systemID, username, useremail, usergroups, segmentID, score, start_time, end_time, duration, itemType, campaignName))
 
         x = system_scores
-        s=['taskID,systemID,username,email,groups,segmentID,score,startTime,endTime,durationInSeconds,itemType']
+        s=['taskID,systemID,username,email,groups,segmentID,score,startTime,endTime,durationInSeconds,itemType,campaignName']
         for l in x:
             for i in x[l]:
                 s.append(','.join([str(a) for a in i]))
@@ -1748,7 +1749,7 @@ class MultiModalAssessmentResult(BaseMetadata):
         system_scores = defaultdict(list)
         user_data = {}
         qs = cls.objects.filter(completed=True)
-        for result in qs.values_list('item__targetID', 'score', 'start_time', 'end_time', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode', 'item__metadata__market__domainName', 'item__itemType', 'task__id'):
+        for result in qs.values_list('item__targetID', 'score', 'start_time', 'end_time', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode', 'item__metadata__market__domainName', 'item__itemType', 'task__id', 'campaign__campaignName'):
 
             systemID = result[0]
             score = result[1]
@@ -1761,6 +1762,7 @@ class MultiModalAssessmentResult(BaseMetadata):
             domainName = result[8]
             itemType = result[9]
             taskID = result[10]
+            campaignName = result[11]
 
             if annotatorID in user_data:
                 username = user_data[annotatorID][0]
@@ -1779,10 +1781,10 @@ class MultiModalAssessmentResult(BaseMetadata):
                   username, useremail, usergroups
                 )
 
-            system_scores[marketID+'-'+domainName].append((taskID,systemID, username, useremail, usergroups, segmentID, score, start_time, end_time, duration, itemType))
+            system_scores[marketID+'-'+domainName].append((taskID,systemID, username, useremail, usergroups, segmentID, score, start_time, end_time, duration, itemType, campaignName))
 
         x = system_scores
-        s=['taskID,systemID,username,email,groups,segmentID,score,startTime,endTime,durationInSeconds,itemType']
+        s=['taskID,systemID,username,email,groups,segmentID,score,startTime,endTime,durationInSeconds,itemType,campaignName']
         for l in x:
             for i in x[l]:
                 s.append(','.join([str(a) for a in i]))
