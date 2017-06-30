@@ -34,10 +34,29 @@ class Command(BaseCommand):
           activated=True
         )
 
+        user_instances = {}
         for active_task in active_tasks:
-            assigned_users = active_task.assignedTo.all()
+            annotators = list(active_task.evaldata_directassessmentresult_task.values_list('createdBy__id', flat=True))
+            for unique_annotator in annotators:
+                if annotators.count(unique_annotator) >= 100:
+                    if unique_annotator in user_instances:
+                        user = user_instances[unique_annotator]
 
+                    else:
+                        user = User.objects.get(pk=unique_annotator)
+                        user_instances[unique_annotator] = user
+
+                    active_task.assignedTo.add(user)
+
+            assigned_users = active_task.assignedTo.all()
             for assigned_user in assigned_users:
+                completed_annotations = active_task.evaldata_directassessmentresult_task.filter(
+                  createdBy=assigned_user
+                ).count()
+
+                if completed_annotations >= 100:
+                    continue
+
                 last_user_annotation = DirectAssessmentResult.objects.filter(
                   createdBy=assigned_user,
                 ).order_by(
@@ -46,6 +65,7 @@ class Command(BaseCommand):
 
                 print("\nactive task ID:", active_task.id, active_task.items.first().metadata.market)
                 print(assigned_user.username)
+                print(completed_annotations)
 
                 if last_user_annotation is None:
                     active_task.assignedTo.remove(assigned_user)
