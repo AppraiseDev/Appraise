@@ -1118,7 +1118,7 @@ class DirectAssessmentResult(BaseMetadata):
         system_scores = defaultdict(list)
         user_data = {}
         qs = cls.objects.filter(completed=True)
-        for result in qs.values_list('item__targetID', 'score', 'start_time', 'end_time', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode', 'item__metadata__market__domainName', 'item__itemType', 'task__id', 'campaign__campaignName'):
+        for result in qs.values_list('item__targetID', 'score', 'start_time', 'end_time', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode', 'item__metadata__market__domainName', 'item__itemType', 'task__id', 'task__campaign__campaignName'):
 
             systemID = result[0]
             score = result[1]
@@ -1749,7 +1749,7 @@ class MultiModalAssessmentResult(BaseMetadata):
         system_scores = defaultdict(list)
         user_data = {}
         qs = cls.objects.filter(completed=True)
-        for result in qs.values_list('item__targetID', 'score', 'start_time', 'end_time', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode', 'item__metadata__market__domainName', 'item__itemType', 'task__id', 'campaign__campaignName'):
+        for result in qs.values_list('item__targetID', 'score', 'start_time', 'end_time', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode', 'item__metadata__market__domainName', 'item__itemType', 'task__id', 'task__campaign__campaignName'):
 
             systemID = result[0]
             score = result[1]
