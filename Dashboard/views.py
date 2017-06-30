@@ -539,7 +539,7 @@ def metrics_status(request):
         annotators = t.assignedTo.count()
         results = t.evaldata_directassessmentresult_task.count()
         task_status.append((
-          t.id, source_language, target_language, annotators, round(annotators/15.0), results, round(results/(15*70.0))
+          t.id, source_language, target_language, annotators, round(100*annotators/15.0), results, round(100*results/(15*70.0))
         ))
     t4 = datetime.now()
     context.update({
