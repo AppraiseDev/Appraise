@@ -269,13 +269,13 @@ class Command(BaseCommand):
 
         t1 = datetime.now()
         task_data = MultiModalAssessmentTask.objects.values(
-          'id', 'activated', 'completed'
+          'id', 'activated', 'completed', 'requiredAnnotations'
         )
         task_data = task_data.annotate(
           results=Count('evaldata_multimodalassessmentresults')
         )
         for task in task_data:
-            if task['results'] >= 100:
+            if task['results'] >= 100 * task['requiredAnnotations']:
                 if task['activated']:
                     tasks_to_complete.append(task['id'])
                     completed_tasks += 1
