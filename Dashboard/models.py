@@ -26,6 +26,7 @@ LANGUAGE_CODES_AND_NAMES = {
   'nob': 'Norwegian (Bokmål)',
   'nld': 'Dutch (Nederlands)',
   'cat': 'Catalan (català)',
+  'dan': 'Danish (dansk)',
 }
 
 # Ensure that all languages have a corresponding group.
