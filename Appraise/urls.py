@@ -79,6 +79,7 @@ urlpatterns = [
     url(r'^multimodal-status/$', dashboard_views.multimodal_status, name='multimodal-status'),
     url(r'^multimodal-systems/$', dashboard_views.multimodal_systems, name='multimodal-systems'),
     url(r'^metrics-status/$', dashboard_views.metrics_status, name='metrics-status'),
+    url(r'^fe17-status/$', dashboard_views.fe17_status, name='fe17-status'),
 
     url(r'^direct-assessment/$', evalview_views.direct_assessment, name='direct-assessment'),
     url(r'^direct-assessment/(?P<code>[a-z]{3})/$', evalview_views.direct_assessment, name='direct-assessment'),
