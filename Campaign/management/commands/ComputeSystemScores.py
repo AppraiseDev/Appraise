@@ -31,6 +31,9 @@ class Command(BaseCommand):
         for task in DirectAssessmentTask.objects.filter(campaign=campaign, completed=True):
             system_scores = DirectAssessmentResult.get_system_scores()
 
+            # TODO: this should consider the chosen campaign, otherwise
+            #   we will show systems across all possible campaigns...
+
             for key, value in system_scores.items():
                 normalized_score = float(sum(value) / len(value))
                 normalized_scores[normalized_score] = (key, len(value), normalized_score)
