@@ -31,6 +31,7 @@ class Command(BaseCommand):
           'source_file', type=str,
           help='Path to source text file'
         )
+        # Special case: INDIVIDUAL
         parser.add_argument(
           'reference_file', type=str,
           help='Path to reference text file'
@@ -70,6 +71,14 @@ class Command(BaseCommand):
         parser.add_argument(
           '--unicode', action='store_true',
           help='Expects text files in Unicode encoding'
+        )
+        parser.add_argument(
+          '--local-src', action='store_true',
+          help='Loads source text from local .src files'
+        )
+        parser.add_argument(
+          '--local-ref', action='store_true',
+          help='Loads reference text from local .ref files'
         )
         # TODO: add optional parameters to set source, reference and system IDs
 
@@ -144,6 +153,8 @@ class Command(BaseCommand):
 
         batch_size = options['batch_size']
         unicode_enc = options['unicode']
+        use_local_src = options['local_src']
+        use_local_ref = options['local_ref']
 
         block_size = 10
         block_annotations = 7
@@ -193,16 +204,37 @@ class Command(BaseCommand):
             system_txt = Command._load_text_from_file(system_path, encoding)
             system_bad = Command._load_text_from_file(system_path.replace('.txt', '.bad'), encoding)
             system_ids = Command._load_text_from_file(system_path.replace('.txt', '.ids'), encoding)
+            # BASICALLY: add support for local system_src and system_ref files here.
+            #   If such files are present, this will overwrite the global src/ref values.
+            #   However, this does not fully resolve the issue as we still have to give
+            #   a source text file, while is assumed to be shared...
+            #
+            # IN A SENSE, using these local files makes better sense. It is wasteful, though.
+            #   MAYBE, it is better to simply generate a simple JSON config file?!
+            local_src = []
+            local_ref = []
+
+            if use_local_src:
+                local_src_path = system_path.replace('.txt', '.src')
+                if os.path.exists(local_src_path):
+                    local_src = Command._load_text_from_file(local_src_path, encoding)
+
+            if use_local_ref:
+                local_ref_path = system_path.replace('.txt', '.ref')
+                if os.path.exists(local_ref_path):
+                    local_ref = Command._load_text_from_file(local_src_path, encoding)
 
             for segment_id, segment_text in system_txt.items():
                 md5hash = hashlib.new('md5', segment_text.encode(encoding)).hexdigest()
+                _src = local_src[segment_id] if use_local_src else source_file[segment_id]
+                _ref = local_src[segment_id] if use_local_ref else reference_file[segment_id]
                 if not md5hash in hashed_text.keys():
                     hashed_text[md5hash] = {
                       'segment_id': segment_id,
                       'segment_text': segment_text,
                       'segment_bad': system_bad[segment_id],
-                      'segment_ref': reference_file[segment_id],
-                      'segment_src': source_file[segment_id],
+                      'segment_ref': _ref,
+                      'segment_src': _src,
                       'systems': [os.path.basename(system_path)]
                     }
                 else:
@@ -281,7 +313,10 @@ class Command(BaseCommand):
                 block_data[block_id]['badref'] = check_systems[2]
 
             # Direct assessment is reference-based for WMT17
-            sourceID = basename(options['reference_file'])
+            if source_based:
+                sourceID = 'LOCAL_SRC' if use_local_src else basename(options['source_file'])
+            else:
+                sourceID = 'LOCAL_REF' if use_local_ref else basename(options['reference_file'])
 
             # Remember, batch numbers are one-based
             taskData = OrderedDict({
