@@ -177,11 +177,16 @@ class Command(BaseCommand):
         # TODO: add parameter to set encoding
         # TODO: need to use OrderedDict to preserve segment IDs' order!
         encoding = 'utf16' if unicode_enc else 'utf8'
-        source_file = Command._load_text_from_file(options['source_file'], encoding)
-        print('Loaded {0} source segments'.format(len(source_file.keys())))
 
-        reference_file = Command._load_text_from_file(options['reference_file'], encoding)
-        print('Loaded {0} reference segments'.format(len(reference_file.keys())))
+        source_file = []
+        if not use_local_src:
+            source_file = Command._load_text_from_file(options['source_file'], encoding)
+            print('Loaded {0} source segments'.format(len(source_file.keys())))
+
+        reference_file = []
+        if not use_local_ref:
+            reference_file = Command._load_text_from_file(options['reference_file'], encoding)
+            print('Loaded {0} reference segments'.format(len(reference_file.keys())))
 
         systems_files = []
         systems_path = options['systems_path']
