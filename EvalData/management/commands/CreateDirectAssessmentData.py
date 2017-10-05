@@ -31,7 +31,6 @@ class Command(BaseCommand):
           'source_file', type=str,
           help='Path to source text file'
         )
-        # Special case: INDIVIDUAL
         parser.add_argument(
           'reference_file', type=str,
           help='Path to reference text file'
@@ -79,6 +78,10 @@ class Command(BaseCommand):
         parser.add_argument(
           '--local-ref', action='store_true',
           help='Loads reference text from local .ref files'
+        )
+        parser.add_argument(
+          '--create-ids', action='store_true',
+          help='Creates segment ids without local .ids files'
         )
         # TODO: add optional parameters to set source, reference and system IDs
 
@@ -155,6 +158,7 @@ class Command(BaseCommand):
         unicode_enc = options['unicode']
         use_local_src = options['local_src']
         use_local_ref = options['local_ref']
+        create_ids = options['create_ids']
 
         block_size = 10
         block_annotations = 7
@@ -208,7 +212,11 @@ class Command(BaseCommand):
         for system_path in systems_files:
             system_txt = Command._load_text_from_file(system_path, encoding)
             system_bad = Command._load_text_from_file(system_path.replace('.txt', '.bad'), encoding)
-            system_ids = Command._load_text_from_file(system_path.replace('.txt', '.ids'), encoding)
+
+            if not create_ids:
+                system_ids = Command._load_text_from_file(system_path.replace('.txt', '.ids'), encoding)
+            else:
+                system_ids = [x+1 for x in range(len(system_txt))]
             # BASICALLY: add support for local system_src and system_ref files here.
             #   If such files are present, this will overwrite the global src/ref values.
             #   However, this does not fully resolve the issue as we still have to give
