@@ -8,7 +8,8 @@ from django.views import generic
 
 from Campaign.models import Campaign
 from EvalData.models import DirectAssessmentTask, DirectAssessmentResult, \
-  TextPair, seconds_to_timedelta, MultiModalAssessmentTask, MultiModalAssessmentResult
+  TextPair, seconds_to_timedelta, MultiModalAssessmentTask, \
+  MultiModalAssessmentResult, WorkAgenda
 from Appraise.settings import LOG_LEVEL, LOG_HANDLER, STATIC_URL, BASE_CONTEXT
 
 # Setup logging support.
@@ -37,8 +38,43 @@ def direct_assessment(request, code=None, campaign_name=None):
     LOGGER.info('Rendering direct assessment view for user "{0}".'.format(
       request.user.username or "Anonymous"))
 
+    current_task = None
+
+    # Try to identify WorkAgenda for current user.
+    agendas = WorkAgenda.objects.filter(
+      user=request.user
+    )
+
+    if campaign:
+        agendas = agendas.filter(
+          campaign=campaign
+        )
+
+    for agenda in agendas:
+        modified = False
+        LOGGER.info('Identified work agenda {0}'.format(agenda))
+        for open_task in agenda.openTasks.all():
+            if open_task.next_item_for_user(request.user) is not None:
+                current_task = open_task
+                if not campaign:
+                    campaign = agenda.campaign
+            else:
+                agenda.completedTasks.add(open_task)
+                agenda.openTasks.remove(open_task)
+                modified = True
+
+        if modified:
+            agenda.save()
+
+    if not current_task and agendas.count() > 0:
+        LOGGER.info('Work agendas completed, redirecting to dashboard')
+        LOGGER.info('- code={0}, campaign={1}'.format(code, campaign))
+        return redirect('dashboard')
+
     # If language code has been given, find a free task and assign to user.
-    current_task = DirectAssessmentTask.get_task_for_user(user=request.user)
+    if not current_task:
+        current_task = DirectAssessmentTask.get_task_for_user(user=request.user)
+
     if not current_task:
         if code is None or campaign is None:
             LOGGER.info('No current task detected, redirecting to dashboard')

@@ -8,6 +8,7 @@ from django.utils.timezone import utc
 from .models import Market, Metadata, TextSegment, TextPair, TextPairWithImage
 from .models import DirectAssessmentTask, DirectAssessmentResult
 from .models import MultiModalAssessmentTask, MultiModalAssessmentResult
+from .models import WorkAgenda
 
 # TODO:chrife: find a way to use SELECT-based filtering widgets
 class BaseMetadataAdmin(admin.ModelAdmin):
@@ -287,3 +288,4 @@ admin.site.register(DirectAssessmentTask, DirectAssessmentTaskAdmin)
 admin.site.register(DirectAssessmentResult, DirectAssessmentResultAdmin)
 admin.site.register(MultiModalAssessmentTask, MultiModalAssessmentTaskAdmin)
 admin.site.register(MultiModalAssessmentResult, MultiModalAssessmentResultAdmin)
+admin.site.register(WorkAgenda)

@@ -15,6 +15,7 @@ from django.shortcuts import render, reverse, redirect, render_to_response
 from Appraise.settings import LOG_LEVEL, LOG_HANDLER, STATIC_URL, BASE_CONTEXT
 from EvalData.models import DirectAssessmentTask, DirectAssessmentResult
 from EvalData.models import MultiModalAssessmentTask, MultiModalAssessmentResult
+from EvalData.models import WorkAgenda
 from .models import UserInviteToken, LANGUAGE_CODES_AND_NAMES
 
 
@@ -286,11 +287,33 @@ def dashboard(request):
 
     t2 = datetime.now()
 
+    # If there is no current task, check if user is done with work agenda.
+    work_completed = False
+    if not current_task:
+        agendas = WorkAgenda.objects.filter(
+          user=request.user
+        )
+
+        for agenda in agendas:
+            LOGGER.info('Identified work agenda {0}'.format(agenda))
+            for open_task in agenda.openTasks.all():
+                if open_task.next_item_for_user(request.user) is not None:
+                    current_task = open_task
+                    campaign = agenda.campaign
+                else:
+                    agenda.completedTasks.add(open_task)
+                    agenda.openTasks.remove(open_task)
+            agenda.save()
+
+        if not current_task and agendas.count() > 0:
+            LOGGER.info('Work agendas completed, no more tasks for user')
+            work_completed = True
+
     # Otherwise, compute set of language codes eligible for next task.
     campaign_languages = {}
     multimodal_languages = {}
     languages = []
-    if not current_task:
+    if not current_task and not work_completed:
         for code in LANGUAGE_CODES_AND_NAMES:
             if request.user.groups.filter(name=code).exists():
                 if not code in languages:
@@ -372,6 +395,7 @@ def dashboard(request):
       'multimodal': mmt_languages,
       'debug_times': (t2-t1, t3-t2, t4-t3, t4-t1),
       'template_debug': 'debug' in request.GET,
+      'work_completed': work_completed,
     })
 
     return render(request, 'Dashboard/dashboard.html', context)

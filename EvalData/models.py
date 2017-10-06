@@ -960,10 +960,10 @@ class DirectAssessmentTask(BaseMetadata):
 
     # pylint: disable=E1136
     def __str__(self):
-        return '{0}.{1}[1..{2}]'.format(
+        return '{0}.{1}[{2}]'.format(
           self.__class__.__name__,
           self.campaign,
-          self.items.count()
+          self.id
         )
 
 
@@ -1877,22 +1877,24 @@ class WorkAgenda(models.Model):
 
     openTasks = models.ManyToManyField(
       DirectAssessmentTask,
+      blank=True,
       related_name='%(app_label)s_%(class)s_opentasks',
-      related_query_name="%(app_label)s_%(class)ss",
+      related_query_name="%(app_label)s_%(class)ss_open",
       verbose_name=_('Open tasks')
     )
 
     completedTasks = models.ManyToManyField(
       DirectAssessmentTask,
+      blank=True,
       related_name='%(app_label)s_%(class)s_completedtasks',
-      related_query_name="%(app_label)s_%(class)ss",
+      related_query_name="%(app_label)s_%(class)ss_completed",
       verbose_name=_('Completed tasks')
     )
 
     def __str__(self):
-        return '{0}/{1}[{2}]:[{3}]'.format(
+        return '{0}/{1}[{2},{3}]'.format(
           self.user.username,
           self.campaign.campaignName,
-          self.openTasks,
-          self.completedTasks
+          self.openTasks.all(),
+          self.completedTasks.all()
         )
