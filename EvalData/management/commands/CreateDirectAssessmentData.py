@@ -48,6 +48,10 @@ class Command(BaseCommand):
           help='Defines (candidates, redundant, reference, bad reference) per block'
         )
         parser.add_argument(
+          '--required-annotations', type=int, default=1,
+          help='Specifies required annotations per batch (default: 1)'
+        )
+        parser.add_argument(
           '--random-seed', type=int, # required=False,
           help='Random generator seed value'
         )
@@ -58,6 +62,10 @@ class Command(BaseCommand):
         parser.add_argument(
           '--batch-no', type=int, default=1,
           help='Specifies desired batch no (default: 1)'
+        )
+        parser.add_argument(
+          '--max-batches', type=int,
+          help='Specifies max number of batches to create'
         )
         parser.add_argument(
           '--all-batches', action='store_true',
@@ -273,6 +281,7 @@ class Command(BaseCommand):
         print('Total number of batches is {0}'.format(total_batches))
 
         batch_no = options['batch_no']
+        max_batches = options['max_batches']
         all_batches = options['all_batches']
         source_based = options['source_based']
 
@@ -283,6 +292,8 @@ class Command(BaseCommand):
         # This implicitly gives us zero-indexed ids already.
         batch_nos = [batch_no-1] if not all_batches \
           else list(range(total_batches))
+        if max_batches:
+            batch_nos = batch_nos[:max_batches]
 
         json_data = []
         for batch_id in batch_nos: # range(batch_no):
@@ -337,7 +348,7 @@ class Command(BaseCommand):
               'batchSize': options['batch_size'],
               'sourceLanguage': options['source_language'],
               'targetLanguage': options['target_language'],
-              'requiredAnnotations': 1,
+              'requiredAnnotations': options['required_annotations'],
               'randomSeed': random_seed_value
             })
             itemsData = []
