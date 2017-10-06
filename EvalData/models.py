@@ -1892,9 +1892,9 @@ class WorkAgenda(models.Model):
     )
 
     def __str__(self):
-        return '{0}/{1}[{2},{3}]'.format(
+        return '{0}/{1}[{2}:{3}]'.format(
           self.user.username,
           self.campaign.campaignName,
-          self.openTasks.all(),
-          self.completedTasks.all()
+          self.openTasks.count(),
+          self.completedTasks.count()
         )

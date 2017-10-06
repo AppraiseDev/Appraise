@@ -180,3 +180,92 @@ class Command(BaseCommand):
                     self.stdout.write(_msg)
 
         self.stdout.write('\n[DONE]\n\n')
+
+        from hashlib import md5
+        campaign_key = '20171005'
+        campaign_no = 1
+        c = Campaign.objects.filter(campaignName='OfflineEval201710')
+        if c.exists():
+            c = c[0]
+            xe_group = Group.objects.get(name='eng')
+            languages = ('ara', 'deu', 'fra', 'ita', 'por', 'rus', 'spa', 'zho')
+            for code in languages:
+                for i in range(6):
+                    username = '{0}{1}{2:02}{3:02}'.format(
+                      code, 'eng', campaign_no, i+1
+                    )
+                    hasher = md5()
+                    hasher.update(username.encode('utf8'))
+                    hasher.update(campaign_key.encode('utf8'))
+                    secret = hasher.hexdigest()[:8]
+                    print(username, secret)
+
+                    if not User.objects.filter(username=username).exists():
+                        new_user = User.objects.create_user(
+                          username=username, password=secret
+                        )
+                        new_user.save()
+                        new_user.groups.add(xe_group)
+
+                ex_group = Group.objects.get(name=code)
+                for i in range(6):
+                    username = '{0}{1}{2:02}{3:02}'.format(
+                      'eng', code, campaign_no, i+1
+                    )
+                    hasher = md5()
+                    hasher.update(username.encode('utf8'))
+                    hasher.update(campaign_key.encode('utf8'))
+                    secret = hasher.hexdigest()[:8]
+                    print(username, secret)
+
+                    if not User.objects.filter(username=username).exists():
+                        new_user = User.objects.create_user(
+                          username=username, password=secret
+                        )
+                        new_user.save()
+                        new_user.groups.add(ex_group)
+
+            from EvalData.models import DirectAssessmentTask, WorkAgenda
+            from collections import defaultdict
+            tasks = DirectAssessmentTask.objects.filter(
+              campaign=c, activated=True
+            )
+            tasks_for_market = defaultdict(list)
+            users_for_market = defaultdict(list)
+            for task in tasks.order_by('id'):
+                market = '{0}{1:02}'.format(
+                  task.marketName().replace('_', '')[:6],
+                  campaign_no
+                )
+                tasks_for_market[market].append(task)
+
+            for key in tasks_for_market:
+                users = User.objects.filter(
+                  username__startswith=key
+                )
+
+                for user in users.order_by('id'):
+                    users_for_market[key].append(user)
+
+                _tasks = []
+                for t in tasks_for_market[key]:
+                    _tasks.extend([t, t, t])
+
+                _users = users_for_market[key] * 2
+
+                for u, t in zip(_users, _tasks):
+                    print(u, '-->', t.id)
+
+                    a = WorkAgenda.objects.filter(
+                      user=u, campaign=c
+                    )
+
+                    if not a.exists():
+                        a = WorkAgenda.objects.create(
+                          user=u, campaign=c
+                        )
+                    else:
+                        a = a[0]
+
+                    if t not in a.completedTasks.all():
+                        a.openTasks.add(t)
