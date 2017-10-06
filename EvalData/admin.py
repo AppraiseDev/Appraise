@@ -78,7 +78,7 @@ class MarketAdmin(BaseMetadataAdmin):
     Model admin for Market instances.
     """
     list_display = [
-      'sourceLanguageCode', 'targetLanguageCode', 'domainName'
+      '__str__', 'sourceLanguageCode', 'targetLanguageCode', 'domainName'
     ] + BaseMetadataAdmin.list_display
     list_filter = [
       'sourceLanguageCode', 'targetLanguageCode', 'domainName'
