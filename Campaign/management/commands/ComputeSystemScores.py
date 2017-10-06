@@ -15,10 +15,15 @@ class Command(BaseCommand):
           'campaign_name', type=str,
           help='Name of the campaign you want to process data for'
         )
+        parser.add_argument(
+          '--completed-only', action='store_true',
+          help='Include completed tasks only in the computation'
+        )
         # TODO: add argument to specify batch user
 
     def handle(self, *args, **options):
         campaign_name = options['campaign_name']
+        completed_only = options['completed_only']
 
         # Identify Campaign instance for given name
         campaign = Campaign.objects.filter(campaignName=campaign_name).first()
@@ -28,15 +33,21 @@ class Command(BaseCommand):
             return
 
         normalized_scores = OrderedDict()
-        for task in DirectAssessmentTask.objects.filter(campaign=campaign, completed=True):
-            system_scores = DirectAssessmentResult.get_system_scores()
+        system_scores = DirectAssessmentResult.get_system_scores()
 
-            # TODO: this should consider the chosen campaign, otherwise
-            #   we will show systems across all possible campaigns...
+        # TODO: this should consider the chosen campaign, otherwise
+        #   we will show systems across all possible campaigns...
+        #
+        # This requires us to identify results which belong to the
+        # current campaign. Depending on settings for --completed-only
+        # we should also constrain this to fully completed tasks.
+        #
+        # The current implementation of get_system_scores() is not
+        # sufficiently prepared for these use cases --> replace it!
 
-            for key, value in system_scores.items():
-                normalized_score = float(sum(value) / len(value))
-                normalized_scores[normalized_score] = (key, len(value), normalized_score)
+        for key, value in system_scores.items():
+            normalized_score = float(sum(value) / len(value))
+            normalized_scores[normalized_score] = (key, len(value), normalized_score)
 
         for key in sorted(normalized_scores, reverse=True):
             value = normalized_scores[key]
