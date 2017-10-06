@@ -186,6 +186,12 @@ class BaseMetadata(models.Model):
       verbose_name=_('Raw data')
     )
 
+    _str_name = models.TextField(
+      blank=True,
+      default="",
+      editable=False
+    )
+
     # pylint: disable=C0111
     class Meta:
         abstract = True
@@ -240,6 +246,27 @@ class BaseMetadata(models.Model):
 
         except ValidationError:
             return False
+
+    def _generate_str_name(self):
+        return '{0}[{1}]'.format(
+          self.__class__.__name__,
+          self.id
+        )
+
+    def save(self, *args, **kwargs):
+        _new_name = self._generate_str_name()
+        if self._str_name != _new_name:
+            self._str_name = _new_name
+
+        super(BaseMetadata, self).save(*args, **kwargs)
+
+    # pylint: disable=E1136
+    def __str__(self):
+        if self._str_name == "":
+            # This will populate self._str_name
+            self.save()
+
+        return self._str_name
 
 
 class Market(BaseMetadata):
@@ -309,6 +336,8 @@ class Market(BaseMetadata):
 
         super(Market, self).save(*args, **kwargs)
 
+    # TODO: what is this used for? Candidate for deprecation/removal.
+    #
     # pylint: disable=E1101
     def my_is_valid(self):
         """
@@ -332,7 +361,7 @@ class Market(BaseMetadata):
 
         return super(Market, self).is_valid()
 
-    def __str__(self):
+    def _generate_str_name(self):
         return self.marketID
 
 
@@ -370,10 +399,9 @@ class Metadata(BaseMetadata):
     class Meta:
         verbose_name = 'Metadata record'
 
-    def __str__(self):
-        marketName = str(self.market)[:7].replace('_', '-')
+    def _generate_str_name(self):
         return '{0}/{1}["{2}"]'.format(
-          marketName,
+          str(self.market)[:7].replace('_', '-'),
           self.corpusName,
           self.versionInfo
         )
@@ -423,8 +451,7 @@ class EvalItem(BaseMetadata):
 
         return super(EvalItem, self).is_valid()
 
-    # pylint: disable=E1136
-    def __str__(self):
+    def _generate_str_name(self):
         return '{0}.{1}[{2}]'.format(
           self.__class__.__name__,
           self.metadata,
@@ -958,8 +985,7 @@ class DirectAssessmentTask(BaseMetadata):
 
         return True
 
-    # pylint: disable=E1136
-    def __str__(self):
+    def _generate_str_name(self):
         return '{0}.{1}[{2}]'.format(
           self.__class__.__name__,
           self.campaign,
@@ -1007,7 +1033,7 @@ class DirectAssessmentResult(BaseMetadata):
     )
 
     # pylint: disable=E1136
-    def __str__(self):
+    def _generate_str_name(self):
         return '{0}.{1}={2}'.format(
           self.__class__.__name__,
           self.item,
@@ -1624,7 +1650,7 @@ class MultiModalAssessmentTask(BaseMetadata):
         return True
 
     # pylint: disable=E1136
-    def __str__(self):
+    def _generate_str_name(self):
         return '{0}.{1}[1..{2}]'.format(
           self.__class__.__name__,
           self.campaign,
@@ -1672,7 +1698,7 @@ class MultiModalAssessmentResult(BaseMetadata):
     )
 
     # pylint: disable=E1136
-    def __str__(self):
+    def _generate_str_name(self):
         return '{0}.{1}={2}'.format(
           self.__class__.__name__,
           self.item,
@@ -1894,6 +1920,7 @@ class WorkAgenda(models.Model):
     def completed(self):
         return self.openTasks.count() == 0
 
+    # TODO: decide whether this needs to be optimized.
     def __str__(self):
         return '{0}/{1}[{2}:{3}]'.format(
           self.user.username,

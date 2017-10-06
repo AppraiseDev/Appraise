@@ -85,7 +85,14 @@ INSTALLED_APPS = [
     'Campaign',
 ]
 
-MIDDLEWARE = [
+if DEBUG:
+    INSTALLED_APPS.append('debug_toolbar')
+
+MIDDLEWARE = []
+if DEBUG:
+    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
+
+MIDDLEWARE.extend([
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -93,7 +100,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
+])
 
 ROOT_URLCONF = 'Appraise.urls'
 
@@ -155,7 +162,12 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Base context for all views.
 BASE_CONTEXT = {
-  'commit_tag': '#wmt17dev',
+  'commit_tag': '#wmt18dev',
   'title': 'Appraise evaluation system',
   'static_url': STATIC_URL,
 }
+
+if DEBUG:
+    INTERNAL_IPS = [
+      '127.0.0.1'
+    ]

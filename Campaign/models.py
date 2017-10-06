@@ -60,7 +60,7 @@ class CampaignTeam(BaseMetadata):
         verbose_name = 'Team'
         verbose_name_plural = 'Teams'
 
-    def __str__(self):
+    def _generate_str_name(self):
         return '{0} ({1})'.format(
           self.teamName, self.owner
         )
@@ -137,7 +137,7 @@ class CampaignData(BaseMetadata):
         verbose_name = 'Batch'
         verbose_name_plural = 'Batches'
 
-    def __str__(self):
+    def _generate_str_name(self):
         return self.dataFile.name
 
     # pylint: disable=C0103
@@ -186,8 +186,7 @@ class Campaign(BaseMetadata):
       verbose_name=_('Batches')
     )
 
-    # pylint: disable=E1136
-    def __str__(self):
+    def _generate_str_name(self):
         return self.campaignName
 
 
@@ -202,5 +201,9 @@ class TrustedUser(models.Model):
       verbose_name=_('Campaign')
     )
 
+    # TODO: decide whether this needs to be optimized.
     def __str__(self):
-        return '{0}/{1}'.format(self.user.username, self.campaign.campaignName)
+        return 'trusted:{0}/{1}'.format(
+          self.user.username,
+          self.campaign.campaignName
+        )

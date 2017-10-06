@@ -13,13 +13,13 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url, handler404, handler500
+from django.conf.urls import url, handler404, handler500, include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from Dashboard import views as dashboard_views
 from EvalView import views as evalview_views
-from Appraise.settings import BASE_CONTEXT
+from Appraise.settings import BASE_CONTEXT, DEBUG
 
 # Base context for all views.
 #BASE_CON3TEXT = {
@@ -89,3 +89,9 @@ urlpatterns = [
     url(r'^multimodal-assessment/(?P<code>[a-z]{3})/$', evalview_views.multimodal_assessment, name='multimodal-assessment'),
     url(r'^multimodal-assessment/(?P<code>[a-z]{3})/(?P<campaign_name>[a-zA-Z0-9]+)/$', evalview_views.multimodal_assessment, name='multimodal-assessment'),
 ]
+
+if DEBUG:
+    import debug_toolbar
+    urlpatterns = [
+        url(r'^__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns
