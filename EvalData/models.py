@@ -1863,3 +1863,36 @@ class MultiModalAssessmentResult(BaseMetadata):
         ).values_list('item_id', flat=True)
 
         return len(set(results))
+
+class WorkAgenda(models.Model):
+    user = models.ForeignKey(
+      User,
+      verbose_name=_('User')
+    )
+
+    campaign = models.ForeignKey(
+      'Campaign.Campaign',
+      verbose_name=_('Campaign')
+    )
+
+    openTasks = models.ManyToManyField(
+      DirectAssessmentTask,
+      related_name='%(app_label)s_%(class)s_opentasks',
+      related_query_name="%(app_label)s_%(class)ss",
+      verbose_name=_('Open tasks')
+    )
+
+    completedTasks = models.ManyToManyField(
+      DirectAssessmentTask,
+      related_name='%(app_label)s_%(class)s_completedtasks',
+      related_query_name="%(app_label)s_%(class)ss",
+      verbose_name=_('Completed tasks')
+    )
+
+    def __str__(self):
+        return '{0}/{1}[{2}]:[{3}]'.format(
+          self.user.username,
+          self.campaign.campaignName,
+          self.openTasks,
+          self.completedTasks
+        )
