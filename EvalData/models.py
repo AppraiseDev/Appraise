@@ -1891,6 +1891,9 @@ class WorkAgenda(models.Model):
       verbose_name=_('Completed tasks')
     )
 
+    def completed(self):
+        return self.openTasks.count() == 0
+
     def __str__(self):
         return '{0}/{1}[{2}:{3}]'.format(
           self.user.username,

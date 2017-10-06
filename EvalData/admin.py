@@ -279,6 +279,27 @@ class MultiModalAssessmentResultAdmin(BaseMetadataAdmin):
     ) + BaseMetadataAdmin.fieldsets
 
 
+
+
+class WorkAgendaAdmin(admin.ModelAdmin):
+    """
+    Model admin for WorkAgenda object model.
+    """
+    list_display = [
+      'user', 'campaign', 'is_agenda_completed'
+    ]
+    list_filter = [
+      'campaign'
+    ]
+    search_fields = [
+      'user__username', 'campaign__campaignName'
+    ]
+
+    def is_agenda_completed(self, obj):
+        return obj.completed()
+    is_agenda_completed.short_description = 'Completed?'
+
+
 admin.site.register(Market, MarketAdmin)
 admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(TextSegment, TextSegmentAdmin)
@@ -288,4 +309,4 @@ admin.site.register(DirectAssessmentTask, DirectAssessmentTaskAdmin)
 admin.site.register(DirectAssessmentResult, DirectAssessmentResultAdmin)
 admin.site.register(MultiModalAssessmentTask, MultiModalAssessmentTaskAdmin)
 admin.site.register(MultiModalAssessmentResult, MultiModalAssessmentResultAdmin)
-admin.site.register(WorkAgenda)
+admin.site.register(WorkAgenda, WorkAgendaAdmin)
