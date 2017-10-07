@@ -231,10 +231,15 @@ class DirectAssessmentResultAdmin(BaseMetadataAdmin):
       # nothing model specific
     ] + BaseMetadataAdmin.search_fields
 
+    readonly_fields = ('item', 'task')
+
     fieldsets = (
       (None, {
-        'fields': (['score', 'start_time', 'end_time', 'item', 'task'])
+        'fields': (['score', 'start_time', 'end_time'])
       }),
+      ('Related', {
+        'fields': (['item', 'task'])
+      })
     ) + BaseMetadataAdmin.fieldsets
 
 class MultiModalAssessmentTaskAdmin(BaseMetadataAdmin):
