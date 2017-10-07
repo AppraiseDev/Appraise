@@ -23,7 +23,7 @@ class BaseMetadataAdmin(admin.ModelAdmin):
     ]
     search_fields = [
       'createdBy__username', 'activatedBy__username', 'completedBy__username',
-      'retiredBy__username', 'modifiedBy__username'
+      'retiredBy__username', 'modifiedBy__username', '_str_name'
     ]
 
     # pylint: disable=C0111,R0903
