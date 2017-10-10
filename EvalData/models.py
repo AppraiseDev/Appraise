@@ -1239,9 +1239,14 @@ class DirectAssessmentResult(BaseMetadata):
                 outfile.write('\n')
 
     @classmethod
-    def get_system_scores(cls):
+    def get_system_scores(cls, campaign_id):
         system_scores = defaultdict(list)
         qs = cls.objects.filter(completed=True, item__itemType__in=('TGT', 'CHK'))
+
+        # If campaign ID is given, only return results for this campaign.
+        if campaign_id:
+            qs = qs.filter(task__campaign__id=campaign_id)
+
         for result in qs.values_list('item__targetID', 'score'):
             #if not result.completed or result.item.itemType not in ('TGT', 'CHK'):
             #    continue
@@ -1255,8 +1260,8 @@ class DirectAssessmentResult(BaseMetadata):
         return system_scores
 
     @classmethod
-    def get_system_status(cls, sort_index=3):
-        system_scores = cls.get_system_scores()
+    def get_system_status(cls, campaign_id=None, sort_index=3):
+        system_scores = cls.get_system_scores(campaign_id=None)
         non_english_codes = ('cs', 'de', 'fi', 'lv', 'tr', 'tr', 'ru', 'zh')
 
         codes = ['en-{0}'.format(x) for x in non_english_codes] \

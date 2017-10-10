@@ -33,7 +33,7 @@ class Command(BaseCommand):
             return
 
         normalized_scores = OrderedDict()
-        system_scores = DirectAssessmentResult.get_system_scores()
+        system_scores = DirectAssessmentResult.get_system_scores(campaign.id)
 
         # TODO: this should consider the chosen campaign, otherwise
         #   we will show systems across all possible campaigns...
