@@ -20,6 +20,7 @@ import logging
 from collections import defaultdict
 from datetime import datetime, timedelta
 from json import loads
+from traceback import format_exc
 from zipfile import ZipFile, is_zipfile
 from django.db import models
 from django.db.models import Count
@@ -46,6 +47,8 @@ MAX_SEGMENTTEXT_LENGTH = 2000
 MAX_SEGMENTID_LENGTH = 1000
 MAX_ITEMTYPE_LENGTH = 5
 MAX_REQUIREDANNOTATIONS_VALUE = 50
+MAX_TYPENAME_LENGTH = 100
+MAX_PRIMARYID_LENGTH = 50
 
 SET_ITEMTYPE_CHOICES = (
   ('SRC', 'Source text'),
@@ -1933,3 +1936,47 @@ class WorkAgenda(models.Model):
           self.openTasks.count(),
           self.completedTasks.count()
         )
+
+
+class ObjectID(models.Model):
+    """
+    Encodes an object type and ID for retrieval.
+    """
+    typeName = models.CharField(
+      max_length=MAX_TYPENAME_LENGTH,
+      verbose_name=_('Type name'),
+      help_text=_(f('(max. {value} characters)',
+        value=MAX_TYPENAME_LENGTH))
+    )
+
+    primaryID = models.CharField(
+       max_length=MAX_PRIMARYID_LENGTH,
+      verbose_name=_('Primary ID'),
+      help_text=_(f('(max. {value} characters)',
+        value=MAX_PRIMARYID_LENGTH))
+    )
+
+    def get_object_instance(self):
+        """
+        Returns actual object instance for current ObjectID instance.
+        """
+        instance = None
+        try:
+            # TODO: add registry of type names to models.py and ensure only
+            #   those are used for typeName. Furthermore, verify that the
+            #   given primaryID does not contain ')'.
+
+            _code = '{0}.objects.get(id={1})'.format(
+              self.typeName, self.primaryID
+            )
+            instance = eval(_code)
+
+        except:
+            _msg = 'ObjectID {0}.{1} invalid'.format(
+              self.typeName, self.primaryID
+            )
+            LOGGER.warn(_msg)
+            LOGGER.warn(format_exc())
+
+        finally:
+            return instance
