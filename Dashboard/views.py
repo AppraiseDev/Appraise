@@ -15,7 +15,7 @@ from django.shortcuts import render, reverse, redirect, render_to_response
 from Appraise.settings import LOG_LEVEL, LOG_HANDLER, STATIC_URL, BASE_CONTEXT
 from EvalData.models import DirectAssessmentTask, DirectAssessmentResult
 from EvalData.models import MultiModalAssessmentTask, MultiModalAssessmentResult
-from EvalData.models import WorkAgenda
+from EvalData.models import WorkAgenda, TaskAgenda
 from .models import UserInviteToken, LANGUAGE_CODES_AND_NAMES
 
 
@@ -290,19 +290,20 @@ def dashboard(request):
     # If there is no current task, check if user is done with work agenda.
     work_completed = False
     if not current_task:
-        agendas = WorkAgenda.objects.filter(
+        agendas = TaskAgenda.objects.filter(
           user=request.user
         )
 
         for agenda in agendas:
             LOGGER.info('Identified work agenda {0}'.format(agenda))
-            for open_task in agenda.openTasks.all():
+            for serialized_open_task in agenda._open_tasks.all():
+                open_task = serialized_open_task.get_object_instance()
                 if open_task.next_item_for_user(request.user) is not None:
                     current_task = open_task
                     campaign = agenda.campaign
                 else:
-                    agenda.completedTasks.add(open_task)
-                    agenda.openTasks.remove(open_task)
+                    agenda._completed_asks.add(serialized_open_task)
+                    agenda._open_tasks.remove(serialized_open_task)
             agenda.save()
 
         if not current_task and agendas.count() > 0:

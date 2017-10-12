@@ -8,7 +8,7 @@ from django.utils.timezone import utc
 from .models import Market, Metadata, TextSegment, TextPair, TextPairWithImage
 from .models import DirectAssessmentTask, DirectAssessmentResult
 from .models import MultiModalAssessmentTask, MultiModalAssessmentResult
-from .models import WorkAgenda
+from .models import WorkAgenda, TaskAgenda
 
 # TODO:chrife: find a way to use SELECT-based filtering widgets
 class BaseMetadataAdmin(admin.ModelAdmin):
@@ -284,11 +284,28 @@ class MultiModalAssessmentResultAdmin(BaseMetadataAdmin):
     ) + BaseMetadataAdmin.fieldsets
 
 
-
-
 class WorkAgendaAdmin(admin.ModelAdmin):
     """
     Model admin for WorkAgenda object model.
+    """
+    list_display = [
+      'user', 'campaign', 'is_agenda_completed'
+    ]
+    list_filter = [
+      'campaign'
+    ]
+    search_fields = [
+      'user__username', 'campaign__campaignName'
+    ]
+
+    def is_agenda_completed(self, obj):
+        return obj.completed()
+    is_agenda_completed.short_description = 'Completed?'
+
+
+class TaskAgendaAdmin(admin.ModelAdmin):
+    """
+    Model admin for TaskAgenda object model.
     """
     list_display = [
       'user', 'campaign', 'is_agenda_completed'
@@ -315,3 +332,4 @@ admin.site.register(DirectAssessmentResult, DirectAssessmentResultAdmin)
 admin.site.register(MultiModalAssessmentTask, MultiModalAssessmentTaskAdmin)
 admin.site.register(MultiModalAssessmentResult, MultiModalAssessmentResultAdmin)
 admin.site.register(WorkAgenda, WorkAgendaAdmin)
+admin.site.register(TaskAgenda, TaskAgendaAdmin)

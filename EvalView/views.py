@@ -9,7 +9,7 @@ from django.views import generic
 from Campaign.models import Campaign
 from EvalData.models import DirectAssessmentTask, DirectAssessmentResult, \
   TextPair, seconds_to_timedelta, MultiModalAssessmentTask, \
-  MultiModalAssessmentResult, WorkAgenda
+  MultiModalAssessmentResult, WorkAgenda, TaskAgenda
 from Appraise.settings import LOG_LEVEL, LOG_HANDLER, STATIC_URL, BASE_CONTEXT
 
 # Setup logging support.
@@ -40,8 +40,8 @@ def direct_assessment(request, code=None, campaign_name=None):
 
     current_task = None
 
-    # Try to identify WorkAgenda for current user.
-    agendas = WorkAgenda.objects.filter(
+    # Try to identify TaskAgenda for current user.
+    agendas = TaskAgenda.objects.filter(
       user=request.user
     )
 
@@ -53,14 +53,15 @@ def direct_assessment(request, code=None, campaign_name=None):
     for agenda in agendas:
         modified = False
         LOGGER.info('Identified work agenda {0}'.format(agenda))
-        for open_task in agenda.openTasks.all():
+        for serialized_open_task in agenda._open_tasks.all():
+            open_task = serialized_open_task.get_object_instance()
             if open_task.next_item_for_user(request.user) is not None:
                 current_task = open_task
                 if not campaign:
                     campaign = agenda.campaign
             else:
-                agenda.completedTasks.add(open_task)
-                agenda.openTasks.remove(open_task)
+                agenda._completed_tasks.add(serialized_open_task)
+                agenda._open_tasks.remove(serialized_open_task)
                 modified = True
 
         if modified:

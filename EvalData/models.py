@@ -69,6 +69,50 @@ def seconds_to_timedelta(value):
     return timedelta(days=_days, hours=_hours, minutes=_mins, seconds=_secs)
 
 
+class ObjectID(models.Model):
+    """
+    Encodes an object type and ID for retrieval.
+    """
+    typeName = models.CharField(
+      max_length=MAX_TYPENAME_LENGTH,
+      verbose_name=_('Type name'),
+      help_text=_(f('(max. {value} characters)',
+        value=MAX_TYPENAME_LENGTH))
+    )
+
+    primaryID = models.CharField(
+       max_length=MAX_PRIMARYID_LENGTH,
+      verbose_name=_('Primary ID'),
+      help_text=_(f('(max. {value} characters)',
+        value=MAX_PRIMARYID_LENGTH))
+    )
+
+    def get_object_instance(self):
+        """
+        Returns actual object instance for current ObjectID instance.
+        """
+        instance = None
+        try:
+            # TODO: add registry of type names to models.py and ensure only
+            #   those are used for typeName. Furthermore, verify that the
+            #   given primaryID does not contain ')'.
+
+            _code = '{0}.objects.get(id={1})'.format(
+              self.typeName, self.primaryID
+            )
+            instance = eval(_code)
+
+        except:
+            _msg = 'ObjectID {0}.{1} invalid'.format(
+              self.typeName, self.primaryID
+            )
+            LOGGER.warn(_msg)
+            LOGGER.warn(format_exc())
+
+        finally:
+            return instance
+
+
 # pylint: disable=C0103,R0903
 class BaseMetadata(models.Model):
     """
@@ -260,6 +304,19 @@ class BaseMetadata(models.Model):
         _new_name = self._generate_str_name()
         if self._str_name != _new_name:
             self._str_name = _new_name
+
+        if self.id:
+            qs = ObjectID.objects.filter(
+              typeName=self.__class__.__name__,
+              primaryID=self.id
+            )
+            if not qs.exists():
+                _serialized = ObjectID.objects.create(
+                  typeName=self.__class__.__name__,
+                  primaryID=self.id
+                )
+                _msg = 'Created serialized ObjectID:{0}'.format(_serialized.id)
+                LOGGER.info(_msg)
 
         super(BaseMetadata, self).save(*args, **kwargs)
 
@@ -1938,45 +1995,47 @@ class WorkAgenda(models.Model):
         )
 
 
-class ObjectID(models.Model):
-    """
-    Encodes an object type and ID for retrieval.
-    """
-    typeName = models.CharField(
-      max_length=MAX_TYPENAME_LENGTH,
-      verbose_name=_('Type name'),
-      help_text=_(f('(max. {value} characters)',
-        value=MAX_TYPENAME_LENGTH))
+class TaskAgenda(models.Model):
+    user = models.ForeignKey(
+      User,
+      verbose_name=_('User')
     )
 
-    primaryID = models.CharField(
-       max_length=MAX_PRIMARYID_LENGTH,
-      verbose_name=_('Primary ID'),
-      help_text=_(f('(max. {value} characters)',
-        value=MAX_PRIMARYID_LENGTH))
+    campaign = models.ForeignKey(
+      'Campaign.Campaign',
+      verbose_name=_('Campaign')
     )
 
-    def get_object_instance(self):
-        """
-        Returns actual object instance for current ObjectID instance.
-        """
-        instance = None
-        try:
-            # TODO: add registry of type names to models.py and ensure only
-            #   those are used for typeName. Furthermore, verify that the
-            #   given primaryID does not contain ')'.
+    _open_tasks = models.ManyToManyField(
+      ObjectID,
+      blank=True,
+      related_name='%(app_label)s_%(class)s_opentasks',
+      related_query_name="%(app_label)s_%(class)ss_open",
+      verbose_name=_('Open tasks')
+    )
 
-            _code = '{0}.objects.get(id={1})'.format(
-              self.typeName, self.primaryID
-            )
-            instance = eval(_code)
+    _completed_tasks = models.ManyToManyField(
+      ObjectID,
+      blank=True,
+      related_name='%(app_label)s_%(class)s_completedtasks',
+      related_query_name="%(app_label)s_%(class)ss_completed",
+      verbose_name=_('Completed tasks')
+    )
 
-        except:
-            _msg = 'ObjectID {0}.{1} invalid'.format(
-              self.typeName, self.primaryID
-            )
-            LOGGER.warn(_msg)
-            LOGGER.warn(format_exc())
+    def completed(self):
+        return self._open_tasks.count() == 0
 
-        finally:
-            return instance
+    def open_tasks(self):
+        return (x.get_object_instance() for x in self._open_tasks.all())
+
+    def completed_tasks(self):
+        return (x.get_object_instance() for x in self._completed_tasks.all())
+
+    # TODO: decide whether this needs to be optimized.
+    def __str__(self):
+        return '{0}/{1}[{2}:{3}]'.format(
+          self.user.username,
+          self.campaign.campaignName,
+          self._open_tasks.count(),
+          self._completed_tasks.count()
+        )
