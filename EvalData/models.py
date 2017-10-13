@@ -295,17 +295,26 @@ class BaseMetadata(models.Model):
             return False
 
     def _generate_str_name(self):
+        """
+        Generate human readable name for use with __str__().
+        """
         return '{0}[{1}]'.format(
           self.__class__.__name__,
           self.id
         )
 
     def save(self, *args, **kwargs):
-        _new_name = self._generate_str_name()
-        if self._str_name != _new_name:
-            self._str_name = _new_name
+        """
+        For object instances with an ID, we precompute the _str_name
+        attribute so that future __str__() lookups are efficient.
 
+        Also, we ensure that a matching ObjectID binding is created.
+        """
         if self.id:
+            _new_name = self._generate_str_name()
+            if self._str_name != _new_name:
+                self._str_name = _new_name
+
             qs = ObjectID.objects.filter(
               typeName=self.__class__.__name__,
               primaryID=self.id
