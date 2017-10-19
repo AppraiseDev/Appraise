@@ -46,9 +46,28 @@ class Command(BaseCommand):
         # sufficiently prepared for these use cases --> replace it!
 
         for key, value in system_scores.items():
-            normalized_score = float(sum(value) / len(value))
+            scores_by_segment = defaultdict(list)
+            for segment_id, score in value:
+                scores_by_segment[segment_id].append(score)
+            
+            averaged_scores = []
+            for segment_id, scores in scores_by_segment.items():
+                averaged_score = sum(scores) / float(len(scores) or 1)
+                averaged_scores.append(averaged_score)
+
+            normalized_score = float(sum(averaged_scores) / len(averaged_scores) or 1)
             normalized_scores[normalized_score] = (key, len(value), normalized_score)
 
         for key in sorted(normalized_scores, reverse=True):
             value = normalized_scores[key]
             print('{0:03.2f} {1}'.format(key, value))
+
+        # Non-segment level average
+        #normalized_scores = defaultdict(list)
+        #for key, value in system_scores.items():
+        #    normalized_score = float(sum([x[1] for x in value]) / (len(value) or 1))
+        #    normalized_scores[normalized_score] = (key, len(value), normalized_score)
+        #
+        #for key in sorted(normalized_scores, reverse=True):
+        #    value = normalized_scores[key]
+        #    print('{0:03.2f} {1}'.format(key, value))

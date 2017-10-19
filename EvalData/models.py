@@ -1316,15 +1316,16 @@ class DirectAssessmentResult(BaseMetadata):
         if campaign_id:
             qs = qs.filter(task__campaign__id=campaign_id)
 
-        for result in qs.values_list('item__targetID', 'score'):
+        for result in qs.values_list('item__targetID', 'item__itemID', 'score'):
             #if not result.completed or result.item.itemType not in ('TGT', 'CHK'):
             #    continue
 
             system_ids = result[0].split('+') #result.item.targetID.split('+')
-            score = result[1] #.score
+            segment_id = result[1]
+            score = result[2] #.score
 
             for system_id in system_ids:
-                system_scores[system_id].append(score)
+                system_scores[system_id].append((segment_id, score))
 
         return system_scores
 

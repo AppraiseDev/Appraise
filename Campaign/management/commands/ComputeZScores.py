@@ -71,19 +71,29 @@ class Command(BaseCommand):
             for system_item in language_data:
                 user_id = system_item[0]
                 system_id = system_item[1]
+                segment_id = system_item[2]
                 raw_score = system_item[6]
 
                 z_n = (raw_score - user_means[user_id])
                 z_d = float(user_variances[user_id] or 1)
                 z_score = z_n / z_d
 
-                system_z_scores[system_id].append(z_score)
+                system_z_scores[system_id].append((segment_id, z_score))
             
             print('[{0}-->{1}]'.format(*language_pair))
             normalized_scores = defaultdict(list)
 
             for key, value in system_z_scores.items():
-                normalized_score = float(sum(value) / len(value))
+                scores_by_segment = defaultdict(list)
+                for segment_id, score in value:
+                    scores_by_segment[segment_id].append(score)
+            
+                averaged_scores = []
+                for segment_id, scores in scores_by_segment.items():
+                    averaged_score = sum(scores) / float(len(scores) or 1)
+                    averaged_scores.append(averaged_score)
+
+                normalized_score = sum(averaged_scores) / float(len(averaged_scores) or 1)
                 normalized_scores[normalized_score] = (key, len(value), normalized_score)
             
             for key in sorted(normalized_scores, reverse=True):
