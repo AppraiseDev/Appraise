@@ -1328,6 +1328,36 @@ class DirectAssessmentResult(BaseMetadata):
 
         return system_scores
 
+
+    @classmethod
+    def get_system_data(cls, campaign_id):
+        system_data = []
+        qs = cls.objects.filter(completed=True, item__itemType__in=('TGT', 'CHK'))
+
+        # If campaign ID is given, only return results for this campaign.
+        if campaign_id:
+            qs = qs.filter(task__campaign__id=campaign_id)
+
+        attributes_to_extract = (
+          'createdBy__username',            # User ID
+          'item__targetID',                 # System ID
+          'item__itemID',                   # Segment ID
+          'item__itemType',                 # Item type
+          'item__metadata__market__sourceLanguageCode', # Source language
+          'item__metadata__market__targetLanguageCode', # Target language
+          'score'                           # Score
+        )
+        for result in qs.values_list(*attributes_to_extract):
+            user_id = result[0]
+            system_ids = result[1].split('+')
+
+            for system_id in system_ids:
+                data = (user_id,) + (system_id,) + result[2:]
+                system_data.append(data)
+
+        return system_data
+
+
     @classmethod
     def get_system_status(cls, campaign_id=None, sort_index=3):
         system_scores = cls.get_system_scores(campaign_id=None)
