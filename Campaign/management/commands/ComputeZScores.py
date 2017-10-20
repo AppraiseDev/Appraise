@@ -109,11 +109,16 @@ class Command(BaseCommand):
 
             from scipy.stats import mannwhitneyu
             from itertools import combinations
-            system_ids = list(sorted(normalized_scores, reverse=True))
+            system_ids = []
+            for key in sorted(normalized_scores, reverse=True):
+                data = normalized_scores[key]
+                system_id = data[0]
+                system_ids.append(system_id)
 
             p_level = 0.05
             for (sysA, sysB) in combinations(system_ids, 2):
-                sysA_scores = system_z_scores[sysA]
-                sysB_scores = system_z_scores[sysB]
-                t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores)
-                print('{0}>{1} {2}'.format(sysA, sysB, p_value < p_level))
+                sysA_scores = [x[1] for x in system_z_scores[sysA]]
+                sysB_scores = [x[1] for x in system_z_scores[sysB]]
+                print(len(sysA_scores), len(sysB_scores))
+                t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="two-sided")
+                print('{0:>40}>{1:>40} {2:02.25f} {3:>10} {4}'.format(sysA, sysB, p_value, t_statistic, p_value < p_level))
