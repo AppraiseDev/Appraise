@@ -99,3 +99,21 @@ class Command(BaseCommand):
             for key in sorted(normalized_scores, reverse=True):
                 value = normalized_scores[key]
                 print('{0:03.2f} {1}'.format(key, value))
+
+            # if scipy is available, perform sigtest for all pairs of systems
+            try:
+                import scipy
+            
+            except ImportError:
+                sys.exit(-1)
+
+            from scipy.stats import mannwhitneyu
+            from itertools import combinations
+            system_ids = list(sorted(normalized_scores, reverse=True))
+
+            p_level = 0.05
+            for (sysA, sysB) in combinations(system_ids, 2):
+                sysA_scores = system_z_scores[sysA]
+                sysB_scores = system_z_scores[sysB]
+                p_value = mannwhitneyu(sysA_scores, sysB_scores)
+                print('{0}>{1} {2}'.format(sysA, sysB, p_value < p_level))
