@@ -115,5 +115,5 @@ class Command(BaseCommand):
             for (sysA, sysB) in combinations(system_ids, 2):
                 sysA_scores = system_z_scores[sysA]
                 sysB_scores = system_z_scores[sysB]
-                p_value = mannwhitneyu(sysA_scores, sysB_scores)
+                t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores)
                 print('{0}>{1} {2}'.format(sysA, sysB, p_value < p_level))
