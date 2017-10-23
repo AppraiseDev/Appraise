@@ -120,5 +120,6 @@ class Command(BaseCommand):
                 sysA_scores = [x[1] for x in system_z_scores[sysA]]
                 sysB_scores = [x[1] for x in system_z_scores[sysB]]
                 print(len(sysA_scores), len(sysB_scores))
-                t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="two-sided")
+                # t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="two-sided")
+                t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="greater")
                 print('{0:>40}>{1:>40} {2:02.25f} {3:>10} {4}'.format(sysA, sysB, p_value, t_statistic, p_value < p_level))
