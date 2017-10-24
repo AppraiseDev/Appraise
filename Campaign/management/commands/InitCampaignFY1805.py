@@ -35,34 +35,82 @@ class Command(BaseCommand):
         # Create Market and Metadata instances for all language pairs
         for code in X_LANGUAGES:
             # EX
-            _ex_market = Market.objects.get_or_create(
+            _ex_market = Market.objects.filter(
               sourceLanguageCode='eng',
               targetLanguageCode=code,
-              domainName='AppenFY18',
-              createdBy=superusers[0]
-            )
-            _ex_meta = Metadata.objects.get_or_create(
-              market=_ex_market[0],
-              corpusName='AppenFY18',
-              versionInfo='1.0',
-              source='official',
-              createdBy=superusers[0]
+              domainName='AppenFY18'              
             )
 
-            # XE
-            _xe_market = Market.objects.get_or_create(
-              sourceLanguageCode=code,
-              targetLanguageCode='eng',
-              domainName='AppenFY18',
-              createdBy=superusers[0]
-            )
-            _xe_meta = Metadata.objects.get_or_create(
-              market=_xe_market[0],
+            if not _ex_market.exists():
+                _ex_market = Market.objects.get_or_create(
+                  sourceLanguageCode='eng',
+                  targetLanguageCode=code,
+                  domainName='AppenFY18',
+                  createdBy=superusers[0]
+                )
+                _ex_market = _ex_market[0]
+
+            else:
+                _ex_market = _ex_market.first()
+
+            _ex_meta = Metadata.objects.filter(
+              market=_ex_market,
               corpusName='AppenFY18',
               versionInfo='1.0',
-              source='official',
-              createdBy=superusers[0]
+              source='official'             
             )
+
+            if not _ex_meta.exists():
+                _ex_meta = Metadata.objects.get_or_create(
+                  market=_ex_market,
+                  corpusName='AppenFY18',
+                  versionInfo='1.0',
+                  source='official',
+                  createdBy=superusers[0]
+                )
+                _ex_meta = _ex_meta[0]
+
+            else:
+                _ex_meta = _ex_meta.first()
+
+            # XE
+            _xe_market = Market.objects.filter(
+              sourceLanguageCode=code,
+              targetLanguageCode='eng',
+              domainName='AppenFY18'              
+            )
+
+            if not _xe_market.exists():
+                _xe_market = Market.objects.get_or_create(
+                  sourceLanguageCode=code,
+                  targetLanguageCode='eng',
+                  domainName='AppenFY18',
+                  createdBy=superusers[0]
+                )
+                _xe_market = _xe_market[0]
+
+            else:
+                _xe_market = _xe_market.first()
+
+            _xe_meta = Metadata.objects.filter(
+              market=_xe_market,
+              corpusName='AppenFY18',
+              versionInfo='1.0',
+              source='official'             
+            )
+
+            if not _xe_meta.exists():
+                _xe_meta = Metadata.objects.get_or_create(
+                  market=_xe_market,
+                  corpusName='AppenFY18',
+                  versionInfo='1.0',
+                  source='official',
+                  createdBy=superusers[0]
+                )
+                _xe_meta = _xe_meta[0]
+
+            else:
+                _xe_meta = _xe_meta.first()
 
         _msg = 'Processed Market/Metadata instances'
         self.stdout.write(_msg)
