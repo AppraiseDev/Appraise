@@ -3,7 +3,7 @@ from hashlib import md5
 from django.contrib.auth.models import User, Group
 from django.core.management.base import BaseCommand, CommandError
 
-from Campaign.models import CampaignTeam
+from Campaign.models import Campaign, CampaignTeam
 from EvalData.models import Market, Metadata
 
 X_LANGUAGES = (
@@ -203,6 +203,51 @@ class Command(BaseCommand):
 
         _msg = 'Processed CampaignTeam members'
         self.stdout.write(_msg)
+
+        c = Campaign.objects.filter(campaignName=CAMPAIGN_NAME)
+        if not c.exists():
+          return
+
+        from EvalData.models import DirectAssessmentTask, WorkAgenda
+        from collections import defaultdict
+        tasks = DirectAssessmentTask.objects.filter(
+          campaign=c, activated=True
+        )
+        tasks_for_market = defaultdict(list)
+        users_for_market = defaultdict(list)
+        for task in tasks.order_by('id'):
+            market = '{0}{1:02}'.format(
+              task.marketName().replace('_', '')[:6],
+              campaign_no
+            )
+            tasks_for_market[market].append(task)
+
+        for key in tasks_for_market:
+            users = User.objects.filter(
+              username__startswith=key
+            )
+
+            for user in users.order_by('id'):
+                users_for_market[key].append(user)
+
+            _tasks = tasks_for_market[key]
+            _users = users_for_market[key] * 2
+            for u, t in zip(_users, _tasks):
+                print(u, '-->', t.id)
+
+                a = WorkAgenda.objects.filter(
+                  user=u, campaign=c
+                )
+
+                if not a.exists():
+                    a = WorkAgenda.objects.create(
+                      user=u, campaign=c
+                    )
+                else:
+                    a = a[0]
+
+                if t not in a.completedTasks.all():
+                    a.openTasks.add(t)
 
         return
         
