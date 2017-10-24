@@ -371,7 +371,7 @@ class Command(BaseCommand):
                     item_src = item_data['segment_src']
                     item_systems = item_data['systems']
 
-                    targetID = '+'.join(item_systems)
+                    targetID = '+'.join(set(item_systems))
                     targetText = item_text
                     if current_type == 'REF':
                         targetID = basename(options['reference_file'])
