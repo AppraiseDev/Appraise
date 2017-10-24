@@ -251,7 +251,7 @@ class Command(BaseCommand):
                       typeName='DirectAssessmentTask',
                       primaryID=t.id
                     )
-                    a._open_tasks.add(serialized_t)
+                    a._open_tasks.add(serialized_t[0])
 
         return
         
