@@ -208,7 +208,7 @@ class Command(BaseCommand):
         if not c.exists():
           return
 
-        from EvalData.models import DirectAssessmentTask, WorkAgenda
+        from EvalData.models import DirectAssessmentTask, TaskAgenda, ObjectID
         from collections import defaultdict
         tasks = DirectAssessmentTask.objects.filter(
           campaign=c, activated=True
@@ -235,19 +235,23 @@ class Command(BaseCommand):
             for u, t in zip(_users, _tasks):
                 print(u, '-->', t.id)
 
-                a = WorkAgenda.objects.filter(
+                a = TaskAgenda.objects.filter(
                   user=u, campaign=c
                 )
 
                 if not a.exists():
-                    a = WorkAgenda.objects.create(
+                    a = TaskAgenda.objects.create(
                       user=u, campaign=c
                     )
                 else:
                     a = a[0]
 
-                if t not in a.completedTasks.all():
-                    a.openTasks.add(t)
+                if t not in a._completed_tasks.all():
+                    serialized_t = ObjectID.objects.get_or_create(
+                      typeName='DirectAssessmentTask',
+                      primaryID=t.id
+                    )
+                    a._open_tasks.add(serialized_t)
 
         return
         
