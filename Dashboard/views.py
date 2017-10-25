@@ -302,7 +302,7 @@ def dashboard(request):
                     current_task = open_task
                     campaign = agenda.campaign
                 else:
-                    agenda._completed_asks.add(serialized_open_task)
+                    agenda._completed_tasks.add(serialized_open_task)
                     agenda._open_tasks.remove(serialized_open_task)
             agenda.save()
 
