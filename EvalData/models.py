@@ -74,6 +74,7 @@ class ObjectID(models.Model):
     Encodes an object type and ID for retrieval.
     """
     typeName = models.CharField(
+      db_index=True,
       max_length=MAX_TYPENAME_LENGTH,
       verbose_name=_('Type name'),
       help_text=_(f('(max. {value} characters)',
@@ -81,7 +82,8 @@ class ObjectID(models.Model):
     )
 
     primaryID = models.CharField(
-       max_length=MAX_PRIMARYID_LENGTH,
+      db_index=True,
+      max_length=MAX_PRIMARYID_LENGTH,
       verbose_name=_('Primary ID'),
       help_text=_(f('(max. {value} characters)',
         value=MAX_PRIMARYID_LENGTH))
@@ -111,6 +113,9 @@ class ObjectID(models.Model):
 
         finally:
             return instance
+
+    def __str__(self):
+        return str(self.id)
 
 
 # pylint: disable=C0103,R0903
