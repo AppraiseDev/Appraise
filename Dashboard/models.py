@@ -27,6 +27,7 @@ LANGUAGE_CODES_AND_NAMES = {
   'nld': 'Dutch (Nederlands)',
   'cat': 'Catalan (català)',
   'dan': 'Danish (dansk)',
+  'hin': 'Hindi (हिन्दी)',
 }
 
 # Ensure that all languages have a corresponding group.
