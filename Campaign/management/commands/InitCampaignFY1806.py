@@ -7,7 +7,7 @@ from Campaign.models import Campaign, CampaignTeam
 from EvalData.models import Market, Metadata
 
 X_LANGUAGES = (
-  'deu'
+  'deu',
 )
 
 CAMPAIGN_NAME = 'AppenEval20171030'
@@ -136,6 +136,7 @@ class Command(BaseCommand):
         c = Campaign.objects.filter(campaignName=CAMPAIGN_NAME)
         if not c.exists():
           return
+        c = c[0]
 
         from EvalData.models import DirectAssessmentTask, TaskAgenda, ObjectID
         from collections import defaultdict
@@ -147,7 +148,7 @@ class Command(BaseCommand):
         for task in tasks.order_by('id'):
             market = '{0}{1:02}'.format(
               task.marketName().replace('_', '')[:6],
-              campaign_no
+              CAMPAIGN_NO
             )
             tasks_for_market[market].append(task)
 
