@@ -272,3 +272,65 @@ class Command(BaseCommand):
             for key in sorted(normalized_scores, reverse=True):
                 value = normalized_scores[key]
                 print('{0:03.2f} {1}'.format(key, value))
+
+        # z scores for GOOG and PROD only
+        data_by_language_pair = defaultdict(list)
+        for system_item in system_data:
+            if system_item[1].startswith('CAND'):
+                continue
+
+            language_pair = system_item[4:6]
+            data_by_language_pair[language_pair].append(system_item)
+
+        for language_pair, language_data in data_by_language_pair.items():
+            user_scores = defaultdict(list)
+            system_z_scores = defaultdict(list)
+            for system_item in language_data:
+                user_scores[system_item[0]].append(system_item[6])
+            
+            user_means = defaultdict(float)
+            user_variances = defaultdict(float)
+            for user_name, user_data in user_scores.items():
+                user_mean = sum(user_data) / float(len(user_data) or 1)
+                user_means[user_name] = user_mean
+
+                n = sum([(x - user_mean)**2 for x in user_data])
+                d = float((len(user_data) - 1) or 1)
+                s_squared = n / d
+
+                from math import sqrt
+                user_variances[user_name] = sqrt(s_squared)
+
+            for system_item in language_data:
+                user_id = system_item[0]
+                system_id = system_item[1]
+                segment_id = system_item[2]
+                raw_score = system_item[6]
+
+                z_n = (raw_score - user_means[user_id])
+                z_d = float(user_variances[user_id] or 1)
+                z_score = z_n / z_d
+
+                system_z_scores[system_id].append((segment_id, z_score))
+
+            print('[{0}-->{1}]'.format(*language_pair))
+            normalized_scores = defaultdict(list)
+            for s, v in system_z_scores.items():
+                print('{0}: {1}'.format(s, len(v)))
+
+            for key, value in system_z_scores.items():
+                scores_by_segment = defaultdict(list)
+                for segment_id, score in value:
+                    scores_by_segment[segment_id].append(score)
+            
+                averaged_scores = []
+                for segment_id, scores in scores_by_segment.items():
+                    averaged_score = sum(scores) / float(len(scores) or 1)
+                    averaged_scores.append(averaged_score)
+
+                normalized_score = sum(averaged_scores) / float(len(averaged_scores) or 1)
+                normalized_scores[normalized_score] = (key, len(value), normalized_score)
+            
+            for key in sorted(normalized_scores, reverse=True):
+                value = normalized_scores[key]
+                print('{0:03.2f} {1}'.format(key, value))
