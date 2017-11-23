@@ -17,16 +17,16 @@ XY_LANGUAGES = (
   ('nld', 'deu'),
 )
 
-CAMPAIGN_NAME = 'AppenEvalFY180A'
-CAMPAIGN_KEY = 'FY180A'
-CAMPAIGN_NO = 10
+CAMPAIGN_NAME = 'AppenEvalFY180C'
+CAMPAIGN_KEY = 'FY180C'
+CAMPAIGN_NO = 12
 ANNOTATORS = 22
 TASKS = 55
 REDUNDANCY = 2
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
-    help = 'Initialises campaign FY18 #10'
+    help = 'Initialises campaign FY18 #12'
 
     def handle(self, *args, **options):
         # Find super user
