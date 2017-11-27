@@ -312,7 +312,7 @@ class Command(BaseCommand):
         tasks_for_market = defaultdict(list)
         users_for_market = defaultdict(list)
         for task in tasks.order_by('id'):
-            market = '{0}{1:02}'.format(
+            market = '{0}{1:02x}'.format(
               task.marketName().replace('_', '')[:6],
               CAMPAIGN_NO
             )
