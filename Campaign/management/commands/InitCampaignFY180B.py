@@ -246,7 +246,7 @@ class Command(BaseCommand):
         for code in EX_LANGUAGES:
             # EX
             for user_id in range(ANNOTATORS):
-                username = '{0}{1}{2:02d}{3:02d}'.format(
+                username = '{0}{1}{2:02x}{3:02d}'.format(
                   'eng', code, CAMPAIGN_NO, user_id+1
                 )
 
@@ -260,7 +260,7 @@ class Command(BaseCommand):
         for code in XE_LANGUAGES:
             # XE
             for user_id in range(ANNOTATORS):
-                username = '{0}{1}{2:02d}{3:02d}'.format(
+                username = '{0}{1}{2:02x}{3:02d}'.format(
                   code, 'eng', CAMPAIGN_NO, user_id+1
                 )
 
@@ -274,7 +274,7 @@ class Command(BaseCommand):
         for source, target in XY_LANGUAGES:
             # XY
             for user_id in range(ANNOTATORS):
-                username = '{0}{1}{2:02d}{3:02d}'.format(
+                username = '{0}{1}{2:02x}{3:02d}'.format(
                   source, target, CAMPAIGN_NO, user_id+1
                 )
 
