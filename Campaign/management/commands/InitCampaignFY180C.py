@@ -271,6 +271,20 @@ class Command(BaseCommand):
                     ))
                     campaign_team_object.members.add(user_object)
 
+        for source, target in XY_LANGUAGES:
+            # XY
+            for user_id in range(ANNOTATORS):
+                username = '{0}{1}{2:02d}{3:02d}'.format(
+                  source, target, CAMPAIGN_NO, user_id+1
+                )
+
+                user_object = User.objects.get(username=username)
+                if user_object not in campaign_team_object.members.all():
+                    print('{0} --> {1}'.format(
+                      campaign_team_object.teamName, user_object.username
+                    ))
+                    campaign_team_object.members.add(user_object)
+
         _msg = 'Processed CampaignTeam members'
         self.stdout.write(_msg)
 
