@@ -2,6 +2,7 @@
 Appraise evaluation framework
 """
 # pylint: disable=W0611
+from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 import json
 from django.core.management.base import BaseCommand, CommandError
 from collections import defaultdict, OrderedDict
@@ -158,6 +159,23 @@ class Command(BaseCommand):
 ###
 
     def handle(self, *args, **options):
+        # Validate source and target language codes
+        _all = list(set(
+          [x.lower() for x in LANGUAGE_CODES_AND_NAMES.keys()]
+        ))
+        _all.sort()
+        _src = options['source_language'].lower()
+        if not _src in _all:
+            self.stdout.write('Unknown source language: {0}!'.format(_src))
+            self.stdout.write('Known languages: {0}'.format(', '.join(_all)))
+            return
+
+        _tgt = options['target_language'].lower()
+        if not _tgt in _all:
+            self.stdout.write('Unknown target language: {0}!'.format(_tgt))
+            self.stdout.write('Known languages: {0}'.format(', '.join(_all)))
+            return
+
         # Initialize random number generator
         # Extract batch size number of pairs, randomizing order if requested
         # Serialize pairs into JSON format
