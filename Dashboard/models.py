@@ -28,6 +28,8 @@ LANGUAGE_CODES_AND_NAMES = {
   'cat': 'Catalan (català)',
   'dan': 'Danish (dansk)',
   'hin': 'Hindi (हिन्दी)',
+  'tha': 'Thai (ภาษาไทย)',
+  'ben': 'Bengali (বাংলা)',
 }
 
 # Ensure that all languages have a corresponding group.
