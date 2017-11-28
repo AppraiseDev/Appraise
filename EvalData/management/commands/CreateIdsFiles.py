@@ -6,8 +6,10 @@ from collections import defaultdict, OrderedDict
 from datetime import datetime
 from glob import iglob
 from os import makedirs, path
+from os.path import basename
 from random import seed, shuffle
 from shutil import copyfile
+from sys import exit as sys_exit
 from traceback import format_exc
 from django.core.management.base import BaseCommand, CommandError
 
@@ -74,6 +76,12 @@ class Command(BaseCommand):
             # Check if we are dealing with an .ids file here and skip those
             if source_file.endswith(EXTENSION_FOR_IDS_FILES):
                 continue
+
+            if '+' in basename(source_file):
+                print('Cannot use source files with + in names ' \
+                  'as this breaks multi-system meta systems:\n' \
+                  '{0}'.format(source_file))
+                sys_exit(-1)
 
             _msg = '{0}Creating ids file for source file {1} ... '.format(
               INFO_MSG, path.basename(source_file)
