@@ -8,6 +8,7 @@ from collections import defaultdict, OrderedDict
 from math import floor
 from os.path import basename
 from random import seed, shuffle
+from sys import exit as sys_exit
 
 # pylint: disable=C0111
 class Command(BaseCommand):
@@ -205,6 +206,11 @@ class Command(BaseCommand):
         from glob import iglob
         import os.path
         for system_file in iglob('{0}{1}{2}'.format(systems_path, os.path.sep, "*.txt")):
+            if '+' in basename(system_file):
+                print('Cannot use system files with + in names ' \
+                  'as this breaks multi-system meta systems:\n' \
+                  '{0}'.format(system_file))
+                sys_exit(-1)
             systems_files.append(system_file)
 
         random_seed_value = 123456
