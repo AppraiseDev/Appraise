@@ -1338,7 +1338,12 @@ class DirectAssessmentResult(BaseMetadata):
     @classmethod
     def get_system_data(cls, campaign_id, extended_csv=False):
         system_data = []
-        qs = cls.objects.filter(completed=True, item__itemType__in=('TGT', 'CHK'))
+        
+        item_types = ('TGT', 'CHK')
+        if extended_csv:
+            item_types += ('BAD', 'REF')
+        
+        qs = cls.objects.filter(completed=True, item__itemType__in=item_types)
 
         # If campaign ID is given, only return results for this campaign.
         if campaign_id:
