@@ -1336,7 +1336,7 @@ class DirectAssessmentResult(BaseMetadata):
 
 
     @classmethod
-    def get_system_data(cls, campaign_id):
+    def get_system_data(cls, campaign_id, extended_csv=False):
         system_data = []
         qs = cls.objects.filter(completed=True, item__itemType__in=('TGT', 'CHK'))
 
@@ -1353,6 +1353,13 @@ class DirectAssessmentResult(BaseMetadata):
           'item__metadata__market__targetLanguageCode', # Target language
           'score'                           # Score
         )
+
+        if extended_csv:
+            attributes_to_extract = attributes_to_extract + (
+              'start_time',                 # Start time
+              'end_time'                    # End time
+            )
+
         for result in qs.values_list(*attributes_to_extract):
             user_id = result[0]
             system_ids = result[1].split('+')
