@@ -19,21 +19,68 @@ class Command(BaseCommand):
           '--completed-only', action='store_true',
           help='Include completed tasks only in the computation'
         )
+        parser.add_argument(
+          '--csv-file', type=str,
+          help='CSV file containing annotation data'
+        )
+        parser.add_argument(
+          '--exclude-ids', type=str,
+          help='User IDs which should be ignored'
+        )
         # TODO: add argument to specify batch user
 
     def handle(self, *args, **options):
         campaign_name = options['campaign_name']
         completed_only = options['completed_only']
-
-        # Identify Campaign instance for given name
-        campaign = Campaign.objects.filter(campaignName=campaign_name).first()
-        if not campaign:
-            _msg = 'Failure to identify campaign {0}'.format(campaign_name)
-            self.stdout.write(_msg)
-            return
+        csv_file = options['csv_file']
+        exclude_ids = [x.lower() for x in options['exclude_ids'].split(',')] \
+          if options['exclude_ids'] else []
 
         normalized_scores = OrderedDict()
-        system_scores = DirectAssessmentResult.get_system_scores(campaign.id)
+        if csv_file:
+            _msg = 'Processing annotations in file {0}\n\n'.format(csv_file)
+            self.stdout.write(_msg)
+
+            # Need to load data from CSV file and bring into same
+            # format as would have been produced by the call to
+            # get_system_scores().
+            #
+            # CSV has this format
+            # zhoeng0802,GOOG_WMT2009_Test.chs-enu.txt,678,CHK,zho,eng,76,1511470503.271,1511470509.224
+            system_scores = defaultdict(list)
+
+            import csv
+            with open(csv_file) as input_file:
+                csv_reader = csv.reader(input_file)
+                for csv_line in csv_reader:
+                    _user_id = csv_line[0]
+                    if _user_id.lower() in exclude_ids:
+                        continue
+
+                    _system_id = csv_line[1]
+                    _segment_id = csv_line[2]
+                    _type = csv_line[3]
+                    _src = csv_line[4]
+                    _tgt = csv_line[5]
+                    _score = int(csv_line[6])
+                    _key = '{0}-{1}-{2}'.format(
+                      _src, _tgt, _system_id
+                    )
+
+                    if _type not in ('TGT', 'CHK'):
+                        continue
+
+                    system_scores[_key].append((_segment_id, _score))
+
+        else:
+            # Identify Campaign instance for given name
+            campaign = Campaign.objects.filter(campaignName=campaign_name).first()
+            if not campaign:
+                _msg = 'Failure to identify campaign {0}'.format(campaign_name)
+                self.stdout.write(_msg)
+                return
+
+            system_scores = DirectAssessmentResult.get_system_scores(campaign.id)
 
         # TODO: this should consider the chosen campaign, otherwise
         #   we will show systems across all possible campaigns...
@@ -61,6 +108,8 @@ class Command(BaseCommand):
         for key in sorted(normalized_scores, reverse=True):
             value = normalized_scores[key]
             print('{0:03.2f} {1}'.format(key, value))
+
+        print('\nExcluded IDs: {0}\n'.format(', '.join(exclude_ids)))
 
         # Non-segment level average
         #normalized_scores = defaultdict(list)
