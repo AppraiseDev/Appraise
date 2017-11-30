@@ -265,10 +265,19 @@ class Command(BaseCommand):
                     )
                 else:
                     a = a[0]
+                serialized_t = ObjectID.objects.get_or_create(
+                  typeName='DirectAssessmentTask',
+                  primaryID=t.id
+                )
 
-                if t not in a._completed_tasks.all():
-                    serialized_t = ObjectID.objects.get_or_create(
-                      typeName='DirectAssessmentTask',
-                      primaryID=t.id
-                    )
-                    a._open_tasks.add(serialized_t[0])
+                if t.completed:
+                    if serialized_t[0] not in a._completed_tasks.all():
+                        a._completed_tasks.add(serialized_t[0])
+                    if serialized_t[0] in a._open_tasks.all():
+                        a._open_tasks.remove(serialized_t[0])
+
+                else:
+                    if serialized_t[0] in a._completed_tasks.all():
+                        a._completed_tasks.remove(serialized_t[0])
+                    if serialized_t[0] not in a._open_tasks.all():
+                        a._open_tasks.add(serialized_t[0])
