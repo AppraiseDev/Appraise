@@ -19,20 +19,70 @@ class Command(BaseCommand):
           '--completed-only', action='store_true',
           help='Include completed tasks only in the computation'
         )
+        parser.add_argument(
+          '--csv-file', type=str,
+          help='CSV file containing annotation data'
+        )
+        parser.add_argument(
+          '--exclude-ids', type=str,
+          help='User IDs which should be ignored'
+        )
+        parser.add_argument(
+          '--no-sigtest', action='store_true',
+          help='Do not run significance testing'
+        )
         # TODO: add argument to specify batch user
 
     def handle(self, *args, **options):
         campaign_name = options['campaign_name']
         completed_only = options['completed_only']
+        csv_file = options['csv_file']
+        exclude_ids = [x.lower() for x in options['exclude_ids'].split(',')] \
+          if options['exclude_ids'] else []
 
-        # Identify Campaign instance for given name
-        campaign = Campaign.objects.filter(campaignName=campaign_name).first()
-        if not campaign:
-            _msg = 'Failure to identify campaign {0}'.format(campaign_name)
+        if csv_file:
+            _msg = 'Processing annotations in file {0}\n\n'.format(csv_file)
             self.stdout.write(_msg)
-            return
 
-        system_data = DirectAssessmentResult.get_system_data(campaign.id)
+            # Need to load data from CSV file and bring into same
+            # format as would have been produced by the call to
+            # get_system_scores().
+            #
+            # CSV has this format
+            # zhoeng0802,GOOG_WMT2009_Test.chs-enu.txt,678,CHK,zho,eng,76,1511470503.271,1511470509.224
+            system_data = []
+
+            import csv
+            with open(csv_file) as input_file:
+                csv_reader = csv.reader(input_file)
+                for csv_line in csv_reader:
+                    _user_id = csv_line[0]
+                    if _user_id.lower() in exclude_ids:
+                        continue
+
+                    _system_id = csv_line[1]
+                    _segment_id = csv_line[2]
+                    _type = csv_line[3]
+                    _src = csv_line[4]
+                    _tgt = csv_line[5]
+                    _score = int(csv_line[6])
+                    _rest = csv_line[7:]
+
+                    if _type not in ('TGT', 'CHK'):
+                        continue
+
+                    _data = tuple(csv_line[:6]) + (_score,) + tuple(_rest)
+                    system_data.append(_data)
+
+        else:
+            # Identify Campaign instance for given name
+            campaign = Campaign.objects.filter(campaignName=campaign_name).first()
+            if not campaign:
+                _msg = 'Failure to identify campaign {0}'.format(campaign_name)
+                self.stdout.write(_msg)
+                return
+
+            system_data = DirectAssessmentResult.get_system_data(campaign.id)
 
         # TODO: get_system_data() returns a full dump of all annotations for
         #   the current campaign. This needs to be sliced by language pairs
@@ -102,12 +152,15 @@ class Command(BaseCommand):
                 value = normalized_scores[key]
                 print('{0:03.2f} {1}'.format(key, value))
 
+            if options['no_sigtest']:
+                return
+
             # if scipy is available, perform sigtest for all pairs of systems
             try:
                 import scipy
             
             except ImportError:
-                sys.exit(-1)
+                return
 
             from scipy.stats import mannwhitneyu, bayes_mvs
             from itertools import combinations_with_replacement
