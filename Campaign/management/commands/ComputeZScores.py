@@ -102,6 +102,7 @@ class Command(BaseCommand):
         for language_pair, language_data in data_by_language_pair.items():
             user_scores = defaultdict(list)
             system_z_scores = defaultdict(list)
+            system_raw_scores = defaultdict(list)
             for system_item in language_data:
                 user_scores[system_item[0]].append(system_item[6])
             
@@ -129,11 +130,23 @@ class Command(BaseCommand):
                 z_score = z_n / z_d
 
                 system_z_scores[system_id].append((segment_id, z_score))
+                system_raw_scores[system_id].append((segment_id, raw_score))
             
-            print('[{0}-->{1}]'.format(*language_pair))
+            print('\n[{0}-->{1}]'.format(*language_pair))
             normalized_scores = defaultdict(list)
             for s, v in system_z_scores.items():
                 print('{0}: {1}'.format(s, len(v)))
+
+            averaged_raw_scores = defaultdict(list)
+            for key, value in system_raw_scores.items():
+                print('{0}-->{1}'.format(key, len(value)))
+                scores_by_segment = defaultdict(list)
+                for segment_id, score in value:
+                    scores_by_segment[segment_id].append(score)
+
+                for segment_id, scores in scores_by_segment.items():
+                    averaged_raw_score = sum(scores) / float(len(scores) or 1)
+                    averaged_raw_scores[key].append(averaged_raw_score)
 
             for key, value in system_z_scores.items():
                 scores_by_segment = defaultdict(list)
@@ -145,22 +158,25 @@ class Command(BaseCommand):
                     averaged_score = sum(scores) / float(len(scores) or 1)
                     averaged_scores.append(averaged_score)
 
+                _raw_scores = averaged_raw_scores[key]
+                averaged_raw_score = sum(_raw_scores) / float(len(_raw_scores) or 1)
+
                 normalized_score = sum(averaged_scores) / float(len(averaged_scores) or 1)
-                normalized_scores[normalized_score] = (key, len(value), normalized_score)
+                normalized_scores[normalized_score] = (key, len(value), normalized_score, averaged_raw_score)
             
             for key in sorted(normalized_scores, reverse=True):
                 value = normalized_scores[key]
                 print('{0:03.2f} {1}'.format(key, value))
 
             if options['no_sigtest']:
-                return
+                continue
 
             # if scipy is available, perform sigtest for all pairs of systems
             try:
                 import scipy
             
             except ImportError:
-                return
+                continue
 
             from scipy.stats import mannwhitneyu, bayes_mvs
             from itertools import combinations_with_replacement
@@ -239,7 +255,7 @@ class Command(BaseCommand):
 
                 system_z_scores[system_id].append((segment_id, z_score))
 
-            print('[{0}-->{1}]'.format(*language_pair))
+            print('\n[{0}-->{1}]'.format(*language_pair))
             normalized_scores = defaultdict(list)
             for s, v in system_z_scores.items():
                 print('{0}: {1}'.format(s, len(v)))
@@ -304,7 +320,7 @@ class Command(BaseCommand):
 
                 system_z_scores[system_id].append((segment_id, z_score))
 
-            print('[{0}-->{1}]'.format(*language_pair))
+            print('\n[{0}-->{1}]'.format(*language_pair))
             normalized_scores = defaultdict(list)
             for s, v in system_z_scores.items():
                 print('{0}: {1}'.format(s, len(v)))
@@ -366,7 +382,7 @@ class Command(BaseCommand):
 
                 system_z_scores[system_id].append((segment_id, z_score))
 
-            print('[{0}-->{1}]'.format(*language_pair))
+            print('\n[{0}-->{1}]'.format(*language_pair))
             normalized_scores = defaultdict(list)
             for s, v in system_z_scores.items():
                 print('{0}: {1}'.format(s, len(v)))
