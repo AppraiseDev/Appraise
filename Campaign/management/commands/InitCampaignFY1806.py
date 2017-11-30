@@ -175,12 +175,14 @@ class Command(BaseCommand):
                     )
                 else:
                     a = a[0]
+
                 serialized_t = ObjectID.objects.get_or_create(
                   typeName='DirectAssessmentTask',
                   primaryID=t.id
                 )
 
-                if t.completed:
+                _task_done_for_user = t.next_item_for_user(u) is None
+                if _task_done_for_user:
                     if serialized_t[0] not in a._completed_tasks.all():
                         a._completed_tasks.add(serialized_t[0])
                     if serialized_t[0] in a._open_tasks.all():
