@@ -17,6 +17,7 @@ from django.conf.urls import url, handler404, handler500, include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
+from Campaign import views as campaign_views
 from Dashboard import views as dashboard_views
 from EvalView import views as evalview_views
 from Appraise.settings import BASE_CONTEXT, DEBUG
@@ -88,6 +89,8 @@ urlpatterns = [
     url(r'^multimodal-assessment/$', evalview_views.multimodal_assessment, name='multimodal-assessment'),
     url(r'^multimodal-assessment/(?P<code>[a-z]{3})/$', evalview_views.multimodal_assessment, name='multimodal-assessment'),
     url(r'^multimodal-assessment/(?P<code>[a-z]{3})/(?P<campaign_name>[a-zA-Z0-9]+)/$', evalview_views.multimodal_assessment, name='multimodal-assessment'),
+
+    url(r'^campaign-status/(?P<campaign_name>[a-zA-Z0-9]+)/(?P<sort_key>[012])?/?$', campaign_views.campaign_status, name='campaign_status'),
 ]
 
 if DEBUG:
