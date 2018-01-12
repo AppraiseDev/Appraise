@@ -90,7 +90,7 @@ urlpatterns = [
     url(r'^multimodal-assessment/(?P<code>[a-z]{3})/$', evalview_views.multimodal_assessment, name='multimodal-assessment'),
     url(r'^multimodal-assessment/(?P<code>[a-z]{3})/(?P<campaign_name>[a-zA-Z0-9]+)/$', evalview_views.multimodal_assessment, name='multimodal-assessment'),
 
-    url(r'^campaign-status/(?P<campaign_name>[a-zA-Z0-9]+)/(?P<sort_key>[012])?/?$', campaign_views.campaign_status, name='campaign_status'),
+    url(r'^campaign-status/(?P<campaign_name>[a-zA-Z0-9]+)/(?P<sort_key>[01234])?/?$', campaign_views.campaign_status, name='campaign_status'),
 ]
 
 if DEBUG:
