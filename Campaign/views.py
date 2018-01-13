@@ -20,14 +20,16 @@ def campaign_status(request, campaign_name, sort_key=2):
         for user in team.members.all():
             _data = DirectAssessmentResult.objects.filter(
               createdBy=user, completed=True
-            ).values_list('end_time', flat=True)
+            ).values_list('start_time', 'end_time')
 
             _annotations = len(_data)
-            _first_modified = seconds_to_timedelta(min(_data)) if len(_data) else None
-            _last_modified = seconds_to_timedelta(max(_data)) if len(_data) else None
-            _delta = 'n/a'
-            if _first_modified and _last_modified:
-                _delta = str(_last_modified - _first_modified).split('.')[0]
+            _start_times = [x[0] for x in _data]
+            _end_times = [x[1] for x in _data]
+            _durations = [x[1]-x[0] for x in _data]
+
+            _first_modified = seconds_to_timedelta(min(_start_times)) if len(_start_times) else None
+            _last_modified = seconds_to_timedelta(max(_end_times)) if len(_end_times) else None
+            _annotation_time = sum(_durations) if len(_durations) else None
 
             if _first_modified:
                 _date_modified = datetime(1970, 1, 1) + _first_modified
@@ -43,11 +45,17 @@ def campaign_status(request, campaign_name, sort_key=2):
             else:
                 _last_modified = 'Never'
 
-            _item = (user.username, _annotations, _first_modified, _last_modified, _delta)
+            if _annotation_time:
+                _annotation_time = str(_annotation_time).split('.')[0]
+
+            else:
+                _annotation_time = 'n/a'
+
+            _item = (user.username, _annotations, _first_modified, _last_modified, _annotation_time)
             _out.append(_item)
 
     _out.sort(key=lambda x: x[int(sort_key)])
-    _header = '\t'.join(('username', 'annotations', 'first_modified', 'last_modified', 'delta'))
+    _header = '\t'.join(('username', 'annotations', 'first_modified', 'last_modified', 'annotation_time'))
     _txt = [_header]
     for x in _out:
         _local_out = '{0:>20}\t{1:3}\t{2}\t{3}\t{4}'.format(*x)
