@@ -323,7 +323,7 @@ class Command(BaseCommand):
             for user in users.order_by('id'):
                 users_for_market[key].append(user)
 
-            # _tasks has size 6 due to duplicating tasks above
+            # _tasks has size 36 due to duplicating tasks above
             # _users has size 6, so we need 6 copies to match
             _tasks = tasks_for_market[key]
             _users = users_for_market[key] * 6
