@@ -35,6 +35,7 @@ LANGUAGE_CODES_AND_NAMES = {
   'est': 'Estonian (eesti)',
   'bul': 'Bulgarian (български)',
   'ell': 'Greek (ελληνικά)',
+  'heb': 'Hebrew (עברית)',
 }
 
 # Ensure that all languages have a corresponding group.
