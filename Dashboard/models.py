@@ -30,6 +30,11 @@ LANGUAGE_CODES_AND_NAMES = {
   'hin': 'Hindi (हिन्दी)',
   'tha': 'Thai (ภาษาไทย)',
   'ben': 'Bengali (বাংলা)',
+  'slk': 'Slovak (slovenčina)',
+  'slv': 'Slovenian (slovenščina)',
+  'est': 'Estonian (eesti)',
+  'bul': 'Bulgarian (български)',
+  'ell': 'Greek (ελληνικά)',
 }
 
 # Ensure that all languages have a corresponding group.
