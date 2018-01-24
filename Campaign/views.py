@@ -54,11 +54,11 @@ def campaign_status(request, campaign_name, sort_key=2):
             else:
                 _annotation_time = 'n/a'
 
-            _item = (user.username, _annotations, _first_modified, _last_modified, _annotation_time)
+            _item = (user.username, user.is_active, _annotations, _first_modified, _last_modified, _annotation_time)
             _out.append(_item)
 
     _out.sort(key=lambda x: x[int(sort_key)])
-    _header = '\t'.join(('username', 'annotations', 'first_modified', 'last_modified', 'annotation_time'))
+    _header = '\t'.join(('username', 'active', 'annotations', 'first_modified', 'last_modified', 'annotation_time'))
     _txt = [_header]
     for x in _out:
         _local_out = '{0:>20}\t{1:3}\t{2}\t{3}\t{4}'.format(*x)
