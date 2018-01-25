@@ -61,7 +61,7 @@ def campaign_status(request, campaign_name, sort_key=2):
     _header = '\t'.join(('username', 'active', 'annotations', 'first_modified', 'last_modified', 'annotation_time'))
     _txt = [_header]
     for x in _out:
-        _local_out = '{0:>20}\t{1:3}\t{2}\t{3}\t{4}'.format(*x)
+        _local_out = '{0:>20}\t{1:3}\t{2}\t{3}\t{4}\t{5}'.format(*x)
         _txt.append(_local_out)
 
     return HttpResponse(u'\n'.join(_txt), content_type='text/plain')
