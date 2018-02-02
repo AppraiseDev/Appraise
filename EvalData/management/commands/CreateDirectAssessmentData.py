@@ -312,6 +312,7 @@ class Command(BaseCommand):
                 if not key in _sorted_keys:
                     segment_id = hashed_text[key]['segment_id']
                     matching_keys = hashes_by_ids[segment_id]
+                    matching_keys.sort()
                     _sorted_keys.extend(matching_keys)
             all_keys = _sorted_keys
 
