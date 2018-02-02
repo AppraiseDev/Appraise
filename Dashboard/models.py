@@ -36,6 +36,9 @@ LANGUAGE_CODES_AND_NAMES = {
   'bul': 'Bulgarian (български)',
   'ell': 'Greek (ελληνικά)',
   'heb': 'Hebrew (עברית)',
+  'cym': 'Welsh (Cymraeg)',
+  'ukr': 'Ukrainian (українська)',
+  'lav': 'Latvian (latviešu)',
 }
 
 # Ensure that all languages have a corresponding group.
