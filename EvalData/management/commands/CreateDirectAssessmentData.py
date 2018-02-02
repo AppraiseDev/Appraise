@@ -93,6 +93,10 @@ class Command(BaseCommand):
           '--create-ids', action='store_true',
           help='Creates segment ids without local .ids files'
         )
+        parser.add_argument(
+          '--full-coverage', action='store_true',
+          help='Ensures segments are fully covered'
+        )
         # TODO: add optional parameters to set source, reference and system IDs
 
         # TODO: add exclude argument which prevents creation of redundant data?
@@ -240,6 +244,7 @@ class Command(BaseCommand):
 
         import hashlib
         hashed_text = {}
+        hashes_by_ids = defaultdict(list)
 
         for system_path in systems_files:
             system_txt = Command._load_text_from_file(system_path, encoding)
@@ -282,6 +287,8 @@ class Command(BaseCommand):
                       'segment_src': _src,
                       'systems': [os.path.basename(system_path)]
                     }
+
+                    hashes_by_ids[segment_id].append(md5hash)
                 else:
                     hashed_text[md5hash]['systems'].append(os.path.basename(system_path))
 
@@ -292,6 +299,21 @@ class Command(BaseCommand):
         all_keys = list(hashed_text.keys())
         all_keys.sort()
         shuffle(all_keys)
+
+        # If --full-coverage is specified, we want to collect annotations for
+        # all unique translations for any given segment ID. To do so, we loop
+        # over the all_keys list and for each MD5 hash we have not consumed,
+        # we add not only the MD5 hash itself but also all other MD5 hashes
+        # matching the respective segment ID.
+        full_coverage = options['full_coverage']
+        if full_coverage:
+            _sorted_keys = []
+            for key in all_keys:
+                if not key in _sorted_keys:
+                    segment_id = hashed_text[key]['segment_id']
+                    matching_keys = hashes_by_ids[segment_id]
+                    _sorted_keys.extend(matching_keys)
+            all_keys = _sorted_keys
 
         items_per_batch = 10 * 7
 
