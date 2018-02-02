@@ -247,7 +247,7 @@ class Command(BaseCommand):
                 else:
                     a = a[0]
 
-                 serialized_t = ObjectID.objects.get_or_create(
+                serialized_t = ObjectID.objects.get_or_create(
                   typeName='DirectAssessmentTask',
                   primaryID=t.id
                 )
