@@ -1,0 +1,7 @@
+- current_task cannot be used if market does not match user languages
+
+[20180201]
+- implement bad src generation
+- integrate bad ref/src generation into DA task creation
+- implement "rank each segment for all systems" behaviour
+- check if "all"-"used" batches gives the right data for IWSLT?
