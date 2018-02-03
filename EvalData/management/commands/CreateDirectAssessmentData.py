@@ -418,7 +418,7 @@ class Command(BaseCommand):
                     item_src = item_data['segment_src']
                     item_systems = item_data['systems']
 
-                    targetID = '+'.join(set(item_systems))
+                    targetID = '+'.join(sorted(set(item_systems)))
                     targetText = item_text
                     if current_type == 'REF':
                         targetID = basename(options['reference_file'])
@@ -446,8 +446,8 @@ class Command(BaseCommand):
 
             json_data.append(outputData)
 
-        print(json.dumps(json_data, indent=2))
-        json_data = json.dumps(json_data, indent=2)
+        json_data = json.dumps(json_data, indent=2, sort_keys=True)
+        print(json_data)
 
         with open(options['output_json_file'], mode='w', encoding='utf8') as output_file:
             self.stdout.write('Creating {0} ... '.format(options['output_json_file']), ending='')
