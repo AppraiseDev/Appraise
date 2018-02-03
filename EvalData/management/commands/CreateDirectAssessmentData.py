@@ -97,6 +97,10 @@ class Command(BaseCommand):
           '--full-coverage', action='store_true',
           help='Ensures segments are fully covered'
         )
+        parser.add_argument(
+          '--character-based', action='store_true',
+          help='Enable character-based processing, default for Chinese and Japanese'
+        )
         # TODO: add optional parameters to set source, reference and system IDs
 
         # TODO: add exclude argument which prevents creation of redundant data?
@@ -247,6 +251,9 @@ class Command(BaseCommand):
         hashed_text = {}
         hashes_by_ids = defaultdict(list)
 
+        character_based = _tgt == 'zho' or _tgt == 'jpn' \
+          or options['character_based']
+
         for system_path in systems_files:
             system_txt = Command._load_text_from_file(system_path, encoding)
             # Generate bad references on the fly
@@ -289,7 +296,6 @@ class Command(BaseCommand):
                 #
                 # This follows WMT17:
                 # - http://statmt.org/wmt17/pdf/WMT17.pdf
-                character_based = _tgt == 'zho' or _tgt == 'jpn'
 
                 _bad_len = 1
                 _tokens = segment_text \
