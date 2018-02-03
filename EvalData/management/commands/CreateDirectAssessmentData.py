@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand, CommandError
 from collections import defaultdict, OrderedDict
 from math import floor
 from os.path import basename
-from random import seed, shuffle
+from random import randrange, seed, shuffle
 from sys import exit as sys_exit
 
 # pylint: disable=C0111
@@ -190,6 +190,7 @@ class Command(BaseCommand):
         use_local_src = options['local_src']
         use_local_ref = options['local_ref']
         create_ids = options['create_ids']
+        source_based = options['source_based']
 
         block_size = 10
         block_annotations = 7
@@ -248,7 +249,12 @@ class Command(BaseCommand):
 
         for system_path in systems_files:
             system_txt = Command._load_text_from_file(system_path, encoding)
-            system_bad = Command._load_text_from_file(system_path.replace('.txt', '.bad'), encoding)
+            # Generate bad references on the fly
+            #
+            # To do so, we will load a random source segment to fill in a
+            # randomly positioned phrase in the given candidate translation.
+            #
+            # system_bad = Command._load_text_from_file(system_path.replace('.txt', '.bad'), encoding)
 
             if not create_ids:
                 system_ids = Command._load_text_from_file(system_path.replace('.txt', '.ids'), encoding)
@@ -278,11 +284,80 @@ class Command(BaseCommand):
                 md5hash = hashlib.new('md5', segment_text.encode(encoding)).hexdigest()
                 _src = local_src[segment_id] if use_local_src else source_file[segment_id]
                 _ref = local_src[segment_id] if use_local_ref else reference_file[segment_id]
+
+                # Determine length of bad phrase, relative to segment length
+                #
+                # This follows WMT17:
+                # - http://statmt.org/wmt17/pdf/WMT17.pdf
+                character_based = _tgt == 'zho' or _tgt == 'jpn'
+
+                _bad_len = 1
+                _tokens = segment_text \
+                  if character_based \
+                  else segment_text.split(' ')
+
+                if len(_tokens) > 1 and len(_tokens) <= 5:
+                    _bad_len = 2
+                elif len(_tokens) > 5 and len(_tokens) <= 8:
+                    _bad_len = 3
+                elif len(_tokens) > 8 and len(_tokens) <= 15:
+                    _bad_len = 4
+                elif len(_tokens) > 15 and len(_tokens) <= 20:
+                    _bad_len = 5
+                else:
+                    _bad_len = len(_tokens) // 4
+
+                if character_based:
+                    _bad_len = 2 * _bad_len
+
+                # Choose random src/ref segment
+                _bad_tokens = []
+                while len(_bad_tokens) <= _bad_len:
+                    _bad_id = randrange(0, len(local_ref)) + 1 \
+                      if use_local_ref else randrange(0, len(reference_file)) + 1
+
+                    if source_based:
+                        _bad_id = randrange(0, len(local_src)) + 1 \
+                          if use_local_src else randrange(0, len(source_file)) + 1
+
+                    _bad_text = None
+#                    if source_based:
+#                        _bad_text = local_src[_bad_id] if use_local_src else source_file[_bad_id]
+#                    else:
+                    #
+                    # We are currently forcing reference-based bad reference
+                    # generation. If no reference is available, then a copy
+                    # of the source file will work just fine.
+                    #
+                    if True:
+                        _bad_text = local_ref[_bad_id] if use_local_ref else reference_file[_bad_id]
+
+                    _bad_tokens = _bad_text \
+                      if character_based \
+                      else _bad_text.split(' ')
+
+                # If dealing with Chinese or Japanese, use double the amount
+                # of characters for the bad replacement phrase.
+                _bad_phrase = None
+
+                _index = randrange(0, len(_bad_tokens) - _bad_len) \
+                  if len(_bad_tokens) - _bad_len > 0 else 0
+                _bad_phrase = _bad_tokens[_index:_index + _bad_len]
+
+                _index = randrange(0, len(_tokens) - _bad_len) \
+                  if len(_tokens) - _bad_len > 0 else 0
+                _bad = _tokens[:_index] + _bad_phrase \
+                  + _tokens[_index + _bad_len:]
+
+                segment_bad = ''.join(_bad) \
+                  if character_based \
+                  else ' '.join(_bad)
+
                 if not md5hash in hashed_text.keys():
                     hashed_text[md5hash] = {
                       'segment_id': segment_id,
                       'segment_text': segment_text,
-                      'segment_bad': system_bad[segment_id],
+                      'segment_bad': segment_bad,
                       'segment_ref': _ref,
                       'segment_src': _src,
                       'systems': [os.path.basename(system_path)]
@@ -330,7 +405,6 @@ class Command(BaseCommand):
         batch_no = options['batch_no']
         max_batches = options['max_batches']
         all_batches = options['all_batches']
-        source_based = options['source_based']
 
         # If we don't produce all batches, our batch_id will be batch_no-1.
         # This is because batch numbers are one-based, ids zero-indexed.
@@ -423,7 +497,8 @@ class Command(BaseCommand):
                     if current_type == 'REF':
                         targetID = basename(options['reference_file'])
                         targetText = item_ref
-                    elif current_item == 'BAD':
+
+                    elif current_type == 'BAD':
                         targetText = item_bad
 
                     obj = OrderedDict()
