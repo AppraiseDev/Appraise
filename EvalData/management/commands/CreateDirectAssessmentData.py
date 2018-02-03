@@ -377,6 +377,13 @@ class Command(BaseCommand):
               len(system_txt.keys()), os.path.basename(system_path))
             )
 
+        # Dump deduplicated segment data to JSON file.
+        json_data = json.dumps(hashed_text, indent=2, sort_keys=True)
+        with open(options['output_json_file'] + '.segments', mode='w', encoding='utf8') as output_file:
+            self.stdout.write('Creating {0} ... '.format(options['output_json_file'] + '.segments'), ending='')
+            output_file.write(str(json_data))
+            self.stdout.write('OK')
+
         all_keys = list(hashed_text.keys())
         all_keys.sort()
         shuffle(all_keys)
