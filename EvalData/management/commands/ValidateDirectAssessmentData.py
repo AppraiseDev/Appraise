@@ -49,10 +49,18 @@ class Command(BaseCommand):
                                 system_ids_by_segment[segmentID].append(systemID)
 
         errors = []
+        all_systems = []
         for segmentID, systemIDs in system_ids_by_segment.items():
             if len(systemIDs) != required_systems:
                 errors.append(segmentID)
                 print(segmentID, len(systemIDs), sorted(systemIDs))
+
+                for systemID in all_systems:
+                    if not systemID in systemIDs:
+                        print("Missing {0}".format(systemID))
+
+            else:
+                all_systems = systemIDs
 
         print("Encountered {0} validation errors for {1} segments".format(
           len(errors), len(system_ids_by_segment.keys()))
