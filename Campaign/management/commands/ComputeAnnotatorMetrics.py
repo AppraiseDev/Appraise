@@ -126,7 +126,9 @@ class Command(BaseCommand):
             for item in _scores.items():
                 if len(item[1]) == 2:
                     _potential += 1
-                    if item[1][0][0] == item[1][1][0]:
+                    _data = item[1]
+                    _data.sort(key=lambda x: x[1])
+                    if _data[0][0] == _data[1][0]:
                         _matches += 1
 
             metrics[key].append((_matches, _potential))
@@ -142,7 +144,10 @@ class Command(BaseCommand):
             deltas = []
             for item in _scores.items():
                 if len(item[1]) == 2:
-                    deltas.append(item[1][0][0] - item[1][1][0])
+                    _data = item[1]
+                    _data.sort(key=lambda x: x[1])
+
+                    deltas.append(_data[0][0] - _data[1][0])
 
             metrics[key].append(deltas)
             metrics[key].append(len(value))
