@@ -302,7 +302,9 @@ class Command(BaseCommand):
                   if character_based \
                   else segment_text.split(' ')
 
-                if len(_tokens) > 1 and len(_tokens) <= 5:
+                if len(_tokens) == 1:
+                    _bad_len = 1
+                elif len(_tokens) > 1 and len(_tokens) <= 5:
                     _bad_len = 2
                 elif len(_tokens) > 5 and len(_tokens) <= 8:
                     _bad_len = 3
