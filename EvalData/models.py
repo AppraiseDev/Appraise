@@ -1336,7 +1336,7 @@ class DirectAssessmentResult(BaseMetadata):
 
 
     @classmethod
-    def get_system_data(cls, campaign_id, extended_csv=False):
+    def get_system_data(cls, campaign_id, extended_csv=False, expand_multi_sys=True):
         system_data = []
         
         item_types = ('TGT', 'CHK')
@@ -1367,9 +1367,16 @@ class DirectAssessmentResult(BaseMetadata):
 
         for result in qs.values_list(*attributes_to_extract):
             user_id = result[0]
-            system_ids = result[1].split('+')
 
-            for system_id in system_ids:
+            if expand_multi_sys:
+                system_ids = result[1].split('+')
+
+                for system_id in system_ids:
+                    data = (user_id,) + (system_id,) + result[2:]
+                    system_data.append(data)
+
+            else:
+                system_id = result[1]
                 data = (user_id,) + (system_id,) + result[2:]
                 system_data.append(data)
 
