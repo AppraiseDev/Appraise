@@ -85,7 +85,7 @@ class Command(BaseCommand):
                     self.stdout.write(_msg)
                 return
 
-            csv_data = DirectAssessmentResult.get_system_data(campaign.id, extended_csv=True)
+            csv_data = DirectAssessmentResult.get_system_data(campaign.id, extended_csv=True, expand_multi_sys=False)
 
             for csv_line in csv_data:
                 _user_id = csv_line[0]
@@ -107,6 +107,10 @@ class Command(BaseCommand):
         segments_by_user = defaultdict(int)
         for key, values in user_scores.items():
             segments_by_user[key] = len(user_scores[key])
+            #for value in values:
+            #    item = (value[0], value[2], value[3])
+            #    if not item in segments_by_user[key]:
+            #        segments_by_user[key].append(item)
 
         user_means = defaultdict(float)
         user_stdev = defaultdict(float)
