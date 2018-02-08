@@ -104,11 +104,9 @@ class Command(BaseCommand):
 
                 user_scores[_key].append((_segment_id, _system_id, _type,  _score))
 
-        segments_by_user = defaultdict(list)
+        segments_by_user = defaultdict(int)
         for key, values in user_scores.items():
-            for value in values:
-                if not value[0] in segments_by_user[key]:
-                    segments_by_user[key].append(value[0])
+            segments_by_user[key] = len(user_scores[key])
 
         user_means = defaultdict(float)
         user_stdev = defaultdict(float)
@@ -201,7 +199,7 @@ class Command(BaseCommand):
             metric1 = value[0][1] - value[0][0]
             metric2 = value[1][0] / value[1][1] if value[1][1] else 0
             metric3 = 0
-            metric4 = len(segments_by_user[key])
+            metric4 = segments_by_user[key]
 
             try:
                 from scipy import stats
