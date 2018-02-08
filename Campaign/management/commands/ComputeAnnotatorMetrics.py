@@ -188,7 +188,8 @@ class Command(BaseCommand):
             _header = ','.join(_fields)
             print(_header)
 
-        for key, value in metrics.items():
+        for key in sorted(metrics.keys()):
+            value = metrics[key]
             metric1 = value[0][1] - value[0][0]
             metric2 = value[1][0] / value[1][1] if value[1][1] else 0
             metric3 = 0
