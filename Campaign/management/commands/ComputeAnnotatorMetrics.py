@@ -220,6 +220,7 @@ class Command(BaseCommand):
                 _data = (key, str(metric1), str(metric2), str(metric3), str(metric4))
                 _line = ','.join(_data)
                 _line = _line.replace('nan', '0.000000')
+                print(_line)
 
         if not export_csv:
             print('\nExcluded IDs: {0}\n'.format(', '.join(exclude_ids)))
