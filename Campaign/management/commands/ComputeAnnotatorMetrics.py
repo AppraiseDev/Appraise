@@ -41,6 +41,7 @@ class Command(BaseCommand):
         export_csv = options['export_csv']
         chk_threshold = options['chk_threshold']
 
+        user_scores = defaultdict(list)
         if csv_file:
             if not export_csv:
                 _msg = 'Processing annotations in file {0}\n\n'.format(csv_file)
@@ -52,7 +53,6 @@ class Command(BaseCommand):
             #
             # CSV has this format
             # zhoeng0802,GOOG_WMT2009_Test.chs-enu.txt,678,CHK,zho,eng,76,1511470503.271,1511470509.224
-            user_scores = defaultdict(list)
 
             import csv
             with open(csv_file) as input_file:
