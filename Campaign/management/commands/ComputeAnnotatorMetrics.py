@@ -1,10 +1,12 @@
-from collections import defaultdict, OrderedDict
+from collections import OrderedDict, defaultdict
 from json import loads
+
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
 from Campaign.models import Campaign
-from EvalData.models import DirectAssessmentTask, DirectAssessmentResult
+from EvalData.models import DirectAssessmentResult, DirectAssessmentTask
+
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
@@ -102,12 +104,18 @@ class Command(BaseCommand):
 
                 user_scores[_key].append((_segment_id, _system_id, _type,  _score))
 
+        segments_by_user = defaultdict(list)
+        for key, values in user_scores.items():
+            for value in values:
+                if not value[0] in segments_by_user[key]:
+                    segments_by_user[key].append(value[0])
+
         user_means = defaultdict(float)
         user_stdev = defaultdict(float)
 
         from math import sqrt
-        for key, value in user_scores.items():
-            _scores = [x[3] for x in value]
+        for key, values in user_scores.items():
+            _scores = [x[3] for x in values]
             user_means[key] = sum(_scores) / len(_scores) if len(_scores) else 0
             user_stdev[key] = sqrt( sum( ( (x - user_means[key]) ** 2 / (len(_scores) - 1) ) for x in _scores ) )
 
@@ -120,8 +128,8 @@ class Command(BaseCommand):
         user_scores = user_z_scores
 
         metrics = defaultdict(list)
-        for key, value in user_scores.items():
-            _sorted = [(x[3], x[2]) for x in value]
+        for key, values in user_scores.items():
+            _sorted = [(x[3], x[2]) for x in values]
             _sorted.sort()
 
             _median = list(sorted(set([x[0] for x in _sorted])))
@@ -141,7 +149,7 @@ class Command(BaseCommand):
             metrics[key].append((_lower_refs, _upper_refs))
 
             _scores = defaultdict(list)
-            for x in value:
+            for x in values:
                 if x[2] not in ('TGT', 'CHK'):
                     continue
 
@@ -163,7 +171,7 @@ class Command(BaseCommand):
             metrics[key].append((_matches, _potential))
 
             _scores = defaultdict(list)
-            for x in value:
+            for x in values:
                 if x[2] not in ('TGT', 'BAD'):
                     continue
 
@@ -193,6 +201,7 @@ class Command(BaseCommand):
             metric1 = value[0][1] - value[0][0]
             metric2 = value[1][0] / value[1][1] if value[1][1] else 0
             metric3 = 0
+            metric4 = len(segments_by_user[key])
 
             try:
                 from scipy import stats
@@ -204,14 +213,13 @@ class Command(BaseCommand):
 
             if not export_csv:
                 print("{0}\t{1:2d}\t{2:.2f}\t{3:f}\t{4:3d}".format(
-                  key, metric1, metric2, metric3, value[3])
+                  key, metric1, metric2, metric3, metric4)
                 )
 
             else:
-                _data = (key, str(metric1), str(metric2), str(metric3), str(value[3]))
+                _data = (key, str(metric1), str(metric2), str(metric3), str(metric4))
                 _line = ','.join(_data)
                 _line = _line.replace('nan', '0.000000')
-                print(_line)
 
         if not export_csv:
             print('\nExcluded IDs: {0}\n'.format(', '.join(exclude_ids)))
