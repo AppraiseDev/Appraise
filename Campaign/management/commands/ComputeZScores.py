@@ -206,12 +206,20 @@ class Command(BaseCommand):
             for key, values in normalized_scores.items():
                 systemID = values[0]
                 wins = wins_for_system[systemID]
-                data = (wins, *values)
+                data = (len(wins), wins, *values)
                 sorted_by_wins.append(data)
 
             for values in sorted(sorted_by_wins, reverse=True):
                 #values = normalized_scores[key]
-                print(values)
+                wins = values[0]
+                better_than = values[1]
+                systemID = values[2]
+                dataPoints = values[3]
+                zScore = values[4]
+                rScore = values[5]
+                print('{0:02d} {1:>40} {2:02.5f} {3:02.5f}'.format(
+                  wins, systemID, zScore, rScore
+                ))
 
             # CHRIFE:
             # DISABLE VERBOSE OUTPUT
