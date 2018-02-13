@@ -209,6 +209,7 @@ class Command(BaseCommand):
                 data = (len(wins), wins, *values)
                 sorted_by_wins.append(data)
 
+            last_wins_count = None
             for values in sorted(sorted_by_wins, reverse=True):
                 #values = normalized_scores[key]
                 wins = values[0]
@@ -220,6 +221,11 @@ class Command(BaseCommand):
                 print('{0:02d} {1:>40} {2:02.5f} {3:02.5f}'.format(
                   wins, systemID, zScore, rScore
                 ))
+
+                if last_wins_count is None or last_wins_count == wins:
+                    continue
+
+                print '-' * 61
 
             # CHRIFE:
             # DISABLE VERBOSE OUTPUT
