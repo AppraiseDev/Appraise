@@ -225,7 +225,7 @@ class Command(BaseCommand):
                 if last_wins_count is None or last_wins_count == wins:
                     continue
 
-                print '-' * 61
+                print('-' * 61)
 
             # CHRIFE:
             # DISABLE VERBOSE OUTPUT
