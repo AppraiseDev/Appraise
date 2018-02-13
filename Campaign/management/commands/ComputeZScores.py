@@ -225,6 +225,7 @@ class Command(BaseCommand):
                 if last_wins_count is None or last_wins_count == wins:
                     continue
 
+                last_wins_count = wins
                 print('-' * 61)
 
             # CHRIFE:
