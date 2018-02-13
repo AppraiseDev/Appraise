@@ -236,7 +236,7 @@ class Command(BaseCommand):
 
             # CHRIFE:
             # DISABLE VERBOSE OUTPUT
-            return
+            continue
 
             for sysX in system_ids:
                 #print(sysX)
