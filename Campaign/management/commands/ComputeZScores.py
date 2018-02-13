@@ -209,8 +209,8 @@ class Command(BaseCommand):
                 data = (len(wins), wins, *values)
                 sorted_by_wins.append(data)
 
-            print('-' * 62)
-            print('Wins                              System ID  Z Score   R Score')
+            print('-' * 80)
+            print('Wins                                                System ID  Z Score   R Score')
 
             last_wins_count = None
             for values in sorted(sorted_by_wins, reverse=True):
@@ -223,16 +223,16 @@ class Command(BaseCommand):
                 rScore = values[5]
 
                 if last_wins_count != wins:
-                    print('-' * 62)
+                    print('-' * 80)
 
-                output = '{0:02d} {1:>40} {2:>+2.5f} {3:>+2.5f}'.format(
+                output = '{0:02d} {1:>58} {2:>+2.5f} {3:>+2.5f}'.format(
                   wins, systemID, zScore, rScore
                 ).replace('+', ' ')
                 print(output)
 
                 last_wins_count = wins
 
-            print('-' * 62)
+            print('-' * 80)
 
             # CHRIFE:
             # DISABLE VERBOSE OUTPUT
