@@ -204,13 +204,14 @@ class Command(BaseCommand):
 
             sorted_by_wins = []
             for key, values in normalized_scores.items():
-                wins = wins_for_system[key]
-                data = (wins, key, *values)
+                systemID = values[0]
+                wins = wins_for_system[systemID]
+                data = (wins, *values)
                 sorted_by_wins.append(data)
 
-            for key in sorted(sorted_by_wins, reverse=True):
-                values = normalized_scores[key]
-                print('{0:02d} {1}'.format(key, values))
+            for values in sorted(sorted_by_wins, reverse=True):
+                #values = normalized_scores[key]
+                print(values)
 
             # CHRIFE:
             # DISABLE VERBOSE OUTPUT
