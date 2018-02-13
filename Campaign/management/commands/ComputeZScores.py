@@ -219,18 +219,15 @@ class Command(BaseCommand):
                 zScore = values[4]
                 rScore = values[5]
 
+                if last_wins_count != wins:
+                    print('-' * 62)
+
                 output = '{0:02d} {1:>40} {2:>+2.5f} {3:>+2.5f}'.format(
                   wins, systemID, zScore, rScore
                 ).replace('+', ' ')
                 print(output)
 
-                if last_wins_count is None:
-                    last_wins_count = wins
-
-                if last_wins_count == wins:
-                    continue
-                
-                print('-' * 62)
+                last_wins_count = wins
 
             # CHRIFE:
             # DISABLE VERBOSE OUTPUT
