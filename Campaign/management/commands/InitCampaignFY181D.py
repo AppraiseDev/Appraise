@@ -7,12 +7,12 @@ from Campaign.models import Campaign, CampaignTeam
 from EvalData.models import Market, Metadata
 
 EX_LANGUAGES = (
-  'bgr', 'ben', 'zho', 'dan', 'ell', 'est', 'fra', 'hin', 'ita', 'kor',
+  'bul', 'ben', 'zho', 'dan', 'ell', 'est', 'fra', 'hin', 'ita', 'kor',
   'nob', 'por', 'rus', 'slk', 'swe', 'tha'
 )
 
 XE_LANGUAGES = (
-  'bgr', 'zho', 'dan', 'ell', 'est', 'fra', 'hun', 'jpn', 'nob', 'plk',
+  'bul', 'zho', 'dan', 'ell', 'est', 'fra', 'hun', 'jpn', 'nob', 'plk',
   'ron', 'slk', 'slv', 'spa', 'swe', 'tha'
 )
 
