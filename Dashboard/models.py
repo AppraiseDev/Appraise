@@ -39,6 +39,7 @@ LANGUAGE_CODES_AND_NAMES = {
   'cym': 'Welsh (Cymraeg)',
   'ukr': 'Ukrainian (українська)',
   'lav': 'Latvian (latviešu)',
+  'tel': 'Telugu (తెలుగు)',
 }
 
 # Ensure that all languages have a corresponding group.
