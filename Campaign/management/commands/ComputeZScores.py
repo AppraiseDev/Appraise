@@ -209,6 +209,9 @@ class Command(BaseCommand):
                 data = (len(wins), wins, *values)
                 sorted_by_wins.append(data)
 
+            print('-' * 62)
+            print('Wins                              System ID  Z Score   R Score')
+
             last_wins_count = None
             for values in sorted(sorted_by_wins, reverse=True):
                 #values = normalized_scores[key]
@@ -228,6 +231,8 @@ class Command(BaseCommand):
                 print(output)
 
                 last_wins_count = wins
+
+            print('-' * 62)
 
             # CHRIFE:
             # DISABLE VERBOSE OUTPUT
