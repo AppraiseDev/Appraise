@@ -176,6 +176,7 @@ class Command(BaseCommand):
                 import scipy
             
             except ImportError:
+                print("NO SCIPY")
                 continue
 
             from scipy.stats import mannwhitneyu, bayes_mvs
@@ -186,15 +187,34 @@ class Command(BaseCommand):
                 system_id = data[0]
                 system_ids.append(system_id)
 
+            wins_for_system = defaultdict(list)
             p_level = 0.05
             for (sysA, sysB) in combinations_with_replacement(system_ids, 2):
                 sysA_scores = [x[1] for x in system_z_scores[sysA]]
                 sysB_scores = [x[1] for x in system_z_scores[sysB]]
                 # t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="two-sided")
                 t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="greater")
-                if len(sysA_scores) > 200 and len(sysB_scores) > 200:
-                    print(len(sysA_scores), len(sysB_scores))
-                    print('{0:>40}>{1:>40} {2:02.25f} {3:>10} {4}'.format(sysA, sysB, p_value, t_statistic, p_value < p_level))
+
+                if p_value < p_level:
+                    wins_for_system[sysA].append(sysB)
+
+#                if len(sysA_scores) > 200 and len(sysB_scores) > 200:
+#                    print(len(sysA_scores), len(sysB_scores))
+#                    print('{0:>40}>{1:>40} {2:02.25f} {3:>10} {4}'.format(sysA, sysB, p_value, t_statistic, p_value < p_level))
+
+            sorted_by_wins = []
+            for key, values in normalized_scores.items():
+                wins = wins_for_system[key]
+                data = (wins, key, *values)
+                sorted_by_wins.append(data)
+
+            for key in sorted(sorted_by_wins, reverse=True):
+                values = normalized_scores[key]
+                print('{0:02d} {1}'.format(key, values))
+
+            # CHRIFE:
+            # DISABLE VERBOSE OUTPUT
+            return
 
             for sysX in system_ids:
                 #print(sysX)
@@ -214,6 +234,10 @@ class Command(BaseCommand):
                 if len(sysA_scores) > 200 and len(sysB_scores) > 200:
                     print(len(sysA_scores), len(sysB_scores))
                     print('{0} > {1} {2:02.25f} {3:>10} {4}'.format(sysA, sysB, p_value, t_statistic, p_value < p_level))
+
+        # CHRIFE:
+        # TEMPORARILY DISABLE PAIRWISE CMPS
+        return
 
         # z scores for CAND and PROD only
         data_by_language_pair = defaultdict(list)
