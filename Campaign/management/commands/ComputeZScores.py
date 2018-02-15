@@ -154,15 +154,27 @@ class Command(BaseCommand):
                     scores_by_segment[segment_id].append(score)
             
                 averaged_scores = []
+                h_scores = []
                 for segment_id, scores in scores_by_segment.items():
                     averaged_score = sum(scores) / float(len(scores) or 1)
                     averaged_scores.append(averaged_score)
+
+                    h_score = min(round(averaged_score / 25.) + 1, 4)
+                    h_scores.append(h_score)
 
                 _raw_scores = averaged_raw_scores[key]
                 averaged_raw_score = sum(_raw_scores) / float(len(_raw_scores) or 1)
 
                 normalized_score = sum(averaged_scores) / float(len(averaged_scores) or 1)
-                normalized_scores[normalized_score] = (key, len(value), normalized_score, averaged_raw_score)
+                averaged_h_score = sum(h_scores) / float(len(h_scores) or 1)
+
+                normalized_scores[normalized_score] = (
+                  key,
+                  len(value),
+                  normalized_score,
+                  averaged_raw_score,
+                  averaged_h_score
+                )
             
             for key in sorted(normalized_scores, reverse=True):
                 value = normalized_scores[key]
@@ -206,8 +218,9 @@ class Command(BaseCommand):
             for key, values in normalized_scores.items():
                 systemID = values[0]
                 wins = wins_for_system[systemID]
-                data = (len(wins), wins, *values)
-                sorted_by_wins.append(data)
+                data = [len(wins), wins]
+                data.extend(values)
+                sorted_by_wins.append(tuple(data))
 
             print('-' * 80)
             print('Wins                                                System ID  Z Score   R Score')
