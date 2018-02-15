@@ -225,10 +225,23 @@ class Command(BaseCommand):
                 sorted_by_wins.append(tuple(data))
 
             print('-' * 80)
-            print('Wins                                                System ID  Z Score   H Score   R Score')
+            print('Wins                                         System ID  Z Score H Score  R Score')
+
+            def sort_by_wins_and_z_score(x, y):
+                if x[0] == y[0]:
+                    if x[4] > y[4]:
+                        return 1
+                    elif x[4] == y[4]:
+                        return 0
+                    else:
+                        return -1
+                elif x[0] > y[0]:
+                    return 1
+                else:
+                    return -1
 
             last_wins_count = None
-            for values in sorted(sorted_by_wins, reverse=True):
+            for values in sorted(sorted_by_wins, cmp=sort_by_wins_and_z_score, reverse=True):
                 #values = normalized_scores[key]
                 wins = values[0]
                 better_than = values[1]
@@ -241,8 +254,8 @@ class Command(BaseCommand):
                 if last_wins_count != wins:
                     print('-' * 80)
 
-                output = '{0:02d} {1:>48} {2:>+2.5f} {3:>2.5f} {4:>2.5f}'.format(
-                  wins, systemID[:48], zScore, hScore, rScore
+                output = '{0:02d} {1:>51} {2:>+2.5f} {3:>1.5f} {4:>2.5f}'.format(
+                  wins, systemID[:51], zScore, hScore, rScore
                 ).replace('+', ' ')
                 print(output)
 
