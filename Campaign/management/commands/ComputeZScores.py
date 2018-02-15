@@ -138,6 +138,7 @@ class Command(BaseCommand):
                 print('{0}: {1}'.format(s, len(v)))
 
             averaged_raw_scores = defaultdict(list)
+            averaged_h_scores = defaultdict(list)
             for key, value in system_raw_scores.items():
                 print('{0}-->{1}'.format(key, len(value)))
                 scores_by_segment = defaultdict(list)
@@ -148,25 +149,26 @@ class Command(BaseCommand):
                     averaged_raw_score = sum(scores) / float(len(scores) or 1)
                     averaged_raw_scores[key].append(averaged_raw_score)
 
+                    averaged_h_score = min(round(averaged_raw_score / 25.)+1, 4)
+                    averaged_h_scores[key].append(averaged_h_score)
+
             for key, value in system_z_scores.items():
                 scores_by_segment = defaultdict(list)
                 for segment_id, score in value:
                     scores_by_segment[segment_id].append(score)
             
                 averaged_scores = []
-                h_scores = []
                 for segment_id, scores in scores_by_segment.items():
                     averaged_score = sum(scores) / float(len(scores) or 1)
                     averaged_scores.append(averaged_score)
 
-                    h_score = min(round(averaged_score / 25.) + 1, 4)
-                    h_scores.append(h_score)
-
                 _raw_scores = averaged_raw_scores[key]
                 averaged_raw_score = sum(_raw_scores) / float(len(_raw_scores) or 1)
 
+                _h_scores = averaged_h_scores[key]
+                averaged_h_score = sum(_h_scores) / float(len(_h_scores) or 1)
+
                 normalized_score = sum(averaged_scores) / float(len(averaged_scores) or 1)
-                averaged_h_score = sum(h_scores) / float(len(h_scores) or 1)
 
                 normalized_scores[normalized_score] = (
                   key,
@@ -223,7 +225,7 @@ class Command(BaseCommand):
                 sorted_by_wins.append(tuple(data))
 
             print('-' * 80)
-            print('Wins                                                System ID  Z Score   R Score')
+            print('Wins                                                System ID  Z Score   H Score   R Score')
 
             last_wins_count = None
             for values in sorted(sorted_by_wins, reverse=True):
@@ -234,12 +236,13 @@ class Command(BaseCommand):
                 dataPoints = values[3]
                 zScore = values[4]
                 rScore = values[5]
+                hScore = values[6]
 
                 if last_wins_count != wins:
                     print('-' * 80)
 
-                output = '{0:02d} {1:>58} {2:>+2.5f} {3:>+2.5f}'.format(
-                  wins, systemID, zScore, rScore
+                output = '{0:02d} {1:>48} {2:>+2.5f} {3:>2.5f} {4:>2.5f}'.format(
+                  wins, systemID[:48], zScore, hScore, rScore
                 ).replace('+', ' ')
                 print(output)
 
