@@ -158,6 +158,31 @@ class Command(BaseCommand):
                 system_raw_scores["COMBO_MIN"].append((segmentID, min(rawScores)))
                 system_raw_scores["COMBO_AVG"].append((segmentID, sum(rawScores) / float(len(rawScores) or 1)))
 
+            refs_z_scores = defaultdict(list)
+            refs_raw_scores = defaultdict(list)
+            refs_systems = ('Pactera-human-translation.txt', 'Unbabel-postedited.txt', 'newstest2017-zhen-ref.en.txt')
+
+            for systemID in combo_systems:
+                for item in system_z_scores[systemID]:
+                    segmentID = item[0]
+                    zScore = item[1]
+                    refs_z_scores[segmentID].append(zScore)
+
+                for item in system_raw_scores[systemID]:
+                    segmentID = item[0]
+                    rScore = item[1]
+                    refs_raw_scores[segmentID].append(rScore)
+
+            for segmentID, zScores in refs_z_scores.items():
+                system_z_scores["REFS_MAX"].append((segmentID, max(zScores)))
+                system_z_scores["REFS_MIN"].append((segmentID, min(zScores)))
+                system_z_scores["REFS_AVG"].append((segmentID, sum(zScores) / float(len(zScores) or 1)))
+
+            for segmentID, rawScores in refs_raw_scores.items():
+                system_raw_scores["REFS_MAX"].append((segmentID, max(rawScores)))
+                system_raw_scores["REFS_MIN"].append((segmentID, min(rawScores)))
+                system_raw_scores["REFS_AVG"].append((segmentID, sum(rawScores) / float(len(rawScores) or 1)))
+
             print('\n[{0}-->{1}]'.format(*language_pair))
             normalized_scores = defaultdict(list)
             for s, v in system_z_scores.items():
