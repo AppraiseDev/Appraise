@@ -162,7 +162,7 @@ class Command(BaseCommand):
             refs_raw_scores = defaultdict(list)
             refs_systems = ('Pactera-human-translation.txt', 'Unbabel-postedited.txt', 'newstest2017-zhen-ref.en.txt')
 
-            for systemID in combo_systems:
+            for systemID in refs_systems:
                 for item in system_z_scores[systemID]:
                     segmentID = item[0]
                     zScore = item[1]
