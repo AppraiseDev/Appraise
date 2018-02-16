@@ -40,6 +40,7 @@ LANGUAGE_CODES_AND_NAMES = {
   'ukr': 'Ukrainian (українська)',
   'lav': 'Latvian (latviešu)',
   'tel': 'Telugu (తెలుగు)',
+  'tam': 'Tamil (தமிழ்)',
 }
 
 # Ensure that all languages have a corresponding group.
