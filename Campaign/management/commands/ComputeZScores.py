@@ -1,4 +1,5 @@
 from collections import defaultdict, OrderedDict
+from functools import cmp_to_key
 from json import loads
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
@@ -241,7 +242,7 @@ class Command(BaseCommand):
                     return -1
 
             last_wins_count = None
-            for values in sorted(sorted_by_wins, cmp=sort_by_wins_and_z_score, reverse=True):
+            for values in sorted(sorted_by_wins, key=cmp_to_key(sort_by_wins_and_z_score), reverse=True):
                 #values = normalized_scores[key]
                 wins = values[0]
                 better_than = values[1]
