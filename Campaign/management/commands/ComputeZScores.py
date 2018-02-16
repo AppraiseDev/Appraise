@@ -133,6 +133,26 @@ class Command(BaseCommand):
                 system_z_scores[system_id].append((segment_id, z_score))
                 system_raw_scores[system_id].append((segment_id, raw_score))
             
+            combo_z_scores = defaultdict(list)
+            combo_raw_scores = defaultdict(list)
+            combo_systems = ('MSR_Redmond_20180212.txt', 'MSRA_ML_20180212.txt', 'MSRA_NLC_20180211.txt')
+
+            for systemID in combo_systems:
+                for item in system_z_scores[systemID]:
+                    segmentID = item[0]
+                    zScore = item[1]
+                    combo_z_scores[segmentID].append(zScore)
+
+                for item in system_raw_scores[systemID]:
+                    segmentID = item[0]
+                    rScore = item[1]
+                    combo_raw_scores[segmentID].append(rScore)
+
+            for segmentID, zScores in combo_z_scores.items():
+                system_z_scores["COMBO_MAX"].append((segmentID, max(zScores)))
+                system_z_scores["COMBO_MIN"].append((segmentID, min(zScores)))
+                system_z_scores["COMBO_AVG"].append((segmentID, sum(zScores) / float(len(zScores) or 1)))
+
             print('\n[{0}-->{1}]'.format(*language_pair))
             normalized_scores = defaultdict(list)
             for s, v in system_z_scores.items():
