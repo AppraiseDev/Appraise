@@ -32,6 +32,10 @@ class Command(BaseCommand):
           '--no-sigtest', action='store_true',
           help='Do not run significance testing'
         )
+        parser.add_argument(
+          '--show-p-values', action='store_true',
+          help='Show p-values for significance testing'
+        )
         # TODO: add argument to specify batch user
 
     def handle(self, *args, **options):
@@ -40,6 +44,7 @@ class Command(BaseCommand):
         csv_file = options['csv_file']
         exclude_ids = [x.lower() for x in options['exclude_ids'].split(',')] \
           if options['exclude_ids'] else []
+        show_p_values = options['show_p_values']
 
         if csv_file:
             _msg = 'Processing annotations in file {0}\n\n'.format(csv_file)
@@ -263,9 +268,8 @@ class Command(BaseCommand):
                 if p_value < p_level:
                     wins_for_system[sysA].append(sysB)
 
-#                if len(sysA_scores) > 200 and len(sysB_scores) > 200:
-#                    print(len(sysA_scores), len(sysB_scores))
-#                    print('{0:>40}>{1:>40} {2:02.25f} {3:>10} {4}'.format(sysA, sysB, p_value, t_statistic, p_value < p_level))
+                if show_p_values:
+                    print('{0:>40}>{1:>40} {2:02.25f} {3:>10} {4}'.format(sysA, sysB, p_value, t_statistic, p_value < p_level))
 
             sorted_by_wins = []
             for key, values in normalized_scores.items():
