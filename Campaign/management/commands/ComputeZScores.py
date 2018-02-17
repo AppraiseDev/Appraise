@@ -166,6 +166,9 @@ class Command(BaseCommand):
             combo_raw_scores = defaultdict(list)
 
             for systemID in combo_systems:
+                if not systemID in system_z_scores.keys():
+                    continue
+
                 for item in system_z_scores[systemID]:
                     segmentID = item[0]
                     zScore = item[1]
@@ -191,6 +194,9 @@ class Command(BaseCommand):
             refs_systems = combo_refs
 
             for systemID in refs_systems:
+                if not systemID in system_z_scores.keys():
+                    continue
+
                 for item in system_z_scores[systemID]:
                     segmentID = item[0]
                     zScore = item[1]
