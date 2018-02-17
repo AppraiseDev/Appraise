@@ -36,6 +36,15 @@ class Command(BaseCommand):
           '--show-p-values', action='store_true',
           help='Show p-values for significance testing'
         )
+        parser.add_argument(
+          '--combo-systems', type=str,
+          help='Systems to combine into oracle system'
+        )
+        parser.add_argument(
+          '--combo-refs', type=str,
+          help='References to combine into oracle system'
+        )
+
         # TODO: add argument to specify batch user
 
     def handle(self, *args, **options):
@@ -45,6 +54,21 @@ class Command(BaseCommand):
         exclude_ids = [x.lower() for x in options['exclude_ids'].split(',')] \
           if options['exclude_ids'] else []
         show_p_values = options['show_p_values']
+
+        combo_systems = options['combo_systems'].split(',') \
+          if options['combo_systems'] \
+          else (
+            'MSR_Redmond_20180212.txt',
+            'MSRA_ML_20180212.txt',
+            'MSRA_NLC_20180211.txt'
+          )
+
+        combo_refs = options['combo_refs'].split(',') \
+          if options['combo_refs'] \
+          else (
+            'Pactera-human-translation.txt',
+            'Unbabel-postedited.txt'
+          )
 
         if csv_file:
             _msg = 'Processing annotations in file {0}\n\n'.format(csv_file)
@@ -140,7 +164,6 @@ class Command(BaseCommand):
             
             combo_z_scores = defaultdict(list)
             combo_raw_scores = defaultdict(list)
-            combo_systems = ('MSR_Redmond_20180212.txt', 'MSRA_ML_20180212.txt', 'MSRA_NLC_20180211.txt')
 
             for systemID in combo_systems:
                 for item in system_z_scores[systemID]:
@@ -165,7 +188,7 @@ class Command(BaseCommand):
 
             refs_z_scores = defaultdict(list)
             refs_raw_scores = defaultdict(list)
-            refs_systems = ('Pactera-human-translation.txt', 'Unbabel-postedited.txt', 'newstest2017-zhen-ref.en.txt')
+            refs_systems = combo_refs
 
             for systemID in refs_systems:
                 for item in system_z_scores[systemID]:
