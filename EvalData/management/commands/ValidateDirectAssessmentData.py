@@ -1,15 +1,23 @@
-from collections import defaultdict, OrderedDict
+"""
+Appraise evaluation framework
+"""
+# pylint: disable=W0611
+from collections import defaultdict
 from json import load
-from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
-from Campaign.models import Campaign
-from EvalData.models import DirectAssessmentTask, DirectAssessmentResult
-
-# pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
+    """
+    Validates Direct Assessment JSON data files.
+
+    Checks that the given JSON batch file contains the defined number
+    of required systems and flags segment IDs for this is not the case.
+
+    Specify --max-batches N to only load data from the first N batches.
+    """
     help = 'Validates Direct Assessment JSON data files'
 
+    # pylint: disable=C0330
     def add_arguments(self, parser):
         parser.add_argument(
           'json_file', type=str,
@@ -25,43 +33,61 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        json_file = options['json_file']
-        required_systems = options['required_systems']
+        # Load system IDs and organise by segment ID.
+        system_ids_by_segment = Command._load_ids_from_json_file(
+          options['json_file'], options['max_batches'])
 
-        system_ids_by_segment = defaultdict(list)
+        # Loop over all segments and identify those where less than the
+        # number of required systems are available.
+        errors = []
+        all_systems = []
+        for segment_id, system_ids in system_ids_by_segment.items():
+            if len(system_ids) != options['required_systems']:
+                errors.append(segment_id)
+                print(segment_id, len(system_ids), sorted(system_ids))
+
+                for system_id in all_systems:
+                    if not system_id in system_ids:
+                        print("Missing {0}".format(system_id))
+
+            else:
+                all_systems = system_ids
+
+        print("Encountered {0} validation errors for {1} segments".format(
+          len(errors), len(system_ids_by_segment.keys())))
+
+
+    @staticmethod
+    def _load_ids_from_json_file(json_file, max_batches):
+        """
+        Loads all system IDs from the given JSON batch file.
+
+        Creates defaultdict(list) and organises by segment ID.
+        This is constrained to only 'TGT' segments, as these
+        are the only "real" system segments.
+
+        Multi system IDs (containing +) will be split.
+
+        Use max_batches to constrain how many JSON batches to process.
+        """
+        ids_data = defaultdict(list)
+
         with open(json_file) as input_file:
             json_data = load(input_file)
 
-            max_batches = len(json_data)
-            if options['max_batches'] > 0:
-                max_batches = options['max_batches']
+            # If there is no constraint given, process all batches.
+            if max_batches < 0:
+                max_batches = len(json_data)
 
             for batch_no in range(max_batches):
                 batch = json_data[batch_no]
-                for item_no in range(len(batch['items'])):
-                    item = batch['items'][item_no]
+                for item in batch['items']:
                     if item['itemType'] == 'TGT':
-                        segmentID = item['itemID']
-                        systemIDs = item['targetID'].split('+')
+                        segment_id = int(item['itemID'])
+                        system_ids = item['targetID'].split('+')
 
-                        for systemID in systemIDs:
-                            if not systemID in system_ids_by_segment[segmentID]:
-                                system_ids_by_segment[segmentID].append(systemID)
+                        for system_id in system_ids:
+                            if not system_id in ids_data[segment_id]:
+                                ids_data[segment_id].append(system_id)
 
-        errors = []
-        all_systems = []
-        for segmentID, systemIDs in system_ids_by_segment.items():
-            if len(systemIDs) != required_systems:
-                errors.append(segmentID)
-                print(segmentID, len(systemIDs), sorted(systemIDs))
-
-                for systemID in all_systems:
-                    if not systemID in systemIDs:
-                        print("Missing {0}".format(systemID))
-
-            else:
-                all_systems = systemIDs
-
-        print("Encountered {0} validation errors for {1} segments".format(
-          len(errors), len(system_ids_by_segment.keys()))
-        )
+        return ids_data
