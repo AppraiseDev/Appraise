@@ -13,6 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
+# pylint: disable=W0611
 from django.conf.urls import url, handler404, handler500, include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
@@ -73,24 +74,78 @@ urlpatterns = [
       name='update-profile'
     ),
 
-    url(r'^dashboard/$', dashboard_views.dashboard, name='dashboard'),
+    url(r'^dashboard/$',
+      dashboard_views.dashboard,
+      name='dashboard'
+    ),
 
-    url(r'^group-status/$', dashboard_views.group_status, name='group-status'),
-    url(r'^system-status/$', dashboard_views.system_status, name='system-status'),
-    url(r'^multimodal-status/$', dashboard_views.multimodal_status, name='multimodal-status'),
-    url(r'^multimodal-systems/$', dashboard_views.multimodal_systems, name='multimodal-systems'),
-    url(r'^metrics-status/$', dashboard_views.metrics_status, name='metrics-status'),
-    url(r'^fe17-status/$', dashboard_views.fe17_status, name='fe17-status'),
+    url(r'^group-status/$',
+      dashboard_views.group_status,
+      name='group-status'
+    ),
 
-    url(r'^direct-assessment/$', evalview_views.direct_assessment, name='direct-assessment'),
-    url(r'^direct-assessment/(?P<code>[a-z]{3})/$', evalview_views.direct_assessment, name='direct-assessment'),
-    url(r'^direct-assessment/(?P<code>[a-z]{3})/(?P<campaign_name>[a-zA-Z0-9]+)/$', evalview_views.direct_assessment, name='direct-assessment'),
+    url(r'^system-status/$',
+      dashboard_views.system_status,
+      name='system-status'
+    ),
 
-    url(r'^multimodal-assessment/$', evalview_views.multimodal_assessment, name='multimodal-assessment'),
-    url(r'^multimodal-assessment/(?P<code>[a-z]{3})/$', evalview_views.multimodal_assessment, name='multimodal-assessment'),
-    url(r'^multimodal-assessment/(?P<code>[a-z]{3})/(?P<campaign_name>[a-zA-Z0-9]+)/$', evalview_views.multimodal_assessment, name='multimodal-assessment'),
+    url(r'^multimodal-status/$',
+      dashboard_views.multimodal_status,
+      name='multimodal-status'
+    ),
 
-    url(r'^campaign-status/(?P<campaign_name>[a-zA-Z0-9]+)/(?P<sort_key>[012345])?/?$', campaign_views.campaign_status, name='campaign_status'),
+    url(r'^multimodal-systems/$',
+      dashboard_views.multimodal_systems,
+      name='multimodal-systems'
+    ),
+
+    url(r'^metrics-status/$',
+      dashboard_views.metrics_status,
+      name='metrics-status'
+    ),
+
+    url(r'^fe17-status/$',
+      dashboard_views.fe17_status,
+      name='fe17-status'
+    ),
+
+    url(r'^direct-assessment/$',
+      evalview_views.direct_assessment,
+      name='direct-assessment'
+    ),
+
+    url(r'^direct-assessment/(?P<code>[a-z]{3})/$',
+      evalview_views.direct_assessment,
+      name='direct-assessment'
+    ),
+
+    url(r'^direct-assessment/(?P<code>[a-z]{3})/' \
+      '(?P<campaign_name>[a-zA-Z0-9]+)/$',
+      evalview_views.direct_assessment,
+      name='direct-assessment'
+    ),
+
+    url(r'^multimodal-assessment/$',
+      evalview_views.multimodal_assessment,
+      name='multimodal-assessment'
+    ),
+
+    url(r'^multimodal-assessment/(?P<code>[a-z]{3})/$',
+      evalview_views.multimodal_assessment,
+      name='multimodal-assessment'
+    ),
+
+    url(r'^multimodal-assessment/(?P<code>[a-z]{3})/' \
+      '(?P<campaign_name>[a-zA-Z0-9]+)/$',
+      evalview_views.multimodal_assessment,
+      name='multimodal-assessment'
+    ),
+
+    url(r'^campaign-status/(?P<campaign_name>[a-zA-Z0-9]+)/' \
+      '(?P<sort_key>[012345])?/?$',
+      campaign_views.campaign_status,
+      name='campaign_status'
+    ),
 ]
 
 if DEBUG:

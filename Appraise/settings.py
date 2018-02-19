@@ -10,9 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 import logging
-import os
-
 from logging.handlers import RotatingFileHandler
+
+import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -60,6 +60,7 @@ LOG_FORMAT = "[%(asctime)s] %(name)s::%(levelname)s %(message)s"
 LOG_DATE = "%m/%d/%Y @ %H:%M:%S"
 LOG_FORMATTER = logging.Formatter(LOG_FORMAT, LOG_DATE)
 
+# pylint: disable=C0330
 LOG_HANDLER = RotatingFileHandler(filename=LOG_FILENAME, mode="a",
   maxBytes=50*1024*1024, backupCount=5, encoding="utf-8")
 LOG_HANDLER.setLevel(level=LOG_LEVEL)
@@ -87,9 +88,10 @@ INSTALLED_APPS = [
 
 if DEBUG:
     try:
+        # pylint: disable=W0611
         import debug_toolbar
         INSTALLED_APPS.append('debug_toolbar')
-    
+
     except ImportError:
         pass
 
