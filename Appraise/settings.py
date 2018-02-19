@@ -86,11 +86,17 @@ INSTALLED_APPS = [
 ]
 
 if DEBUG:
-    INSTALLED_APPS.append('debug_toolbar')
+    try:
+        import debug_toolbar
+        INSTALLED_APPS.append('debug_toolbar')
+    
+    except ImportError:
+        pass
 
 MIDDLEWARE = []
 if DEBUG:
-    MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
+    if 'debug_toolbar' in INSTALLED_APPS:
+        MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
 
 MIDDLEWARE.extend([
     'django.middleware.security.SecurityMiddleware',
