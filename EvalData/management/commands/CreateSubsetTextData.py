@@ -3,24 +3,28 @@ Appraise evaluation framework
 """
 # pylint: disable=W0611
 from collections import defaultdict, OrderedDict
-from datetime import datetime
-from glob import iglob
 from json import load
 from os import makedirs, path
 from os.path import basename
-from random import seed, shuffle
-from shutil import copyfile
-from sys import exit as sys_exit
 from traceback import format_exc
 from django.core.management.base import BaseCommand, CommandError
 
 INFO_MSG = 'INFO: '
 
-EXTENSION_FOR_BAD_FILES = 'bad'
-EXTENSION_FOR_IDS_FILES = 'ids'
-
-# pylint: disable=C0111
 class Command(BaseCommand):
+    """
+    Creates subset text files based on given JSON batch file.
+
+    Takes a source text file and a JSON batch file, containing segment IDs.
+    Determines system ID Based on the basename of the source text file, then
+    computes the filtered subset of segments referenced in the JSON file.
+
+    Writes output to the given target path, into a file named after the
+    original file name, with an appended '.filtered.txt'.
+
+    Supports --unicode to specify UTF-16 as text encoding and --ignore-ids
+    to specify a comma separated list of IDs to ignore during file creation.
+    """
     help = 'Creates subset text files based on given JSON batch file'
 
     # pylint: disable=C0330
@@ -47,26 +51,162 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        # Initialize random number generator
-        source_file = options['source_file']
-        json_file = options['json_file']
-        target_path = options['target_path']
-        unicode_enc = options['unicode']
-        ignore_ids = options['ignore_ids']
-
-        segment_ids_to_ignore = []
-        if ignore_ids:
-            for x in ignore_ids.split(','):
-                segment_ids_to_ignore.append(int(x))
-
         _msg = '\n[{0}]\n\n'.format(path.basename(__file__))
         self.stdout.write(_msg)
 
-        self.stdout.write('source_file: {0}'.format(source_file))
-        self.stdout.write('json_file: {0}'.format(json_file))
+        self.stdout.write(' source_file: {0}'.format(options['source_file']))
+        self.stdout.write('   json_file: {0}'.format(options['json_file']))
+        self.stdout.write(' target_path: {0}'.format(options['target_path']))
+        self.stdout.write('   --unicode: {0}'.format(options['unicode']))
+        self.stdout.write('--ignore-ids: {0}'.format(options['ignore_ids']))
 
         self.stdout.write('\n[INIT]\n\n')
 
+        # Load segment IDs to ignore during text processing.
+        segment_ids_to_ignore = Command._load_ids_to_ignore(options['ignore_ids'])
+
+        # Create target path if it does not exist.
+        self._create_target_path(options['target_path'])
+
+        # Set encoding based on --unicode argument.
+        encoding = 'utf16' if options['unicode'] else 'utf8'
+
+        # Load text from source file into OrderedDict.
+        source_data = Command._load_text_from_file(options['source_file'], encoding)
+
+        # Load segment ids for all systems from JSON batch file.
+        ids_data = Command._load_ids_from_json_file(
+          options['json_file'])
+
+        # Filter segments for current system ID, creating sorted output.
+        system_id = basename(options['source_file'])
+        filtered_data = Command._filter_segments_for_system_id(
+          system_id, ids_data, segment_ids_to_ignore
+        )
+
+        # Get text for filtered segments.
+        filtered_text = [
+          source_data[segment_id] for segment_id in filtered_data]
+
+        # Write filtered data into target file.
+        target_file = path.join(
+          options['target_path'], system_id + '.filtered.txt')
+
+        self._save_text_into_file(
+          target_file, filtered_text, encoding=encoding)
+
+        self.stdout.write('\n[DONE]\n\n')
+
+
+    @staticmethod
+    def _load_ids_to_ignore(ignore_ids):
+        """
+        Returns list of segment IDs which should be ignored.
+        """
+        segment_ids_to_ignore = []
+
+        if ignore_ids:
+            for segment_id in ignore_ids.split(','):
+                segment_ids_to_ignore.append(int(segment_id))
+
+        return segment_ids_to_ignore
+
+
+    @staticmethod
+    def _filter_segments_for_system_id(
+          system_id, ids_data, segment_ids_to_ignore):
+        """
+        Filters segments in ids_data based on the given system ID.
+
+        Segment IDs in segment_ids_to_ignore will be ignored.
+        Output is sorted by increasing segment IDs.
+        """
+        filtered_data = []
+
+        if system_id in ids_data.keys():
+            for segment_id in sorted(ids_data[system_id]):
+                if segment_id in segment_ids_to_ignore:
+                    print('Ignoring segment_id={0}'.format(segment_id))
+                    continue
+
+                filtered_data.append(segment_id)
+
+        return filtered_data
+
+
+    @staticmethod
+    def _load_ids_from_json_file(json_file):
+        """
+        Loads all segment IDs from the given JSON batch file.
+
+        Creates defaultdict(list) and organises by system ID.
+        This is constrained to only 'TGT' segments, as these
+        are the only "real" system segments.
+
+        Multi system IDs (containing +) will be split.
+        """
+        ids_data = defaultdict(list)
+
+        with open(json_file) as input_file:
+            json_data = load(input_file)
+
+            for batch in json_data:
+                for item in batch['items']:
+                    if item['itemType'] == 'TGT':
+                        segment_id = int(item['itemID'])
+                        system_ids = item['targetID'].split('+')
+
+                        for system_id in system_ids:
+                            ids_data[system_id].append(segment_id)
+
+        return ids_data
+
+
+    def _save_text_into_file(self, file_path, file_text, encoding='utf8'):
+        """
+        Saves text from iterable into file.
+        """
+        try:
+            _msg = '{0}Writing text file {1} ... '.format(
+              INFO_MSG, file_path
+            )
+            self.stdout.write(_msg, ending='')
+
+            # We enforce Windows line breaks here.
+            # Maybe should be configurable instead?
+            with open(file_path, mode='w', encoding=encoding) as output_file:
+                for line in file_text:
+                    output_file.write(line)
+                    output_file.write('\r\n')
+
+            self.stdout.write('OK')
+
+        # pylint: disable=W0702
+        except:
+            self.stdout.write('FAIL')
+            self.stdout.write(format_exc())
+
+
+    @staticmethod
+    def _load_text_from_file(file_path, encoding='utf8'):
+        """
+        Loads text from file into OrderedDict.
+
+        Maps segment text to segment IDs (1-based).
+        """
+        file_text = OrderedDict()
+
+        with open(file_path, encoding=encoding) as input_file:
+            for zero_based_id, current_line in enumerate(input_file):
+                file_text[zero_based_id + 1] = current_line.strip()
+
+        return file_text
+
+
+    def _create_target_path(self, target_path):
+        """
+        Creates target path if it does not exist.
+        """
         if not path.exists(target_path):
             try:
                 _msg = '{0}Creating target path {1} ... '.format(
@@ -80,52 +220,3 @@ class Command(BaseCommand):
             except:
                 self.stdout.write('FAIL')
                 self.stdout.write(format_exc())
-
-        encoding = 'utf16' if unicode_enc else 'utf8'
-        source_data = Command._load_text_from_file(source_file, encoding)
-
-        ids_data = defaultdict(list)
-        with open(json_file) as input_file:
-            json_data = load(input_file)
-
-            for batch_no in range(len(json_data)):
-                batch = json_data[batch_no]
-                for item_no in range(len(batch['items'])):
-                    item = batch['items'][item_no]
-                    if item['itemType'] == 'TGT':
-                        segmentID = int(item['itemID'])
-                        systemIDs = item['targetID'].split('+')
-
-                        for systemID in systemIDs:
-                            ids_data[systemID].append(segmentID)
-
-        systemID = basename(source_file)
-        filteredData = []
-        if systemID in ids_data.keys():
-            for segmentID in sorted(ids_data[systemID]):
-                if segmentID in segment_ids_to_ignore:
-                    print('Ignoring segmentID={0}'.format(segmentID))
-                    continue
-
-                filteredData.append(source_data[segmentID])
-
-        target_file = path.join(target_path, basename(source_file) + '.filtered.txt')
-        with open(target_file, mode='w', encoding=encoding) as output_file:
-            for line in filteredData:
-                output_file.write(line)
-                output_file.write('\r\n')
-
-        self.stdout.write('\n[DONE]\n\n')
-
-
-    @staticmethod
-    def _load_text_from_file(file_path, encoding='utf8'):
-        segment_id = 0
-        file_text = OrderedDict()
-
-        with open(file_path, encoding=encoding) as input_file:
-            for current_line in input_file:
-                segment_id += 1
-                file_text[segment_id] = current_line.strip()
-
-        return file_text
