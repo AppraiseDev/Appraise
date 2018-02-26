@@ -303,8 +303,8 @@ class Command(BaseCommand):
         # T1 U1 U2 U3
         # T2 U4 U5 U6
         # ...
-        # T11 U4 U5 U6
-        # T12 U7 U8 U9
+        # T11 U1 U2 U3
+        # T12 U4 U5 U6
         #
         # To assign this, we need to duplicate Ts below.
         tasks_for_market = defaultdict(list)
