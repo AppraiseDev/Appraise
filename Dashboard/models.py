@@ -41,6 +41,7 @@ LANGUAGE_CODES_AND_NAMES = {
   'lav': 'Latvian (latviešu)',
   'tel': 'Telugu (తెలుగు)',
   'tam': 'Tamil (தமிழ்)',
+  'isl': 'Icelandic (íslenska)',
 }
 
 # Ensure that all languages have a corresponding group.
