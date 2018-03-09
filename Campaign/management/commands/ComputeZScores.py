@@ -7,6 +7,43 @@ from django.core.management.base import BaseCommand, CommandError
 from Campaign.models import Campaign
 from EvalData.models import DirectAssessmentTask, DirectAssessmentResult
 
+from random import seed, shuffle
+
+def compute_mean(sample):
+    """Computes sample mean"""
+    return sum(sample) / float(len(sample) or 1)
+
+def permutation_test(pooled, a_size, b_size):
+    shuffle(pooled)
+    new_a = pooled[:a_size]
+    new_b = pooled[-b_size:]
+    mean_a = compute_mean(new_a)
+    mean_b = compute_mean(new_b)
+    return mean_a - mean_b
+
+def ar(setA, setB, trials=1000, alpha=0.1):
+    mean_a = compute_mean(setA)
+    mean_b = compute_mean(setB)
+    t_obs = mean_a - mean_b
+
+    pooled = setA + setB
+    inf = 0
+    sup = 0
+
+    for _ in range(trials):
+        t_sim = permutation_test(pooled, len(setA), len(setB))
+
+        if t_sim<t_obs:
+            inf = inf + 1
+        elif t_sim>t_obs:
+            sup = sup + 1
+
+    inf = inf / float(trials)
+    sup = sup / float(trials)
+
+    p_value = round(min(inf, sup), 3)
+    return p_value, t_obs
+
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
     help = 'Computes system scores over all results'
@@ -43,6 +80,10 @@ class Command(BaseCommand):
         parser.add_argument(
           '--combo-refs', type=str,
           help='References to combine into oracle system'
+        )
+        parser.add_argument(
+          '--use-ar', action='store_true',
+          help='Use approximate randomization'
         )
 
         # TODO: add argument to specify batch user
@@ -172,22 +213,37 @@ class Command(BaseCommand):
                 for item in system_z_scores[systemID]:
                     segmentID = item[0]
                     zScore = item[1]
-                    combo_z_scores[segmentID].append(zScore)
+                    combo_z_scores[segmentID].append((zScore, systemID))
 
                 for item in system_raw_scores[systemID]:
                     segmentID = item[0]
                     rScore = item[1]
-                    combo_raw_scores[segmentID].append(rScore)
+                    combo_raw_scores[segmentID].append((rScore, systemID))
 
+            combo_max_systemIDs = []
             for segmentID, zScores in combo_z_scores.items():
-                system_z_scores["COMBO_MAX"].append((segmentID, max(zScores)))
-                system_z_scores["COMBO_MIN"].append((segmentID, min(zScores)))
-                system_z_scores["COMBO_AVG"].append((segmentID, sum(zScores) / float(len(zScores) or 1)))
+                bestScore = max(zScores, key=lambda x: x[0])
+                bestSystem = None
+                for zScore, systemID in zScores:
+                    if zScore == bestScore[0]:
+                        bestSystem = systemID
+                        break
+
+                system_z_scores["COMBO_MAX"].append((segmentID, bestScore[0]))
+                combo_max_systemIDs.append((segmentID, bestSystem))
+
+            for segmentID, systemID in combo_max_systemIDs:
+                print(segmentID, systemID)
 
             for segmentID, rawScores in combo_raw_scores.items():
-                system_raw_scores["COMBO_MAX"].append((segmentID, max(rawScores)))
-                system_raw_scores["COMBO_MIN"].append((segmentID, min(rawScores)))
-                system_raw_scores["COMBO_AVG"].append((segmentID, sum(rawScores) / float(len(rawScores) or 1)))
+                bestScore = max(rawScores, key=lambda x: x[0])
+                bestSystem = None
+                for rawScore, systemID in rawScores:
+                    if rawScore == bestScore:
+                        bestSystem = systemID
+                        break
+
+                system_raw_scores["COMBO_MAX"].append((segmentID, bestScore[0]))
 
             refs_z_scores = defaultdict(list)
             refs_raw_scores = defaultdict(list)
@@ -209,13 +265,9 @@ class Command(BaseCommand):
 
             for segmentID, zScores in refs_z_scores.items():
                 system_z_scores["REFS_MAX"].append((segmentID, max(zScores)))
-                system_z_scores["REFS_MIN"].append((segmentID, min(zScores)))
-                system_z_scores["REFS_AVG"].append((segmentID, sum(zScores) / float(len(zScores) or 1)))
 
             for segmentID, rawScores in refs_raw_scores.items():
                 system_raw_scores["REFS_MAX"].append((segmentID, max(rawScores)))
-                system_raw_scores["REFS_MIN"].append((segmentID, min(rawScores)))
-                system_raw_scores["REFS_AVG"].append((segmentID, sum(rawScores) / float(len(rawScores) or 1)))
 
             print('\n[{0}-->{1}]'.format(*language_pair))
             normalized_scores = defaultdict(list)
@@ -292,13 +344,24 @@ class Command(BaseCommand):
                 sysA_scores = [x[1] for x in system_z_scores[sysA]]
                 sysB_scores = [x[1] for x in system_z_scores[sysB]]
                 # t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="two-sided")
-                t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="greater")
 
-                if p_value < p_level:
-                    wins_for_system[sysA].append(sysB)
+                if options['use_ar']:
+                    t_statistic, p_value = ar(sysA_scores, sysB_scores, trials=1000)
+                else:
+                    t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="greater")
+
+                if options['use_ar']:
+                    if p_value >= p_level:
+                       wins_for_system[sysA].append(sysB)
+                else:
+                    if p_value < p_level:
+                       wins_for_system[sysA].append(sysB)
 
                 if show_p_values:
-                    print('{0:>40}>{1:>40} {2:02.25f} {3:>10} {4}'.format(sysA, sysB, p_value, t_statistic, p_value < p_level))
+                    if options['use_ar']:
+                        print('{0:>40}>{1:>40} {2:02.5f} {3:>10} {4}'.format(sysA, sysB, p_value, t_statistic, p_value < p_level))
+                    else:
+                        print('{0:>40}>{1:>40} {2:02.25f} {3:>10} {4}'.format(sysA, sysB, p_value, t_statistic, p_value < p_level))
 
             sorted_by_wins = []
             for key, values in normalized_scores.items():
