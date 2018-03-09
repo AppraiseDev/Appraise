@@ -42,7 +42,7 @@ def ar(setA, setB, trials=1000, alpha=0.1):
     sup = sup / float(trials)
 
     p_value = round(min(inf, sup), 3)
-    return p_value, t_obs
+    return t_obs, p_value
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
