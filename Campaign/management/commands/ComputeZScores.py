@@ -346,12 +346,12 @@ class Command(BaseCommand):
                 # t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="two-sided")
 
                 if options['use_ar']:
-                    t_statistic, p_value = ar(sysA_scores, sysB_scores, trials=1000)
+                    t_statistic, p_value = ar(sysA_scores, sysB_scores, trials=100)
                 else:
                     t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="greater")
 
                 if options['use_ar']:
-                    if p_value >= p_level:
+                    if p_value < p_level:
                        wins_for_system[sysA].append(sysB)
                 else:
                     if p_value < p_level:
@@ -359,7 +359,7 @@ class Command(BaseCommand):
 
                 if show_p_values:
                     if options['use_ar']:
-                        print('{0:>40}>{1:>40} {2:02.5f} {3:>10} {4}'.format(sysA, sysB, p_value, t_statistic, p_value < p_level))
+                        print('{0:>40}>{1:>40} {2:02.5f} {3:1.8f} {4}'.format(sysA, sysB, p_value, t_statistic, p_value < p_level))
                     else:
                         print('{0:>40}>{1:>40} {2:02.25f} {3:>10} {4}'.format(sysA, sysB, p_value, t_statistic, p_value < p_level))
 
