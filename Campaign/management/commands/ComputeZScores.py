@@ -26,7 +26,9 @@ def permutation_test2(setA, setB):
     new_a, new_b = myshuffle(setA, setB)
     mean_a = compute_mean(new_a)
     mean_b = compute_mean(new_b)
-    return abs(mean_a - mean_b)
+    t_sim = abs(mean_a - mean_b)
+    # print(t_sim, mean_a, mean_b)
+    return t_sim
 
 import numpy as np  
 
@@ -47,19 +49,23 @@ def myshuffle(setA, setB):
 def ar(setA, setB, trials=1000, alpha=0.1):
     mean_a = compute_mean(setA)
     mean_b = compute_mean(setB)
-    t_obs = mean_a - mean_b
+    t_obs = abs(mean_a - mean_b)
+
+    #print("T_OBS: {0}".format(t_obs))
 
     # pooled = setA + setB
 
     inf = 0
     sup = 0
     by_chance = 0
+    t_sims = []
 
     for _ in range(trials):
         t_sim = permutation_test2(setA, setB)
 
         if t_sim >= t_obs:
             by_chance += 1
+        t_sims.append(t_sim)
 
 #        if t_sim<t_obs:
 #            inf = inf + 1
@@ -70,6 +76,7 @@ def ar(setA, setB, trials=1000, alpha=0.1):
 #    sup = sup / float(trials)
 #
 #    p_value = round(min(inf, sup), 3)
+    #print(sum(t_sims) / float(trials))
     p_value = float(by_chance + 1) / float(trials + 1)
     return t_obs, p_value
 
@@ -194,6 +201,8 @@ class Command(BaseCommand):
         # Data keys are as follows:
         # UserID, SystemID, SegmentID, Type, Source, Target, Score
 
+        # print(len(system_data))
+        
         data_by_language_pair = defaultdict(list)
         for system_item in system_data:
             language_pair = system_item[4:6]
@@ -206,6 +215,11 @@ class Command(BaseCommand):
             for system_item in language_data:
                 user_scores[system_item[0]].append(system_item[6])
             
+            a = len(user_scores['zhoeng2802'])
+            b = sum(user_scores['zhoeng2802'])
+            c = float(b)/a
+            # print(b, a, c)
+
             user_means = defaultdict(float)
             user_variances = defaultdict(float)
             for user_name, user_data in user_scores.items():
@@ -218,6 +232,10 @@ class Command(BaseCommand):
 
                 from math import sqrt
                 user_variances[user_name] = sqrt(s_squared)
+            
+            # print(user_means['zhoeng2802'])
+            # print(user_variances['zhoeng2802'])
+            # print((63 - user_means['zhoeng2802']) / user_variances['zhoeng2802'])
 
             for system_item in language_data:
                 user_id = system_item[0]
@@ -228,6 +246,8 @@ class Command(BaseCommand):
                 z_n = (raw_score - user_means[user_id])
                 z_d = float(user_variances[user_id] or 1)
                 z_score = z_n / z_d
+                #if user_id == 'zhoeng2802' and segment_id == '625':
+                #    print(z_score, raw_score, user_means[user_id], z_n, z_d, user_id, system_id, segment_id)
 
                 system_z_scores[system_id].append((segment_id, z_score))
                 system_raw_scores[system_id].append((segment_id, raw_score))
@@ -374,6 +394,8 @@ class Command(BaseCommand):
                 sysB_ids = set([x[0] for x in system_z_scores[sysB]])
                 good_ids = set.intersection(sysA_ids, sysB_ids)
 
+                # print("LEN(good_ids) = {0:d}".format(len(good_ids)))
+
                 sysA_scores = []
                 sbsA = defaultdict(list)
                 for x in system_z_scores[sysA]:
@@ -381,10 +403,11 @@ class Command(BaseCommand):
                         continue
                     segmentID = x[0]
                     zScore = x[1]
-                    sbsA[segmentID].append(zScore)
+                    # print(zScore)
+                    sbsA[segmentID].append((segmentID, zScore))
                 for segmentID in sbsA.keys():
-                    average_z_score_for_segment = sum(sbsA[segmentID]) / float(len(sbsA[segmentID]))
-                    sysA_scores.append(average_z_score_for_segment)
+                    average_z_score_for_segment = sum([x[1] for x in sbsA[segmentID]]) / float(len(sbsA[segmentID]))
+                    sysA_scores.append((segmentID, average_z_score_for_segment))
 
                 sysB_scores = []
                 sbsB = defaultdict(list)
@@ -393,20 +416,25 @@ class Command(BaseCommand):
                         continue
                     segmentID = x[0]
                     zScore = x[1]
-                    sbsB[segmentID].append(zScore)
+                    sbsB[segmentID].append((segmentID, zScore))
                 for segmentID in sbsB.keys():
-                    average_z_score_for_segment = sum(sbsB[segmentID]) / float(len(sbsB[segmentID]))
-                    sysB_scores.append(average_z_score_for_segment)
+                    average_z_score_for_segment = sum([x[1] for x in sbsB[segmentID]]) / float(len(sbsB[segmentID]))
+                    sysB_scores.append((segmentID, average_z_score_for_segment))
                 
+                sysA_sorted = [x[1] for x in sorted(sysA_scores, key=lambda x: x[0])]
+                sysB_sorted = [x[1] for x in sorted(sysB_scores, key=lambda x: x[0])]
 
 #                sysA_scores = [x[1] for x in system_z_scores[sysA]]
                # sysB_scores = [x[1] for x in system_z_scores[sysB]]
                 # t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="two-sided")
 
                 if options['use_ar']:
-                    t_statistic, p_value = ar(sysA_scores, sysB_scores, trials=1000)
+                    if sysA != sysB:
+                        t_statistic, p_value = ar(sysA_sorted, sysB_sorted, trials=1000)
+                    else:
+                        t_statistic, p_value = 0, 1
                 else:
-                    t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="greater")
+                    t_statistic, p_value = mannwhitneyu(sysA_sorted, sysB_sorted, alternative="greater")
 
                 if options['use_ar']:
                     if p_value < p_level:
