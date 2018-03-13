@@ -21,27 +21,56 @@ def permutation_test(pooled, a_size, b_size):
     mean_b = compute_mean(new_b)
     return mean_a - mean_b
 
+def permutation_test2(setA, setB):
+    # print(len(setA), len(setB))
+    new_a, new_b = myshuffle(setA, setB)
+    mean_a = compute_mean(new_a)
+    mean_b = compute_mean(new_b)
+    return abs(mean_a - mean_b)
+
+import numpy as np  
+
+def myshuffle(setA, setB):
+    new_a = []
+    new_b = []
+    for i in range(len(setA)):
+        coin = np.random.choice(2)
+        if coin == 0:
+            new_a.append(setA[i])
+            new_b.append(setB[i])
+        else:
+            new_a.append(setB[i])
+            new_b.append(setA[i])
+
+    return (new_a, new_b)
+
 def ar(setA, setB, trials=1000, alpha=0.1):
     mean_a = compute_mean(setA)
     mean_b = compute_mean(setB)
     t_obs = mean_a - mean_b
 
-    pooled = setA + setB
+    # pooled = setA + setB
+
     inf = 0
     sup = 0
+    by_chance = 0
 
     for _ in range(trials):
-        t_sim = permutation_test(pooled, len(setA), len(setB))
+        t_sim = permutation_test2(setA, setB)
 
-        if t_sim<t_obs:
-            inf = inf + 1
-        elif t_sim>t_obs:
-            sup = sup + 1
+        if t_sim >= t_obs:
+            by_chance += 1
 
-    inf = inf / float(trials)
-    sup = sup / float(trials)
-
-    p_value = round(min(inf, sup), 3)
+#        if t_sim<t_obs:
+#            inf = inf + 1
+#        elif t_sim>t_obs:
+#            sup = sup + 1
+#
+#    inf = inf / float(trials)
+#    sup = sup / float(trials)
+#
+#    p_value = round(min(inf, sup), 3)
+    p_value = float(by_chance + 1) / float(trials + 1)
     return t_obs, p_value
 
 # pylint: disable=C0111,C0330,E1101
@@ -341,18 +370,48 @@ class Command(BaseCommand):
             wins_for_system = defaultdict(list)
             p_level = 0.05
             for (sysA, sysB) in combinations_with_replacement(system_ids, 2):
-                sysA_scores = [x[1] for x in system_z_scores[sysA]]
-                sysB_scores = [x[1] for x in system_z_scores[sysB]]
+                sysA_ids = set([x[0] for x in system_z_scores[sysA]])
+                sysB_ids = set([x[0] for x in system_z_scores[sysB]])
+                good_ids = set.intersection(sysA_ids, sysB_ids)
+
+                sysA_scores = []
+                sbsA = defaultdict(list)
+                for x in system_z_scores[sysA]:
+                    if not x[0] in good_ids:
+                        continue
+                    segmentID = x[0]
+                    zScore = x[1]
+                    sbsA[segmentID].append(zScore)
+                for segmentID in sbsA.keys():
+                    average_z_score_for_segment = sum(sbsA[segmentID]) / float(len(sbsA[segmentID]))
+                    sysA_scores.append(average_z_score_for_segment)
+
+                sysB_scores = []
+                sbsB = defaultdict(list)
+                for x in system_z_scores[sysB]:
+                    if not x[0] in good_ids:
+                        continue
+                    segmentID = x[0]
+                    zScore = x[1]
+                    sbsB[segmentID].append(zScore)
+                for segmentID in sbsB.keys():
+                    average_z_score_for_segment = sum(sbsB[segmentID]) / float(len(sbsB[segmentID]))
+                    sysB_scores.append(average_z_score_for_segment)
+                
+
+#                sysA_scores = [x[1] for x in system_z_scores[sysA]]
+               # sysB_scores = [x[1] for x in system_z_scores[sysB]]
                 # t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="two-sided")
 
                 if options['use_ar']:
-                    t_statistic, p_value = ar(sysA_scores, sysB_scores, trials=100)
+                    t_statistic, p_value = ar(sysA_scores, sysB_scores, trials=1000)
                 else:
                     t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="greater")
 
                 if options['use_ar']:
                     if p_value < p_level:
-                       wins_for_system[sysA].append(sysB)
+                        if sysA != sysB:
+                            wins_for_system[sysA].append(sysB)
                 else:
                     if p_value < p_level:
                        wins_for_system[sysA].append(sysB)
