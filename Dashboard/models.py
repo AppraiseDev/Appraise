@@ -38,10 +38,12 @@ LANGUAGE_CODES_AND_NAMES = {
   'heb': 'Hebrew (עברית)',
   'cym': 'Welsh (Cymraeg)',
   'ukr': 'Ukrainian (українська)',
-  'lav': 'Latvian (latviešu)',
   'tel': 'Telugu (తెలుగు)',
   'tam': 'Tamil (தமிழ்)',
   'isl': 'Icelandic (íslenska)',
+  'hrv': 'Croatian (hrvatski)',
+  'lit': 'Lithuanian (lietuvių)',
+  'vie': 'Vietnamese (tiếng Việt)',
 }
 
 # Ensure that all languages have a corresponding group.
