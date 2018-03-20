@@ -44,7 +44,6 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        # Initialize random number generator
         csv_file = options['csv_file']
         systems_path = options['systems_path']
         target_path = options['target_path']
@@ -53,8 +52,8 @@ class Command(BaseCommand):
 
         segment_ids_to_ignore = []
         if ignore_ids:
-            for x in ignore_ids.split(','):
-                segment_ids_to_ignore.append(int(x))
+            for segmentID in ignore_ids.split(','):
+                segment_ids_to_ignore.append(int(segmentID))
 
         _msg = '\n[{0}]\n\n'.format(path.basename(__file__))
         self.stdout.write(_msg)
