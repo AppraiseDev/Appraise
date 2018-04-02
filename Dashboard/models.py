@@ -44,6 +44,8 @@ LANGUAGE_CODES_AND_NAMES = {
   'hrv': 'Croatian (hrvatski)',
   'lit': 'Lithuanian (lietuvių)',
   'vie': 'Vietnamese (tiếng Việt)',
+  'srp': 'Serbian (srpski)',
+  'bos': 'Bosnian (bosanski)',
 }
 
 # Ensure that all languages have a corresponding group.
