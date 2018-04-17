@@ -1350,7 +1350,7 @@ class DirectAssessmentResult(BaseMetadata):
             qs = qs.filter(task__campaign__id=campaign_id)
 
         if not include_inactive:
-            qs = qs.filter(createdBy__active=True)
+            qs = qs.filter(createdBy__is_active=True)
 
         attributes_to_extract = (
           'createdBy__username',            # User ID
