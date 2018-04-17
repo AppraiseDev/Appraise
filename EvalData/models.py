@@ -1336,7 +1336,7 @@ class DirectAssessmentResult(BaseMetadata):
 
 
     @classmethod
-    def get_system_data(cls, campaign_id, extended_csv=False, expand_multi_sys=True):
+    def get_system_data(cls, campaign_id, extended_csv=False, expand_multi_sys=True, include_inactive=False):
         system_data = []
         
         item_types = ('TGT', 'CHK')
@@ -1348,6 +1348,9 @@ class DirectAssessmentResult(BaseMetadata):
         # If campaign ID is given, only return results for this campaign.
         if campaign_id:
             qs = qs.filter(task__campaign__id=campaign_id)
+
+        if not include_inactive:
+            qs = qs.filter(createdBy__active=True)
 
         attributes_to_extract = (
           'createdBy__username',            # User ID
