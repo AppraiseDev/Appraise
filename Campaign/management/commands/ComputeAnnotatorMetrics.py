@@ -137,18 +137,39 @@ class Command(BaseCommand):
             _median = list(sorted(set([x[0] for x in _sorted])))
             _median_score = _median[len(_median) // 2]
 
+            _scores = defaultdict(list)
+            for x in values:
+                if x[2] not in ('BAD', 'REF'):
+                    continue
+
+                _key = '{0}-{1}'.format(x[0], x[1])
+                _fourScore = x[3] # min(int(x[3]/25.) + 1, 4)
+                _scores[_key].append((_fourScore, x[2]))
+
+            _x = []
+            _y = []
             _lower_refs = 0
             _upper_refs = 0
-            for item in _sorted:
-                if item[1] != 'REF':
-                    continue
+            for item in _scores.items():
+                # print(item[0])
+                if len(item[1]) == 2:
+                    _data = item[1]
+                    _data.sort(key=lambda x: x[1])
+                    #print(_data)
+                    if _data[0][1] == 'BAD' and _data[1][1] == 'REF':
+                        _x.append(_data[0][0])
+                        _y.append(_data[1][0])
+                    # else:
+                    #     print(_data)
+                continue
 
                 if item[0] > _median_score:
                     _upper_refs += 1
                 else:
                     _lower_refs += 1
 
-            metrics[key].append((_lower_refs, _upper_refs))
+            # metrics[key].append((_lower_refs, _upper_refs))
+            metrics[key].append(list(zip(_x, _y)))
 
             _scores = defaultdict(list)
             for x in values:
@@ -161,16 +182,27 @@ class Command(BaseCommand):
 
             _potential = 0
             _matches = 0
+            _deltas = []
+            _x = []
+            _y = []
             for item in _scores.items():
                 if len(item[1]) == 2:
-                    _potential += 1
                     _data = item[1]
                     _data.sort(key=lambda x: x[1])
+                    # print(_data)
+                    _x.append(_data[0][0])
+                    _y.append(_data[1][0])
+
+                    _deltas.append(_data[0][0] - _data[1][0])
+                    continue
+
+                    _potential += 1
                     # if _data[0][0] == _data[1][0]:
                     if abs(_data[0][0] - _data[1][0]) < chk_threshold:
                         _matches += 1
 
-            metrics[key].append((_matches, _potential))
+            #metrics[key].append((_matches, _potential))
+            metrics[key].append(list(zip(_x, _y)))
 
             _scores = defaultdict(list)
             for x in values:
@@ -181,14 +213,18 @@ class Command(BaseCommand):
                 _scores[_key].append((x[3], x[2]))
 
             deltas = []
+            _x = []
+            _y = []
             for item in _scores.items():
                 if len(item[1]) == 2:
                     _data = item[1]
                     _data.sort(key=lambda x: x[1])
-
+                    _x.append(_data[0][0])
+                    _y.append(_data[1][0])
                     deltas.append(_data[0][0] - _data[1][0])
 
-            metrics[key].append(deltas)
+            # metrics[key].append(deltas)
+            metrics[key].append(list(zip(_x, _y)))
             metrics[key].append(len(value))
 
         if export_csv:
@@ -200,21 +236,52 @@ class Command(BaseCommand):
 
         for key in sorted(metrics.keys()):
             value = metrics[key]
-            metric1 = value[0][1] - value[0][0]
-            metric2 = value[1][0] / value[1][1] if value[1][1] else 0
+            metric1 = 0 # value[0][1] - value[0][0]
+            metric2 = 0 # value[1][0] / value[1][1] if value[1][1] else 0
             metric3 = 0
             metric4 = segments_by_user[key]
 
             try:
                 from scipy import stats
-                t, pvalue = stats.wilcoxon(value[2], correction=True)
+
+                _x = []
+                _y = []
+                _deltas = []
+                for _i in value[0]:
+                    _x.append(_i[0])
+                    _y.append(_i[1])
+                    _deltas.append(_i[0]-_i[1])
+
+                t, pvalue = stats.mannwhitneyu(_x, _y, alternative='less')
+                #t, pvalue = stats.wilcoxon(_deltas, correction=True)
+                metric1 = pvalue
+
+                _x = []
+                _y = []
+                for _i in value[1]:
+                    _x.append(_i[0])
+                    _y.append(_i[1])
+
+                t, pvalue = stats.mannwhitneyu(_x, _y, alternative='two-sided')
+#                t, pvalue = stats.wilcoxon(value[1], correction=True)
+                metric2 = pvalue
+
+
+                _x = []
+                _y = []
+                for _i in value[2]:
+                    _x.append(_i[0])
+                    _y.append(_i[1])
+
+                t, pvalue = stats.mannwhitneyu(_x, _y, alternative='less')
+                # t, pvalue = stats.wilcoxon(value[2], correction=True)
                 metric3 = pvalue
 
             except ImportError:
                 pass
 
             if not export_csv:
-                print("{0}\t{1:2d}\t{2:.2f}\t{3:f}\t{4:3d}".format(
+                print("{0}\t{1:.5f}\t{2:.5f}\t{3:f}\t{4:3d}".format(
                   key, metric1, metric2, metric3, metric4)
                 )
 
