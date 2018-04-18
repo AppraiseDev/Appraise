@@ -85,7 +85,7 @@ class Command(BaseCommand):
                     self.stdout.write(_msg)
                 return
 
-            csv_data = DirectAssessmentResult.get_system_data(campaign.id, extended_csv=True, expand_multi_sys=False)
+            csv_data = DirectAssessmentResult.get_system_data(campaign.id, extended_csv=True, expand_multi_sys=False, include_inactive=True)
 
             for csv_line in csv_data:
                 _user_id = csv_line[0]
