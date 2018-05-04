@@ -49,6 +49,15 @@ class Command(BaseCommand):
           '--ignore-ids', type=str,
           help='Defines comma separated list of segment IDs to ignore'
         )
+        parser.add_argument(
+          '--ref-file', type=str,
+          help='Path to corresponding reference file'
+        )
+        parser.add_argument(
+          '--src-file', type=str,
+          help='Path to corresponding source file'
+        )
+
 
     def handle(self, *args, **options):
         _msg = '\n[{0}]\n\n'.format(path.basename(__file__))
@@ -59,6 +68,8 @@ class Command(BaseCommand):
         self.stdout.write(' target_path: {0}'.format(options['target_path']))
         self.stdout.write('   --unicode: {0}'.format(options['unicode']))
         self.stdout.write('--ignore-ids: {0}'.format(options['ignore_ids']))
+        self.stdout.write('  --ref-file: {0}'.format(options['ref_file']))
+        self.stdout.write('  --src-file: {0}'.format(options['src_file']))
 
         self.stdout.write('\n[INIT]\n\n')
 
@@ -73,6 +84,16 @@ class Command(BaseCommand):
 
         # Load text from source file into OrderedDict.
         source_data = Command._load_text_from_file(options['source_file'], encoding)
+
+        # Load reference text from reference file, iff given.
+        ref_data = None
+        if options['ref_file']:
+            ref_data = Command._load_text_from_file(options['ref_file'], encoding)
+
+        # Load source text from source file, iff given.
+        src_data = None
+        if options['src_file']:
+            src_data = Command._load_text_from_file(options['src_file'], encoding)
 
         # Load segment ids for all systems from JSON batch file.
         ids_data = Command._load_ids_from_json_file(
@@ -94,6 +115,30 @@ class Command(BaseCommand):
 
         self._save_text_into_file(
           target_file, filtered_text, encoding=encoding)
+
+        if ref_data:
+            # Get reference text for filtered segments.
+            reference_text = [
+              ref_data[segment_id] for segment_id in filtered_data]
+
+            # Write filtered reference data into target file.
+            target_file = path.join(
+              options['target_path'], system_id + '.reference.txt')
+
+            self._save_text_into_file(
+              target_file, reference_text, encoding=encoding)
+
+        if src_data:
+            # Get source text for filtered segments.
+            source_text = [
+              src_data[segment_id] for segment_id in filtered_data]
+
+            # Write filtered source data into target file.
+            target_file = path.join(
+              options['target_path'], system_id + '.source.txt')
+
+            self._save_text_into_file(
+              target_file, source_text, encoding=encoding)
 
         self.stdout.write('\n[DONE]\n\n')
 
@@ -131,6 +176,9 @@ class Command(BaseCommand):
 
                 filtered_data.append(segment_id)
 
+        else:
+            print('Unknown system ID={0}'.format(system_id))
+
         return filtered_data
 
 
@@ -152,7 +200,7 @@ class Command(BaseCommand):
 
             for batch in json_data:
                 for item in batch['items']:
-                    if item['itemType'] == 'TGT':
+                    if item['itemType'] in ('TGT', 'REF'):
                         segment_id = int(item['itemID'])
                         system_ids = item['targetID'].split('+')
 
