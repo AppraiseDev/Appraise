@@ -19,8 +19,8 @@ XY_LANGUAGES = (
 CAMPAIGN_NAME = 'AppenEvalFY1842'
 CAMPAIGN_KEY = 'FY1842'
 CAMPAIGN_NO = 66
-ANNOTATORS = 15
-TASKS = 30
+ANNOTATORS = 11
+TASKS = 22
 REDUNDANCY = 1
 
 # pylint: disable=C0111,C0330,E1101
@@ -303,8 +303,8 @@ class Command(BaseCommand):
         # T1  U1
         # T2  U2
         # ...
-        # T29 U14
-        # T30 U15
+        # T21 U10
+        # T22 U11
         #
         # To assign this, we need to duplicate Ts below.
         tasks_for_market = defaultdict(list)
@@ -325,8 +325,8 @@ class Command(BaseCommand):
             for user in users.order_by('id'):
                 users_for_market[key].append(user)
 
-            # _tasks has size 30 due to duplicating tasks above
-            # _users has size 15, so we need 2 copies to match
+            # _tasks has size 22 due to not duplicating tasks above
+            # _users has size 11, so we need 2 copies to match
             _tasks = tasks_for_market[key]
             _users = users_for_market[key] * 2
             for u, t in zip(_users, _tasks):
