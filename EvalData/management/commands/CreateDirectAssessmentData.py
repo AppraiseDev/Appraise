@@ -406,7 +406,10 @@ class Command(BaseCommand):
                     _sorted_keys.extend(matching_keys)
             all_keys = _sorted_keys
 
-        items_per_batch = 10 * 7
+        items_per_batch = 10 * 7 # TODO: BLOCK DEFINITION
+        items_per_batch = 10 * 8
+        items_per_batch = 10 * 9
+        items_per_batch = 85
 
         missing_items = items_per_batch - len(all_keys) % items_per_batch
         print('Missing items is {0}/{1}'.format(missing_items, items_per_batch))
@@ -434,44 +437,105 @@ class Command(BaseCommand):
         json_data = []
         for batch_id in batch_nos: # range(batch_no):
             block_data = []
-            block_offset = batch_id * 10 * 7
+            block_offset = batch_id * 10 * 7 # TODO: BLOCK DEFINITION
+            block_offset = batch_id * 10 * 8
+            block_offset = batch_id * 10 * 9
+            block_offset = batch_id * items_per_batch
 
-            num_blocks = int(batch_size/block_size)
+            block_start = block_offset
+            block_end = block_start + items_per_batch
+            block_hashes = all_keys[block_start:block_end]
+
+            block_hashes.sort()
+            shuffle(block_hashes)
+
+            check_ids = list(range(50))
+            shuffle(check_ids)
+
+            print(check_ids[:100-items_per_batch])
+            batch_items = [None for _ in range(100)]
+            for index, item_hash in enumerate(block_hashes[:50]):
+                print('TGT', index)
+                batch_items[index] = (item_hash, 'TGT')
+                if index in check_ids[:(100-items_per_batch)]:
+                    print('BAD', index+50)
+                    batch_items[index+50] = (item_hash, 'BAD')
+
+            print('-' * 40)
+            emtpy_slots = []
+            for index in range(50):
+                if batch_items[index+50] is None:
+                    emtpy_slots.append(index+50)
+            print(emtpy_slots)
+            for index, item_hash in zip(emtpy_slots, block_hashes[50:]):
+                print('TGT', index)
+                batch_items[index] = (item_hash, 'TGT')
+
+            print(len(batch_items))
+            print(len([x for x in batch_items if x is None]))
+
+            num_blocks = 10
             for block_id in range(num_blocks):
-                # Human readable ids are one-based, hence +1
-                print('Creating batch {0:05}/{1:05}, block {2:02}'.format(
-                  batch_id+1, total_batches, block_id+1)
-                )
-
-                # Get 7 random system outputs
-                block_start = block_offset + 7 * (block_id)
-                block_end = block_start + 7
-                block_hashes = all_keys[block_start:block_end]
+                block_start = 10 * block_id
+                block_end = 10 * (block_id + 1)
+                block_items = batch_items[block_start:block_end]
 
                 current_block = {
-                  'systems': block_hashes
+                  'block_items': block_items
                 }
 
                 block_data.append(current_block)
 
-            # Compute redundant, reference, bad reference bits
-            for block_id in range(num_blocks):
-                check_id = int((block_id + (num_blocks/2)) % num_blocks)
-                # Human readable ids are one-based, hence +1
-                print('Add checks for batch {0:05}/{1:05}, ' \
-                  'block {2:02} to block {3:02}'.format(
-                    batch_id+1, total_batches, check_id+1, block_id+1
-                  )
-                )
+            if False:
+                num_blocks = int(batch_size/block_size)
+                for block_id in range(num_blocks):
+                    # Human readable ids are one-based, hence +1
+                    print('Creating batch {0:05}/{1:05}, block {2:02}'.format(
+                      batch_id+1, total_batches, block_id+1)
+                    )
 
-                check_systems = block_data[check_id]['systems']
-                check_systems.sort()
-                shuffle(check_systems)
+                    # Get 7 random system outputs                  # TODO: BLOCK DEFINITION
+                    # Get 8 random system outputs
+                    # Get 9 random system outputs
+                    block_start = block_offset + 7 * (block_id)    # TODO: BLOCK DEFINITION
+                    block_start = block_offset + 8 * (block_id)
+                    block_start = block_offset + 9 * (block_id)
+                    block_end = block_start + 7                    # TODO: BLOCK DEFINITION
+                    block_end = block_start + 8
+                    block_end = block_start + 9
+                    block_hashes = all_keys[block_start:block_end]
 
-                block_data[block_id]['redundant'] = check_systems[0]
-                block_data[block_id]['reference'] = check_systems[1]
-                block_data[block_id]['badref'] = check_systems[2]
+                    current_block = {
+                      'systems': block_hashes
+                    }
 
+                    block_data.append(current_block)
+
+                # Compute redundant, reference, bad reference bits
+                for block_id in range(num_blocks):
+                    check_id = int((block_id + (num_blocks/2)) % num_blocks)
+                    # Human readable ids are one-based, hence +1
+                    print('Add checks for batch {0:05}/{1:05}, ' \
+                      'block {2:02} to block {3:02}'.format(
+                        batch_id+1, total_batches, check_id+1, block_id+1
+                      )
+                    )
+
+                    check_systems = block_data[check_id]['systems']
+                    check_systems.sort()
+                    shuffle(check_systems)
+
+                    # TODO: BLOCK DEFINITION
+                    block_data[block_id]['redundant'] = check_systems[0]
+                    block_data[block_id]['reference'] = check_systems[1]
+                    block_data[block_id]['badref'] = check_systems[2]
+
+                    # TODO: BLOCK DEFINITION for 8:2
+                    block_data[block_id]['badrefs'] = check_systems[:]
+
+                    # TODO: BLOCK DEFINITION for 9:1
+                    block_data[block_id]['badrefs'] = check_systems[:1]
+ 
             # Direct assessment is reference-based for WMT17
             if source_based:
                 sourceID = 'LOCAL_SRC' if use_local_src else basename(options['source_file'])
@@ -490,14 +554,30 @@ class Command(BaseCommand):
             itemsData = []
             _item = 0
 
+            if False:
+                for block_id in range(num_blocks):
+                    block_items = [(x, 'TGT') for x in block_data[block_id]['systems']]
+                    # TODO: BLOCK DEFINITION
+                    # all_items.append((block_data[block_id]['redundant'], 'CHK'))
+                    # all_items.append((block_data[block_id]['reference'], 'REF'))
+                    # all_items.append((block_data[block_id]['badref'], 'BAD'))
+                    # TODO: BLOCK DEFINITION
+                    block_items.extend([(x, 'BAD') for x in block_data[block_id]['badrefs']])
+                    shuffle(all_items)
+                    block_data[block_id]['block_items'] = block_items
+            
+            # 1. Shuffle list of all TGT items for this batch, n items
+            # 2. Shuffle list of all BAD items for this batch, 100-n items
+            # 3. Randomly assign items to batch list of 100 items
+            #    Maximise distance between TGT and BAD items X-->X+50
+            #    Only add redundant items for TGT indices i<50
+            #    This is fine as we work on shuffled items
+            
             for block_id in range(num_blocks):
-                all_items = [(x, 'TGT') for x in block_data[block_id]['systems']]
-                all_items.append((block_data[block_id]['redundant'], 'CHK'))
-                all_items.append((block_data[block_id]['reference'], 'REF'))
-                all_items.append((block_data[block_id]['badref'], 'BAD'))
-                shuffle(all_items)
+                block_items = block_data[block_id]['block_items']
+                print(block_items)
 
-                for current_item, current_type in all_items:
+                for current_item, current_type in block_items:
                     item_data = hashed_text[current_item]
 
                     item_id = item_data['segment_id']
