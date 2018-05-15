@@ -311,7 +311,7 @@ class Command(BaseCommand):
               task.marketName().replace('_', '')[:6],
               CAMPAIGN_NO
             )
-            for i in range(0):
+            for i in range(1):
                 tasks_for_market[market].append(task)
 
         for key in tasks_for_market:
