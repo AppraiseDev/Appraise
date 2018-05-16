@@ -303,7 +303,7 @@ class Command(BaseCommand):
         # T1 U1 U2
         # T2 U1 U2
         #
-        # To assign this, we don't need to duplicate Ts below.
+        # To assign this, we need to duplicate Ts below.
         tasks_for_market = defaultdict(list)
         users_for_market = defaultdict(list)
         for task in tasks.order_by('id'):
@@ -311,7 +311,7 @@ class Command(BaseCommand):
               task.marketName().replace('_', '')[:6],
               CAMPAIGN_NO
             )
-            for i in range(1):
+            for i in range(2):
                 tasks_for_market[market].append(task)
 
         for key in tasks_for_market:
@@ -322,10 +322,10 @@ class Command(BaseCommand):
             for user in users.order_by('id'):
                 users_for_market[key].append(user)
 
-            # _tasks has size 2 due to duplicating tasks above
-            # _users has size 2, so we don't need any copies to match
+            # _tasks has size 4 due to duplicating tasks above
+            # _users has size 2, so we need 2 copies to match
             _tasks = tasks_for_market[key]
-            _users = users_for_market[key]
+            _users = users_for_market[key] * 2
             for u, t in zip(_users, _tasks):
                 print(u, '-->', t.id)
 
