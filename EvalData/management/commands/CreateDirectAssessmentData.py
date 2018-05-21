@@ -409,7 +409,7 @@ class Command(BaseCommand):
         items_per_batch = 10 * 7 # TODO: BLOCK DEFINITION
         items_per_batch = 10 * 8
         items_per_batch = 10 * 9
-        items_per_batch = 85
+        items_per_batch = 88
 
         missing_items = items_per_batch - len(all_keys) % items_per_batch
         print('Missing items is {0}/{1}'.format(missing_items, items_per_batch))
