@@ -8,7 +8,7 @@ from EvalData.models import Market, Metadata
 
 EX_LANGUAGES = (
   'zho', 'nld', 'fra', 'deu', 'ita',
-  'jpn', 'por', 'rus', 'spa', 'sve'
+  'jpn', 'por', 'rus', 'spa',
 )
 
 XE_LANGUAGES = (
