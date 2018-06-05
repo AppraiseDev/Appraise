@@ -46,6 +46,8 @@ LANGUAGE_CODES_AND_NAMES = {
   'vie': 'Vietnamese (tiếng Việt)',
   'srp': 'Serbian (srpski)',
   'bos': 'Bosnian (bosanski)',
+  'ind': 'Indonesian (bahasa Indonesia)',
+  'urd': 'Urdu (اُردُو)',
 }
 
 # Ensure that all languages have a corresponding group.
