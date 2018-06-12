@@ -146,7 +146,7 @@ urlpatterns = [
     ),
 
     url(r'^campaign-status/(?P<campaign_name>[a-zA-Z0-9]+)/' \
-      '(?P<sort_key>[012345])?/?$',
+      '(?P<sort_key>[0123456])?/?$',
       campaign_views.campaign_status,
       name='campaign_status'
     ),

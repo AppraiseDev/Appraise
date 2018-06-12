@@ -81,7 +81,7 @@ def campaign_status(request, campaign_name, sort_key=2):
                 _annotation_time = 'n/a'
 
             if _reliable:
-                _reliable = '{0:1.3}'.format(_reliable)
+                _reliable = '{0:1.3f}'.format(_reliable)
 
             else:
                 _reliable = 'n/a'
