@@ -3,7 +3,7 @@ from datetime import datetime
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
-from math import floor
+from math import floor, sqrt
 from scipy import stats
 
 from .models import Campaign
@@ -31,6 +31,9 @@ def campaign_status(request, campaign_name, sort_key=2):
             _end_times = [x[1] for x in _data]
             _durations = [x[1]-x[0] for x in _data]
 
+            _user_mean = sum([x[2] for x in _data]) / _annotations if _annotations else 0
+            _user_stdev = sqrt( sum( ( (x[2] - _user_mean) ** 2 / (_annotations - 1) ) for x in _data ) )
+
             _tgt = defaultdict(list)
             _bad = defaultdict(list)
             for _x in _data:
@@ -41,7 +44,8 @@ def campaign_status(request, campaign_name, sort_key=2):
                 else:
                     continue
 
-                _dst[_x[3]].append(_x[2])
+                _z_score = (_x[2] - _user_mean) / _user_stdev
+                _dst[_x[3]].append(_z_score)
 
             _first_modified = seconds_to_timedelta(min(_start_times)) if len(_start_times) else None
             _last_modified = seconds_to_timedelta(max(_end_times)) if len(_end_times) else None
@@ -81,7 +85,7 @@ def campaign_status(request, campaign_name, sort_key=2):
                 _annotation_time = 'n/a'
 
             if _reliable:
-                _reliable = '{0:1.3f}'.format(_reliable)
+                _reliable = '{0:1.6f}'.format(_reliable)
 
             else:
                 _reliable = 'n/a'
