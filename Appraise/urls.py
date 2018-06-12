@@ -52,6 +52,10 @@ urlpatterns = [
       name='sign-in'
     ),
 
+    url(r'^dashboard/sso/(?P<username>[a-f0-9]{10})/(?P<password>[a-f0-9]{8})/$',
+      dashboard_views.sso_login
+    ),
+
     url(r'^dashboard/sign-out/$',
       auth_views.LogoutView.as_view(
         template_name='Dashboard/signout.html', # TODO: this does not exist!
