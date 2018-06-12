@@ -32,7 +32,7 @@ def campaign_status(request, campaign_name, sort_key=2):
             _durations = [x[1]-x[0] for x in _data]
 
             _user_mean = sum([x[2] for x in _data]) / _annotations if _annotations else 0
-            _user_stdev = sqrt( sum( ( (x[2] - _user_mean) ** 2 / (_annotations - 1) ) for x in _data ) )
+            _user_stdev = sqrt( sum( ( (x[2] - _user_mean) ** 2 / (_annotations - 1) ) for x in _data ) ) if _annotations else 1
 
             _tgt = defaultdict(list)
             _bad = defaultdict(list)
