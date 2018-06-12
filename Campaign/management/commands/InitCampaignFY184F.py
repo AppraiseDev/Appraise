@@ -197,7 +197,7 @@ class Command(BaseCommand):
         _cteam = CampaignTeam.objects.get_or_create(
           teamName=CAMPAIGN_NAME,
           owner=superusers[0],
-          requiredAnnotations=100 * sum(TASKS.values()) * REDUNDANCY,
+          requiredAnnotations=min(100 * sum(TASKS.values()) * REDUNDANCY, 32767),
           requiredHours=(sum(TASKS.values()) * REDUNDANCY) / 2,
           createdBy=superusers[0]
         )
@@ -358,7 +358,7 @@ class Command(BaseCommand):
                 users_for_market[key].append(user)
 
             # _tasks has size 2*X due to duplicating tasks above
-            # _users has size X, so we need 2 copies to match
+            # _users has size X , so we need 2 copies to match
             _tasks = tasks_for_market[key]
             _users = users_for_market[key] * 2
             for u, t in zip(_users, _tasks):
