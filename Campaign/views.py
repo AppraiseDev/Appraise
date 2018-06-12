@@ -1,3 +1,5 @@
+import logging
+
 from collections import defaultdict
 from datetime import datetime
 from django.contrib.auth.decorators import login_required
@@ -7,11 +9,24 @@ from math import floor, sqrt
 from scipy import stats
 
 from .models import Campaign
+from Appraise.settings import LOG_LEVEL, LOG_HANDLER
 from EvalData.models import DirectAssessmentResult, seconds_to_timedelta
+
+
+# Setup logging support.
+logging.basicConfig(level=LOG_LEVEL)
+LOGGER = logging.getLogger('Dashboard.views')
+LOGGER.addHandler(LOG_HANDLER)
 
 
 @login_required
 def campaign_status(request, campaign_name, sort_key=2):
+    """
+    Campaign status view with completion details.
+    """
+    LOGGER.info('Rendering campaign status view for user "{0}".'.format(
+      request.user.username or "Anonymous"))
+
     if sort_key is None:
         sort_key = 2
     campaign = Campaign.objects.filter(campaignName=campaign_name).first()
@@ -23,8 +38,8 @@ def campaign_status(request, campaign_name, sort_key=2):
     for team in campaign.teams.all():
         for user in team.members.all():
             _data = DirectAssessmentResult.objects.filter(
-              createdBy=user, completed=True
-            ).values_list('start_time', 'end_time', 'score', 'item__itemID', 'item__itemType')
+              createdBy=user, completed=True, task__campaign=campaign.id
+            ).values_list('start_time', 'end_time' , 'score', 'item__itemID', 'item__itemType')
 
             _annotations = len(_data)
             _start_times = [x[0] for x in _data]
