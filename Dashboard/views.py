@@ -43,6 +43,15 @@ def _server_error(request, template_name='500.html'):
 
     return render_to_response('Dashboard/500.html', BASE_CONTEXT)
 
+def sso_login(request, username, password):
+    """
+    Attempts SSO login for the given username:password credentials.
+    """
+    # Login user and redirect to dashboard page.
+    user = authenticate(username=username, password=password)
+    login(request, user)
+    return redirect('dashboard')
+
 def frontpage(request, extra_context=None):
     """
     Appraise front page.
