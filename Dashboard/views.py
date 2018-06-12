@@ -48,8 +48,13 @@ def sso_login(request, username, password):
     Attempts SSO login for the given username:password credentials.
     """
     # Login user and redirect to dashboard page.
-    user = authenticate(username=username, password=password)
-    login(request, user)
+    if not request.user.username:
+        user = authenticate(username=username, password=password)
+        login(request, user)
+
+    LOGGER.info('Rendering SSO login view for user "{0}".'.format(
+      request.user.username or "Anonymous"))
+
     return redirect('dashboard')
 
 def frontpage(request, extra_context=None):
