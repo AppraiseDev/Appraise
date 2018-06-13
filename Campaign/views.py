@@ -76,7 +76,7 @@ def campaign_status(request, campaign_name, sort_key=2):
             if len(_x) and len(_y):
                 try:
                     from scipy.stats import mannwhitneyu
-                    t, pvalue = stats.mannwhitneyu(_x, _y, alternative='less')
+                    t, pvalue = mannwhitneyu(_x, _y, alternative='less')
                     _reliable = pvalue
 
                 except ImportError:
