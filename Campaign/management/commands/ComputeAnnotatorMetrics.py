@@ -119,7 +119,7 @@ class Command(BaseCommand):
         for key, values in user_scores.items():
             _scores = [x[3] for x in values]
             user_means[key] = sum(_scores) / len(_scores) if len(_scores) else 0
-            user_stdev[key] = sqrt( sum( ( (x - user_means[key]) ** 2 / (len(_scores) - 1) ) for x in _scores ) )
+            user_stdev[key] = sqrt( sum( ( (x - user_means[key]) ** 2 / (len(_scores) - 1) ) for x in _scores ) ) if len(_scores) > 1 else 1
 
         user_z_scores = defaultdict(list)
         for key, values in user_scores.items():
