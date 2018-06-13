@@ -39,7 +39,7 @@ def campaign_status(request, campaign_name, sort_key=2):
         for user in team.members.all():
             _data = DirectAssessmentResult.objects.filter(
               createdBy=user, completed=True, task__campaign=campaign.id
-            ).values_list('start_time', 'end_time' , 'score', 'item__itemID', 'item__itemType')
+            ).values_list('start_time', 'end_time' , 'score', 'item__itemID', 'item__targetID', 'item__itemType')
 
             _annotations = len(_data)
             _start_times = [x[0] for x in _data]
@@ -60,7 +60,8 @@ def campaign_status(request, campaign_name, sort_key=2):
                     continue
 
                 _z_score = (_x[2] - _user_mean) / _user_stdev
-                _dst[_x[3]].append(_z_score)
+                _key = '{0}-{1}'.format(_x[3], _x[4])
+                _dst[_key].append(_z_score)
 
             _first_modified = seconds_to_timedelta(min(_start_times)) if len(_start_times) else None
             _last_modified = seconds_to_timedelta(max(_end_times)) if len(_end_times) else None
