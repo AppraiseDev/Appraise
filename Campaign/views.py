@@ -6,7 +6,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from math import floor, sqrt
-from scipy import stats
 
 from .models import Campaign
 from Appraise.settings import LOG_LEVEL, LOG_HANDLER
@@ -75,8 +74,13 @@ def campaign_status(request, campaign_name, sort_key=2):
 
             _reliable = None
             if len(_x) and len(_y):
-                t, pvalue = stats.mannwhitneyu(_x, _y, alternative='less')
-                _reliable = pvalue
+                try:
+                    from scipy.stats import mannwhitneyu
+                    t, pvalue = stats.mannwhitneyu(_x, _y, alternative='less')
+                    _reliable = pvalue
+
+                except ImportError:
+                    pass
 
             if _first_modified:
                 _date_modified = datetime(1970, 1, 1) + _first_modified
@@ -106,14 +110,25 @@ def campaign_status(request, campaign_name, sort_key=2):
             else:
                 _reliable = 'n/a'
 
-            _item = (user.username, user.is_active, _annotations, _first_modified, _last_modified, _annotation_time, _reliable)
-            _out.append(_item)
+            _item = [user.username, user.is_active, _annotations, _first_modified, _last_modified, _annotation_time]
+            if request.user.is_staff:
+                _item.append(_reliable)
+
+            _out.append(tuple(_item))
 
     _out.sort(key=lambda x: x[int(sort_key)])
-    _header = '\t'.join(('username', 'active', 'annotations', 'first_modified', 'last_modified', 'annotation_time', 'random'))
-    _txt = [_header]
+
+    _header = ['username', 'active', 'annotations', 'first_modified', 'last_modified', 'annotation_time']
+    if request.user.is_staff:
+        _header.append('random')
+
+    _txt = ['\t'.join(_header)]
     for x in _out:
-        _local_out = '{0:>20}\t{1:3}\t{2}\t{3}\t{4}\t{5}\t{6}'.format(*x)
+        _local_fmt = '{0:>20}\t{1:3}\t{2}\t{3}\t{4}\t{5}'
+        if request.user.is_staff:
+            _local_fmt += '\t{6}'
+
+        _local_out = _local_fmt.format(*x)
         _txt.append(_local_out)
 
     return HttpResponse(u'\n'.join(_txt), content_type='text/plain')
