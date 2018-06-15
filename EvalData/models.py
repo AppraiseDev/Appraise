@@ -2114,7 +2114,7 @@ class TaskAgenda(models.Model):
           self._completed_tasks.count()
         )
 
-    @staticmethod
+    @classmethod
     def reassign_tasks(cls, old_username, new_username):
         """
         Reassigns tasks in TaskAgenda for old user to new user.
