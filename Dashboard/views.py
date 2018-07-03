@@ -265,7 +265,11 @@ def dashboard(request):
     context.update(BASE_CONTEXT)
 
     annotations = DirectAssessmentResult.get_completed_for_user(request.user)
+    annotations += MultiModalAssessmentResult.get_completed_for_user(request.user)
     hits, total_hits = DirectAssessmentResult.get_hit_status_for_user(request.user)
+    _hits, _total_hits = MultiModalAssessmentResult.get_hit_status_for_user(request.user)
+    hits += _hits
+    total_hits += _total_hits
 
     # If user still has an assigned task, only offer link to this task.
     current_task = DirectAssessmentTask.get_task_for_user(request.user)
@@ -315,6 +319,8 @@ def dashboard(request):
                 if open_task.next_item_for_user(request.user) is not None:
                     current_task = open_task
                     campaign = agenda.campaign
+                    LOGGER.info('Current task type: {0}'.format(
+                        open_task.__class__.__name__))
                 else:
                     agenda._completed_tasks.add(serialized_open_task)
                     agenda._open_tasks.remove(serialized_open_task)
@@ -376,6 +382,12 @@ def dashboard(request):
     minutes = int(((duration.total_seconds() - (days * 86400)) % 3600) / 60)
     seconds = int((duration.total_seconds() - (days * 86400)) % 60)
 
+    duration = MultiModalAssessmentResult.get_time_for_user(request.user)
+    days += duration.days
+    hours += int((duration.total_seconds() - (days * 86400)) / 3600)
+    minutes += int(((duration.total_seconds() - (days * 86400)) % 3600) / 60)
+    seconds += int((duration.total_seconds() - (days * 86400)) % 60)
+
     t4 = datetime.now()
 
     all_languages = []
@@ -394,7 +406,7 @@ def dashboard(request):
 
     is_multi_modal_campaign = False
     if current_task:
-        is_multi_modal_campaign = 'multimodal' in current_task.campaign.campaignName.lower()
+        is_multi_modal_campaign = current_task.__class__.__name__ == 'MultiModalAssessmentTask'
 
     context.update({
       'annotations': annotations,

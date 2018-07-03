@@ -13,6 +13,7 @@ from django.http import HttpResponse
 
 from Appraise.settings import LOG_LEVEL, LOG_HANDLER
 from EvalData.models import DirectAssessmentResult, seconds_to_timedelta
+from EvalData.models import MultiModalAssessmentResult
 
 from .models import Campaign
 
@@ -42,7 +43,13 @@ def campaign_status(request, campaign_name, sort_key=2):
         for user in team.members.all():
             _data = DirectAssessmentResult.objects.filter(
                 createdBy=user, completed=True, task__campaign=campaign.id
-            ).values_list(
+            )
+            if not _data:
+                _data = MultiModalAssessmentResult.objects.filter(
+                    createdBy=user, completed=True, task__campaign=campaign.id
+                )
+
+            _data = _data.values_list(
                 'start_time',
                 'end_time',
                 'score',
