@@ -2032,11 +2032,13 @@ class MultiModalAssessmentResult(BaseMetadata):
 class WorkAgenda(models.Model):
     user = models.ForeignKey(
       User,
+      models.PROTECT,
       verbose_name=_('User')
     )
 
     campaign = models.ForeignKey(
       'Campaign.Campaign',
+      models.PROTECT,
       verbose_name=_('Campaign')
     )
 
@@ -2072,11 +2074,13 @@ class WorkAgenda(models.Model):
 class TaskAgenda(models.Model):
     user = models.ForeignKey(
       User,
+      models.PROTECT,
       verbose_name=_('User')
     )
 
     campaign = models.ForeignKey(
       'Campaign.Campaign',
+      models.PROTECT,
       verbose_name=_('Campaign')
     )
 
