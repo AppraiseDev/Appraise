@@ -101,6 +101,10 @@ class Command(BaseCommand):
           '--character-based', action='store_true',
           help='Enable character-based processing, default for Chinese and Japanese'
         )
+        parser.add_argument(
+          '--no-redundancy', action='store_true',
+          help='Disable redundant items for quality control, maximising data collection'
+        )
         # TODO: add optional parameters to set source, reference and system IDs
 
         # TODO: add exclude argument which prevents creation of redundant data?
@@ -195,6 +199,7 @@ class Command(BaseCommand):
         use_local_ref = options['local_ref']
         create_ids = options['create_ids']
         source_based = options['source_based']
+        no_redundancy = options['no_redundancy']
 
         block_size = 10
         block_annotations = 7
@@ -410,6 +415,10 @@ class Command(BaseCommand):
         items_per_batch = 10 * 8
         items_per_batch = 10 * 9
         items_per_batch = 88
+
+        if no_redundancy:
+            print('No redundancy set, using items_per_batch=100')
+            items_per_batch = 100
 
         missing_items = items_per_batch - len(all_keys) % items_per_batch
         print('Missing items is {0}/{1}'.format(missing_items, items_per_batch))
