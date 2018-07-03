@@ -73,11 +73,13 @@ class UserInviteToken(models.Model):
     """
     group = models.ForeignKey(
       Group,
-      db_index=True
+      models.PROTECT,
+      db_index=True,
     )
   
     user = models.ForeignKey(
       User,
+      models.PROTECT,
       db_index=True,
       blank=True,
       null=True

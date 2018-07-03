@@ -193,11 +193,13 @@ class Campaign(BaseMetadata):
 class TrustedUser(models.Model):
     user = models.ForeignKey(
       User,
+      models.PROTECT,
       verbose_name=_('User')
     )
 
     campaign = models.ForeignKey(
       Campaign,
+      models.PROTECT,
       verbose_name=_('Campaign')
     )
 
