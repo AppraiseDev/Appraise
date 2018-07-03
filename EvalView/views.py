@@ -203,8 +203,44 @@ def multimodal_assessment(request, code=None, campaign_name=None):
     LOGGER.info('Rendering multimodal assessment view for user "{0}".'.format(
       request.user.username or "Anonymous"))
 
+    current_task = None
+
+    # Try to identify TaskAgenda for current user.
+    agendas = TaskAgenda.objects.filter(
+      user=request.user
+    )
+
+    if campaign:
+        agendas = agendas.filter(
+          campaign=campaign
+        )
+
+    for agenda in agendas:
+        modified = False
+        LOGGER.info('Identified work agenda {0}'.format(agenda))
+        for serialized_open_task in agenda._open_tasks.all():
+            open_task = serialized_open_task.get_object_instance()
+            if open_task.next_item_for_user(request.user) is not None:
+                current_task = open_task
+                if not campaign:
+                    campaign = agenda.campaign
+            else:
+                agenda._completed_tasks.add(serialized_open_task)
+                agenda._open_tasks.remove(serialized_open_task)
+                modified = True
+
+        if modified:
+            agenda.save()
+
+    if not current_task and agendas.count() > 0:
+        LOGGER.info('Work agendas completed, redirecting to dashboard')
+        LOGGER.info('- code={0}, campaign={1}'.format(code, campaign))
+        return redirect('dashboard')
+
     # If language code has been given, find a free task and assign to user.
-    current_task = MultiModalAssessmentTask.get_task_for_user(user=request.user)
+    if not current_task:
+        current_task = DirectAssessmentTask.get_task_for_user(user=request.user)
+
     if not current_task:
         if code is None or campaign is None:
             LOGGER.info('No current task detected, redirecting to dashboard')

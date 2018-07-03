@@ -1796,7 +1796,6 @@ class MultiModalAssessmentTask(BaseMetadata):
           self.items.count()
         )
 
-
 class MultiModalAssessmentResult(BaseMetadata):
     """
     Models a multimodal assessment evaluation result.
@@ -1858,6 +1857,25 @@ class MultiModalAssessmentResult(BaseMetadata):
           activated=False,
           completed=True
         ).count()
+
+    @classmethod
+    def get_hit_status_for_user(cls, user):
+        user_data = defaultdict(int)
+
+        for user_item in cls.objects.filter(
+          createdBy=user,
+          activated=False,
+          completed=True
+        ).values_list('task__id', 'item__itemType'):
+            if user_item[1].lower() != 'tgt':
+                continue
+
+            user_data[user_item[0]] += 1
+
+        total_hits = len(user_data.keys())
+        completed_hits = len([x for x in user_data.values() if x >= 70])
+
+        return (completed_hits, total_hits)
 
     @classmethod
     def get_time_for_user(cls, user):
