@@ -46,6 +46,10 @@ class Command(BaseCommand):
           help='Path to JSON output file'
         )
         parser.add_argument(
+          '--urls-file', type=str, default=None,
+          help='Path to optional image URLs file'
+        )
+        parser.add_argument(
           '--block-definition', type=str, default="7:1:1:1",
           help='Defines (candidates, redundant, reference, bad reference) per block'
         )
@@ -233,6 +237,11 @@ class Command(BaseCommand):
             reference_file = Command._load_text_from_file(options['reference_file'], encoding)
             print('Loaded {0} reference segments'.format(len(reference_file.keys())))
 
+        urls_file = []
+        if options['urls_file'] is not None:
+            urls_file = Command._load_text_from_file(options['urls_file'], encoding)
+            print('Loaded {0} image URLs'.format(len(urls_file.keys())))
+
         systems_files = []
         systems_path = options['systems_path']
         from glob import iglob
@@ -296,6 +305,7 @@ class Command(BaseCommand):
                 md5hash = hashlib.new('md5', segment_text.encode(encoding)).hexdigest()
                 _src = local_src[segment_id] if use_local_src else source_file[segment_id]
                 _ref = local_src[segment_id] if use_local_ref else reference_file[segment_id]
+                _url = urls_file[segment_id] if urls_file else None
 
                 # Determine length of bad phrase, relative to segment length
                 #
@@ -375,6 +385,9 @@ class Command(BaseCommand):
                       'segment_src': _src,
                       'systems': [os.path.basename(system_path)]
                     }
+
+                    if _url:
+                        hashed_text[md5hash].update({'segment_url': _url})
 
                     hashes_by_ids[segment_id].append(md5hash)
                 else:
@@ -594,6 +607,7 @@ class Command(BaseCommand):
                     item_bad = item_data['segment_bad']
                     item_ref = item_data['segment_ref']
                     item_src = item_data['segment_src']
+                    item_url = item_data.get('segment_url')
                     item_systems = item_data['systems']
 
                     targetID = '+'.join(sorted(set(item_systems)))
@@ -614,6 +628,9 @@ class Command(BaseCommand):
                     obj['targetText'] = targetText
                     obj['itemID'] = item_id
                     obj['itemType'] = current_type
+
+                    if item_url is not None:
+                        obj['imageURL'] = item_url
 
                     itemsData.append(obj)
                     _item += 1
