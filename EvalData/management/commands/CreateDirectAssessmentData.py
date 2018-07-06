@@ -214,21 +214,6 @@ class Command(BaseCommand):
         source_based = options['source_based']
         no_redundancy = options['no_redundancy']
 
-        # TODO: remove dead code.
-        if False:
-            # pylint: disable=W0612
-            block_size = 10
-            block_annotations = 7
-            block_redundants = 1
-            block_references = 1
-            block_badrefs = 1
-
-        # TODO: remove dead code.
-        if False:
-            # IF BLOCK DEF IS GIVEN, DO SOMETHING WITH IT
-            if options['block_definition'] is not None:
-                print("WOOHOO")
-
         # If no redundancy is specified, we will use 100 candidates instead.
         if no_redundancy:
             self.stdout.write('No redundancy set.')
@@ -261,14 +246,6 @@ class Command(BaseCommand):
                 self.stdout.write('Using task definition: {0}'.format(
                     items_per_batch))
 
-        # TODO: remove dead code.
-        if False:
-            if (batch_size % block_size) > 0:
-                self.stdout.write('Batch size needs to be divisible by block size!')
-                return
-
-            # CHECK THAT WE END UP WITH EVEN NUMBER OF BLOCKS
-            print('We will create {0} blocks'.format(int(batch_size / block_size)))
 
         # TODO: add parameter to set encoding
         # TODO: need to use OrderedDict to preserve segment IDs' order!
@@ -473,13 +450,6 @@ class Command(BaseCommand):
                     _sorted_keys.extend(matching_keys)
             all_keys = _sorted_keys
 
-        # TODO: remove dead code.
-        if False:
-            items_per_batch = 10 * 7 # TODO: BLOCK DEFINITION
-            items_per_batch = 10 * 8
-            items_per_batch = 10 * 9
-            items_per_batch = 88
-
         # Number of candidates in first position of items_per_batch tuple.
         batch_items = items_per_batch[0]
         missing_items = batch_items - len(all_keys) % batch_items
@@ -506,15 +476,8 @@ class Command(BaseCommand):
             batch_nos = batch_nos[:max_batches]
 
         json_data = []
-        for batch_id in batch_nos: # range(batch_no):
+        for batch_id in batch_nos:
             block_data = []
-
-            # TODO: remove dead code.
-            if False:
-                block_offset = batch_id * 10 * 7 # TODO: BLOCK DEFINITION
-                block_offset = batch_id * 10 * 8
-                block_offset = batch_id * 10 * 9
-                block_offset = batch_id * items_per_batch
 
             block_start = batch_id * items_per_batch[0]
             block_end = block_start + items_per_batch[0]
@@ -586,57 +549,6 @@ class Command(BaseCommand):
 
                 block_data.append(current_block)
 
-            # TODO: remove dead code.
-            if False:
-                num_blocks = int(batch_size/block_size)
-                for block_id in range(num_blocks):
-                    # Human readable ids are one-based, hence +1
-                    print('Creating batch {0:05}/{1:05}, block {2:02}'.format(
-                      batch_id+1, total_batches, block_id+1)
-                    )
-
-                    # Get 7 random system outputs                  # TODO: BLOCK DEFINITION
-                    # Get 8 random system outputs
-                    # Get 9 random system outputs
-                    block_start = block_offset + 7 * (block_id)    # TODO: BLOCK DEFINITION
-                    block_start = block_offset + 8 * (block_id)
-                    block_start = block_offset + 9 * (block_id)
-                    block_end = block_start + 7                    # TODO: BLOCK DEFINITION
-                    block_end = block_start + 8
-                    block_end = block_start + 9
-                    block_hashes = all_keys[block_start:block_end]
-
-                    current_block = {
-                      'systems': block_hashes
-                    }
-
-                    block_data.append(current_block)
-
-                # Compute redundant, reference, bad reference bits
-                for block_id in range(num_blocks):
-                    check_id = int((block_id + (num_blocks/2)) % num_blocks)
-                    # Human readable ids are one-based, hence +1
-                    print('Add checks for batch {0:05}/{1:05}, ' \
-                      'block {2:02} to block {3:02}'.format(
-                        batch_id+1, total_batches, check_id+1, block_id+1
-                      )
-                    )
-
-                    check_systems = block_data[check_id]['systems']
-                    check_systems.sort()
-                    shuffle(check_systems)
-
-                    # TODO: BLOCK DEFINITION
-                    block_data[block_id]['redundant'] = check_systems[0]
-                    block_data[block_id]['reference'] = check_systems[1]
-                    block_data[block_id]['badref'] = check_systems[2]
-
-                    # TODO: BLOCK DEFINITION for 8:2
-                    block_data[block_id]['badrefs'] = check_systems[:]
-
-                    # TODO: BLOCK DEFINITION for 9:1
-                    block_data[block_id]['badrefs'] = check_systems[:1]
-
             # Direct assessment is reference-based for WMT17
             if source_based:
                 sourceID = 'LOCAL_SRC' if use_local_src else basename(options['source_file'])
@@ -654,26 +566,6 @@ class Command(BaseCommand):
             })
             itemsData = []
             _item = 0
-
-            # TODO: remove dead code.
-            if False:
-                for block_id in range(num_blocks):
-                    block_items = [(x, 'TGT') for x in block_data[block_id]['systems']]
-                    # TODO: BLOCK DEFINITION
-                    # all_items.append((block_data[block_id]['redundant'], 'CHK'))
-                    # all_items.append((block_data[block_id]['reference'], 'REF'))
-                    # all_items.append((block_data[block_id]['badref'], 'BAD'))
-                    # TODO: BLOCK DEFINITION
-                    block_items.extend([(x, 'BAD') for x in block_data[block_id]['badrefs']])
-                    shuffle(all_items) # pylint: disable=E0602
-                    block_data[block_id]['block_items'] = block_items
-
-            # 1. Shuffle list of all TGT items for this batch, n items
-            # 2. Shuffle list of all BAD items for this batch, 100-n items
-            # 3. Randomly assign items to batch list of 100 items
-            #    Maximise distance between TGT and BAD items X-->X+50
-            #    Only add redundant items for TGT indices i<50
-            #    This is fine as we work on shuffled items
 
             for block_id in range(num_blocks):
                 block_items = block_data[block_id]['block_items']
@@ -731,6 +623,7 @@ class Command(BaseCommand):
             self.stdout.write('OK')
 
 
+    # TODO: use module-level function instead, moving to different file.
     @staticmethod
     def _load_text_from_file(file_path, encoding='utf8'):
         segment_id = 0
