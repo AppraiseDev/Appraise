@@ -1,15 +1,18 @@
 """
 Appraise evaluation framework
 """
-# pylint: disable=W0611
-from Dashboard.models import LANGUAGE_CODES_AND_NAMES
-import json
-from django.core.management.base import BaseCommand, CommandError # pylint: disable=E0401
 from collections import defaultdict, OrderedDict
+import json
 from math import floor
 from os.path import basename
 from random import randrange, seed, shuffle
 from sys import exit as sys_exit
+
+# pylint: disable=W0611
+from Dashboard.models import LANGUAGE_CODES_AND_NAMES
+
+from django.core.management.base import BaseCommand, CommandError # pylint: disable=E0401
+
 
 # pylint: disable=C0111
 class Command(BaseCommand):
@@ -179,6 +182,8 @@ class Command(BaseCommand):
 ###
 
     def handle(self, *args, **options):
+        del args # Unused
+
         # Validate source and target language codes
         _all = list(set(
           [x.lower() for x in LANGUAGE_CODES_AND_NAMES.keys()]
@@ -222,7 +227,7 @@ class Command(BaseCommand):
         if False:
             # IF BLOCK DEF IS GIVEN, DO SOMETHING WITH IT
             if options['block_definition'] is not None:
-                print("WOOHOO") 
+                print("WOOHOO")
 
         # If no redundancy is specified, we will use 100 candidates instead.
         if no_redundancy:
@@ -261,7 +266,7 @@ class Command(BaseCommand):
             if (batch_size % block_size) > 0:
                 self.stdout.write('Batch size needs to be divisible by block size!')
                 return
-        
+
             # CHECK THAT WE END UP WITH EVEN NUMBER OF BLOCKS
             print('We will create {0} blocks'.format(int(batch_size / block_size)))
 
@@ -631,7 +636,7 @@ class Command(BaseCommand):
 
                     # TODO: BLOCK DEFINITION for 9:1
                     block_data[block_id]['badrefs'] = check_systems[:1]
- 
+
             # Direct assessment is reference-based for WMT17
             if source_based:
                 sourceID = 'LOCAL_SRC' if use_local_src else basename(options['source_file'])
@@ -662,14 +667,14 @@ class Command(BaseCommand):
                     block_items.extend([(x, 'BAD') for x in block_data[block_id]['badrefs']])
                     shuffle(all_items) # pylint: disable=E0602
                     block_data[block_id]['block_items'] = block_items
-            
+
             # 1. Shuffle list of all TGT items for this batch, n items
             # 2. Shuffle list of all BAD items for this batch, 100-n items
             # 3. Randomly assign items to batch list of 100 items
             #    Maximise distance between TGT and BAD items X-->X+50
             #    Only add redundant items for TGT indices i<50
             #    This is fine as we work on shuffled items
-            
+
             for block_id in range(num_blocks):
                 block_items = block_data[block_id]['block_items']
                 print(block_items)
