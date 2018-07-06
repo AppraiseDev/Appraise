@@ -54,6 +54,10 @@ class Command(BaseCommand):
           help='Defines (candidates, redundant, reference, bad reference) per block'
         )
         parser.add_argument(
+          '--task-definition', type=str, default="80:5:5:10",
+          help='Defines (candidates, repeats, reference, bad reference) per task'
+        )
+        parser.add_argument(
           '--required-annotations', type=int, default=1,
           help='Specifies required annotations per batch (default: 1)'
         )
@@ -197,7 +201,7 @@ class Command(BaseCommand):
         # Serialize pairs into JSON format
         # Write out JSON output file
 
-        batch_size = options['batch_size']
+        batch_size = options['batch_size'] # TODO: hardcode as 100
         unicode_enc = options['unicode']
         use_local_src = options['local_src']
         use_local_ref = options['local_ref']
@@ -205,23 +209,60 @@ class Command(BaseCommand):
         source_based = options['source_based']
         no_redundancy = options['no_redundancy']
 
-        block_size = 10
-        block_annotations = 7
-        block_redundants = 1
-        block_references = 1
-        block_badrefs = 1
+        # TODO: remove dead code.
+        if False:
+            block_size = 10
+            block_annotations = 7
+            block_redundants = 1
+            block_references = 1
+            block_badrefs = 1
 
-        # IF BLOCK DEF IS GIVEN, DO SOMETHING WITH IT
-        if options['block_definition'] is not None:
-            print("WOOHOO") 
+        # TODO: remove dead code.
+        if False:
+            # IF BLOCK DEF IS GIVEN, DO SOMETHING WITH IT
+            if options['block_definition'] is not None:
+                print("WOOHOO") 
 
-        if (batch_size % block_size) > 0:
-            self.stdout.write('Batch size needs to be divisible by block size!')
-            return
+        # If no redundancy is specified, we will use 100 candidates instead.
+        if no_redundancy:
+            self.stdout.write('No redundancy set.')
+            items_per_batch = (100, 0, 0, 0)
+
+        # Otherwise, we will now parse the task definition parameter.
+        else:
+            try:
+                # Extract task definition which is defined as:
+                #
+                # 1. number of candidates;
+                # 2. number repeats;
+                # 3. number of references; and
+                # 4. number of bad references.
+                task_def = [
+                    int(x) for x in options['task_definition'].split(':')]
+
+                # At least half of the tasks items have to be candidates.
+                if sum(task_def) == 100 and task_def[0] >= 50:
+                    items_per_batch = tuple(task_def)
+
+            except ValueError:
+                self.stdout.write('Bad task definition value: {0!r}'.format(
+                    options['task_definition']))
+
+                # Fall back to default task definition.
+                items_per_batch = (80, 5, 5, 10)
+
+            finally:
+                self.stdout.write('Using task definition: {0}'.format(
+                    items_per_batch))
+
+        # TODO: remove dead code.
+        if False:
+            if (batch_size % block_size) > 0:
+                self.stdout.write('Batch size needs to be divisible by block size!')
+                return
         
-        # CHECK THAT WE END UP WITH EVEN NUMBER OF BLOCKS
-
-        print('We will create {0} blocks'.format(int(batch_size / block_size)))
+            # CHECK THAT WE END UP WITH EVEN NUMBER OF BLOCKS
+            print('We will create {0} blocks'.format(int(batch_size / block_size)))
 
         # TODO: add parameter to set encoding
         # TODO: need to use OrderedDict to preserve segment IDs' order!
@@ -424,22 +465,22 @@ class Command(BaseCommand):
                     _sorted_keys.extend(matching_keys)
             all_keys = _sorted_keys
 
-        items_per_batch = 10 * 7 # TODO: BLOCK DEFINITION
-        items_per_batch = 10 * 8
-        items_per_batch = 10 * 9
-        items_per_batch = 88
+        # TODO: remove dead code.
+        if False:
+            items_per_batch = 10 * 7 # TODO: BLOCK DEFINITION
+            items_per_batch = 10 * 8
+            items_per_batch = 10 * 9
+            items_per_batch = 88
 
-        if no_redundancy:
-            print('No redundancy set, using items_per_batch=100')
-            items_per_batch = 100
-
-        missing_items = items_per_batch - len(all_keys) % items_per_batch
-        print('Missing items is {0}/{1}'.format(missing_items, items_per_batch))
+        # Number of candidates in first position of items_per_batch tuple.
+        batch_items = items_per_batch[0]
+        missing_items = batch_items - len(all_keys) % batch_items
+        print('Missing items is {0}/{1}'.format(missing_items, batch_items))
 
         all_keys.extend(all_keys[0:missing_items])
         print('Added {0} missing items rotating keys'.format(missing_items))
 
-        total_batches = int(floor(len(all_keys) / items_per_batch))
+        total_batches = int(floor(len(all_keys) / batch_items))
         print('Total number of batches is {0}'.format(total_batches))
 
         batch_no = options['batch_no']
@@ -459,12 +500,15 @@ class Command(BaseCommand):
         json_data = []
         for batch_id in batch_nos: # range(batch_no):
             block_data = []
-            block_offset = batch_id * 10 * 7 # TODO: BLOCK DEFINITION
-            block_offset = batch_id * 10 * 8
-            block_offset = batch_id * 10 * 9
-            block_offset = batch_id * items_per_batch
 
-            block_start = block_offset
+            # TODO: remove dead code.
+            if False:
+                block_offset = batch_id * 10 * 7 # TODO: BLOCK DEFINITION
+                block_offset = batch_id * 10 * 8
+                block_offset = batch_id * 10 * 9
+                block_offset = batch_id * items_per_batch
+
+            block_start = batch_id * items_per_batch
             block_end = block_start + items_per_batch
             block_hashes = all_keys[block_start:block_end]
 
@@ -474,14 +518,40 @@ class Command(BaseCommand):
             check_ids = list(range(50))
             shuffle(check_ids)
 
-            print(check_ids[:100-items_per_batch])
-            batch_items = [None for _ in range(100)]
+            # Determine segment ids for redundant quality controls.
+            chk_items, ref_items, bad_items = items_per_batch[1:]
+
+            start_index = 0
+            end_index = chk_items
+            chk_ids = check_ids[start_index:end_index]
+
+            start_index += end_index
+            end_index += ref_items
+            ref_ids = check_ids[start_index:end_index]
+
+            start_index += end_index
+            end_index += bad_items
+            bad_ids = check_ids[start_index:end_index]
+
+            print(chk_ids, ref_ids, bad_ids)
+            batch_items = [None * 100] # [None for _ in range(100)]
             for index, item_hash in enumerate(block_hashes[:50]):
                 print('TGT', index)
                 batch_items[index] = (item_hash, 'TGT')
-                if index in check_ids[:(100-items_per_batch)]:
-                    print('BAD', index+50)
-                    batch_items[index+50] = (item_hash, 'BAD')
+
+                item_type = None
+                if index in chk_ids:
+                    item_type = 'CHK'
+
+                elif index in bad_ids:
+                    item_type = 'REF'
+
+                elif index in bad_ids:
+                    item_type = 'BAD'
+
+                if item_type is not None:
+                    print(item_type, index+50)
+                    batch_items[index+50] = (item_hash, item_type)
 
             print('-' * 40)
             emtpy_slots = []
@@ -508,6 +578,7 @@ class Command(BaseCommand):
 
                 block_data.append(current_block)
 
+            # TODO: remove dead code.
             if False:
                 num_blocks = int(batch_size/block_size)
                 for block_id in range(num_blocks):
@@ -576,6 +647,7 @@ class Command(BaseCommand):
             itemsData = []
             _item = 0
 
+            # TODO: remove dead code.
             if False:
                 for block_id in range(num_blocks):
                     block_items = [(x, 'TGT') for x in block_data[block_id]['systems']]
