@@ -535,7 +535,13 @@ class Command(BaseCommand):
             print(len([x for x in batch_items if x is None]))
 
             # Ensure randomness of TGT, CHK, REF, BAD items.
-            shuffle(batch_items)
+            # We do this by randomly swapping pairs at positions (x, x+50).
+            for index in range(50):
+                random_swap = randint(0, 1)
+                if random_swap == 1:
+                    temp_value = batch_items[index]
+                    batch_items[index] = batch_items[index+50]
+                    batch_items[index+50] = temp_value
 
             num_blocks = 10
             for block_id in range(num_blocks):
