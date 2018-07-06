@@ -4,7 +4,7 @@ Appraise evaluation framework
 # pylint: disable=W0611
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 import json
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError # pylint: disable=E0401
 from collections import defaultdict, OrderedDict
 from math import floor
 from os.path import basename
@@ -211,6 +211,7 @@ class Command(BaseCommand):
 
         # TODO: remove dead code.
         if False:
+            # pylint: disable=W0612
             block_size = 10
             block_annotations = 7
             block_redundants = 1
@@ -318,6 +319,8 @@ class Command(BaseCommand):
             #
             # system_bad = Command._load_text_from_file(system_path.replace('.txt', '.bad'), encoding)
 
+            # TODO: decide whether to drop use of system_ids.
+            # pylint: disable=W0612
             if not create_ids:
                 system_ids = Command._load_text_from_file(system_path.replace('.txt', '.ids'), encoding)
             else:
@@ -657,7 +660,7 @@ class Command(BaseCommand):
                     # all_items.append((block_data[block_id]['badref'], 'BAD'))
                     # TODO: BLOCK DEFINITION
                     block_items.extend([(x, 'BAD') for x in block_data[block_id]['badrefs']])
-                    shuffle(all_items)
+                    shuffle(all_items) # pylint: disable=E0602
                     block_data[block_id]['block_items'] = block_items
             
             # 1. Shuffle list of all TGT items for this batch, n items
