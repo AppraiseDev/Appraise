@@ -5,7 +5,7 @@ from collections import defaultdict, OrderedDict
 import json
 from math import floor
 from os.path import basename
-from random import randrange, seed, shuffle
+from random import randint, randrange, seed, shuffle
 from sys import exit as sys_exit
 
 # pylint: disable=W0611
