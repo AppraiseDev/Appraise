@@ -483,7 +483,7 @@ class Command(BaseCommand):
         # Number of candidates in first position of items_per_batch tuple.
         batch_items = items_per_batch[0]
         missing_items = batch_items - len(all_keys) % batch_items
-        print('Missing items is {0}/{1}'.format(missing_items, batch_items))
+        print('Missing items is {0}/{1}/{2}'.format(missing_items, batch_items, len(all_keys)))
 
         all_keys.extend(all_keys[0:missing_items])
         print('Added {0} missing items rotating keys'.format(missing_items))
@@ -516,8 +516,8 @@ class Command(BaseCommand):
                 block_offset = batch_id * 10 * 9
                 block_offset = batch_id * items_per_batch
 
-            block_start = batch_id * items_per_batch
-            block_end = block_start + items_per_batch
+            block_start = batch_id * items_per_batch[0]
+            block_end = block_start + items_per_batch[0]
             block_hashes = all_keys[block_start:block_end]
 
             block_hashes.sort()
@@ -528,51 +528,51 @@ class Command(BaseCommand):
 
             # Determine segment ids for redundant quality controls.
             chk_items, ref_items, bad_items = items_per_batch[1:]
+            print(chk_items, ref_items, bad_items)
 
             start_index = 0
             end_index = chk_items
             chk_ids = check_ids[start_index:end_index]
 
-            start_index += end_index
+            start_index = end_index
             end_index += ref_items
             ref_ids = check_ids[start_index:end_index]
 
-            start_index += end_index
+            start_index = end_index
             end_index += bad_items
             bad_ids = check_ids[start_index:end_index]
 
             print(chk_ids, ref_ids, bad_ids)
-            batch_items = [None * 100] # [None for _ in range(100)]
+            batch_items = [None for _ in range(100)]
             for index, item_hash in enumerate(block_hashes[:50]):
-                print('TGT', index)
                 batch_items[index] = (item_hash, 'TGT')
 
                 item_type = None
                 if index in chk_ids:
                     item_type = 'CHK'
 
-                elif index in bad_ids:
+                elif index in ref_ids:
                     item_type = 'REF'
 
                 elif index in bad_ids:
                     item_type = 'BAD'
 
                 if item_type is not None:
-                    print(item_type, index+50)
                     batch_items[index+50] = (item_hash, item_type)
 
-            print('-' * 40)
             emtpy_slots = []
             for index in range(50):
                 if batch_items[index+50] is None:
                     emtpy_slots.append(index+50)
-            print(emtpy_slots)
+            print('empty_slots', emtpy_slots)
             for index, item_hash in zip(emtpy_slots, block_hashes[50:]):
-                print('TGT', index)
                 batch_items[index] = (item_hash, 'TGT')
 
             print(len(batch_items))
             print(len([x for x in batch_items if x is None]))
+
+            # Ensure randomness of TGT, CHK, REF, BAD items.
+            shuffle(batch_items)
 
             num_blocks = 10
             for block_id in range(num_blocks):
@@ -677,7 +677,7 @@ class Command(BaseCommand):
 
             for block_id in range(num_blocks):
                 block_items = block_data[block_id]['block_items']
-                print(block_items)
+                # print(block_items)
 
                 for current_item, current_type in block_items:
                     item_data = hashed_text[current_item]
