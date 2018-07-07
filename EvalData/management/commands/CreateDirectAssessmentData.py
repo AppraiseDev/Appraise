@@ -393,9 +393,10 @@ class Command(BaseCommand):
                           if use_local_src else randrange(0, len(source_file)) + 1
 
                     _bad_text = None
-#                    if source_based:
-#                        _bad_text = local_src[_bad_id] if use_local_src else source_file[_bad_id]
-#                    else:
+                    # if source_based:
+                    #     _bad_text = source_file[_bad_id]
+                    #     if use_local_src:
+                    #         _bad_text = local_src[_bad_id]
                     #
                     # We are currently forcing reference-based bad reference
                     # generation. If no reference is available, then a copy
@@ -484,7 +485,8 @@ class Command(BaseCommand):
         # Number of candidates in first position of items_per_batch tuple.
         batch_items = items_per_batch[0]
         missing_items = batch_items - len(all_keys) % batch_items
-        print('Missing items is {0}/{1}/{2}'.format(missing_items, batch_items, len(all_keys)))
+        print('Missing items is {0}/{1}/{2}'.format(
+            missing_items, batch_items, len(all_keys)))
 
         all_keys.extend(all_keys[0:missing_items])
         print('Added {0} missing items rotating keys'.format(missing_items))
@@ -588,9 +590,14 @@ class Command(BaseCommand):
 
             # Direct assessment is reference-based for WMT17
             if source_based:
-                source_id = 'LOCAL_SRC' if use_local_src else basename(options['source_file'])
+                source_id = basename(options['source_file'])
+                if use_local_src:
+                    source_id = 'LOCAL_SRC'
+
             else:
-                source_id = 'LOCAL_REF' if use_local_ref else basename(options['reference_file'])
+                source_id = basename(options['reference_file'])
+                if use_local_ref:
+                    source_id = 'LOCAL_REF'
 
             # Remember, batch numbers are one-based
             task_data = OrderedDict({
@@ -606,7 +613,6 @@ class Command(BaseCommand):
 
             for block_id in range(num_blocks):
                 block_items = block_data[block_id]['block_items']
-                # print(block_items)
 
                 for current_item, current_type in block_items:
                     item_data = hashed_text[current_item]
@@ -632,7 +638,9 @@ class Command(BaseCommand):
                     obj['_item'] = _item
                     obj['_block'] = block_id + (10 * batch_id)
                     obj['sourceID'] = source_id
-                    obj['sourceText'] = item_ref if not source_based else item_src
+                    obj['sourceText'] = item_ref
+                    if source_based:
+                         obj['sourceText'] = item_src
                     obj['targetID'] = target_id
                     obj['targetText'] = target_text
                     obj['itemID'] = item_id
@@ -654,11 +662,12 @@ class Command(BaseCommand):
         json_data = json.dumps(json_data, indent=2, sort_keys=True)
         print(json_data)
 
-        with open(options['output_json_file'], mode='w', encoding='utf8') as output_file:
-            self.stdout.write('Creating {0} ... '.format(options['output_json_file']), ending='')
-            output_file.write(str(json_data))
+        json_file_name = options['output_json_file']
+        with open(json_file_name, mode='w', encoding='utf8') as out_file:
+            self.stdout.write('Creating {0} ... '.format(
+                options['output_json_file']), ending='')
+            out_file.write(str(json_data))
             self.stdout.write('OK')
-
 
     # TODO: use module-level function instead, moving to different file.
     @staticmethod
