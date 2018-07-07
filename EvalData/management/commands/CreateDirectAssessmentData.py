@@ -22,19 +22,19 @@ from random import (
 )
 from sys import exit as sys_exit
 
+# pylint: disable=E0401,W0611
 from django.core.management.base import (
     BaseCommand,
     CommandError,
-) # pylint: disable=E0401,W0611
+)
 
-# pylint: disable=W0611
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 
 # pylint: disable=C0111
 class Command(BaseCommand):
     help = 'Creates JSON file containing DirectAssessmentTask data'
 
-    # pylint: disable=C0330
+    # pylint: disable=C0330,no-self-use
     def add_arguments(self, parser):
         parser.add_argument(
           'batch_size', type=int,
@@ -199,9 +199,7 @@ class Command(BaseCommand):
         del args # Unused
 
         # Validate source and target language codes
-        _all = list(set(
-          [x.lower() for x in LANGUAGE_CODES_AND_NAMES.keys()]
-        ))
+        _all = list(set([x.lower() for x in LANGUAGE_CODES_AND_NAMES]))
         _all.sort()
         _src = options['source_language'].lower()
         if not _src in _all:
@@ -285,7 +283,7 @@ class Command(BaseCommand):
         systems_files = []
         systems_path = options['systems_path']
         systems_glob = '{0}{1}{2}'.format(systems_path, path_sep, "*.txt")
-        
+
         for system_file in iglob(systems_glob):
             if '+' in basename(system_file):
                 print('Cannot use system files with + in names ' \
@@ -331,7 +329,7 @@ class Command(BaseCommand):
             #
             # IN A SENSE, using these local files makes better sense. It is
             # wasteful, though.
-            # 
+            #
             # MAYBE, it is better to simply generate a simple JSON config?!
             local_src = []
             local_ref = []
@@ -403,6 +401,7 @@ class Command(BaseCommand):
                     # generation. If no reference is available, then a copy
                     # of the source file will work just fine.
                     #
+                    # pylint: disable=using-constant-test
                     if True:
                         _bad_text = local_ref[_bad_id] if use_local_ref else reference_file[_bad_id]
 
@@ -441,8 +440,10 @@ class Command(BaseCommand):
                         hashed_text[md5hash].update({'segment_url': _url})
 
                     hashes_by_ids[segment_id].append(md5hash)
+
                 else:
-                    hashed_text[md5hash]['systems'].append(basename(system_path))
+                    hashed_text[md5hash]['systems'].append(
+                        basename(system_path))
 
             print('Loaded {0} system {1} segments'.format(
               len(system_txt.keys()), basename(system_path))
@@ -450,9 +451,11 @@ class Command(BaseCommand):
 
         # Dump deduplicated segment data to JSON file.
         json_data = json.dumps(hashed_text, indent=2, sort_keys=True)
-        with open(options['output_json_file'] + '.segments', mode='w', encoding='utf8') as output_file:
-            self.stdout.write('Creating {0} ... '.format(options['output_json_file'] + '.segments'), ending='')
-            output_file.write(str(json_data))
+        segments_file_name = options['output_json_file'] + '.segments'
+        with open(segments_file_name, mode='w', encoding='utf8') as out_file:
+            self.stdout.write('Creating {0} ... '.format(
+                segments_file_name), ending='')
+            out_file.write(str(json_data))
             self.stdout.write('OK')
 
         all_keys = list(hashed_text.keys())
@@ -582,12 +585,12 @@ class Command(BaseCommand):
 
             # Direct assessment is reference-based for WMT17
             if source_based:
-                sourceID = 'LOCAL_SRC' if use_local_src else basename(options['source_file'])
+                source_id = 'LOCAL_SRC' if use_local_src else basename(options['source_file'])
             else:
-                sourceID = 'LOCAL_REF' if use_local_ref else basename(options['reference_file'])
+                source_id = 'LOCAL_REF' if use_local_ref else basename(options['reference_file'])
 
             # Remember, batch numbers are one-based
-            taskData = OrderedDict({
+            task_data = OrderedDict({
               'batchNo': batch_id+1,
               'batchSize': options['batch_size'],
               'sourceLanguage': options['source_language'],
@@ -595,7 +598,7 @@ class Command(BaseCommand):
               'requiredAnnotations': options['required_annotations'],
               'randomSeed': random_seed_value
             })
-            itemsData = []
+            items_data = []
             _item = 0
 
             for block_id in range(num_blocks):
@@ -613,37 +616,37 @@ class Command(BaseCommand):
                     item_url = item_data.get('segment_url')
                     item_systems = item_data['systems']
 
-                    targetID = '+'.join(sorted(set(item_systems)))
-                    targetText = item_text
+                    target_id = '+'.join(sorted(set(item_systems)))
+                    target_text = item_text
                     if current_type == 'REF':
-                        targetID = basename(options['reference_file'])
-                        targetText = item_ref
+                        target_id = basename(options['reference_file'])
+                        target_text = item_ref
 
                     elif current_type == 'BAD':
-                        targetText = item_bad
+                        target_text = item_bad
 
                     obj = OrderedDict()
                     obj['_item'] = _item
                     obj['_block'] = block_id + (10 * batch_id)
-                    obj['sourceID'] = sourceID
+                    obj['sourceID'] = source_id
                     obj['sourceText'] = item_ref if not source_based else item_src
-                    obj['targetID'] = targetID
-                    obj['targetText'] = targetText
+                    obj['targetID'] = target_id
+                    obj['targetText'] = target_text
                     obj['itemID'] = item_id
                     obj['itemType'] = current_type
 
                     if item_url is not None:
                         obj['imageURL'] = item_url
 
-                    itemsData.append(obj)
+                    items_data.append(obj)
                     _item += 1
 
-            outputData = OrderedDict({
-              'task': taskData,
-              'items': itemsData
+            output_data = OrderedDict({
+              'task': task_data,
+              'items': items_data
             })
 
-            json_data.append(outputData)
+            json_data.append(output_data)
 
         json_data = json.dumps(json_data, indent=2, sort_keys=True)
         print(json_data)
