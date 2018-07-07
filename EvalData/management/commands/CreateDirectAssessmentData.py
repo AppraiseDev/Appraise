@@ -1,18 +1,34 @@
 """
 Appraise evaluation framework
 """
-from collections import defaultdict, OrderedDict
+from collections import (
+    defaultdict,
+    OrderedDict,
+)
+from glob import iglob
+import hashlib
 import json
 from math import floor
-from os.path import basename
-from random import randint, randrange, seed, shuffle
+from os.path import (
+    basename,
+    exists,
+    sep as path_sep,
+)
+from random import (
+    randint,
+    randrange,
+    seed,
+    shuffle,
+)
 from sys import exit as sys_exit
+
+from django.core.management.base import (
+    BaseCommand,
+    CommandError,
+) # pylint: disable=E0401,W0611
 
 # pylint: disable=W0611
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
-
-from django.core.management.base import BaseCommand, CommandError # pylint: disable=E0401
-
 
 # pylint: disable=C0111
 class Command(BaseCommand):
@@ -53,19 +69,15 @@ class Command(BaseCommand):
           help='Path to optional image URLs file'
         )
         parser.add_argument(
-          '--block-definition', type=str, default="7:1:1:1",
-          help='Defines (candidates, redundant, reference, bad reference) per block'
-        )
-        parser.add_argument(
           '--task-definition', type=str, default="80:5:5:10",
-          help='Defines (candidates, repeats, reference, bad reference) per task'
+          help='Defines (candidates, repeats, reference, bad refs) per task'
         )
         parser.add_argument(
           '--required-annotations', type=int, default=1,
           help='Specifies required annotations per batch (default: 1)'
         )
         parser.add_argument(
-          '--random-seed', type=int, # required=False,
+          '--random-seed', type=int, default=123456,
           help='Random generator seed value'
         )
         parser.add_argument(
@@ -110,15 +122,13 @@ class Command(BaseCommand):
         )
         parser.add_argument(
           '--character-based', action='store_true',
-          help='Enable character-based processing, default for Chinese and Japanese'
+          help='Enable character-based mode, default for Chinese and Japanese'
         )
         parser.add_argument(
           '--no-redundancy', action='store_true',
-          help='Disable redundant items for quality control, maximising data collection'
+          help='Disable redundant quality control, maximising data collection'
         )
         # TODO: add optional parameters to set source, reference and system IDs
-
-        # TODO: add exclude argument which prevents creation of redundant data?
 
 ###
 #
@@ -136,25 +146,29 @@ class Command(BaseCommand):
 #
 # We operate on k files, one per submitted system.
 #
-# When sampling data, we need to read in candidate translations in a stable order.
-# This works by creating a sorted list of file names and then shuffling it once.
-# Given the random seed value, this should be reproducible.
+# When sampling data, we need to read in candidate translations in a stable
+# order. This works by creating a sorted list of file names and then shuffling
+# it once. Given the random seed value, this should be reproducible.
 #
-# For this to work, we have to ALWAYS seed the RNG. By default, we should use msec after midnight.
-# This also means that we have to expose/print the seed value every time so that users know it.
+# For this to work, we have to ALWAYS seed the RNG. By default, we should use
+# msec after midnight. This also means that we have to expose/print the seed
+# value every time so that users know it.
 #
-# Once the random order of file names has been created, we read in candidate translations.
-# For each, we compute the MD5 hash of the .strip()ed Unicode text, preserving case information.
-# The MD5 hash will act as unique key for the segment text. If multiple segments share the same
-# segment text, they will end up being mapped to the same key. In this case, the only difference
-# is (potentially) in the bad reference text. This should be identical for identical candidate
-# translations but there is no hard guarantee for this. Hence, we agree to always use the bad
-# reference text from the first system being mapped to the respective MD5 key. The segment ID
-# will always be the same and hence is not an issue. Should the segment ID not match, we have
-# an inconsistent state and should abort sampling. It is fine if files do not align wrt. the
-# number of translations contained within each of the files as long as identical candidate text
-# has identical segment IDs. There is a potential problem if multiple translations map to the
-# different source segments, thus ending up with different IDs. I have no idea what we can do
+# Once the random order of file names has been created, we read in candidate
+# translations. For each, we compute the MD5 hash of the .strip()ed Unicode
+# text, preserving case information. The MD5 hash will act as unique key for
+# the segment text. If multiple segments share the same segment text, they
+# will end up being mapped to the same key. In this case, the only difference
+# is (potentially) in the bad reference text. This should be identical for
+# identical candidate translations but there is no hard guarantee for this.
+# Hence, we agree to always use the bad reference text from the first system
+# being mapped to the respective MD5 key. The segment ID will always be the
+# same and hence is not an issue. Should the segment ID not match, we have
+# an inconsistent state and should abort sampling. It is fine if files do not
+# align wrt. the number of translations contained within each of the files as
+# long as identical candidate text has identical segment IDs. There is a
+# potential problem if multiple translations map to the different source
+# segments, thus ending up with different IDs. I have no idea what we can do
 # about this case.
 #
 # Number of blocks = d
@@ -206,7 +220,6 @@ class Command(BaseCommand):
         # Serialize pairs into JSON format
         # Write out JSON output file
 
-        batch_size = options['batch_size'] # TODO: hardcode as 100
         unicode_enc = options['unicode']
         use_local_src = options['local_src']
         use_local_ref = options['local_ref']
@@ -246,31 +259,34 @@ class Command(BaseCommand):
                 self.stdout.write('Using task definition: {0}'.format(
                     items_per_batch))
 
-
-        # TODO: add parameter to set encoding
-        # TODO: need to use OrderedDict to preserve segment IDs' order!
         encoding = 'utf16' if unicode_enc else 'utf8'
 
         source_file = []
         if not use_local_src:
-            source_file = Command._load_text_from_file(options['source_file'], encoding)
-            print('Loaded {0} source segments'.format(len(source_file.keys())))
+            source_file = Command._load_text_from_file(
+                options['source_file'], encoding)
+            print('Loaded {0} source segments'.format(
+                len(source_file.keys())))
 
         reference_file = []
         if not use_local_ref:
-            reference_file = Command._load_text_from_file(options['reference_file'], encoding)
-            print('Loaded {0} reference segments'.format(len(reference_file.keys())))
+            reference_file = Command._load_text_from_file(
+                options['reference_file'], encoding)
+            print('Loaded {0} reference segments'.format(
+                len(reference_file.keys())))
 
         urls_file = []
         if options['urls_file'] is not None:
-            urls_file = Command._load_text_from_file(options['urls_file'], encoding)
-            print('Loaded {0} image URLs'.format(len(urls_file.keys())))
+            urls_file = Command._load_text_from_file(
+                options['urls_file'], encoding)
+            print('Loaded {0} image URLs'.format(
+                len(urls_file.keys())))
 
         systems_files = []
         systems_path = options['systems_path']
-        from glob import iglob
-        import os.path
-        for system_file in iglob('{0}{1}{2}'.format(systems_path, os.path.sep, "*.txt")):
+        systems_glob = '{0}{1}{2}'.format(systems_path, path_sep, "*.txt")
+        
+        for system_file in iglob(systems_glob):
             if '+' in basename(system_file):
                 print('Cannot use system files with + in names ' \
                   'as this breaks multi-system meta systems:\n' \
@@ -278,14 +294,12 @@ class Command(BaseCommand):
                 sys_exit(-1)
             systems_files.append(system_file)
 
-        random_seed_value = 123456
+        random_seed_value = options['random_seed']
 
         systems_files.sort()
         seed(random_seed_value)
         shuffle(systems_files)
-        # ADD RANDOMIZED SHUFFLING HERE?
 
-        import hashlib
         hashed_text = {}
         hashes_by_ids = defaultdict(list)
 
@@ -299,36 +313,46 @@ class Command(BaseCommand):
             # To do so, we will load a random source segment to fill in a
             # randomly positioned phrase in the given candidate translation.
             #
-            # system_bad = Command._load_text_from_file(system_path.replace('.txt', '.bad'), encoding)
+            # system_bad = Command._load_text_from_file(
+            #     system_path.replace('.txt', '.bad'), encoding)
 
             # TODO: decide whether to drop use of system_ids.
             # pylint: disable=W0612
             if not create_ids:
-                system_ids = Command._load_text_from_file(system_path.replace('.txt', '.ids'), encoding)
+                system_ids = Command._load_text_from_file(
+                    system_path.replace('.txt', '.ids'), encoding)
             else:
                 system_ids = [x+1 for x in range(len(system_txt))]
-            # BASICALLY: add support for local system_src and system_ref files here.
-            #   If such files are present, this will overwrite the global src/ref values.
-            #   However, this does not fully resolve the issue as we still have to give
-            #   a source text file, while is assumed to be shared...
+            # BASICALLY: add support for local system_src and system_ref files
+            # here. If such files are present, this will overwrite the global
+            # src/ref values. However, this does not fully resolve the issue
+            # as we still have to give a source text file, while is assumed to
+            # be shared...
             #
-            # IN A SENSE, using these local files makes better sense. It is wasteful, though.
-            #   MAYBE, it is better to simply generate a simple JSON config file?!
+            # IN A SENSE, using these local files makes better sense. It is
+            # wasteful, though.
+            # 
+            # MAYBE, it is better to simply generate a simple JSON config?!
             local_src = []
             local_ref = []
 
             if use_local_src:
                 local_src_path = system_path.replace('.txt', '.src')
-                if os.path.exists(local_src_path):
-                    local_src = Command._load_text_from_file(local_src_path, encoding)
+                if exists(local_src_path):
+                    local_src = Command._load_text_from_file(
+                        local_src_path, encoding)
 
             if use_local_ref:
                 local_ref_path = system_path.replace('.txt', '.ref')
-                if os.path.exists(local_ref_path):
-                    local_ref = Command._load_text_from_file(local_src_path, encoding)
+                if exists(local_ref_path):
+                    local_ref = Command._load_text_from_file(
+                        local_src_path, encoding)
 
             for segment_id, segment_text in system_txt.items():
-                md5hash = hashlib.new('md5', segment_text.encode(encoding)).hexdigest()
+                md5hash = hashlib.new(
+                    'md5', segment_text.encode(encoding)).hexdigest()
+
+                # TODO: fix long lines.
                 _src = local_src[segment_id] if use_local_src else source_file[segment_id]
                 _ref = local_src[segment_id] if use_local_ref else reference_file[segment_id]
                 _url = urls_file[segment_id] if urls_file else None
@@ -362,6 +386,7 @@ class Command(BaseCommand):
                 # Choose random src/ref segment
                 _bad_tokens = []
                 while len(_bad_tokens) <= _bad_len:
+                    # TODO: fix long lines.
                     _bad_id = randrange(0, len(local_ref)) + 1 \
                       if use_local_ref else randrange(0, len(reference_file)) + 1
 
@@ -409,7 +434,7 @@ class Command(BaseCommand):
                       'segment_bad': segment_bad,
                       'segment_ref': _ref,
                       'segment_src': _src,
-                      'systems': [os.path.basename(system_path)]
+                      'systems': [basename(system_path)]
                     }
 
                     if _url:
@@ -417,10 +442,10 @@ class Command(BaseCommand):
 
                     hashes_by_ids[segment_id].append(md5hash)
                 else:
-                    hashed_text[md5hash]['systems'].append(os.path.basename(system_path))
+                    hashed_text[md5hash]['systems'].append(basename(system_path))
 
             print('Loaded {0} system {1} segments'.format(
-              len(system_txt.keys()), os.path.basename(system_path))
+              len(system_txt.keys()), basename(system_path))
             )
 
         # Dump deduplicated segment data to JSON file.
