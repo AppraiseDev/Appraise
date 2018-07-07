@@ -402,17 +402,20 @@ class Command(BaseCommand):
                     # of the source file will work just fine.
                     #
                     # pylint: disable=using-constant-test
-                    if True:
-                        _bad_text = local_ref[_bad_id] if use_local_ref else reference_file[_bad_id]
 
-                    _bad_tokens = _bad_text \
-                      if character_based \
-                      else _bad_text.split(' ')
+                    _bad_text = reference_file[_bad_id]
+                    if use_local_ref:
+                        _bad_text = local_ref[_bad_id]
+
+                    _bad_tokens = _bad_text.split(' ')
+                    if character_based:
+                        _bad_tokens = _bad_text
 
                 # If dealing with Chinese or Japanese, use double the amount
                 # of characters for the bad replacement phrase.
                 _bad_phrase = None
 
+                # TODO: fix long lines.
                 _index = randrange(0, len(_bad_tokens) - _bad_len) \
                   if len(_bad_tokens) - _bad_len > 0 else 0
                 _bad_phrase = _bad_tokens[_index:_index + _bad_len]
@@ -422,9 +425,9 @@ class Command(BaseCommand):
                 _bad = _tokens[:_index] + _bad_phrase \
                   + _tokens[_index + _bad_len:]
 
-                segment_bad = ''.join(_bad) \
-                  if character_based \
-                  else ' '.join(_bad)
+                segment_bad = ' '.join(_bad)
+                if character_based:
+                    segment_bad = ''.join(_bad)
 
                 if not md5hash in hashed_text.keys():
                     hashed_text[md5hash] = {
