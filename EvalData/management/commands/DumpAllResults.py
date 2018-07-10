@@ -1,15 +1,14 @@
 """
 Appraise evaluation framework
 """
-# pylint: disable=W0611
-from datetime import datetime, timedelta
-from os import path
-from django.contrib.auth.models import User
+from os.path import basename
 
-from django.core.management.base import BaseCommand, CommandError
-from django.db.models import Count, Q
-from django.db.utils import OperationalError, ProgrammingError
-from django.utils.timezone import utc
+# pylint: disable=E0401,W0611
+from django.core.management.base import (
+    BaseCommand,
+    CommandError,
+)
+
 from EvalData.models import DirectAssessmentResult, MultiModalAssessmentResult
 
 
@@ -24,11 +23,16 @@ class Command(BaseCommand):
         pass
 
     def handle(self, *args, **options):
-        _msg = '\n[{0}]\n\n'.format(path.basename(__file__))
+        del args  # Unused.
+        del options  # Unused.
+
+        _msg = '\n[{0}]\n\n'.format(basename(__file__))
         self.stdout.write(_msg)
         self.stdout.write('\n[INIT]\n\n')
 
-        DirectAssessmentResult.dump_all_results_to_csv_file('DirectAssessmentResults.csv')
-        MultiModalAssessmentResult.dump_all_results_to_csv_file('MultiModalAssessmentResults.csv')
+        DirectAssessmentResult.dump_all_results_to_csv_file(
+            'DirectAssessmentResults.csv')
+        MultiModalAssessmentResult.dump_all_results_to_csv_file(
+            'MultiModalAssessmentResults.csv')
 
         self.stdout.write('\n[DONE]\n\n')
