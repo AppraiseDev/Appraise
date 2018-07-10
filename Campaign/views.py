@@ -2,12 +2,12 @@
 Appraise evaluation framework
 """
 # pylint: disable=E1101
-import logging
-
 from collections import defaultdict
 from datetime import datetime
+import logging
 from math import floor, sqrt
 
+# pylint: disable=import-error
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 
@@ -16,6 +16,7 @@ from EvalData.models import DirectAssessmentResult, seconds_to_timedelta
 from EvalData.models import MultiModalAssessmentResult
 
 from .models import Campaign
+
 
 # Setup logging support.
 logging.basicConfig(level=LOG_LEVEL)
@@ -63,8 +64,13 @@ def campaign_status(request, campaign_name, sort_key=2):
             _end_times = [x[1] for x in _data]
             _durations = [x[1]-x[0] for x in _data]
 
-            _user_mean = sum([x[2] for x in _data]) / _annotations if _annotations else 0
-            _user_stdev = sqrt(sum(((x[2] - _user_mean) ** 2 / (_annotations - 1)) for x in _data)) if _annotations > 1 else 1
+            _user_mean = sum([x[2] for x in _data]) / (_annotations or 1)
+
+            _cs = _annotations - 1  # Corrected sample size for stdev.
+            _user_stdev = 1
+            if _cs > 0:
+                _user_stdev = sqrt(
+                    sum(((x[2] - _user_mean) ** 2 / _cs) for x in _data))
 
             _tgt = defaultdict(list)
             _bad = defaultdict(list)
