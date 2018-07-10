@@ -1,7 +1,8 @@
 """
 Appraise evaluation framework
 """
-from django.conf.urls import url, handler404, handler500, include # pylint: disable=unused-import
+# pylint: disable=unused-import,import-error
+from django.conf.urls import url, handler404, handler500, include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 
