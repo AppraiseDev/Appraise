@@ -165,7 +165,7 @@ def create_profile(request):
                     languages = None
 
             # For any other exception, clean up and ask user to retry.
-            except:
+            except Exception:
                 from traceback import format_exc
                 print(format_exc()) # TODO: need logger here!
                 username = None
@@ -235,7 +235,7 @@ def update_profile(request):
                 return redirect('dashboard')
 
             # For any other exception, clean up and ask user to retry.
-            except:
+            except Exception:
                 from traceback import format_exc
                 print(format_exc())
 
