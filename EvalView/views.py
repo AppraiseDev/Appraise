@@ -1,6 +1,7 @@
 from datetime import datetime
 import logging
 
+# pylint: disable=import-error
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.timezone import utc
@@ -60,15 +61,14 @@ def direct_assessment(request, code=None, campaign_name=None):
     for agenda in agendas:
         modified = False
         LOGGER.info('Identified work agenda %s', agenda)
-        for serialized_open_task in agenda._open_tasks.all():
+        for serialized_open_task in agenda.serialized_open_tasks():
             open_task = serialized_open_task.get_object_instance()
             if open_task.next_item_for_user(request.user) is not None:
                 current_task = open_task
                 if not campaign:
                     campaign = agenda.campaign
             else:
-                agenda._completed_tasks.add(serialized_open_task)
-                agenda._open_tasks.remove(serialized_open_task)
+                agenda.complete_open_task(serialized_open_task)
                 modified = True
 
         if modified:
@@ -224,15 +224,14 @@ def multimodal_assessment(request, code=None, campaign_name=None):
     for agenda in agendas:
         modified = False
         LOGGER.info('Identified work agenda %s', agenda)
-        for serialized_open_task in agenda._open_tasks.all():
+        for serialized_open_task in agenda.serialized_open_tasks():
             open_task = serialized_open_task.get_object_instance()
             if open_task.next_item_for_user(request.user) is not None:
                 current_task = open_task
                 if not campaign:
                     campaign = agenda.campaign
             else:
-                agenda._completed_tasks.add(serialized_open_task)
-                agenda._open_tasks.remove(serialized_open_task)
+                agenda.complete_open_task(serialized_open_task)
                 modified = True
 
         if modified:
