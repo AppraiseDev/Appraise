@@ -640,7 +640,7 @@ class Command(BaseCommand):
                     obj['sourceID'] = source_id
                     obj['sourceText'] = item_ref
                     if source_based:
-                         obj['sourceText'] = item_src
+                        obj['sourceText'] = item_src
                     obj['targetID'] = target_id
                     obj['targetText'] = target_text
                     obj['itemID'] = item_id
