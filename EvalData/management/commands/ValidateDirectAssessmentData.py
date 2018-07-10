@@ -4,7 +4,13 @@ Appraise evaluation framework
 # pylint: disable=W0611
 from collections import defaultdict
 from json import load
-from django.core.management.base import BaseCommand, CommandError
+
+# pylint: disable=E0401,W0611
+from django.core.management.base import (
+    BaseCommand,
+    CommandError,
+)
+
 
 class Command(BaseCommand):
     """
@@ -17,7 +23,7 @@ class Command(BaseCommand):
     """
     help = 'Validates Direct Assessment JSON data files'
 
-    # pylint: disable=C0330
+    # pylint: disable=C0330,no-self-use
     def add_arguments(self, parser):
         parser.add_argument(
           'json_file', type=str,
@@ -33,6 +39,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        del args  # Unused.
+
         # Load system IDs and organise by segment ID.
         system_ids_by_segment = Command._load_ids_from_json_file(
           options['json_file'], options['max_batches'])
