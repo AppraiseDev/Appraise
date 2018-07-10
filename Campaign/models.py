@@ -1,7 +1,7 @@
 """
 Campaign models.py
 """
-# pylint: disable=C0330
+# pylint: disable=C0330,import-error
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -85,6 +85,7 @@ class CampaignTeam(BaseMetadata):
     teamMembers.short_description = '# of team members'
 
     # TODO: Connect to actual data, producing correct completion status.
+    # pylint: disable=no-self-use
     def completionStatus(self):
         """
         Proxy method return completion status in percent.
@@ -191,6 +192,9 @@ class Campaign(BaseMetadata):
 
 
 class TrustedUser(models.Model):
+    '''
+    Models trusted users who are exempt of quality controls.
+    '''
     user = models.ForeignKey(
       User,
       models.PROTECT,
