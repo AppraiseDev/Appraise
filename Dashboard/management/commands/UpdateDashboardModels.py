@@ -2,11 +2,13 @@
 Appraise evaluation framework
 """
 # pylint: disable=W0611
-from os import path
-from django.contrib.auth.models import Group
+from os.path import basename
 
+# pylint: disable=import-error
+from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand, CommandError
 from django.db.utils import OperationalError, ProgrammingError
+
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 
 
@@ -21,7 +23,10 @@ class Command(BaseCommand):
         pass
 
     def handle(self, *args, **options):
-        _msg = '\n[{0}]\n\n'.format(path.basename(__file__))
+        del args  # Unused.
+        del options  # Unused.
+
+        _msg = '\n[{0}]\n\n'.format(basename(__file__))
         self.stdout.write(_msg)
         self.stdout.write('\n[INIT]\n\n')
 
