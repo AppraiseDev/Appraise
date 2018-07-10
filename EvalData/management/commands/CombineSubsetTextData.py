@@ -1,18 +1,22 @@
 """
 Appraise evaluation framework
 """
-# pylint: disable=W0611
-from collections import defaultdict, OrderedDict
-from datetime import datetime
+from collections import (
+    defaultdict,
+    OrderedDict,
+)
 from glob import iglob
-from json import load
-from os import makedirs, path
-from os.path import basename
-from random import seed, shuffle
-from shutil import copyfile
+from os.path import (
+    basename,
+    sep as path_sep,
+)
 from sys import exit as sys_exit
-from traceback import format_exc
-from django.core.management.base import BaseCommand, CommandError
+
+# pylint: disable=E0401,W0611
+from django.core.management.base import (
+    BaseCommand,
+    CommandError,
+)
 
 INFO_MSG = 'INFO: '
 
@@ -20,7 +24,7 @@ INFO_MSG = 'INFO: '
 class Command(BaseCommand):
     help = 'Creates combined subset text file based on given CSV file'
 
-    # pylint: disable=C0330
+    # pylint: disable=C0330,no-self-use
     def add_arguments(self, parser):
         parser.add_argument(
           'csv_file', type=str,
@@ -44,6 +48,8 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        del args  # Unused.
+
         csv_file = options['csv_file']
         systems_path = options['systems_path']
         target_path = options['target_path']
@@ -52,10 +58,10 @@ class Command(BaseCommand):
 
         segment_ids_to_ignore = []
         if ignore_ids:
-            for segmentID in ignore_ids.split(','):
-                segment_ids_to_ignore.append(int(segmentID))
+            for segment_id in ignore_ids.split(','):
+                segment_ids_to_ignore.append(int(segment_id))
 
-        _msg = '\n[{0}]\n\n'.format(path.basename(__file__))
+        _msg = '\n[{0}]\n\n'.format(basename(__file__))
         self.stdout.write(_msg)
 
         self.stdout.write('    csv_file: {0}'.format(csv_file))
@@ -69,9 +75,9 @@ class Command(BaseCommand):
         encoding = 'utf16' if unicode_enc else 'utf8'
         source_data = defaultdict(OrderedDict)
         systems_files = []
-        from glob import iglob
-        import os.path
-        for system_file in iglob('{0}{1}{2}'.format(systems_path, os.path.sep, "*.txt")):
+        systems_glob = '{0}{1}{2}'.format(systems_path, path_sep, "*.txt")
+
+        for system_file in iglob(systems_glob):
             if '+' in basename(system_file):
                 print('Cannot use system files with + in names ' \
                   'as this breaks multi-system meta systems:\n' \
@@ -83,35 +89,35 @@ class Command(BaseCommand):
             system_data = Command._load_text_from_file(system_file, encoding)
             source_data[basename(system_file)] = system_data
 
-        filteredData = []
+        filtered_data = []
         with open(csv_file) as input_file:
             for line in input_file:
-                _segmentID, systemID = line.strip().split(',')
-                segmentID = int(_segmentID)
-                filteredData.append((segmentID, systemID))
+                _segment_id, system_id = line.strip().split(',')
+                segment_id = int(_segment_id)
+                filtered_data.append((segment_id, system_id))
 
         with open(target_path, mode='w', encoding=encoding) as output_file:
-            for item in sorted(filteredData, key=lambda x: x[0]):
-                segmentID = item[0]
-                systemID = item[1]
+            for item in sorted(filtered_data, key=lambda x: x[0]):
+                segment_id = item[0]
+                system_id = item[1]
 
-                if not systemID in source_data.keys() or \
-                  not segmentID in source_data[systemID].keys():
+                if not system_id in source_data.keys() or \
+                  not segment_id in source_data[system_id].keys():
                     _msg = '{0}Segment ID {1} does not exist for system ' \
                     'ID {2}'.format(
-                      INFO_MSG, segmentID, systemID
+                      INFO_MSG, segment_id, system_id
                     )
                     self.stdout.write(_msg)
                     continue
 
-                if segmentID in segment_ids_to_ignore:
-                    _msg = '{0}Ignoring segmentID={1}'.format(
-                      INFO_MSG, segmentID
+                if segment_id in segment_ids_to_ignore:
+                    _msg = '{0}Ignoring segment_id={1}'.format(
+                      INFO_MSG, segment_id
                     )
                     self.stdout.write(_msg)
                     continue
 
-                line = source_data[systemID][segmentID]
+                line = source_data[system_id][segment_id]
                 output_file.write(line)
                 output_file.write('\r\n')
 
