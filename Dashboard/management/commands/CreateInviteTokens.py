@@ -1,26 +1,28 @@
 """
 Appraise evaluation framework
 """
-# pylint: disable=W0611
 from collections import defaultdict
 from csv import DictWriter, DictReader
 from datetime import datetime
 from hashlib import md5
-from os import path
-from traceback import format_exc
+from os.path import abspath, basename, exists
+
+# pylint: disable=import-error,unused-import
 from django.contrib.auth.models import Group
 from django.core.management.base import BaseCommand, CommandError
+
 from Dashboard.models import UserInviteToken
 
 
 INFO_MSG = 'INFO: '
 WARNING_MSG = 'WARN: '
 
+
 # pylint: disable=C0111
 class Command(BaseCommand):
     help = 'Creates invite tokens for the given group'
 
-    # pylint: disable=C0330
+    # pylint: disable=C0330,no-self-use
     def add_arguments(self, parser):
         parser.add_argument(
           'group_name', type=str,
@@ -40,12 +42,14 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
+        del args  # Unused.
+
         group_name = options['group_name']
         number_of_tokens = options['number_of_tokens']
         create_group = options['create_group']
         output_file = options['output_file']
 
-        _msg = '\n[{0}]\n\n'.format(path.basename(__file__))
+        _msg = '\n[{0}]\n\n'.format(basename(__file__))
         self.stdout.write(_msg)
 
         self.stdout.write('      group_name: {0}'.format(group_name))
@@ -103,7 +107,7 @@ class Command(BaseCommand):
             csv_fields = ('key', 'value')
             csv_data = defaultdict(set)
 
-            if path.exists(output_file):
+            if exists(output_file):
                 with open(output_file, mode='r', encoding='utf-8') as in_file:
                     csv_reader = DictReader(in_file, csv_fields)
                     for csv_line in csv_reader:
@@ -134,7 +138,7 @@ class Command(BaseCommand):
 
                 if invalid_csv_file:
                     _msg = '\n{0}Incompatible output file given: {1}'.format(
-                      WARNING_MSG, path.abspath(output_file)
+                      WARNING_MSG, abspath(output_file)
                     )
                     self.stdout.write(_msg)
                     self.stdout.write('      File needs (key, value) ' \
