@@ -1,58 +1,60 @@
 from uuid import uuid4
+
+# pylint: disable=import-error
 from django.contrib.auth.models import Group, User
 from django.db import models
 from django.db.utils import OperationalError, ProgrammingError
 
 LANGUAGE_CODES_AND_NAMES = {
-  'ces': 'Czech (čeština)',
-  'zho': 'Chinese (中文)',
-  'eng': 'English',
-  'fin': 'Finnish (suomi)',
-  'deu': 'German (deutsch)',
-  'lav': 'Latvian (latviešu)',
-  'rus': 'Russian (русский)',
-  'trk': 'Turkish (Türkçe)',
-  'fra': 'French (français)',
-  'hun': 'Hungarian (magyar)',
-  'plk': 'Polish (polski)',
-  'por': 'Portuguese (português)',
-  'ron': 'Romanian (română)',
-  'spa': 'Spanish (español)',
-  'swe': 'Swedish (svenska)',
-  'ara': 'Arabic (العربية)',
-  'ita': 'Italian (italiano)',
-  'jpn': 'Japanese (日本語)',
-  'kor': 'Korean (한국어)',
-  'nob': 'Norwegian (Bokmål)',
-  'nld': 'Dutch (Nederlands)',
-  'cat': 'Catalan (català)',
-  'dan': 'Danish (dansk)',
-  'hin': 'Hindi (हिन्दी)',
-  'tha': 'Thai (ภาษาไทย)',
-  'ben': 'Bengali (বাংলা)',
-  'slk': 'Slovak (slovenčina)',
-  'slv': 'Slovenian (slovenščina)',
-  'est': 'Estonian (eesti)',
-  'bul': 'Bulgarian (български)',
-  'ell': 'Greek (ελληνικά)',
-  'heb': 'Hebrew (עברית)',
-  'cym': 'Welsh (Cymraeg)',
-  'ukr': 'Ukrainian (українська)',
-  'tel': 'Telugu (తెలుగు)',
-  'tam': 'Tamil (தமிழ்)',
-  'isl': 'Icelandic (íslenska)',
-  'hrv': 'Croatian (hrvatski)',
-  'lit': 'Lithuanian (lietuvių)',
-  'vie': 'Vietnamese (tiếng Việt)',
-  'srp': 'Serbian (srpski)',
-  'bos': 'Bosnian (bosanski)',
-  'ind': 'Indonesian (bahasa Indonesia)',
-  'urd': 'Urdu (اُردُو)',
+    'ces': 'Czech (čeština)',
+    'zho': 'Chinese (中文)',
+    'eng': 'English',
+    'fin': 'Finnish (suomi)',
+    'deu': 'German (deutsch)',
+    'lav': 'Latvian (latviešu)',
+    'rus': 'Russian (русский)',
+    'trk': 'Turkish (Türkçe)',
+    'fra': 'French (français)',
+    'hun': 'Hungarian (magyar)',
+    'plk': 'Polish (polski)',
+    'por': 'Portuguese (português)',
+    'ron': 'Romanian (română)',
+    'spa': 'Spanish (español)',
+    'swe': 'Swedish (svenska)',
+    'ara': 'Arabic (العربية)',
+    'ita': 'Italian (italiano)',
+    'jpn': 'Japanese (日本語)',
+    'kor': 'Korean (한국어)',
+    'nob': 'Norwegian (Bokmål)',
+    'nld': 'Dutch (Nederlands)',
+    'cat': 'Catalan (català)',
+    'dan': 'Danish (dansk)',
+    'hin': 'Hindi (हिन्दी)',
+    'tha': 'Thai (ภาษาไทย)',
+    'ben': 'Bengali (বাংলা)',
+    'slk': 'Slovak (slovenčina)',
+    'slv': 'Slovenian (slovenščina)',
+    'est': 'Estonian (eesti)',
+    'bul': 'Bulgarian (български)',
+    'ell': 'Greek (ελληνικά)',
+    'heb': 'Hebrew (עברית)',
+    'cym': 'Welsh (Cymraeg)',
+    'ukr': 'Ukrainian (українська)',
+    'tel': 'Telugu (తెలుగు)',
+    'tam': 'Tamil (தமிழ்)',
+    'isl': 'Icelandic (íslenska)',
+    'hrv': 'Croatian (hrvatski)',
+    'lit': 'Lithuanian (lietuvių)',
+    'vie': 'Vietnamese (tiếng Việt)',
+    'srp': 'Serbian (srpski)',
+    'bos': 'Bosnian (bosanski)',
+    'ind': 'Indonesian (bahasa Indonesia)',
+    'urd': 'Urdu (اُردُو)',
 }
 
 # Ensure that all languages have a corresponding group.
 try:
-    for code in LANGUAGE_CODES_AND_NAMES.keys():
+    for code in LANGUAGE_CODES_AND_NAMES:
         if not Group.objects.filter(name=code).exists():
             new_language_group = Group(name=code)
             new_language_group.save()
@@ -66,7 +68,7 @@ def create_uuid4_token():
     """
     return uuid4().hex[:8]
 
-# pylint: disable=C0330,E1101
+# pylint: disable=C0330,E1101,too-few-public-methods
 class UserInviteToken(models.Model):
     """
     User invite tokens allowing to register an account.
@@ -76,7 +78,7 @@ class UserInviteToken(models.Model):
       models.PROTECT,
       db_index=True,
     )
-  
+
     user = models.ForeignKey(
       User,
       models.PROTECT,
@@ -117,6 +119,7 @@ class UserInviteToken(models.Model):
         )
 
 
+# pylint: disable=too-few-public-methods
 class TimedKeyValueData(models.Model):
     """
     Stores a simple (key, value) pair.
