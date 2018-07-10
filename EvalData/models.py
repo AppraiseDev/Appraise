@@ -2127,6 +2127,15 @@ class TaskAgenda(models.Model):
     def completed_tasks(self):
         return (x.get_object_instance() for x in self._completed_tasks.all())
 
+    def complete_open_task(self, task):
+        if not task in self._open_tasks.all():
+            return False
+
+        self._open_tasks.remove(task)
+        self._completed_tasks.add(task)
+
+        return True
+
     # TODO: decide whether this needs to be optimized.
     def __str__(self):
         return '{0}/{1}[{2}:{3}]'.format(
