@@ -2,7 +2,59 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from EvalData.models import Market, Metadata, TextSegment
+from Campaign.models import Campaign
+from EvalData.models import (
+    Market,
+    Metadata,
+    ObjectID,
+    TaskAgenda,
+    TextSegment,
+)
+
+
+class TaskAgendaTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        """
+        Create valid User and Campaign instances to test TaskAgenda with.
+        """
+        super(TaskAgendaTests, cls).setUpClass()
+
+        cls.valid_user = User()
+        cls.valid_user.username = 'dummy-user'
+        cls.valid_user.save()
+
+        cls.valid_campaign = Campaign()
+        cls.valid_campaign.createdBy = cls.valid_user
+        cls.valid_campaign.save()
+
+    def test_cannot_complete_non_existing_task(self):
+        agenda = TaskAgenda.objects.create(
+            user=self.valid_user,
+            campaign=self.valid_campaign,
+        )
+
+        non_existing_task = 'does-not-exist'
+        self.assertFalse(agenda.complete_open_task(non_existing_task))
+
+    def test_completed_task_moved_correctly(self):
+        """
+        Completing an open task moves it from _open_tasks to _completed_tasks.
+        """
+        agenda = TaskAgenda.objects.create(
+            user=self.valid_user,
+            campaign=self.valid_campaign,
+        )
+
+        dummy_task = ObjectID.objects.create(
+            typeName='DirectAssessmentTask',
+            primaryID='123'
+        )
+        agenda._open_tasks.add(dummy_task)
+
+        agenda.complete_open_task(dummy_task)
+        self.assertFalse(dummy_task in agenda._open_tasks.all())
+        self.assertTrue(dummy_task in agenda._completed_tasks.all())
 
 
 class MarketTests(TestCase):
