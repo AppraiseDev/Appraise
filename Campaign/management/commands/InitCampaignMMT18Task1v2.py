@@ -18,7 +18,7 @@ XY_LANGUAGES = (
 
 CAMPAIGN_NAME = 'MMT18Task1v2'
 CAMPAIGN_KEY = 'MMT18Task1v2'
-CAMPAIGN_NO = 84
+CAMPAIGN_NO = 86
 ANNOTATORS = {
   'eng-ces': 36,
   'eng-deu': 34,
