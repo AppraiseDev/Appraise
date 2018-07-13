@@ -85,6 +85,10 @@ class Command(BaseCommand):
           help='Randomize extracted work items'
         )
         parser.add_argument(
+          '--pad-batches', action='store_true',
+          help='Adds redundant batches to reach requested --max_batches'
+        )
+        parser.add_argument(
           '--batch-no', type=int, default=1,
           help='Specifies desired batch no (default: 1)'
         )
@@ -498,6 +502,7 @@ class Command(BaseCommand):
         max_batches = options['max_batches']
         all_batches = options['all_batches']
 
+
         # If we don't produce all batches, our batch_id will be batch_no-1.
         # This is because batch numbers are one-based, ids zero-indexed.
         #
@@ -659,8 +664,14 @@ class Command(BaseCommand):
 
             json_data.append(output_data)
 
+        if options['pad_batches'] and max_batches is not None:
+            pad_size = max_batches - len(json_data)
+            print('pad_size = {0}'.format(pad_size))
+            for pad_index in range(pad_size):
+                json_data.append(json_data[pad_index])
+
         json_data = json.dumps(json_data, indent=2, sort_keys=True)
-        print(json_data)
+        # print(json_data)
 
         json_file_name = options['output_json_file']
         with open(json_file_name, mode='w', encoding='utf8') as out_file:
