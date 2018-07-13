@@ -2135,7 +2135,9 @@ class TaskAgenda(models.Model):
             return False
 
         self._open_tasks.remove(task)
-        self._completed_tasks.add(task)
+
+        if not task in self._completed_tasks.all():
+            self._completed_tasks.add(task)
 
         return True
 
