@@ -336,7 +336,6 @@ def dashboard(request):
             modified = False
             for task in tasks_to_complete:
                 modified = agenda.complete_open_task(task) or modified
-                agenda.complete_open_task(task)
 
             if modified:
                 agenda.save()
