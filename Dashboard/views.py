@@ -321,6 +321,8 @@ def dashboard(request):
 
         for agenda in agendas:
             LOGGER.info('Identified work agenda %s', agenda)
+
+            tasks_to_complete = []
             for serialized_open_task in agenda.serialized_open_tasks():
                 open_task = serialized_open_task.get_object_instance()
                 if open_task.next_item_for_user(request.user) is not None:
@@ -329,8 +331,15 @@ def dashboard(request):
                     LOGGER.info('Current task type: %s',
                         open_task.__class__.__name__)
                 else:
-                    agenda.completed_open_task(serialized_open_task)
-            agenda.save()
+                    tasks_to_complete.append(serialized_open_task)
+
+            modified = False
+            for task in tasks_to_complete:
+                modified = agenda.complete_open_task(task) or modified
+                agenda.completed_open_task(task)
+
+            if modified:
+                agenda.save()
 
         if not current_task and agendas.count() > 0:
             LOGGER.info('Work agendas completed, no more tasks for user')

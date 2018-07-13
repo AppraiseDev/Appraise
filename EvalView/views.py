@@ -59,7 +59,6 @@ def direct_assessment(request, code=None, campaign_name=None):
         )
 
     for agenda in agendas:
-        modified = False
         LOGGER.info('Identified work agenda %s', agenda)
 
         tasks_to_complete = []
@@ -72,6 +71,7 @@ def direct_assessment(request, code=None, campaign_name=None):
             else:
                 tasks_to_complete.append(serialized_open_task)
 
+        modified = False
         for task in tasks_to_complete:
             modified = agenda.complete_open_task(task) or modified
 
