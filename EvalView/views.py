@@ -61,6 +61,8 @@ def direct_assessment(request, code=None, campaign_name=None):
     for agenda in agendas:
         modified = False
         LOGGER.info('Identified work agenda %s', agenda)
+
+        tasks_to_complete = []
         for serialized_open_task in agenda.serialized_open_tasks():
             open_task = serialized_open_task.get_object_instance()
             if open_task.next_item_for_user(request.user) is not None:
@@ -68,8 +70,10 @@ def direct_assessment(request, code=None, campaign_name=None):
                 if not campaign:
                     campaign = agenda.campaign
             else:
-                agenda.complete_open_task(serialized_open_task)
-                modified = True
+                tasks_to_complete.append(serialized_open_task)
+
+        for task in tasks_to_complete:
+            modified = agenda.complete_open_task(task) or modified
 
         if modified:
             agenda.save()
