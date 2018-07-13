@@ -2125,7 +2125,7 @@ class TaskAgenda(models.Model):
         return (x.get_object_instance() for x in self._open_tasks.all())
 
     def serialized_open_tasks(self):
-        return self._open_tasks.all()
+        return list(self._open_tasks.all())
 
     def completed_tasks(self):
         return (x.get_object_instance() for x in self._completed_tasks.all())
