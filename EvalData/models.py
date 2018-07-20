@@ -247,6 +247,7 @@ class BaseMetadata(models.Model):
     # pylint: disable=C0111
     class Meta:
         abstract = True
+        ordering = ['_str_name']
 
     def _set_boolean_states(self, activated, completed, retired):
         """
@@ -254,7 +255,7 @@ class BaseMetadata(models.Model):
         Also sets respective dates for all three states.
         """
         utc_now = datetime.utcnow().replace(tzinfo=utc)
-        
+
         self.activated = activated
         self.dateActivated = utc_now if activated else None
 
@@ -471,6 +472,7 @@ class Metadata(BaseMetadata):
     )
 
     class Meta:
+        ordering = ['_str_name']
         verbose_name = 'Metadata record'
 
     def _generate_str_name(self):
@@ -508,6 +510,7 @@ class EvalItem(BaseMetadata):
     # pylint: disable=C0111,R0903
     class Meta:
         abstract = True
+        ordering = ['_str_name']
 
     # pylint: disable=E1101
     def is_valid(self):
@@ -1132,7 +1135,7 @@ class DirectAssessmentResult(BaseMetadata):
     @classmethod
     def get_hit_status_for_user(cls, user):
         user_data = defaultdict(int)
-        
+
         for user_item in cls.objects.filter(
           createdBy=user,
           activated=False,
@@ -1237,7 +1240,7 @@ class DirectAssessmentResult(BaseMetadata):
                 username = user_data[annotatorID][0]
                 useremail = user_data[annotatorID][1]
                 usergroups = user_data[annotatorID][2]
-            
+
             else:
                 user = User.objects.get(pk=annotatorID)
                 username = user.username
@@ -1245,7 +1248,7 @@ class DirectAssessmentResult(BaseMetadata):
                 usergroups = ';'.join([x.name for x in user.groups.all() if not x.name in LANGUAGE_CODES_AND_NAMES.keys()])
                 if not usergroups:
                     usergroups = 'NoGroupInfo'
-                
+
                 user_data[annotatorID] = (
                   username, useremail, usergroups
                 )
@@ -1338,11 +1341,11 @@ class DirectAssessmentResult(BaseMetadata):
     @classmethod
     def get_system_data(cls, campaign_id, extended_csv=False, expand_multi_sys=True, include_inactive=False):
         system_data = []
-        
+
         item_types = ('TGT', 'CHK')
         if extended_csv:
             item_types += ('BAD', 'REF')
-        
+
         qs = cls.objects.filter(completed=True, item__itemType__in=item_types)
 
         # If campaign ID is given, only return results for this campaign.
@@ -1951,7 +1954,7 @@ class MultiModalAssessmentResult(BaseMetadata):
                 username = user_data[annotatorID][0]
                 useremail = user_data[annotatorID][1]
                 usergroups = user_data[annotatorID][2]
-            
+
             else:
                 user = User.objects.get(pk=annotatorID)
                 username = user.username
@@ -1959,7 +1962,7 @@ class MultiModalAssessmentResult(BaseMetadata):
                 usergroups = ';'.join([x.name for x in user.groups.all() if not x.name in LANGUAGE_CODES_AND_NAMES.keys()])
                 if not usergroups:
                     usergroups = 'NoGroupInfo'
-                
+
                 user_data[annotatorID] = (
                   username, useremail, usergroups
                 )
