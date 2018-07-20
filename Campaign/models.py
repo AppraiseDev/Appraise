@@ -57,6 +57,7 @@ class CampaignTeam(BaseMetadata):
     )
 
     class Meta:
+        ordering = ['_str_name']
         verbose_name = 'Team'
         verbose_name_plural = 'Teams'
 
@@ -135,6 +136,7 @@ class CampaignData(BaseMetadata):
 
     # pylint: disable=C0111,R0903
     class Meta:
+        ordering = ['_str_name']
         verbose_name = 'Batch'
         verbose_name_plural = 'Batches'
 
