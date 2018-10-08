@@ -7,11 +7,11 @@ from Campaign.models import Campaign, CampaignTeam
 from EvalData.models import Market, Metadata
 
 EX_LANGUAGES = (
-    'tel',
+    'ben', 'tel',
 )
 
 XE_LANGUAGES = (
-    'tel', 'ben',
+    'tel',
 )
 
 XY_LANGUAGES = (
