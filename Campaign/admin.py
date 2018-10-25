@@ -23,6 +23,8 @@ class CampaignTeamAdmin(BaseMetadataAdmin):
       'teamName', 'owner__username', 'owner__first_name', 'owner__last_name'
     ] + BaseMetadataAdmin.search_fields
 
+    filter_horizontal = ['members']
+
     fieldsets = (
       (None, {
         'fields': ('teamName', 'owner', 'members', 'requiredAnnotations',
@@ -66,6 +68,8 @@ class CampaignAdmin(BaseMetadataAdmin):
     search_fields = [
       # nothing model specific
     ] + BaseMetadataAdmin.search_fields
+
+    filter_horizontal = ['batches']
 
     fieldsets = (
       (None, {
