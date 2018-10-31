@@ -90,7 +90,8 @@ def direct_assessment(request, code=None, campaign_name=None):
 
     # If language code has been given, find a free task and assign to user.
     if not current_task:
-        current_task = DirectAssessmentTask.get_task_for_user(user=request.user)
+        current_task = DirectAssessmentTask.get_task_for_user(
+            user=request.user)
 
     if not current_task:
         if code is None or campaign is None:
@@ -166,7 +167,8 @@ def direct_assessment(request, code=None, campaign_name=None):
         LOGGER.info('No current item detected, redirecting to dashboard')
         return redirect('dashboard')
 
-    # completed_items_check = current_task.completed_items_for_user(request.user)
+    # completed_items_check = current_task.completed_items_for_user(
+    #     request.user)
     completed_blocks = int(completed_items / 10)
     _msg = 'completed_items=%s, completed_blocks=%s'
     LOGGER.info(_msg, completed_items, completed_blocks)
@@ -334,7 +336,8 @@ def multimodal_assessment(request, code=None, campaign_name=None):
         LOGGER.info('No current item detected, redirecting to dashboard')
         return redirect('dashboard')
 
-    # completed_items_check = current_task.completed_items_for_user(request.user)
+    # completed_items_check = current_task.completed_items_for_user(
+    #     request.user)
     completed_blocks = int(completed_items / 10)
     _msg = 'completed_items=%s, completed_blocks=%s'
     LOGGER.info(_msg, completed_items, completed_blocks)
