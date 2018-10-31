@@ -1,3 +1,9 @@
+"""
+Appraise evaluation framework
+
+See LICENSE for usage details
+"""
+# pylint: disable=unused-import
 from django.shortcuts import render
 
-# Create your views here.
+# Deliberately left empty.

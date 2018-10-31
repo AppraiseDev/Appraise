@@ -1,21 +1,9 @@
 """
-EvalData models.py
+Appraise evaluation framework
 
-###
-# DESIGN/ARCHITECTURE
-#
-# EvalData
-# - Market
-# - Metadata
-# - EvalItem
-#  + TextSegment
-#  + TextPair
-#  + TextSet
-#
-###
-
+See LICENSE for usage details
 """
-# pylint: disable=C0103,C0330
+# pylint: disable=C0103,C0330,no-member
 import logging
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -330,7 +318,8 @@ class BaseMetadata(models.Model):
                   typeName=self.__class__.__name__,
                   primaryID=self.id
                 )
-                _msg = 'Created serialized ObjectID:{0}'.format(_serialized.id)
+                _msg = 'Created serialized ObjectID:{0}'.format(
+                    _serialized.id)
                 LOGGER.info(_msg)
 
         super(BaseMetadata, self).save(*args, **kwargs)
@@ -424,14 +413,16 @@ class Market(BaseMetadata):
             self.domainName
         )
 
-        _market_instance = Market.objects.filter(marketID=_expected_marketID)
+        _market_instance = Market.objects.filter(
+            marketID=_expected_marketID)
         if not hasattr(self, "marketID") or self.marketID == '':
             if _market_instance.exists():
                 return False
 
         else:
             _market_instance_obj = _market_instance.get()
-            if _market_instance_obj is not None and self.id != _market_instance_obj.id:
+            if _market_instance_obj is not None \
+            and self.id != _market_instance_obj.id:
                 return False
 
         return super(Market, self).is_valid()
@@ -823,12 +814,14 @@ class DirectAssessmentTask(BaseMetadata):
             if trusted_user:
                 required_user_results = 70
 
+            _total_required = self.requiredAnnotations * required_user_results
             LOGGER.info(
               'Unique annotations={0}/{1}'.format(
-                uniqueAnnotations, self.requiredAnnotations * required_user_results
+                uniqueAnnotations,
+                _total_required
               )
             )
-            if uniqueAnnotations >= self.requiredAnnotations * required_user_results:
+            if uniqueAnnotations >= _total_required:
                 LOGGER.info('Completing task {0}'.format(self.id))
                 self.complete()
                 self.save()
@@ -950,7 +943,8 @@ class DirectAssessmentTask(BaseMetadata):
                 return
 
             batch_zip = ZipFile(batch_file)
-            batch_json_files = [x for x in batch_zip.namelist() if x.endswith('.json')]
+            batch_json_files = [
+                x for x in batch_zip.namelist() if x.endswith('.json')]
             # TODO: implement proper support for multiple json files in archive.
             for batch_json_file in batch_json_files:
                 batch_content = batch_zip.read(batch_json_file).decode('utf-8')
@@ -988,7 +982,8 @@ class DirectAssessmentTask(BaseMetadata):
                     max_length_id = current_length_id
 
                 if current_length_text > max_length_text:
-                    print(current_length_text, item['targetText'].encode('utf-8'))
+                    print(current_length_text,
+                        item['targetText'].encode('utf-8'))
                     max_length_text = current_length_text
 
                 new_item = TextPair(
@@ -1176,7 +1171,8 @@ class DirectAssessmentResult(BaseMetadata):
             annotatorID = result[2]
             segmentID = result[3]
             marketID = '{0}-{1}'.format(result[4], result[5])
-            system_scores[marketID].append((systemID, annotatorID, segmentID, score))
+            system_scores[marketID].append(
+                (systemID, annotatorID, segmentID, score))
 
         return system_scores
 
@@ -1253,10 +1249,13 @@ class DirectAssessmentResult(BaseMetadata):
                   username, useremail, usergroups
                 )
 
-            system_scores[marketID+'-'+domainName].append((taskID,systemID, username, useremail, usergroups, segmentID, score, start_time, end_time, duration, itemType, campaignName))
+            system_scores[marketID+'-'+domainName].append(
+                (taskID, systemID, username, useremail, usergroups,
+                segmentID, score, start_time, end_time, duration,
+                itemType, campaignName))
 
         x = system_scores
-        s=['taskID,systemID,username,email,groups,segmentID,score,startTime,endTime,durationInSeconds,itemType,campaignName']
+        s = ['taskID,systemID,username,email,groups,segmentID,score,startTime,endTime,durationInSeconds,itemType,campaignName']
         for l in x:
             for i in x[l]:
                 s.append(','.join([str(a) for a in i]))
@@ -1275,7 +1274,9 @@ class DirectAssessmentResult(BaseMetadata):
         qs = cls.objects.filter(completed=True)
         for result in qs.values_list('item__targetID', 'score', 'start_time', 'end_time', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode', 'item__metadata__market__domainName', 'item__itemType'):
 
-            if not domain == result[8] or not srcCode == result[6] or not tgtCode == result[7]:
+            if not domain == result[8] \
+            or not srcCode == result[6] \
+            or not tgtCode == result[7]:
                 continue
 
             systemID = result[0]
@@ -1291,14 +1292,16 @@ class DirectAssessmentResult(BaseMetadata):
             user = User.objects.get(pk=annotatorID)
             username = user.username
             useremail = user.email
-            system_scores[marketID+'-'+domainName].append((systemID, username, useremail, segmentID, score, duration, itemType))
+            system_scores[marketID+'-'+domainName].append(
+                (systemID, username, useremail, segmentID, score,
+                duration, itemType))
 
         return system_scores
 
     @classmethod
     def write_csv(cls, srcCode, tgtCode, domain, csvFile, allData=False):
         x = cls.get_csv(srcCode, tgtCode, domain)
-        s=['username,email,segmentID,score,durationInSeconds,itemType']
+        s = ['username,email,segmentID,score,durationInSeconds,itemType']
         if allData:
             s[0]='systemID,'+s[0]
 
@@ -1318,7 +1321,8 @@ class DirectAssessmentResult(BaseMetadata):
     @classmethod
     def get_system_scores(cls, campaign_id):
         system_scores = defaultdict(list)
-        qs = cls.objects.filter(completed=True, item__itemType__in=('TGT', 'CHK'))
+        qs = cls.objects.filter(completed=True,
+            item__itemType__in=('TGT', 'CHK'))
 
         # If campaign ID is given, only return results for this campaign.
         if campaign_id:
@@ -1419,7 +1423,8 @@ class DirectAssessmentResult(BaseMetadata):
                 z = sum(x)/total_annotations
                 output_local.append((key, len(x), sum(x)/len(x), z))
 
-            output_data[code] = list(sorted(output_local, key=lambda x: x[sort_index], reverse=True))
+            output_data[code] = list(sorted(output_local,
+                key=lambda x: x[sort_index], reverse=True))
 
         return output_data
 
@@ -1574,12 +1579,13 @@ class MultiModalAssessmentTask(BaseMetadata):
             if trusted_user:
                 required_user_results = 70
 
+            _total_required = self.requiredAnnotations * required_user_results
             LOGGER.info(
               'Unique annotations={0}/{1}'.format(
-                uniqueAnnotations, self.requiredAnnotations * required_user_results
+                uniqueAnnotations, _total_required
               )
             )
-            if uniqueAnnotations >= self.requiredAnnotations * required_user_results:
+            if uniqueAnnotations >= _total_required:
                 LOGGER.info('Completing task {0}'.format(self.id))
                 self.complete()
                 self.save()
@@ -1678,7 +1684,8 @@ class MultiModalAssessmentTask(BaseMetadata):
                 return
 
             batch_zip = ZipFile(batch_file)
-            batch_json_files = [x for x in batch_zip.namelist() if x.endswith('.json')]
+            batch_json_files = [
+                x for x in batch_zip.namelist() if x.endswith('.json')]
             # TODO: implement proper support for multiple json files in archive.
             for batch_json_file in batch_json_files:
                 batch_content = batch_zip.read(batch_json_file).decode('utf-8')
@@ -1716,7 +1723,8 @@ class MultiModalAssessmentTask(BaseMetadata):
                     max_length_id = current_length_id
 
                 if current_length_text > max_length_text:
-                    print(current_length_text, item['targetText'].encode('utf-8'))
+                    print(current_length_text,
+                        item['targetText'].encode('utf-8'))
                     max_length_text = current_length_text
 
                 new_item = TextPairWithImage(
@@ -1967,10 +1975,13 @@ class MultiModalAssessmentResult(BaseMetadata):
                   username, useremail, usergroups
                 )
 
-            system_scores[marketID+'-'+domainName].append((taskID,systemID, username, useremail, usergroups, segmentID, score, start_time, end_time, duration, itemType, campaignName))
+            system_scores[marketID+'-'+domainName].append(
+                (taskID, systemID, username, useremail, usergroups,
+                segmentID, score, start_time, end_time, duration,
+                itemType, campaignName))
 
         x = system_scores
-        s=['taskID,systemID,username,email,groups,segmentID,score,startTime,endTime,durationInSeconds,itemType,campaignName']
+        s = ['taskID,systemID,username,email,groups,segmentID,score,startTime,endTime,durationInSeconds,itemType,campaignName']
         for l in x:
             for i in x[l]:
                 s.append(','.join([str(a) for a in i]))
@@ -1993,17 +2004,20 @@ class MultiModalAssessmentResult(BaseMetadata):
             annotatorID = result[2]
             segmentID = result[3]
             marketID = '{0}-{1}'.format(result[4], result[5])
-            system_scores[marketID].append((systemID, annotatorID, segmentID, score))
+            system_scores[marketID].append(
+                (systemID, annotatorID, segmentID, score))
 
         return system_scores
 
     @classmethod
     def get_system_scores(cls):
         system_scores = defaultdict(list)
-        qs = cls.objects.filter(completed=True, item__itemType__in=('TGT', 'CHK'))
+        qs = cls.objects.filter(completed=True,
+            item__itemType__in=('TGT', 'CHK'))
         for result in qs.values_list('item__targetID', 'score'):
-            #if not result.completed or result.item.itemType not in ('TGT', 'CHK'):
-            #    continue
+            # if not result.completed \
+            # or result.item.itemType not in ('TGT', 'CHK'):
+            #     continue
 
             system_ids = result[0].split('+') #result.item.targetID.split('+')
             score = result[1] #.score
@@ -2035,7 +2049,8 @@ class MultiModalAssessmentResult(BaseMetadata):
                 z = sum(x)/total_annotations
                 output_local.append((key, len(x), sum(x)/len(x), z))
 
-            output_data[code] = list(sorted(output_local, key=lambda x: x[sort_index], reverse=True))
+            output_data[code] = list(sorted(output_local,
+                key=lambda x: x[sort_index], reverse=True))
 
         return output_data
 
