@@ -1,3 +1,8 @@
+"""
+Appraise evaluation framework
+
+See LICENSE for usage details
+"""
 from datetime import datetime
 import logging
 

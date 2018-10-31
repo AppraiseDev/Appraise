@@ -1,3 +1,9 @@
+"""
+Appraise evaluation framework
+
+See LICENSE for usage details
+"""
+# pylint: disable=unused-import
 from django.db import models
 
-# Create your models here.
+# Deliberately left empty.

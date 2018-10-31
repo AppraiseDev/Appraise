@@ -1,3 +1,9 @@
+"""
+Appraise evaluation framework
+
+See LICENSE for usage details
+"""
+# pylint: disable=unused-import
 from django.contrib import admin
 
-# Register your models here.
+# Deliberately left empty.
