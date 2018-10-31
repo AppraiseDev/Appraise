@@ -1,3 +1,9 @@
+"""
+Appraise evaluation framework
+
+See LICENSE for usage details
+"""
+# pylint: disable=unused-import
 from django.test import TestCase
 
-# Create your tests here.
+# Deliberately left empty.
