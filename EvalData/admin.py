@@ -1,5 +1,7 @@
 """
-EvalData admin.py
+Appraise evaluation framework
+
+See LICENSE for usage details
 """
 # pylint: disable=C0330
 from datetime import datetime
@@ -42,7 +44,7 @@ class BaseMetadataAdmin(admin.ModelAdmin):
         Given a model instance save it to the database.
         """
         utc_now = datetime.utcnow().replace(tzinfo=utc)
-        
+
         if not hasattr(obj, 'createdBy') or obj.createdBy is None:
             obj.createdBy = request.user
             obj.dateCreated = utc_now
@@ -204,7 +206,9 @@ class DirectAssessmentTaskAdmin(BaseMetadataAdmin):
       'dataName', 'batchNo', 'campaign', 'requiredAnnotations'
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'campaign__campaignName', 'campaign__batches__market__targetLanguageCode', 'campaign__batches__market__sourceLanguageCode', 'batchData'
+      'campaign__campaignName',
+      'campaign__batches__market__targetLanguageCode',
+      'campaign__batches__market__sourceLanguageCode', 'batchData'
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
       'campaign__campaignName', 'assignedTo'
@@ -212,7 +216,8 @@ class DirectAssessmentTaskAdmin(BaseMetadataAdmin):
 
     fieldsets = (
       (None, {
-        'fields': (['batchData', 'batchNo', 'campaign', 'items', 'requiredAnnotations', 'assignedTo'])
+        'fields': (['batchData', 'batchNo', 'campaign', 'items',
+        'requiredAnnotations', 'assignedTo'])
       }),
     ) + BaseMetadataAdmin.fieldsets
 
@@ -250,7 +255,9 @@ class MultiModalAssessmentTaskAdmin(BaseMetadataAdmin):
       'dataName', 'batchNo', 'campaign', 'requiredAnnotations'
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'campaign__campaignName', 'campaign__batches__market__targetLanguageCode', 'campaign__batches__market__sourceLanguageCode', 'batchData'
+      'campaign__campaignName',
+      'campaign__batches__market__targetLanguageCode',
+      'campaign__batches__market__sourceLanguageCode', 'batchData'
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
       'campaign__campaignName', 'assignedTo'
@@ -258,7 +265,8 @@ class MultiModalAssessmentTaskAdmin(BaseMetadataAdmin):
 
     fieldsets = (
       (None, {
-        'fields': (['batchData', 'batchNo', 'campaign', 'items', 'requiredAnnotations', 'assignedTo'])
+        'fields': (['batchData', 'batchNo', 'campaign', 'items',
+          'requiredAnnotations', 'assignedTo'])
       }),
     ) + BaseMetadataAdmin.fieldsets
 
@@ -289,18 +297,14 @@ class WorkAgendaAdmin(admin.ModelAdmin):
     Model admin for WorkAgenda object model.
     """
     list_display = [
-      'user', 'campaign', 'is_agenda_completed'
+      'user', 'campaign', 'completed'
     ]
     list_filter = [
       'campaign'
     ]
     search_fields = [
-      'user__username', 'campaign__campaignName'
+      'user__username', 'campaign__campaignName', 'completed'
     ]
-
-    def is_agenda_completed(self, obj):
-        return obj.completed()
-    is_agenda_completed.short_description = 'Completed?'
 
 
 class TaskAgendaAdmin(admin.ModelAdmin):
@@ -308,18 +312,14 @@ class TaskAgendaAdmin(admin.ModelAdmin):
     Model admin for TaskAgenda object model.
     """
     list_display = [
-      'user', 'campaign', 'is_agenda_completed'
+      'user', 'campaign', 'completed'
     ]
     list_filter = [
       'campaign'
     ]
     search_fields = [
-      'user__username', 'campaign__campaignName'
+      'user__username', 'campaign__campaignName', 'completed'
     ]
-
-    def is_agenda_completed(self, obj):
-        return obj.completed()
-    is_agenda_completed.short_description = 'Completed?'
 
 
 admin.site.register(Market, MarketAdmin)
