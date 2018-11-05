@@ -11,14 +11,15 @@ from json import loads
 from traceback import format_exc
 from zipfile import ZipFile, is_zipfile
 from django.db import models
-from django.db.models import Count
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.text import format_lazy as f
 from django.utils.timezone import utc
 from django.utils.translation import ugettext_lazy as _
 
-from Appraise.settings import LOG_LEVEL, LOG_HANDLER, STATIC_URL, BASE_CONTEXT
+from Appraise.settings import LOG_LEVEL, LOG_HANDLER
+# TODO: Unclear if these are needed?
+# from Appraise.settings import STATIC_URL, BASE_CONTEXT
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 
 # Setup logging support.
@@ -50,7 +51,7 @@ def seconds_to_timedelta(value):
     """
     Converst the given value in secodns to datetime.timedelta.
     """
-    _days =  value // 86400
+    _days = value // 86400
     _hours = (value // 3600) % 24
     _mins = (value // 60) % 60
     _secs = value % 60
@@ -1164,8 +1165,17 @@ class DirectAssessmentResult(BaseMetadata):
     @classmethod
     def get_system_annotations(cls):
         system_scores = defaultdict(list)
-        qs = cls.objects.filter(completed=True, item__itemType__in=('TGT', 'CHK'))
-        for result in qs.values_list('item__targetID', 'score', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode'):
+
+        value_types = ('TGT', 'CHK')
+        qs = cls.objects.filter(
+            completed=True, item__itemType__in=value_types)
+
+        value_names = (
+            'item__targetID', 'score', 'createdBy', 'item__itemID',
+            'item__metadata__market__sourceLanguageCode',
+            'item__metadata__market__targetLanguageCode'
+        )
+        for result in qs.values_list(value_names):
             systemID = result[0]
             score = result[1]
             annotatorID = result[2]
@@ -1181,7 +1191,11 @@ class DirectAssessmentResult(BaseMetadata):
         from Dashboard.models import LANGUAGE_CODES_AND_NAMES
         user_status = defaultdict(list)
         qs = cls.objects.filter(completed=True)
-        for result in qs.values_list('createdBy', 'item__itemType', 'task__id'):
+
+        value_names = (
+            'createdBy', 'item__itemType', 'task__id'
+        )
+        for result in qs.values_list(value_names):
             if result[1].lower() != 'tgt':
                 continue
 
@@ -1217,7 +1231,15 @@ class DirectAssessmentResult(BaseMetadata):
         system_scores = defaultdict(list)
         user_data = {}
         qs = cls.objects.filter(completed=True)
-        for result in qs.values_list('item__targetID', 'score', 'start_time', 'end_time', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode', 'item__metadata__market__domainName', 'item__itemType', 'task__id', 'task__campaign__campaignName'):
+
+        value_names = (
+            'item__targetID', 'score', 'start_time', 'end_time', 'createdBy',
+            'item__itemID', 'item__metadata__market__sourceLanguageCode',
+            'item__metadata__market__targetLanguageCode',
+            'item__metadata__market__domainName', 'item__itemType',
+            'task__id', 'task__campaign__campaignName'
+        )
+        for result in qs.values_list(value_names):
 
             systemID = result[0]
             score = result[1]
@@ -1254,6 +1276,7 @@ class DirectAssessmentResult(BaseMetadata):
                 segmentID, score, start_time, end_time, duration,
                 itemType, campaignName))
 
+        # TODO: this is very intransparent... and needs to be fixed!
         x = system_scores
         s = ['taskID,systemID,username,email,groups,segmentID,score,startTime,endTime,durationInSeconds,itemType,campaignName']
         for l in x:
@@ -1272,7 +1295,14 @@ class DirectAssessmentResult(BaseMetadata):
     def get_csv(cls, srcCode, tgtCode, domain):
         system_scores = defaultdict(list)
         qs = cls.objects.filter(completed=True)
-        for result in qs.values_list('item__targetID', 'score', 'start_time', 'end_time', 'createdBy', 'item__itemID', 'item__metadata__market__sourceLanguageCode', 'item__metadata__market__targetLanguageCode', 'item__metadata__market__domainName', 'item__itemType'):
+
+        value_names = (
+            'item__targetID', 'score', 'start_time', 'end_time', 'createdBy',
+            'item__itemID', 'item__metadata__market__sourceLanguageCode',
+            'item__metadata__market__targetLanguageCode',
+            'item__metadata__market__domainName', 'item__itemType'
+        )
+        for result in qs.values_list(value_names):
 
             if not domain == result[8] \
             or not srcCode == result[6] \
@@ -1303,7 +1333,7 @@ class DirectAssessmentResult(BaseMetadata):
         x = cls.get_csv(srcCode, tgtCode, domain)
         s = ['username,email,segmentID,score,durationInSeconds,itemType']
         if allData:
-            s[0]='systemID,'+s[0]
+            s[0] = 'systemID,' + s[0]
 
         for l in x:
             for i in x[l]:
@@ -1321,14 +1351,19 @@ class DirectAssessmentResult(BaseMetadata):
     @classmethod
     def get_system_scores(cls, campaign_id):
         system_scores = defaultdict(list)
-        qs = cls.objects.filter(completed=True,
-            item__itemType__in=('TGT', 'CHK'))
+
+        value_types = ('TGT', 'CHK')
+        qs = cls.objects.filter(
+            completed=True, item__itemType__in=value_types)
 
         # If campaign ID is given, only return results for this campaign.
         if campaign_id:
             qs = qs.filter(task__campaign__id=campaign_id)
 
-        for result in qs.values_list('item__targetID', 'item__itemID', 'score'):
+        value_names = (
+            'item__targetID', 'item__itemID', 'score'
+        )
+        for result in qs.values_list(value_names):
             #if not result.completed or result.item.itemType not in ('TGT', 'CHK'):
             #    continue
 
