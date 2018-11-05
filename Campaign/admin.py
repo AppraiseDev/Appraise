@@ -3,9 +3,17 @@ Campaign admin.py
 """
 # pylint: disable=C0330
 from django.contrib import admin
+from django.contrib.admin.filters import AllValuesFieldListFilter
 
 from EvalData.admin import BaseMetadataAdmin
 from .models import CampaignTeam, CampaignData, Campaign, TrustedUser
+
+
+class DropdownFilter(AllValuesFieldListFilter):
+    """
+    Experimental dropdown filter.
+    """
+    template = 'Campaign/filter_select.html'
 
 
 class CampaignTeamAdmin(BaseMetadataAdmin):
@@ -86,7 +94,8 @@ class TrustedUserAdmin(admin.ModelAdmin):
       'user', 'campaign'
     ]
     list_filter = [
-      'campaign'
+      ('campaign__campaignName', DropdownFilter),
+#      'campaign'
     ]
     search_fields = [
       # nothing model specific
