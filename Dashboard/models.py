@@ -50,6 +50,9 @@ LANGUAGE_CODES_AND_NAMES = {
     'bos': 'Bosnian (bosanski)',
     'ind': 'Indonesian (bahasa Indonesia)',
     'urd': 'Urdu (اُردُو)',
+    'acm': 'Iraqi Arabic (راقي‎ - ʕirāgi)',
+    'ayl': 'Lybian Arabic ( ليبي - lībi)',
+    'ayn': 'Yemeni Arabic (يمني - yamani)',
 }
 
 # Ensure that all languages have a corresponding group.
