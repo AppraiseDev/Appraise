@@ -67,7 +67,7 @@ def _create_campaign_team(name, owner, tasks, redudancy):
     _cteam = CampaignTeam.objects.get_or_create(
       teamName=CAMPAIGN_NAME,
       owner=owner,
-      requiredAnnotations= tasks * redudancy,
+      requiredAnnotations=(tasks * redudancy),
       requiredHours=(tasks * redudancy) / 2,
       createdBy=owner
     )
