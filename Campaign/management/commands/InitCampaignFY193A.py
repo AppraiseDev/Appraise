@@ -473,7 +473,7 @@ class Command(BaseCommand):
             )
 
             source = key[:3]
-            target = key[3:]
+            target = key[3:6]
             _tasks_map = TASKS_TO_ANNOTATORS.get((source, target))
             if _tasks_map is None:
                 _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
