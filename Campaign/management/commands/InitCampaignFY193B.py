@@ -21,6 +21,26 @@ XE_LANGUAGES = (
 XY_LANGUAGES = (
 )
 
+def _create_uniform_task_map(annotators, tasks, redudancy):
+    """
+    Creates task maps, uniformly distributed across given annotators.
+    """
+    _total_tasks = tasks * redudancy
+    if _total_tasks % annotators > 0:
+        return None
+
+    _tasks_per_annotator = _total_tasks // annotators
+
+    _results = []
+    for annotator_id in range(annotators):
+        _annotator_tasks = []
+        for annotator_task in range(_tasks_per_annotator):
+            task_id = (annotator_id + annotator_task) % tasks
+            _annotator_tasks.append(task_id)
+        _results.append(tuple(_annotator_tasks))
+
+    return _results
+
 # Allows for arbitrary task to annotator mappings.
 #
 # Can be uniformly distributed, i.e., 2 tasks per annotator:
@@ -34,18 +54,20 @@ XY_LANGUAGES = (
 # and TASKS = None in the campaign config section below.
 TASKS_TO_ANNOTATORS = {}
 
-for ex_code in EX_LANGUAGES:
-    TASKS_TO_ANNOTATORS[('eng', ex_code)] = [2 for _ in range(5)]
-
-for xe_code in XE_LANGUAGES:
-    TASKS_TO_ANNOTATORS[(xe_code, 'eng')] = [2 for _ in range(5)]
-
 CAMPAIGN_NAME = 'HumanEvalFY193B'
 CAMPAIGN_KEY = 'FY193B'
 CAMPAIGN_NO = 147
 ANNOTATORS = None # Will be determined by TASKS_TO_ANNOTATORS mapping
 TASKS = None
 REDUNDANCY = 2
+
+for ex_code in EX_LANGUAGES:
+    TASKS_TO_ANNOTATORS[('eng', ex_code)] = _create_uniform_task_map(
+        5, 5, REDUNDANCY)
+
+for xe_code in XE_LANGUAGES:
+    TASKS_TO_ANNOTATORS[(xe_code, 'eng')] = _create_uniform_task_map(
+        5, 5, REDUNDANCY)
 
 def _create_campaign_team(name, owner, tasks, redudancy):
     """
@@ -212,13 +234,13 @@ class Command(BaseCommand):
                 self.stdout.write(_msg)
                 continue
 
-            if sum(_tasks_map) % REDUNDANCY > 0:
+            if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
                 _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
                     ('eng', code))
                 self.stdout.write(_msg)
                 continue
 
-            TASKS = sum(_tasks_map) // REDUNDANCY
+            TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
             ANNOTATORS = len(_tasks_map)
 
             campaign_team_object = _create_campaign_team(
@@ -251,13 +273,13 @@ class Command(BaseCommand):
                 self.stdout.write(_msg)
                 continue
 
-            if sum(_tasks_map) % REDUNDANCY > 0:
+            if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
                 _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
                     (code, 'eng'))
                 self.stdout.write(_msg)
                 continue
 
-            TASKS = sum(_tasks_map) // REDUNDANCY
+            TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
             ANNOTATORS = len(_tasks_map)
 
             _cteam = _create_campaign_team(
@@ -333,13 +355,13 @@ class Command(BaseCommand):
                 self.stdout.write(_msg)
                 continue
 
-            if sum(_tasks_map) % REDUNDANCY > 0:
+            if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
                 _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
                     ('eng', code))
                 self.stdout.write(_msg)
                 continue
 
-            TASKS = sum(_tasks_map) // REDUNDANCY
+            TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
             ANNOTATORS = len(_tasks_map)
 
             campaign_team_object = _create_campaign_team(
@@ -366,13 +388,13 @@ class Command(BaseCommand):
                 self.stdout.write(_msg)
                 continue
 
-            if sum(_tasks_map) % REDUNDANCY > 0:
+            if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
                 _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
                     (code, 'eng'))
                 self.stdout.write(_msg)
                 continue
 
-            TASKS = sum(_tasks_map) // REDUNDANCY
+            TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
             ANNOTATORS = len(_tasks_map)
 
             campaign_team_object = _create_campaign_team(
@@ -453,8 +475,21 @@ class Command(BaseCommand):
               task.marketName().replace('_', '')[:6],
               CAMPAIGN_NO
             )
-            for i in range(REDUNDANCY):
-                tasks_for_market[market].append(task)
+            tasks_for_market[market].append(task)
+        
+        # This assigns tasks like this
+        #
+        # T1 U1 U3
+        # T2 U1 U4
+        # T3 U2 U4
+        # T4 U2 U5
+        # T5 U3 U5
+        #
+#        tasks_for_current_market = tasks_for_market[market]
+#        redundant_tasks = []
+#        for i in range(REDUNDANCY):
+#            redundant_tasks.extend(tasks_for_current_market)
+#        tasks_for_market[market] = redundant_tasks
 
         for key in tasks_for_market:
             users = User.objects.filter(
@@ -470,9 +505,13 @@ class Command(BaseCommand):
                 self.stdout.write(_msg)
                 continue
 
+            _tasks = tasks_for_market[key]
+            tasks_for_market[key] = []
             for user, tasks in zip(users.order_by('id'), _tasks_map):
-                for _ in range(tasks):
+                print(source, target, user, tasks)
+                for task_id in tasks:
                     users_for_market[key].append(user)
+                    tasks_for_market[key].append(_tasks[task_id])
 
             # _tasks should match _users in size
             _tasks = tasks_for_market[key]
