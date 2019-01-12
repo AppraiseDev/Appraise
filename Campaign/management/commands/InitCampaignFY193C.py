@@ -17,16 +17,74 @@ XE_LANGUAGES = (
 XY_LANGUAGES = (
 )
 
-CAMPAIGN_NAME = 'HumanEvalFY1938'
-CAMPAIGN_KEY = 'FY1938'
-CAMPAIGN_NO = 144
-ANNOTATORS = 5
-TASKS = 5
+def _create_uniform_task_map(annotators, tasks, redudancy):
+    """
+    Creates task maps, uniformly distributed across given annotators.
+    """
+    _total_tasks = tasks * redudancy
+    if _total_tasks % annotators > 0:
+        return None
+
+    _tasks_per_annotator = _total_tasks // annotators
+
+    _results = []
+    for annotator_id in range(annotators):
+        _annotator_tasks = []
+        for annotator_task in range(_tasks_per_annotator):
+            task_id = (annotator_id + annotator_task) % tasks
+            _annotator_tasks.append(task_id)
+        _results.append(tuple(_annotator_tasks))
+
+    return _results
+
+# Allows for arbitrary task to annotator mappings.
+#
+# Can be uniformly distributed, i.e., 2 tasks per annotator:
+#     ('src', 'dst'): [2 for _ in range(no_annotators)],
+#
+# Also possible to supply a customised list:
+#     ('src', 'dst'): [2, 1, 3, 2, 2],
+#
+# The number of list items explictly defines the number of annotators.
+# To use mapping defined in TASK_TO_ANNOTATORS, set both ANNOTATORS = None
+# and TASKS = None in the campaign config section below.
+TASKS_TO_ANNOTATORS = {}
+
+CAMPAIGN_NAME = 'HumanEvalFY193C'
+CAMPAIGN_KEY = 'FY193C'
+CAMPAIGN_NO = 148
+ANNOTATORS = None # Will be determined by TASKS_TO_ANNOTATORS mapping
+TASKS = None
 REDUNDANCY = 2
+
+for ex_code in EX_LANGUAGES:
+    TASKS_TO_ANNOTATORS[('eng', ex_code)] = _create_uniform_task_map(
+        5, 5, REDUNDANCY)
+
+for xe_code in XE_LANGUAGES:
+    TASKS_TO_ANNOTATORS[(xe_code, 'eng')] = _create_uniform_task_map(
+        5, 5, REDUNDANCY)
+
+def _create_campaign_team(name, owner, tasks, redudancy):
+    """
+    Creates CampaignTeam instance, if it does not exist yet.
+
+    Returns reference to CampaignTeam instance.
+    """
+    _cteam = CampaignTeam.objects.get_or_create(
+      teamName=CAMPAIGN_NAME,
+      owner=owner,
+      requiredAnnotations=100, #(tasks * redudancy), # TODO: fix
+      requiredHours=50, #(tasks * redudancy) / 2,
+      createdBy=owner
+    )
+    _cteam[0].members.add(owner)
+    _cteam[0].save()
+    return _cteam[0]
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
-    help = 'Initialises campaign FY19 #56'
+    help = 'Initialises campaign FY19 #60'
 
     def handle(self, *args, **options):
         # Find super user
@@ -163,23 +221,27 @@ class Command(BaseCommand):
         _msg = 'Processed Market/Metadata instances'
         self.stdout.write(_msg)
 
-        # Create CampaignTeam instance
-        _cteam = CampaignTeam.objects.get_or_create(
-          teamName=CAMPAIGN_NAME,
-          owner=superusers[0],
-          requiredAnnotations=100 * TASKS * REDUNDANCY,
-          requiredHours=(TASKS * REDUNDANCY) / 2,
-          createdBy=superusers[0]
-        )
-        _cteam[0].members.add(superusers[0])
-        _cteam[0].save()
-        campaign_team_object = _cteam[0]
-
-        _msg = 'Processed CampaignTeam instance'
-        self.stdout.write(_msg)
-
         # Create User accounts
         for code in EX_LANGUAGES:
+            _tasks_map = TASKS_TO_ANNOTATORS.get(('eng', code))
+            if _tasks_map is None:
+                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
+                    ('eng', code))
+                self.stdout.write(_msg)
+                continue
+
+            if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
+                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
+                    ('eng', code))
+                self.stdout.write(_msg)
+                continue
+
+            TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
+            ANNOTATORS = len(_tasks_map)
+
+            campaign_team_object = _create_campaign_team(
+                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS)
+
             # EX
             for user_id in range(ANNOTATORS):
                 username = '{0}{1}{2:02x}{3:02d}'.format(
@@ -200,6 +262,25 @@ class Command(BaseCommand):
                 print(username, secret)
 
         for code in XE_LANGUAGES:
+            _tasks_map = TASKS_TO_ANNOTATORS.get((code, 'eng'))
+            if _tasks_map is None:
+                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
+                    (code, 'eng'))
+                self.stdout.write(_msg)
+                continue
+
+            if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
+                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
+                    (code, 'eng'))
+                self.stdout.write(_msg)
+                continue
+
+            TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
+            ANNOTATORS = len(_tasks_map)
+
+            _cteam = _create_campaign_team(
+                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS)
+
             # XE
             for user_id in range(ANNOTATORS):
                 username = '{0}{1}{2:02x}{3:02d}'.format(
@@ -220,6 +301,25 @@ class Command(BaseCommand):
                 print(username, secret)
 
         for source, target in XY_LANGUAGES:
+            _tasks_map = TASKS_TO_ANNOTATORS.get((source, target))
+            if _tasks_map is None:
+                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
+                    (source, target))
+                self.stdout.write(_msg)
+                continue
+
+            if sum(_tasks_map) % REDUNDANCY > 0:
+                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
+                    (source, target))
+                self.stdout.write(_msg)
+                continue
+
+            TASKS = sum(_tasks_map) // REDUNDANCY
+            ANNOTATORS = len(_tasks_map)
+
+            _cteam = _create_campaign_team(
+                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS)
+
             # XY
             for user_id in range(ANNOTATORS):
                 username = '{0}{1}{2:02x}{3:02d}'.format(
@@ -244,6 +344,25 @@ class Command(BaseCommand):
 
         # Add user instances as CampaignTeam members
         for code in EX_LANGUAGES:
+            _tasks_map = TASKS_TO_ANNOTATORS.get(('eng', code))
+            if _tasks_map is None:
+                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
+                    ('eng', code))
+                self.stdout.write(_msg)
+                continue
+
+            if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
+                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
+                    ('eng', code))
+                self.stdout.write(_msg)
+                continue
+
+            TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
+            ANNOTATORS = len(_tasks_map)
+
+            campaign_team_object = _create_campaign_team(
+                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS)
+
             # EX
             for user_id in range(ANNOTATORS):
                 username = '{0}{1}{2:02x}{3:02d}'.format(
@@ -258,6 +377,25 @@ class Command(BaseCommand):
                     campaign_team_object.members.add(user_object)
 
         for code in XE_LANGUAGES:
+            _tasks_map = TASKS_TO_ANNOTATORS.get((code, 'eng'))
+            if _tasks_map is None:
+                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
+                    (code, 'eng'))
+                self.stdout.write(_msg)
+                continue
+
+            if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
+                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
+                    (code, 'eng'))
+                self.stdout.write(_msg)
+                continue
+
+            TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
+            ANNOTATORS = len(_tasks_map)
+
+            campaign_team_object = _create_campaign_team(
+                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS)
+
             # XE
             for user_id in range(ANNOTATORS):
                 username = '{0}{1}{2:02x}{3:02d}'.format(
@@ -272,6 +410,25 @@ class Command(BaseCommand):
                     campaign_team_object.members.add(user_object)
 
         for source, target in XY_LANGUAGES:
+            _tasks_map = TASKS_TO_ANNOTATORS.get((source, target))
+            if _tasks_map is None:
+                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
+                    (source, target))
+                self.stdout.write(_msg)
+                continue
+
+            if sum(_tasks_map) % REDUNDANCY > 0:
+                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
+                    (source, target))
+                self.stdout.write(_msg)
+                continue
+
+            TASKS = sum(_tasks_map) // REDUNDANCY
+            ANNOTATORS = len(_tasks_map)
+
+            campaign_team_object = _create_campaign_team(
+                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS)
+
             # XY
             for user_id in range(ANNOTATORS):
                 username = '{0}{1}{2:02x}{3:02d}'.format(
@@ -314,21 +471,47 @@ class Command(BaseCommand):
               task.marketName().replace('_', '')[:6],
               CAMPAIGN_NO
             )
-            for i in range(2):
-                tasks_for_market[market].append(task)
+            tasks_for_market[market].append(task)
+        
+        # This assigns tasks like this
+        #
+        # T1 U1 U3
+        # T2 U1 U4
+        # T3 U2 U4
+        # T4 U2 U5
+        # T5 U3 U5
+        #
+#        tasks_for_current_market = tasks_for_market[market]
+#        redundant_tasks = []
+#        for i in range(REDUNDANCY):
+#            redundant_tasks.extend(tasks_for_current_market)
+#        tasks_for_market[market] = redundant_tasks
 
         for key in tasks_for_market:
             users = User.objects.filter(
               username__startswith=key
             )
 
-            for user in users.order_by('id'):
-                users_for_market[key].append(user)
+            source = key[:3]
+            target = key[3:6]
+            _tasks_map = TASKS_TO_ANNOTATORS.get((source, target))
+            if _tasks_map is None:
+                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
+                    (source, target))
+                self.stdout.write(_msg)
+                continue
 
-            # _tasks has size 8 due to duplicating tasks above
-            # _users has size 4, so we need 2 copies to match
             _tasks = tasks_for_market[key]
-            _users = users_for_market[key] * 2
+            tasks_for_market[key] = []
+            for user, tasks in zip(users.order_by('id'), _tasks_map):
+                print(source, target, user, tasks)
+                for task_id in tasks:
+                    users_for_market[key].append(user)
+                    tasks_for_market[key].append(_tasks[task_id])
+
+            # _tasks should match _users in size
+            _tasks = tasks_for_market[key]
+            _users = users_for_market[key]
             for u, t in zip(_users, _tasks):
                 print(u, '-->', t.id)
 
