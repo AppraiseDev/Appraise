@@ -356,7 +356,7 @@ class Command(BaseCommand):
 
                 # TODO: fix long lines.
                 _src = local_src[segment_id] if use_local_src else source_file[segment_id]
-                _ref = local_src[segment_id] if use_local_ref else reference_file[segment_id]
+                _ref = local_ref[segment_id] if use_local_ref else reference_file[segment_id]
                 _url = urls_file[segment_id] if urls_file else None
 
                 # Determine length of bad phrase, relative to segment length
@@ -380,7 +380,7 @@ class Command(BaseCommand):
                 elif len(_tokens) > 15 and len(_tokens) <= 20:
                     _bad_len = 5
                 else:
-                    _bad_len = len(_tokens) // 4
+                    _bad_len = 6 # len(_tokens) // 4
 
                 if character_based:
                     _bad_len = 2 * _bad_len
