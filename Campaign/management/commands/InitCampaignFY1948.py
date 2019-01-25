@@ -28,11 +28,14 @@ def _create_uniform_task_map(annotators, tasks, redudancy):
     _tasks_per_annotator = _total_tasks // annotators
 
     _results = []
+    _current_task_id = 0
     for annotator_id in range(annotators):
         _annotator_tasks = []
         for annotator_task in range(_tasks_per_annotator):
-            task_id = (annotator_id + annotator_task) % tasks
+            task_id = (_current_task_id + annotator_task) % tasks
             _annotator_tasks.append(task_id)
+            _current_task_id = task_id
+        _current_task_id += 1
         _results.append(tuple(_annotator_tasks))
 
     return _results
