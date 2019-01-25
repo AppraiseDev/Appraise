@@ -7,7 +7,7 @@ from Campaign.models import Campaign, CampaignTeam
 from EvalData.models import Market, Metadata
 
 EX_LANGUAGES = (
-    'heb', 'hin', 'por', 'slv',
+    'heb', 'por', 'slv',
 )
 
 XE_LANGUAGES = (
