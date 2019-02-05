@@ -59,7 +59,7 @@ ANNOTATORS = None # Will be determined by TASKS_TO_ANNOTATORS mapping
 TASKS = None
 REDUNDANCY = 1
 
-for xe_code in EX_LANGUAGES:
+for ex_code in EX_LANGUAGES:
     TASKS_TO_ANNOTATORS[('eng', ex_code)] = _create_uniform_task_map(
         6, 12, REDUNDANCY)
 
