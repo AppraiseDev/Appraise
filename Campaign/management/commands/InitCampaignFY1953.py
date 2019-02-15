@@ -62,11 +62,11 @@ REDUNDANCY = 2
 
 for ex_code in EX_LANGUAGES:
     TASKS_TO_ANNOTATORS[('eng', ex_code)] = _create_uniform_task_map(
-        0, 0, REDUNDANCY)
+        5, 5, REDUNDANCY)
 
 for xe_code in XE_LANGUAGES:
     TASKS_TO_ANNOTATORS[(xe_code, 'eng')] = _create_uniform_task_map(
-        10, 10, REDUNDANCY)
+        5, 5, REDUNDANCY)
 
 for xy_code in XY_LANGUAGES:
     TASKS_TO_ANNOTATORS[xy_code] = _create_uniform_task_map(
