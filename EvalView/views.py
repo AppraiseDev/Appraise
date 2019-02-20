@@ -178,10 +178,44 @@ def direct_assessment(request, code=None, campaign_name=None):
 
     t4 = datetime.now()
 
+    # Define priming question
+    #
+    # Default:
+    #   How accurately does the above candidate text convey the original
+    #   semantics of the source text? Slider ranges from
+    #   <em>Not at all</em> (left) to <em>Perfectly</em> (right).
+    #
+    # We currently allow specific overrides, based on campaign name.
+    reference_label = 'Source text'
+    candidate_label = 'Candidate translation'
+    priming_question_text = (
+      'How accurately does the above candidate text convey the original '
+      'semantics of the source text? Slider ranges from '
+      '<em>Not at all</em> (left) to <em>Perfectly</em> (right).')
+
+    if campaign.campaignName == 'HumanEvalFY1951':
+        reference_label = 'Candidate A'
+        candidate_label = 'Candidate B'
+        priming_question_text = (
+          'How accurately does candidate text B convey the original '
+          'semantics of candidate text A? Slider ranges from '
+          '<em>Not at all</em> (left) to <em>Perfectly</em> (right).')
+
+    elif campaign.campaignName == 'HumanEvalFY1952':
+        reference_label = 'Candidate A'
+        candidate_label = 'Candidate B'
+        priming_question_text = (
+          'Which of the two candidate texts is more fluent? Slider marks '
+          'preference for <em>Candidate A</em> (left), no difference '
+          '(middle) or preference for <em>Candidate B</em> (right).')
+
     context = {
       'active_page': 'direct-assessment',
+      'reference_label': reference_label,
       'reference_text': current_item.sourceText,
+      'candidate_label': candidate_label,
       'candidate_text': current_item.targetText,
+      'priming_question_text': priming_question_text,
       'item_id': current_item.itemID,
       'task_id': current_item.id,
       'completed_blocks': completed_blocks,
