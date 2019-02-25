@@ -13,7 +13,7 @@ XE_LANGUAGES = (
 )
 
 XY_LANGUAGES = (
-    ('chs', 'jpn'), ('jpn', 'chs'),
+    ('zho', 'jpn'), ('jpn', 'zho'),
 )
 
 def _create_uniform_task_map(annotators, tasks, redudancy):
