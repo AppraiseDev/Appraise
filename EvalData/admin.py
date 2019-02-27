@@ -5,7 +5,7 @@ See LICENSE for usage details
 """
 # pylint: disable=C0330
 from datetime import datetime
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.utils.timezone import utc
 from .models import Market, Metadata, TextSegment, TextPair, TextPairWithImage
 from .models import DirectAssessmentTask, DirectAssessmentResult
@@ -311,6 +311,8 @@ class TaskAgendaAdmin(admin.ModelAdmin):
     """
     Model admin for TaskAgenda object model.
     """
+    actions = ['reset_annotations']
+
     list_display = [
       'user', 'campaign', 'completed'
     ]
@@ -320,6 +322,16 @@ class TaskAgendaAdmin(admin.ModelAdmin):
     search_fields = [
       'user__username', 'campaign__campaignName',
     ]
+
+    def reset_annotations(self, request, queryset):
+        agendas_selected = queryset.count()
+        if agendas_selected > 1:
+            _msg = (
+              "You can only reset annotations for one task agenda at "
+              "a time. No items have been changed."
+            )
+            self.message_user(request, _msg, level=messages.WARNING)
+    reset_annotations.short_description = "Reset annotations for agenda"
 
 
 admin.site.register(Market, MarketAdmin)
