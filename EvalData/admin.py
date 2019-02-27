@@ -303,7 +303,7 @@ class WorkAgendaAdmin(admin.ModelAdmin):
       'campaign'
     ]
     search_fields = [
-      'user__username', 'campaign__campaignName', 'completed'
+      'user__username', 'campaign__campaignName',
     ]
 
 
@@ -318,7 +318,7 @@ class TaskAgendaAdmin(admin.ModelAdmin):
       'campaign'
     ]
     search_fields = [
-      'user__username', 'campaign__campaignName', 'completed'
+      'user__username', 'campaign__campaignName',
     ]
 
 
