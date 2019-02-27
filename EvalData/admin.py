@@ -303,7 +303,7 @@ class WorkAgendaAdmin(admin.ModelAdmin):
       'campaign'
     ]
     search_fields = [
-      'user__username', 'campaign__campaignName',
+      'user__username', 'campaign__campaignName', 
     ]
 
 
@@ -320,6 +320,11 @@ class TaskAgendaAdmin(admin.ModelAdmin):
     search_fields = [
       'user__username', 'campaign__campaignName',
     ]
+
+    class Meta:
+        permissions = (
+          ("can_reset", "Can reset task agendas"),
+        )
 
 
 admin.site.register(Market, MarketAdmin)
