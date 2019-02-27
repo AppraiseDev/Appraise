@@ -2171,6 +2171,11 @@ class TaskAgenda(models.Model):
       verbose_name=_('Completed tasks')
     )
 
+    class Meta:
+        permissions = (
+          ("can_reset", "Can reset task agendas"),
+        )
+
     def completed(self):
         return self._open_tasks.count() == 0
 
