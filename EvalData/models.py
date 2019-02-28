@@ -8,9 +8,11 @@ import logging
 from collections import defaultdict
 from datetime import datetime, timedelta
 from json import loads
+from re import compile as re_compile
 from traceback import format_exc
 from zipfile import ZipFile, is_zipfile
 from django.db import models
+from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.text import format_lazy as f
@@ -784,7 +786,7 @@ class DirectAssessmentTask(BaseMetadata):
 
         next_item = None
         completed_items = 0
-        for item in self.items.all():
+        for item in self.items.all().order_by('itemID'):
             result = DirectAssessmentResult.objects.filter(
               item=item,
               activated=False,
@@ -1583,7 +1585,7 @@ class MultiModalAssessmentTask(BaseMetadata):
 
         next_item = None
         completed_items = 0
-        for item in self.items.all():
+        for item in self.items.all().order_by('itemID'):
             result = MultiModalAssessmentResult.objects.filter(
               item=item,
               activated=False,
@@ -2208,6 +2210,7 @@ class TaskAgenda(models.Model):
           self._completed_tasks.count()
         )
 
+    # pylint: disable=protected-access
     @classmethod
     def reassign_tasks(cls, old_username, new_username):
         """
@@ -2233,3 +2236,64 @@ class TaskAgenda(models.Model):
         new_tasks = list(new_agenda._open_tasks.all())
 
         return (old_tasks, new_tasks)
+
+    # pylint: disable=undefined-variable
+    def reset_annotations(self):
+        """
+        Resets annotations and state for this task agenda instance.
+
+        This will do nothing if there are no annotations yet.
+
+        Moves all annotations for the agenda owner to a new user account,
+        named as '{self.user.username}-{number:02x}', preserving data for
+        future analysis. This user is not added to the respective campaign
+        team, so that these annotations will not affect final results.
+
+        The reset moves all related tasks back into self._open_tasks.
+
+        Returns True upon success, False otherwise.
+        """
+        annotated_output_for_user = DirectAssessmentResult.objects.filter(
+          createdBy=self.user)
+
+        if not annotated_output_for_user.exists():
+            _msg = 'Nothing to be done for user {0}.'.format(self.user)
+            _lvl = messages.INFO
+            return (False, _msg, _lvl)
+
+        _shadow = re_compile(r'{0}-[0-9a-f]{{2}}'.format(self.user.username))
+        _users = User.objects.filter(username__startswith=self.user.username)
+        _shadow_copies = 0
+        for _candidate in _users:
+            if _shadow.match(_candidate.username):
+                _shadow_copies += 1
+
+        if (_shadow_copies + 1) > 255:
+            _msg = 'Cannot create shadow copy for user {0}.'.format(self.user)
+            _lvl = messages.WARNING
+            return (False, _msg, _lvl)
+
+        # Next shadow copy will be named:
+        #   {self.user.username}-{_shadow_copies+1:02x}
+        #
+        # This user will be inactive and won't allow authentication as we
+        # do not set a password. The account is purely for archival use.
+        _name = '{0}-{1:02x}'.format(self.user.username, _shadow_copies + 1)
+        _shadow_copy = User.objects.create_user(_name)
+        _shadow_copy.is_active = False
+        _shadow_copy.save()
+
+        for annotation_result in annotated_output_for_user:
+            annotation_result.createdBy = _shadow_copy
+            annotation_result.modifiedBy = _shadow_copy
+            annotation_result.retire() # Implictly calls save()
+
+        # pylint: disable=protected-access
+        for task in self._completed_tasks.all():
+            self._open_tasks.add(task)
+            self._completed_tasks.remove(task)
+
+        _msg = ('Succesfully reset annotations for user {0}, creating '
+          'shadow copy {1}.'.format(self.user, _shadow_copy))
+        _lvl = messages.INFO
+        return (True, _msg, _lvl)
