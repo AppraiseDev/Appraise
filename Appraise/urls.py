@@ -9,6 +9,7 @@ from django.contrib.auth import views as auth_views
 from Appraise.settings import BASE_CONTEXT, DEBUG
 from Campaign import views as campaign_views
 from Dashboard import views as dashboard_views
+from EvalData import views as evaldata_views
 from EvalView import views as evalview_views
 
 
@@ -20,6 +21,11 @@ handler500 = 'Dashboard.views._server_error'
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
+
+    url(
+        r'^admin/taskagenda/reset-annotations/(?P<agenda_id>[0-9]+)/$',
+        evaldata_views.reset_annotations,
+        name='reset-annotations'),
 
     url(r'^$', dashboard_views.frontpage, name='frontpage'),
 
