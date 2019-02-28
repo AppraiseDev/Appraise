@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+from codecs import encode
 from datetime import datetime
 import logging
 
@@ -215,6 +216,7 @@ def direct_assessment(request, code=None, campaign_name=None):
       'reference_text': current_item.sourceText,
       'candidate_label': candidate_label,
       'candidate_text': current_item.targetText,
+      # 'candidate_text': encode(current_item.targetText, 'rot13'),
       'priming_question_text': priming_question_text,
       'item_id': current_item.itemID,
       'task_id': current_item.id,
