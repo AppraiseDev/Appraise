@@ -313,7 +313,7 @@ class TaskAgendaAdmin(admin.ModelAdmin):
     """
     Model admin for TaskAgenda object model.
     """
-    actions = ['reset_annotations']
+    actions = ['reset_taskagenda']
 
     list_display = [
       'user', 'campaign', 'completed'
@@ -325,15 +325,25 @@ class TaskAgendaAdmin(admin.ModelAdmin):
       'user__username', 'campaign__campaignName',
     ]
 
-    def reset_annotations(self, request, queryset):
+    def get_actions(self, request):
         """
-        Handles reset admin action for TaskAgenda instances.
+        Reset task agenda action requires reset_taskagenda permission.
+        """
+        actions = super(TaskAgendaAdmin, self).get_actions(request)
+        if 'reset_taskagenda' in actions:
+            if not request.user.has_perm('EvalData.reset_taskagenda'):
+                del actions['reset_taskagenda']
+        return actions
+
+    def reset_taskagenda(self, request, queryset):
+        """
+        Handles reset task agenda admin action for TaskAgenda instances.
         """
         agendas_selected = queryset.count()
         if agendas_selected > 1:
             _msg = (
-              "You can only reset annotations for one task agenda at "
-              "a time. No items have been changed."
+              "You can only reset one task agenda at a time. "
+              "No items have been changed."
             )
             self.message_user(request, _msg, level=messages.WARNING)
             return HttpResponseRedirect(
@@ -341,8 +351,8 @@ class TaskAgendaAdmin(admin.ModelAdmin):
 
         _pk = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
         return HttpResponseRedirect(
-          reverse('reset-annotations', args=_pk))
-    reset_annotations.short_description = "Reset annotations for agenda"
+          reverse('reset-taskagenda', args=_pk))
+    reset_taskagenda.short_description = "Reset task agenda"
 
 
 admin.site.register(Market, MarketAdmin)

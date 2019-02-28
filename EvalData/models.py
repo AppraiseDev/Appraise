@@ -2175,7 +2175,7 @@ class TaskAgenda(models.Model):
 
     class Meta:
         permissions = (
-          ("can_reset", "Can reset task agendas"),
+          ("reset_taskagenda", "Can reset task agendas"),
         )
 
     def completed(self):
@@ -2238,7 +2238,7 @@ class TaskAgenda(models.Model):
         return (old_tasks, new_tasks)
 
     # pylint: disable=undefined-variable
-    def reset_annotations(self):
+    def reset_taskagenda(self):
         """
         Resets annotations and state for this task agenda instance.
 
@@ -2293,7 +2293,7 @@ class TaskAgenda(models.Model):
             self._open_tasks.add(task)
             self._completed_tasks.remove(task)
 
-        _msg = ('Succesfully reset annotations for user {0}, creating '
+        _msg = ('Succesfully reset task agenda for user {0}, creating '
           'shadow copy {1}.'.format(self.user, _shadow_copy))
         _lvl = messages.INFO
         return (True, _msg, _lvl)
