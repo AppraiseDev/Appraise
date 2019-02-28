@@ -6,6 +6,8 @@ See LICENSE for usage details
 # pylint: disable=C0330
 from datetime import datetime
 from django.contrib import admin, messages
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.utils.timezone import utc
 from .models import Market, Metadata, TextSegment, TextPair, TextPairWithImage
 from .models import DirectAssessmentTask, DirectAssessmentResult
@@ -324,6 +326,9 @@ class TaskAgendaAdmin(admin.ModelAdmin):
     ]
 
     def reset_annotations(self, request, queryset):
+        """
+        Handles reset admin action for TaskAgenda instances.
+        """
         agendas_selected = queryset.count()
         if agendas_selected > 1:
             _msg = (
@@ -331,6 +336,12 @@ class TaskAgendaAdmin(admin.ModelAdmin):
               "a time. No items have been changed."
             )
             self.message_user(request, _msg, level=messages.WARNING)
+            return HttpResponseRedirect(
+              reverse('admin:EvalData_taskagenda_changelist'))
+
+        _pk = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        return HttpResponseRedirect(
+          reverse('reset-annotations', args=_pk))
     reset_annotations.short_description = "Reset annotations for agenda"
 
 
