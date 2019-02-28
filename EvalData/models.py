@@ -786,7 +786,7 @@ class DirectAssessmentTask(BaseMetadata):
 
         next_item = None
         completed_items = 0
-        for item in self.items.all().order_by('itemID'):
+        for item in self.items.all().order_by('id'):
             result = DirectAssessmentResult.objects.filter(
               item=item,
               activated=False,
@@ -1585,7 +1585,7 @@ class MultiModalAssessmentTask(BaseMetadata):
 
         next_item = None
         completed_items = 0
-        for item in self.items.all().order_by('itemID'):
+        for item in self.items.all().order_by('id'):
             result = MultiModalAssessmentResult.objects.filter(
               item=item,
               activated=False,
