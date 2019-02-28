@@ -23,9 +23,9 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
 
     url(
-        r'^admin/taskagenda/reset-annotations/(?P<agenda_id>[0-9]+)/$',
-        evaldata_views.reset_annotations,
-        name='reset-annotations'),
+        r'^admin/taskagenda/reset/(?P<agenda_id>[0-9]+)/$',
+        evaldata_views.reset_taskagenda,
+        name='reset-taskagenda'),
 
     url(r'^$', dashboard_views.frontpage, name='frontpage'),
 

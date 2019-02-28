@@ -13,22 +13,22 @@ from django.urls import reverse
 from .models import TaskAgenda
 
 @login_required
-@permission_required('can_reset')
-def reset_annotations(request, agenda_id):
+@permission_required('EvalData.reset_taskagenda')
+def reset_taskagenda(request, agenda_id):
     """
     Attempts to reset the TaskAgenda matching the given pk.
 
     Only possible for users who:
     1) are logged in;
     2) are staff members; and
-    3) have can_reset permission.
+    3) have reset_taskagenda permission.
 
     Redirects back to TaskAgenda changelist when done.
     """
     _obj = get_object_or_404(TaskAgenda, pk=agenda_id)
 
     # This will return triple with a status message and level.
-    _ret, _msg, _lvl = _obj.reset_annotations()
+    _ret, _msg, _lvl = _obj.reset_taskagenda()
     messages.add_message(request, _lvl, _msg)
 
     return HttpResponseRedirect(reverse('admin:EvalData_taskagenda_changelist'))
