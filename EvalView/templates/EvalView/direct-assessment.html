@@ -5,6 +5,13 @@
 <style>
 #slider .ui-slider-range { background: #729fcf; }
 #slider .ui-slider-handle { border-color: #729fcf; }
+
+[data-pseudo-content]::before,
+[data-pseudo-content--before]::before,
+[data-pseudo-content--after]::after {
+  content: attr(data-pseudo-content);
+  font-weight:bold;
+}
 </style>
 
 <link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}">
@@ -14,11 +21,21 @@
 var idleTime = 0;
 //var idleTimeoutInSeconds = 5;
 
+String.prototype.rot13 = function() {
+  return this.replace(/[a-zA-Z]/g, function(c) {
+    return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
+  });
+};
+
 $(document).ready(function() {
   $('input[name="start_timestamp"]').val(Date.now()/1000.0);
   $('#slider').slider({orientation: "horizontal", range: "min", change: update_score});
   $('input[name="score"]').val(-1);
 
+  var $a = $('#id_candidate_text').attr('data-pseudo-content');
+  $('#id_candidate_text').attr('data-pseudo-content', $a.rot13());
+  alert($a);
+  
   // Increment the idle time counter every second.
   //var idleInterval = setInterval(timerIncrement, 1000);
 
@@ -133,6 +150,7 @@ function update_score()
 <div class="row">
 <div class="col-sm-12">
 <blockquote>
+<!--<p id="id_candidate_text" data-pseudo-content="{{candidate_text|safe}}"></p>-->
 <p><strong>{{candidate_text|safe}}</strong></p>
 <small>{{candidate_label}}</small>
 </blockquote>
@@ -153,7 +171,11 @@ function update_score()
 <div class="col-sm-12">
 <blockquote>
 <div id="slider"></div>
+<<<<<<< Updated upstream
 <small>{{priming_question_text|safe}}</small>
+=======
+<small>{{priming_question_text}}</small>
+>>>>>>> Stashed changes
 </blockquote>
 </div>
 </div>
