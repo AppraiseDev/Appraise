@@ -26,6 +26,9 @@ def reset_annotations(request, agenda_id):
     Redirects back to TaskAgenda changelist when done.
     """
     _obj = get_object_or_404(TaskAgenda, pk=agenda_id)
-    _msg = 'Would now process {0}'.format(_obj)
-    messages.add_message(request, messages.INFO, _msg)
+
+    # This will return triple with a status message and level.
+    _ret, _msg, _lvl = _obj.reset_annotations()
+    messages.add_message(request, _lvl, _msg)
+
     return HttpResponseRedirect(reverse('admin:EvalData_taskagenda_changelist'))
