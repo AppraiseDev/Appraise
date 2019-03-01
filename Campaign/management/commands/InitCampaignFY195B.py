@@ -4,6 +4,7 @@ from django.contrib.auth.models import User, Group
 from django.core.management.base import BaseCommand, CommandError
 
 from Campaign.models import Campaign, CampaignTeam
+from Dashboard.models import validate_language_code
 from EvalData.models import Market, Metadata
 
 EX_LANGUAGES = (
@@ -59,6 +60,11 @@ CAMPAIGN_NO = 179
 ANNOTATORS = None # Will be determined by TASKS_TO_ANNOTATORS mapping
 TASKS = None
 REDUNDANCY = 1
+
+for code in EX_LANGUAGES + XE_LANGUAGES + XY_LANGUAGES:
+    if not validate_language_code(code):
+        _msg = '{0!r} contains invalid language code!'.format(code)
+        raise ValueError(_msg)
 
 for ex_code in EX_LANGUAGES:
     TASKS_TO_ANNOTATORS[('eng', ex_code)] = _create_uniform_task_map(

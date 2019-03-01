@@ -4,7 +4,7 @@ from django.contrib.auth.models import User, Group
 from django.core.management.base import BaseCommand, CommandError
 
 from Campaign.models import Campaign, CampaignTeam
-from Dashboard.models import LANGUAGE_CODES_AND_NAMES
+from Dashboard.models import validate_language_code
 from EvalData.models import Market, Metadata
 
 EX_LANGUAGES = (
@@ -17,22 +17,6 @@ XE_LANGUAGES = (
 
 XY_LANGUAGES = (
 )
-
-def validate_language_code(code_or_codes):
-    """
-    Validates given language code string or list of code strings.
-
-    Returns True if valid, False otherwise.
-    """
-    valid_codes = LANGUAGE_CODES_AND_NAMES.keys()
-    valid = False
-    if isinstance(code_or_codes, list) or isinstance(code_or_codes, tuple):
-        valid = all([x.lower() in valid_codes for x in code_or_codes])
-
-    else:
-        valid = code_or_codes.lower() in valid_codes
-
-    return valid
 
 def _create_uniform_task_map(annotators, tasks, redudancy):
     """
@@ -77,24 +61,20 @@ ANNOTATORS = None # Will be determined by TASKS_TO_ANNOTATORS mapping
 TASKS = None
 REDUNDANCY = 2
 
-for ex_code in EX_LANGUAGES:
-    if not validate_language_code(ex_code):
-        _msg = '{0!r} is not valid language code!'.format(ex_code)
+for code in EX_LANGUAGES + XE_LANGUAGES + XY_LANGUAGES:
+    if not validate_language_code(code):
+        _msg = '{0!r} contains invalid language code!'.format(code)
         raise ValueError(_msg)
+
+for ex_code in EX_LANGUAGES:
     TASKS_TO_ANNOTATORS[('eng', ex_code)] = _create_uniform_task_map(
         5, 5, REDUNDANCY)
 
 for xe_code in XE_LANGUAGES:
-    if not validate_language_code(ex_code):
-        _msg = '{0!r} is not valid language code!'.format(xe_code)
-        raise ValueError(_msg)
     TASKS_TO_ANNOTATORS[(xe_code, 'eng')] = _create_uniform_task_map(
         5, 5, REDUNDANCY)
 
 for xy_code in XY_LANGUAGES:
-    if not validate_language_code(xy_code):
-        _msg = '{0!r} is not valid language pair!'.format(xy_code)
-        raise ValueError(_msg)
     TASKS_TO_ANNOTATORS[xy_code] = _create_uniform_task_map(
         0, 0, REDUNDANCY)
 

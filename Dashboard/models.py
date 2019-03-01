@@ -67,6 +67,22 @@ try:
 except (OperationalError, ProgrammingError):
     pass
 
+def validate_language_code(code_or_codes):
+    """
+    Validates given language code string or list of code strings.
+
+    Returns True if valid, False otherwise.
+    """
+    valid_codes = LANGUAGE_CODES_AND_NAMES.keys()
+    valid = False
+    if isinstance(code_or_codes, list) or isinstance(code_or_codes, tuple):
+        valid = all([x.lower() in valid_codes for x in code_or_codes])
+
+    else:
+        valid = code_or_codes.lower() in valid_codes
+
+    return valid
+
 def create_uuid4_token():
     """
     Creates a new UUID4-based token.
