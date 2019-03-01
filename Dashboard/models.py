@@ -53,6 +53,8 @@ LANGUAGE_CODES_AND_NAMES = {
     'acm': 'Iraqi Arabic (راقي‎ - ʕirāgi)',
     'ayl': 'Lybian Arabic ( ليبي - lībi)',
     'ayn': 'Yemeni Arabic (يمني - yamani)',
+    'fas': 'Farsi (فارسی)',
+    'afr': 'Afrikaans',
 }
 
 # Ensure that all languages have a corresponding group.
