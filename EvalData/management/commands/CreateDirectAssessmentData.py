@@ -305,8 +305,13 @@ class Command(BaseCommand):
         hashed_text = {}
         hashes_by_ids = defaultdict(list)
 
+        # Not sure of this should rather be used...
+        # or ((_tgt == 'zho' or _tgt == 'jpn') and not source_based) \
+        #
         character_based = _tgt == 'zho' or _tgt == 'jpn' \
+          or ((_src == 'zho' or _src == 'jpn') and source_based) \
           or options['character_based']
+        print(f'character_based = {character_based}')
 
         for system_path in systems_files:
             system_txt = Command._load_text_from_file(system_path, encoding)
