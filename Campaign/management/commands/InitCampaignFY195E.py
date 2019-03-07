@@ -8,11 +8,11 @@ from Dashboard.models import validate_language_code
 from EvalData.models import Market, Metadata
 
 EX_LANGUAGES = (
-    'afr', 'fas', 'tam', 'tel', 'vie',
+    'afr', 'fas', 'tel', 'vie',
 )
 
 XE_LANGUAGES = (
-    'afr', 'fas', 'kor', 'slv', 'tam', 'tel', 'ukr', 'urd', 'vie',
+    'afr', 'fas', 'kor', 'tel', 'ukr', 'urd', 'vie',
 )
 
 XY_LANGUAGES = (
