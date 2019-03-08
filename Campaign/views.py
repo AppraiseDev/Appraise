@@ -72,6 +72,9 @@ def campaign_status(request, campaign_name, sort_key=2):
                 _user_stdev = sqrt(
                     sum(((x[2] - _user_mean) ** 2 / _cs) for x in _data))
 
+            if int(_user_stdev) == 0:
+                _user_stdev = 1
+
             _tgt = defaultdict(list)
             _bad = defaultdict(list)
             for _x in _data:
@@ -106,7 +109,7 @@ def campaign_status(request, campaign_name, sort_key=2):
                 except ImportError:
                     pass
 
-                # Possible for mannwhitneyu to throw in some scenarios:
+                # Possible for mannwhitneyu() to throw in some scenarios:
                 #
                 # File "scipy/stats/stats.py", line 4865, in mannwhitneyu
                 #   raise ValueError(
