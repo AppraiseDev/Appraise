@@ -106,6 +106,14 @@ def campaign_status(request, campaign_name, sort_key=2):
                 except ImportError:
                     pass
 
+                # Possible for mannwhitneyu to throw in some scenarios:
+                #
+                # File "scipy/stats/stats.py", line 4865, in mannwhitneyu
+                #   raise ValueError(
+                #     'All numbers are identical in mannwhitneyu')
+                except ValueError:
+                    pass
+
             if _first_modified:
                 _date_modified = datetime(1970, 1, 1) + _first_modified
                 _first_modified = str(_date_modified).split('.')[0]
