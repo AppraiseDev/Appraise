@@ -55,6 +55,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'ayn': 'Yemeni Arabic (يمني - yamani)',
     'fas': 'Farsi (فارسی)',
     'afr': 'Afrikaans',
+    'mlt': 'Maltese (Malti)',
 }
 
 # Ensure that all languages have a corresponding group.
