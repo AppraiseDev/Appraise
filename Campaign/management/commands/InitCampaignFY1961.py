@@ -108,7 +108,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         csv_output = options['csv_output']
-        self.stdout.write(f'CSV output path: {csv_output!r}')
+        self.stdout.write('CSV output path: {0!r}'.format(csv_output))
         if csv_output and not csv_output.endswith('.csv'):
             _msg = 'csv_output does not point to .csv file'
             raise ValueError(_msg)
@@ -381,7 +381,7 @@ class Command(BaseCommand):
                 ','.join(('Username', 'Password', 'URL')) + '\r\n'
             ]
             for u, p in credentials.items():
-                url = f'{CAMPAIGN_URL}{u}/{p}/'
+                url = '{0}{1}/{2}/'.format(CAMPAIGN_URL, u, p)
                 csv_lines.append(
                     ','.join((u, p, url)) + '\r\n'
                 )
