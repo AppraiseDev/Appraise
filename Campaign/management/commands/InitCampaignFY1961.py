@@ -378,12 +378,12 @@ class Command(BaseCommand):
         # Write credentials to CSV file if specified.
         if csv_output:
             csv_lines = [
-                ','.join(('Username', 'Password', 'URL')) + '\r\n'
+                ','.join(('Username', 'Password', 'URL')) + '\n'
             ]
             for u, p in credentials.items():
                 url = '{0}{1}/{2}/'.format(CAMPAIGN_URL, u, p)
                 csv_lines.append(
-                    ','.join((u, p, url)) + '\r\n'
+                    ','.join((u, p, url)) + '\n'
                 )
             with open(csv_output, mode='w') as out_file:
                 out_file.writelines(csv_lines)
