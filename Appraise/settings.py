@@ -53,6 +53,8 @@ except ImportError:
 
     WSGI_APPLICATION = 'Appraise.wsgi.application'
 
+FILE_UPLOAD_PERMISSIONS = 0o644
+
 # Logging settings for this Django project.
 LOG_LEVEL = logging.DEBUG
 LOG_FILENAME = os.path.join(BASE_DIR, 'appraise.log')
