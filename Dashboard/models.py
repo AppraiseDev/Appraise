@@ -56,6 +56,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'fas': 'Farsi (فارسی)',
     'afr': 'Afrikaans',
     'mlt': 'Maltese (Malti)',
+    'sin': 'Sinhalese (සිංහල sinhala)',
 }
 
 # Ensure that all languages have a corresponding group.
