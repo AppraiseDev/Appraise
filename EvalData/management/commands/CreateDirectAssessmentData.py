@@ -132,6 +132,10 @@ class Command(BaseCommand):
           '--no-redundancy', action='store_true',
           help='Disable redundant quality control, maximising data collection'
         )
+        parser.add_argument(
+          '--ignore-empty', action='store_true',
+          help='Replaces empty lines with "EMPTY_LINE"'
+        )
         # TODO: add optional parameters to set source, reference and system IDs
 
 ###
@@ -262,25 +266,26 @@ class Command(BaseCommand):
                     items_per_batch))
 
         encoding = 'utf16' if unicode_enc else 'utf8'
+        ignore_empty = options['ignore_empty']
 
         source_file = []
         if not use_local_src:
             source_file = Command._load_text_from_file(
-                options['source_file'], encoding)
+                options['source_file'], encoding, ignore_empty)
             print('Loaded {0} source segments'.format(
                 len(source_file.keys())))
 
         reference_file = []
         if not use_local_ref:
             reference_file = Command._load_text_from_file(
-                options['reference_file'], encoding)
+                options['reference_file'], encoding, ignore_empty)
             print('Loaded {0} reference segments'.format(
                 len(reference_file.keys())))
 
         urls_file = []
         if options['urls_file'] is not None:
             urls_file = Command._load_text_from_file(
-                options['urls_file'], encoding)
+                options['urls_file'], encoding, ignore_empty)
             print('Loaded {0} image URLs'.format(
                 len(urls_file.keys())))
 
@@ -314,20 +319,22 @@ class Command(BaseCommand):
         print(f'character_based = {character_based}')
 
         for system_path in systems_files:
-            system_txt = Command._load_text_from_file(system_path, encoding)
+            system_txt = Command._load_text_from_file(
+              system_path, encoding, ignore_empty)
             # Generate bad references on the fly
             #
             # To do so, we will load a random source segment to fill in a
             # randomly positioned phrase in the given candidate translation.
             #
             # system_bad = Command._load_text_from_file(
-            #     system_path.replace('.txt', '.bad'), encoding)
+            #     system_path.replace('.txt', '.bad'), encoding, ignore_empty)
 
             # TODO: decide whether to drop use of system_ids.
             # pylint: disable=W0612
             if not create_ids:
                 system_ids = Command._load_text_from_file(
-                    system_path.replace('.txt', '.ids'), encoding)
+                    system_path.replace('.txt', '.ids'), encoding,
+                    ignore_empty)
             else:
                 system_ids = [x+1 for x in range(len(system_txt))]
             # BASICALLY: add support for local system_src and system_ref files
@@ -347,13 +354,13 @@ class Command(BaseCommand):
                 local_src_path = system_path.replace('.txt', '.src')
                 if exists(local_src_path):
                     local_src = Command._load_text_from_file(
-                        local_src_path, encoding)
+                        local_src_path, encoding, ignore_empty)
 
             if use_local_ref:
                 local_ref_path = system_path.replace('.txt', '.ref')
                 if exists(local_ref_path):
                     local_ref = Command._load_text_from_file(
-                        local_src_path, encoding)
+                        local_src_path, encoding, ignore_empty)
 
             for segment_id, segment_text in system_txt.items():
                 md5hash = hashlib.new(
@@ -687,13 +694,26 @@ class Command(BaseCommand):
 
     # TODO: use module-level function instead, moving to different file.
     @staticmethod
-    def _load_text_from_file(file_path, encoding='utf8'):
+    def _load_text_from_file(file_path, encoding='utf8', ignore_empty=False):
         segment_id = 0
         file_text = OrderedDict()
 
         with open(file_path, encoding=encoding) as input_file:
             for current_line in input_file:
                 segment_id += 1
-                file_text[segment_id] = current_line.strip()
+                cleaned_line = current_line.strip()
+                if not cleaned_line:
+                    if not ignore_empty:
+                        _msg = (f'Empty segment id={segment_id}! Use ' \
+                          '--ignore-empty to replace with "EMPTY_LINE".')
+                        raise ValueError(_msg)
+
+                    else:
+                        _msg = (f'Empty segment id={segment_id}! ' \
+                          'Replaced with "EMPTY_LINE".')
+                        cleaned_line = 'EMPTY_LINE'
+                        print(_msg)
+
+                file_text[segment_id] = cleaned_line
 
         return file_text
