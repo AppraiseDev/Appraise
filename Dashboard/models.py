@@ -51,7 +51,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'ind': 'Indonesian (bahasa Indonesia)',
     'urd': 'Urdu (اُردُو)',
     'acm': 'Iraqi Arabic (راقي‎ - ʕirāgi)',
-    'ayl': 'Lybian Arabic ( ليبي - lībi)',
+    'ayl': 'Libyan Arabic ( ليبي - lībi)',
     'ayn': 'Yemeni Arabic (يمني - yamani)',
     'fas': 'Farsi (فارسی)',
     'afr': 'Afrikaans',
