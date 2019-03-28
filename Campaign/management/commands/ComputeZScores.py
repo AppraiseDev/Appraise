@@ -163,6 +163,8 @@ class Command(BaseCommand):
             with open(csv_file) as input_file:
                 csv_reader = csv.reader(input_file)
                 for csv_line in csv_reader:
+                    if len(csv_line) == 0:
+                        continue
                     _user_id = csv_line[0]
                     if _user_id.lower() in exclude_ids:
                         continue
@@ -215,10 +217,14 @@ class Command(BaseCommand):
             for system_item in language_data:
                 user_scores[system_item[0]].append(system_item[6])
             
-            a = len(user_scores['zhoeng2802'])
-            b = sum(user_scores['zhoeng2802'])
-            c = float(b)/a
-            # print(b, a, c)
+            try:
+                a = len(user_scores['zhoeng2802'])
+                b = sum(user_scores['zhoeng2802'])
+                c = float(b)/a
+                print(b, a, c)
+
+            except ZeroDivisionError:
+                pass
 
             user_means = defaultdict(float)
             user_variances = defaultdict(float)
