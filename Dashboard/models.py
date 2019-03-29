@@ -57,6 +57,9 @@ LANGUAGE_CODES_AND_NAMES = {
     'afr': 'Afrikaans',
     'mlt': 'Maltese (Malti)',
     'sin': 'Sinhalese (සිංහල sinhala)',
+    'smo': 'Samoan (Gagana faʻa Sāmoa)',
+    'mlg': 'Malagasy',
+    'swa': 'Swahili (Kiswahili)',
 }
 
 # Ensure that all languages have a corresponding group.
