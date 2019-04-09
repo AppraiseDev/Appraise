@@ -12,7 +12,6 @@ EX_LANGUAGES = (
 )
 
 XE_LANGUAGES = (
-    'deu',
 )
 
 XY_LANGUAGES = (
