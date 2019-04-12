@@ -60,6 +60,8 @@ LANGUAGE_CODES_AND_NAMES = {
     'smo': 'Samoan (Gagana faʻa Sāmoa)',
     'mlg': 'Malagasy',
     'swa': 'Swahili (Kiswahili)',
+    'fij': 'Fijian (Na Vosa Vakaviti)',
+    'ton': 'Tongan (lea faka-Tonga)',
 }
 
 # Ensure that all languages have a corresponding group.
