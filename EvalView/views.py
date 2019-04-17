@@ -194,6 +194,10 @@ def direct_assessment(request, code=None, campaign_name=None):
       'semantics of the source text? Slider ranges from '
       '<em>Not at all</em> (left) to <em>Perfectly</em> (right).')
 
+    _reference_campaigns = (
+      'HumanEvalFY19{0}'.format(x) for x in ('7B',)
+    )
+
     _adequacy_campaigns = (
       'HumanEvalFY19{0}'.format(x) for x in ('51', '57', '63')
     )
@@ -202,7 +206,15 @@ def direct_assessment(request, code=None, campaign_name=None):
       'HumanEvalFY19{0}'.format(x) for x in ('52', '58', '64')
     )
 
-    if campaign.campaignName in _adequacy_campaigns:
+    if campaign.campaignName in _reference_campaigns:
+        reference_label = 'Reference text'
+        candidate_label = 'Candidate translation'
+        priming_question_text = (
+          'How accurately does the above candidate text convey the original '
+          'semantics of the reference text? Slider ranges from '
+          '<em>Not at all</em> (left) to <em>Perfectly</em> (right).')
+
+    elif campaign.campaignName in _adequacy_campaigns:
         reference_label = 'Candidate A'
         candidate_label = 'Candidate B'
         priming_question_text = (
