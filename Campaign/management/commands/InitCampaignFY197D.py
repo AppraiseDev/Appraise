@@ -60,7 +60,7 @@ CAMPAIGN_KEY = 'FY197D'
 CAMPAIGN_NO = 213
 ANNOTATORS = None # Will be determined by TASKS_TO_ANNOTATORS mapping
 TASKS = None
-REDUNDANCY = 2
+REDUNDANCY = 1
 
 for code in EX_LANGUAGES + XE_LANGUAGES + XY_LANGUAGES:
     if not validate_language_code(code):
@@ -69,11 +69,11 @@ for code in EX_LANGUAGES + XE_LANGUAGES + XY_LANGUAGES:
 
 for ex_code in EX_LANGUAGES:
     TASKS_TO_ANNOTATORS[('eng', ex_code)] = _create_uniform_task_map(
-        10, 10, REDUNDANCY)
+        10, 20, REDUNDANCY)
 
 for xe_code in XE_LANGUAGES:
     TASKS_TO_ANNOTATORS[(xe_code, 'eng')] = _create_uniform_task_map(
-        10, 10, REDUNDANCY)
+        10, 20, REDUNDANCY)
 
 for xy_code in XY_LANGUAGES:
     TASKS_TO_ANNOTATORS[xy_code] = _create_uniform_task_map(
