@@ -62,6 +62,8 @@ LANGUAGE_CODES_AND_NAMES = {
     'swa': 'Swahili (Kiswahili)',
     'fij': 'Fijian (Na Vosa Vakaviti)',
     'ton': 'Tongan (lea faka-Tonga)',
+    'guj': 'Gujarathi (ગુજરાતી)',
+    'kaz': 'Kazakh (қазақша)',
 }
 
 # Ensure that all languages have a corresponding group.
