@@ -8,7 +8,7 @@ from Dashboard.models import validate_language_code
 from EvalData.models import Market, Metadata
 
 EX_LANGUAGES = (
-    'ita', 'zho',
+    'ita', 'rus', 'zho',
 )
 
 XE_LANGUAGES = (
