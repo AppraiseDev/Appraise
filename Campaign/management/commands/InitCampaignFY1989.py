@@ -65,7 +65,7 @@ CAMPAIGN_KEY = 'FY1989'
 CAMPAIGN_NO = 225
 ANNOTATORS = None # Will be determined by TASKS_TO_ANNOTATORS mapping
 TASKS = None
-REDUNDANCY = 1
+REDUNDANCY = 2
 
 for code in EX_LANGUAGES + XE_LANGUAGES + XY_LANGUAGES:
     if not validate_language_code(code):
