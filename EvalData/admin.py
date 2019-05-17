@@ -12,6 +12,7 @@ from django.utils.timezone import utc
 from .models import Market, Metadata, TextSegment, TextPair, TextPairWithImage
 from .models import TextPairWithContext
 from .models import DirectAssessmentTask, DirectAssessmentResult
+from .models import DirectAssessmentContextTask, DirectAssessmentContextResult
 from .models import MultiModalAssessmentTask, MultiModalAssessmentResult
 from .models import WorkAgenda, TaskAgenda
 
@@ -283,6 +284,54 @@ class DirectAssessmentResultAdmin(BaseMetadataAdmin):
       })
     ) + BaseMetadataAdmin.fieldsets
 
+class DirectAssessmentContextTaskAdmin(BaseMetadataAdmin):
+    """
+    Model admin for DirectAssessmentContextTask instances.
+    """
+    list_display = [
+      'dataName', 'batchNo', 'campaign', 'requiredAnnotations'
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      'campaign__campaignName',
+      'campaign__batches__market__targetLanguageCode',
+      'campaign__batches__market__sourceLanguageCode', 'batchData'
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      'campaign__campaignName', 'assignedTo'
+    ] + BaseMetadataAdmin.search_fields
+
+    fieldsets = (
+      (None, {
+        'fields': (['batchData', 'batchNo', 'campaign', 'items',
+        'requiredAnnotations', 'assignedTo'])
+      }),
+    ) + BaseMetadataAdmin.fieldsets
+
+class DirectAssessmentContextResultAdmin(BaseMetadataAdmin):
+    """
+    Model admin for DirectAssessmentContextResult instances.
+    """
+    list_display = [
+      '__str__', 'score', 'start_time', 'end_time', 'duration', 'item_type',
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      'item__itemType', 'task__completed', 'item__isCompleteDocument'
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      # nothing model specific
+    ] + BaseMetadataAdmin.search_fields
+
+    readonly_fields = ('item', 'task')
+
+    fieldsets = (
+      (None, {
+        'fields': (['score', 'start_time', 'end_time'])
+      }),
+      ('Related', {
+        'fields': (['item', 'task'])
+      })
+    ) + BaseMetadataAdmin.fieldsets
+
 class MultiModalAssessmentTaskAdmin(BaseMetadataAdmin):
     """
     Model admin for MultiModalAssessmentTask instances.
@@ -397,6 +446,8 @@ admin.site.register(TextPairWithContext, TextPairWithContextAdmin)
 admin.site.register(TextPairWithImage, TextPairWithImageAdmin)
 admin.site.register(DirectAssessmentTask, DirectAssessmentTaskAdmin)
 admin.site.register(DirectAssessmentResult, DirectAssessmentResultAdmin)
+admin.site.register(DirectAssessmentContextTask, DirectAssessmentContextTaskAdmin)
+admin.site.register(DirectAssessmentContextResult, DirectAssessmentContextResultAdmin)
 admin.site.register(MultiModalAssessmentTask, MultiModalAssessmentTaskAdmin)
 admin.site.register(MultiModalAssessmentResult, MultiModalAssessmentResultAdmin)
 admin.site.register(WorkAgenda, WorkAgendaAdmin)
