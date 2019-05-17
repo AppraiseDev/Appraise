@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from Campaign.models import Campaign
 from EvalData.models import DirectAssessmentTask, MultiModalAssessmentTask
+from EvalData.models import DirectAssessmentContextTask
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
@@ -16,7 +17,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
           'campaign_type', type=str,
-          help='Campaign type: "Direct" or "MultiModal"'
+          help='Campaign type: "Direct", "DocLevelDA" or "MultiModal"'
         )
         parser.add_argument(
           '--max-count', type=int, default=-1,
@@ -44,7 +45,7 @@ class Command(BaseCommand):
             return
 
         # Validate campaign type
-        if not campaign_type in ('Direct', 'MultiModal'):
+        if not campaign_type in ('Direct', 'DocLevelDA', 'MultiModal'):
             _msg = 'Bad campaign type {0}'.format(campaign_type)
             self.stdout.write(_msg)
             return
@@ -53,6 +54,11 @@ class Command(BaseCommand):
         for batch_data in campaign.batches.filter(dataValid=True):
             if campaign_type == 'Direct':
                 DirectAssessmentTask.import_from_json(
+                  campaign, batch_user, batch_data, max_count
+                )
+
+            elif campaign_type == 'DocLevelDA':
+                DirectAssessmentContextTask.import_from_json(
                   campaign, batch_user, batch_data, max_count
                 )
 
