@@ -107,7 +107,7 @@ class ObjectID(models.Model):
             return instance
 
     def __str__(self):
-        return self.typeName+'.'+str(self.id)
+        return str(self.id)+'.'+self.typeName+'.'+self.primaryID
 
 
 # pylint: disable=C0103,R0903
