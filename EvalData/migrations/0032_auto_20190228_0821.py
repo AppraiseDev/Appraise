@@ -37,10 +37,6 @@ class Migration(migrations.Migration):
             options={'ordering': ['_str_name']},
         ),
         migrations.AlterModelOptions(
-            name='taskagenda',
-            options={'permissions': (('can_reset', 'Can reset task agendas'),)},
-        ),
-        migrations.AlterModelOptions(
             name='textpair',
             options={'ordering': ['_str_name']},
         ),
