@@ -15,10 +15,12 @@
             <h3>Current HIT</h3>
 {% if current_type == 'multimodal' %}
             <p>Continue annotation for <a href="{% url 'multimodal-assessment' %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
+{% elif current_type == 'context' %}
+            <p>Continue annotation for <a href="{% url 'direct-assessment-context' %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
 {% elif current_type == 'direct' %}
             <p>Continue annotation for <a href="{% url 'direct-assessment' %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
 {% endif %}
-{% elif languages or multimodal %}
+{% elif languages or context or multimodal %}
 {% if languages %}
             <h3>Next HIT</h3>
             <p>Start annotation for:
@@ -27,6 +29,16 @@
 {% endfor %}
             </p>
 {% endif %}
+
+{% if context %}
+            <h3>Next HIT</h3>
+            <p>Start annotation for:
+{% for code, language, campaign in context %}
+              <a href="{% url 'direct-assessment-context' code campaign %}">{{campaign}}:{{language}}</a>{% if not forloop.last %} &middot; {% endif %}
+{% endfor %}
+            </p>
+{% endif %}
+
 {% if multimodal %}
             <h3>Multimodal HIT</h3>
             <p>Start annotation for:
