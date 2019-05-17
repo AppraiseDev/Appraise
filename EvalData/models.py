@@ -40,6 +40,7 @@ MAX_ITEMTYPE_LENGTH = 5
 MAX_REQUIREDANNOTATIONS_VALUE = 50
 MAX_TYPENAME_LENGTH = 100
 MAX_PRIMARYID_LENGTH = 50
+MAX_DOCUMENTID_LENGTH = 100
 
 SET_ITEMTYPE_CHOICES = (
   ('SRC', 'Source text'),
@@ -617,6 +618,68 @@ class TextPair(EvalItem):
             return False
 
         return super(TextPair, self).is_valid()
+
+class TextPairWithContext(TextPair):
+    """
+    Models a pair of two text segments and corresponding context.
+    """
+    documentID = models.CharField(
+      max_length=MAX_DOCUMENTID_LENGTH,
+      verbose_name=_('Document ID'),
+      help_text=_(f('(max. {value} characters)',
+        value=MAX_DOCUMENTID_LENGTH))
+    )
+
+    isCompleteDocument = models.BooleanField(
+      blank=True,
+      db_index=True,
+      default=False,
+      verbose_name=_('Complete document?')
+    )
+
+    sourceContextLeft = models.CharField(
+      max_length=MAX_SEGMENTTEXT_LENGTH,
+      verbose_name=_('Source context (left)'),
+      help_text=_(f('(max. {value} characters)',
+        value=MAX_SEGMENTTEXT_LENGTH))
+    )
+
+    sourceContextRight = models.CharField(
+      max_length=MAX_SEGMENTTEXT_LENGTH,
+      verbose_name=_('Source context (right)'),
+      help_text=_(f('(max. {value} characters)',
+        value=MAX_SEGMENTTEXT_LENGTH))
+    )
+
+    targetContextLeft = models.CharField(
+      max_length=MAX_SEGMENTTEXT_LENGTH,
+      verbose_name=_('Target context (left)'),
+      help_text=_(f('(max. {value} characters)',
+        value=MAX_SEGMENTTEXT_LENGTH))
+    )
+
+    targetContextRight = models.CharField(
+      max_length=MAX_SEGMENTTEXT_LENGTH,
+      verbose_name=_('Target context (right)'),
+      help_text=_(f('(max. {value} characters)',
+        value=MAX_SEGMENTTEXT_LENGTH))
+    )
+
+    # pylint: disable=E1101
+    def is_valid(self):
+        """
+        Validates the current TextPairWithContext instance, checking text.
+        """
+        attributes_to_validate = (
+            self.sourceTextLeft, self.sourceTextRight,
+            self.targetTextLeft, self.targetTextRight,
+        )
+        for current_attribute in attributes_to_validate:
+            _len = len(current_attribute)
+            if _len < 1 or _len > MAX_SEGMENTTEXT_LENGTH:
+                return False
+
+        return super(TextPairWithContext, self).is_valid()
 
 class TextPairWithImage(EvalItem):
     """
