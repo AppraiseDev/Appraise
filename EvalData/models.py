@@ -1649,7 +1649,7 @@ class DirectAssessmentContextTask(BaseMetadata):
         next_item = None
         completed_items = 0
         for item in self.items.all().order_by('id'):
-            result = DirectAssessmentResult.objects.filter(
+            result = DirectAssessmentContextResult.objects.filter(
               item=item,
               activated=False,
               completed=True,
@@ -1668,7 +1668,7 @@ class DirectAssessmentContextTask(BaseMetadata):
 
         if not next_item:
             LOGGER.info('No next item found for task {0}'.format(self.id))
-            annotations = DirectAssessmentResult.objects.filter(
+            annotations = DirectAssessmentContextResult.objects.filter(
               task=self,
               activated=False,
               completed=True
@@ -1728,7 +1728,7 @@ class DirectAssessmentContextTask(BaseMetadata):
 
             # Appen crowd users may only contribute three HITs per campaign.
             if user.groups.filter(name='Appen').exists():
-                completed_items = DirectAssessmentResult.objects.filter(
+                completed_items = DirectAssessmentContextResult.objects.filter(
                   activated=False,
                   completed=True,
                   createdBy=user,
