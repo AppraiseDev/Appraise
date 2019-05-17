@@ -10,6 +10,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.timezone import utc
 from .models import Market, Metadata, TextSegment, TextPair, TextPairWithImage
+from .models import TextPairWithContext
 from .models import DirectAssessmentTask, DirectAssessmentResult
 from .models import MultiModalAssessmentTask, MultiModalAssessmentResult
 from .models import WorkAgenda, TaskAgenda
@@ -169,6 +170,39 @@ class TextPairAdmin(BaseMetadataAdmin):
       (None, {
         'fields': (['metadata', 'itemID', 'itemType', 'sourceID',
           'sourceText', 'targetID', 'targetText'])
+      }),
+    ) + BaseMetadataAdmin.fieldsets
+
+
+class TextPairWithContextAdmin(BaseMetadataAdmin):
+    """
+    Model admin for TextPairWithContext instances.
+    """
+    list_display = [
+      '__str__', 'itemID', 'itemType', 'documentID', 'isCompleteDocument',
+      'sourceID', 'sourceText', 'sourceContextLeft', 'sourceContextRight',
+      'targetID', 'targetText', 'targetContextLeft', 'targetContextRight'
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      'metadata__corpusName', 'metadata__versionInfo',
+      'metadata__market__sourceLanguageCode',
+      'metadata__market__targetLanguageCode',
+      'metadata__market__domainName',
+      'itemType',
+      'isCompleteDocument'
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      'documentID', 'sourceID', 'targetID',
+      'sourceText', 'sourceContextLeft', 'sourceContextRight',
+      'targetText', 'targetContextLeft', 'targetContextRight'
+    ] + BaseMetadataAdmin.search_fields
+
+    fieldsets = (
+      (None, {
+        'fields': (['metadata', 'itemID', 'itemType', 'documentID',
+          'isCompleteDocument', 'sourceID', 'sourceText', 'sourceContextLeft',
+          'sourceContextRight', 'targetID', 'targetText', 'targetContextLeft',
+          'targetContextRight'])
       }),
     ) + BaseMetadataAdmin.fieldsets
 
@@ -359,6 +393,7 @@ admin.site.register(Market, MarketAdmin)
 admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(TextSegment, TextSegmentAdmin)
 admin.site.register(TextPair, TextPairAdmin)
+admin.site.register(TextPairWithContext, TextPairWithContextAdmin)
 admin.site.register(TextPairWithImage, TextPairWithImageAdmin)
 admin.site.register(DirectAssessmentTask, DirectAssessmentTaskAdmin)
 admin.site.register(DirectAssessmentResult, DirectAssessmentResultAdmin)
