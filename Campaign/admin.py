@@ -1,12 +1,14 @@
 """
 Campaign admin.py
 """
-# pylint: disable=C0330
+# pylint: disable=C0330,import-error
 from django.contrib import admin
 from django.contrib.admin.filters import AllValuesFieldListFilter
 
 from EvalData.admin import BaseMetadataAdmin
-from .models import CampaignTeam, CampaignData, Campaign, TrustedUser
+from Campaign.models import (
+    CampaignTeam, CampaignData, Campaign, TrustedUser
+)
 
 
 class DropdownFilter(AllValuesFieldListFilter):
