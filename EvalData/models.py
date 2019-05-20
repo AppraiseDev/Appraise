@@ -1240,7 +1240,7 @@ class DirectAssessmentResult(BaseMetadata):
             'item__metadata__market__sourceLanguageCode',
             'item__metadata__market__targetLanguageCode'
         )
-        for result in qs.values_list(value_names):
+        for result in qs.values_list(*value_names):
             systemID = result[0]
             score = result[1]
             annotatorID = result[2]
@@ -1260,7 +1260,7 @@ class DirectAssessmentResult(BaseMetadata):
         value_names = (
             'createdBy', 'item__itemType', 'task__id'
         )
-        for result in qs.values_list(value_names):
+        for result in qs.values_list(*value_names):
             if result[1].lower() != 'tgt':
                 continue
 
@@ -1304,7 +1304,7 @@ class DirectAssessmentResult(BaseMetadata):
             'item__metadata__market__domainName', 'item__itemType',
             'task__id', 'task__campaign__campaignName'
         )
-        for result in qs.values_list(value_names):
+        for result in qs.values_list(*value_names):
 
             systemID = result[0]
             score = result[1]
@@ -1367,7 +1367,7 @@ class DirectAssessmentResult(BaseMetadata):
             'item__metadata__market__targetLanguageCode',
             'item__metadata__market__domainName', 'item__itemType'
         )
-        for result in qs.values_list(value_names):
+        for result in qs.values_list(*value_names):
 
             if not domain == result[8] \
             or not srcCode == result[6] \
@@ -1428,7 +1428,7 @@ class DirectAssessmentResult(BaseMetadata):
         value_names = (
             'item__targetID', 'item__itemID', 'score'
         )
-        for result in qs.values_list(value_names):
+        for result in qs.values_list(*value_names):
             #if not result.completed or result.item.itemType not in ('TGT', 'CHK'):
             #    continue
 
@@ -2045,7 +2045,7 @@ class DirectAssessmentContextResult(BaseMetadata):
             'item__metadata__market__sourceLanguageCode',
             'item__metadata__market__targetLanguageCode'
         )
-        for result in qs.values_list(value_names):
+        for result in qs.values_list(*value_names):
             systemID = result[0]
             score = result[1]
             annotatorID = result[2]
@@ -2065,7 +2065,7 @@ class DirectAssessmentContextResult(BaseMetadata):
         value_names = (
             'createdBy', 'item__itemType', 'task__id'
         )
-        for result in qs.values_list(value_names):
+        for result in qs.values_list(*value_names):
             if result[1].lower() != 'tgt':
                 continue
 
@@ -2110,7 +2110,7 @@ class DirectAssessmentContextResult(BaseMetadata):
             'task__id', 'task__campaign__campaignName',
             'item__documentID', 'item__isCompleteDocument'
         )
-        for result in qs.values_list(value_names):
+        for result in qs.values_list(*value_names):
 
             systemID = result[0]
             score = result[1]
@@ -2176,7 +2176,7 @@ class DirectAssessmentContextResult(BaseMetadata):
             'item__metadata__market__domainName', 'item__itemType',
             'item__documentID', 'item__isCompleteDocument'
         )
-        for result in qs.values_list(value_names):
+        for result in qs.values_list(*value_names):
 
             if not domain == result[8] \
             or not srcCode == result[6] \
@@ -2239,7 +2239,7 @@ class DirectAssessmentContextResult(BaseMetadata):
         value_names = (
             'item__targetID', 'item__itemID', 'score', 'item__documentID', 'item__isCompleteDocument'
         )
-        for result in qs.values_list(value_names):
+        for result in qs.values_list(*value_names):
             #if not result.completed or result.item.itemType not in ('TGT', 'CHK'):
             #    continue
 
