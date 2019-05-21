@@ -62,18 +62,46 @@ def _create_bad_ref(seg_text, ref_text, character_based=False):
     ref_len = len(ref_data)
 
     # Determine length of bad phrase, relative to segment length.
-    if seg_len == 1:
-        bad_len = 1
-    elif seg_len > 1 and seg_len <= 5:
-        bad_len = 2
-    elif seg_len > 5 and seg_len <= 8:
-        bad_len = 3
-    elif seg_len > 8 and seg_len <= 15:
-        bad_len = 4
-    elif seg_len > 15 and seg_len <= 20:
-        bad_len = 5
-    elif seg_len > 20:
-        bad_len = 6
+    _seg_to_bad_mapping = {
+        (None, 1): 1,
+        (1, 5): 2,
+        (5, 8): 3,
+        (8, 15): 4,
+        (15, 20): 5,
+        (20, None): 6
+    }
+
+    bad_len = None
+    for seg_pair in _seg_to_bad_mapping:
+        left, right = seg_pair
+
+        # seg_len == right; left edge case
+        if not left and seg_len == right:
+            bad_len = _seg_to_bad_mapping[seg_pair]
+            break
+
+        # left < seg_len; right edge case
+        if not right and left < seg_len:
+            bad_len = _seg_to_bad_mapping[seg_pair]
+            break
+
+        # left < seg_len <= right; middle cases
+        if left < seg_len and seg_len <= right:
+            bad_len = _seg_to_bad_mapping[seg_pair]
+            break
+
+#    if seg_len == 1:
+#        bad_len = 1
+#    elif seg_len > 1 and seg_len <= 5:
+#        bad_len = 2
+#    elif seg_len > 5 and seg_len <= 8:
+#        bad_len = 3
+#    elif seg_len > 8 and seg_len <= 15:
+#        bad_len = 4
+#    elif seg_len > 15 and seg_len <= 20:
+#        bad_len = 5
+#    elif seg_len > 20:
+#        bad_len = 6
 
     # Double length of bad phrase for character-based languages.
     if character_based:
@@ -105,8 +133,11 @@ def create_bad_refs(docs, refs, character_based=False):
     shuffle(all_keys)
 
     # Iterate through documents and create bad references.
-    all_docs = OrderedDict()
+    bad_docs = OrderedDict()
     for doc_id, doc in docs.items():
+        if not doc_id in bad_docs:
+            bad_docs[doc_id] = []
+
         for seg in doc:
             seg_id, seg_text = seg
 
@@ -114,10 +145,18 @@ def create_bad_refs(docs, refs, character_based=False):
             while bad_id == f'{doc_id}_{seg_id}':
                 all_keys.append(bad_id)
 
-            bad_text = _create_bad_ref(seg_text, all_refs[bad_id])
+            bad_text = _create_bad_ref(
+                seg_text, all_refs[bad_id],
+                character_based=character_based)
 
             # Ensure that keys can be reused.
             all_keys.append(bad_id)
+
+            bad_docs[doc_id].append(
+                (seg_id, bad_text)
+            )
+
+    return bad_docs
 
 
 def process_sgml_file(file_path):
