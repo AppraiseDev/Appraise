@@ -3,7 +3,7 @@ import sys
 from collections import defaultdict, OrderedDict
 from glob import iglob
 from os.path import basename, join
-from random import seed, shuffle
+from random import choice, seed, shuffle
 
 from bs4 import BeautifulSoup
 
@@ -76,38 +76,49 @@ def _create_bad_ref(seg_text, ref_text, character_based=False):
         left, right = seg_pair
 
         # seg_len == right; left edge case
-        if not left and seg_len == right:
-            bad_len = _seg_to_bad_mapping[seg_pair]
-            break
+        if not left:
+            if seg_len == right:
+                bad_len = _seg_to_bad_mapping[seg_pair]
+                break
 
         # left < seg_len; right edge case
-        if not right and left < seg_len:
-            bad_len = _seg_to_bad_mapping[seg_pair]
-            break
+        elif not right:
+            if left < seg_len:
+                bad_len = _seg_to_bad_mapping[seg_pair]
+                break
 
         # left < seg_len <= right; middle cases
-        if left < seg_len and seg_len <= right:
+        elif left < seg_len and seg_len <= right:
             bad_len = _seg_to_bad_mapping[seg_pair]
             break
-
-#    if seg_len == 1:
-#        bad_len = 1
-#    elif seg_len > 1 and seg_len <= 5:
-#        bad_len = 2
-#    elif seg_len > 5 and seg_len <= 8:
-#        bad_len = 3
-#    elif seg_len > 8 and seg_len <= 15:
-#        bad_len = 4
-#    elif seg_len > 15 and seg_len <= 20:
-#        bad_len = 5
-#    elif seg_len > 20:
-#        bad_len = 6
 
     # Double length of bad phrase for character-based languages.
     if character_based:
         bad_len = 2 * bad_len
 
-    raise NotImplementedError('Finish implementation of bad refs')
+    # Determine random replacement position. For segments longer than
+    # (bad_len + 1), we enforce that this cannot be sentence initial
+    # or final, so positions 0 and (seg_len - bad_len -1) are invalid
+    # and we use an embedded bad_pos in [1, (seg_len - bad_len - 1)].
+    # This happens for all seg_len > 3.
+    bad_pos = 0
+    if seg_len - bad_len:
+        bad_pos = choice(range(seg_len - bad_len))
+
+    elif seg_len > 3:
+        bad_pos = choice([x + 1 for x in range(seg_len - bad_len - 1)])
+    print(f'seg_len: {seg_len},\tbad_len: {bad_len},\tbad_pos: {bad_pos}')
+
+    bad_data = (
+        seg_data[:bad_pos] +
+        ref_data[bad_pos:bad_pos+bad_len] +
+        seg_data[bad_pos+bad_len:]
+    )
+    bad_text = ' '.join(bad_data)
+    if character_based:
+        bad_text = ''.join(bad_data)
+
+    return bad_text
 
 
 def create_bad_refs(docs, refs, character_based=False):
@@ -128,9 +139,9 @@ def create_bad_refs(docs, refs, character_based=False):
         for seg_id, ref_text in doc:
             all_refs[f'{doc_id}_{seg_id}'] = ref_text
 
-    # Create randomized list of f'{doc_id}_{seg_id}' ids.
-    all_keys = [x for x in all_refs]
-    shuffle(all_keys)
+    # Create list of f'{doc_id}_{seg_id}' ids, to be used for random
+    # choice later when we want to identify a reference to work with.
+    all_keys = list(all_refs.keys())
 
     # Iterate through documents and create bad references.
     bad_docs = OrderedDict()
@@ -138,12 +149,14 @@ def create_bad_refs(docs, refs, character_based=False):
         if not doc_id in bad_docs:
             bad_docs[doc_id] = []
 
+        print(f'doc_id: {doc_id},\tdoc_len: {len(doc)}')
         for seg in doc:
             seg_id, seg_text = seg
 
-            bad_id = all_keys.pop(0)
+            # Bad reference id may not be identical to current id.
+            bad_id = choice(all_keys)
             while bad_id == f'{doc_id}_{seg_id}':
-                all_keys.append(bad_id)
+                bad_id = choice(all_keys)
 
             bad_text = _create_bad_ref(
                 seg_text, all_refs[bad_id],
@@ -197,11 +210,14 @@ if __name__ == "__main__":
     SYS_GLOB = sys.argv[4]
     ENC = 'utf-8'
 
+    seed(123456)
+
     ALL_DOCS = {}
     ALL_DOCS['SRC'] = load_docs_from_sgml_file(SRC_SGML, encoding=ENC)
     ALL_DOCS['REF'] = load_docs_from_sgml_file(REF_SGML, encoding=ENC)
 
     ALL_DOCS['SYS'] = {}
+    ALL_DOCS['BAD'] = {}
     for SYS_SGML in iglob(join(SYS_PATH, SYS_GLOB)):
         SYS_ID = basename(SYS_SGML)
         ALL_DOCS['SYS'][SYS_ID] = (
@@ -212,6 +228,18 @@ if __name__ == "__main__":
             create_bad_refs(ALL_DOCS['SYS'][SYS_ID], ALL_DOCS['REF'])
         )
 
+    some_doc_id = choice(list(ALL_DOCS['SYS'].keys()))
+    some_seg_id = choice(list(ALL_DOCS['SYS'][some_doc_id].keys()))
+    some_sys_text = ALL_DOCS['SYS'][some_doc_id][some_seg_id]
+    some_bad_text = ALL_DOCS['BAD'][some_doc_id][some_seg_id]
+    print(some_doc_id, some_seg_id  )
+
+    for _s, _b in zip(some_sys_text, some_bad_text):
+        print(_s)
+        print(_b)
+        print('---')
+
+    raise ValueError()
     DOC_STATS = process_sgml_file(sys.argv[1])
 
     for k in sorted(DOC_STATS.keys()):
