@@ -88,7 +88,7 @@ def _create_bad_ref(seg_text, ref_text, character_based=False):
                 break
 
         # left < seg_len <= right; middle cases
-        elif left < seg_len and seg_len <= right:
+        elif left < seg_len <= right:
             bad_len = _seg_to_bad_mapping[seg_pair]
             break
 
@@ -102,16 +102,19 @@ def _create_bad_ref(seg_text, ref_text, character_based=False):
     # and we use an embedded bad_pos in [1, (seg_len - bad_len - 1)].
     # This happens for all seg_len > 3.
     bad_pos = 0
-    if seg_len - bad_len:
+    if seg_len - bad_len > 0:
         bad_pos = choice(range(seg_len - bad_len))
 
     elif seg_len > 3:
-        bad_pos = choice([x + 1 for x in range(seg_len - bad_len - 1)])
-    print(f'seg_len: {seg_len},\tbad_len: {bad_len},\tbad_pos: {bad_pos}')
+        bad_pos = choice([x+1 for x in range(seg_len-bad_len-1)])
+
+    ref_pos = 0
+    if ref_len - bad_len > 0:
+        ref_pos = choice(range(ref_len - bad_len))
 
     bad_data = (
         seg_data[:bad_pos] +
-        ref_data[bad_pos:bad_pos+bad_len] +
+        ref_data[ref_pos:ref_pos+bad_len] +
         seg_data[bad_pos+bad_len:]
     )
     bad_text = ' '.join(bad_data)
@@ -228,30 +231,48 @@ if __name__ == "__main__":
             create_bad_refs(ALL_DOCS['SYS'][SYS_ID], ALL_DOCS['REF'])
         )
 
+    # pylint: disable-msg=invalid-name
     some_doc_id = choice(list(ALL_DOCS['SYS'].keys()))
     some_seg_id = choice(list(ALL_DOCS['SYS'][some_doc_id].keys()))
     some_sys_text = ALL_DOCS['SYS'][some_doc_id][some_seg_id]
     some_bad_text = ALL_DOCS['BAD'][some_doc_id][some_seg_id]
-    print(some_doc_id, some_seg_id  )
+    print(some_doc_id, some_seg_id)
 
     for _s, _b in zip(some_sys_text, some_bad_text):
         print(_s)
         print(_b)
         print('---')
 
-    raise ValueError()
-    DOC_STATS = process_sgml_file(sys.argv[1])
+    DOC_STATS = {}
+    for sys_id in ALL_DOCS['SYS']:
+        for doc_id in ALL_DOCS['SYS'][sys_id]:
+            doc_len = len(ALL_DOCS['SYS'][sys_id][doc_id])
 
-    for k in sorted(DOC_STATS.keys()):
-        v = DOC_STATS[k]
-        for _ in range(0):
-            DOC_STATS[k].extend(v)
-        print(f'{k} \t {v}')
+            # We do not support documents longer than 70 segments.
+            if doc_len > 70:
+                continue
 
-# /Users/cfedermann/Downloads/wmt19-submitted-data/sgm/sources
+            if not doc_len in DOC_STATS.keys():
+                DOC_STATS[doc_len] = []
 
-    seed(123456)
+            DOC_STATS[doc_len].append(
+                (doc_len, doc_id, sys_id)
+            )
+
+    print(sorted(DOC_STATS.keys()))
+    total_docs = 0
+    total_sys = set()
+    for doc_len in sorted(DOC_STATS.keys()):
+        print(f'{doc_len}:\t{len(DOC_STATS[doc_len])}')
+        total_docs += len(DOC_STATS[doc_len])
+        for x in DOC_STATS[doc_len]:
+            total_sys.add(x[2])
+        #print([f'{x[1]}_{x[2]}' for x in DOC_STATS[doc_len]])
+
+    
+    sampled_tasks = []
     curr_len = 0
+    curr_task = []
     while DOC_STATS.keys():
         all_keys = list(DOC_STATS.keys())
         max_delta = 100 - curr_len
@@ -259,45 +280,28 @@ if __name__ == "__main__":
 
         if not valid_keys:
             print(curr_len)
+            print(curr_task)
+            print('------')
+            sampled_tasks.append(tuple(curr_task))
             curr_len = 0
+            curr_task = []
             continue
 
         if max_delta in valid_keys:
             curr_key = max_delta
         else:
-            shuffle(valid_keys)
-            curr_key = valid_keys[0]
+            curr_key = choice(valid_keys)
 
         curr_len += curr_key
         curr_val = DOC_STATS[curr_key].pop(0)
+        curr_task.append(curr_val)
         if not DOC_STATS[curr_key]:
             DOC_STATS.pop(curr_key)
 
-    raise ValueError
+    for task in sampled_tasks:
+        print(sum([x[0] for x in task]))
 
-    all_docs = []
-    for doc_len in sorted(DOC_STATS.keys()):
-        for doc_id in DOC_STATS[doc_len]:
-            all_docs.append((doc_len, doc_id))
-
-    seed(123456)
-    shuffle(all_docs)
-    print(f'Identified {len(all_docs)} documents')
-
-    tasks = []
-    next_task = []
-    next_len = 0
-    for doc_len, doc_id in all_docs:
-        if next_len + doc_len > 100:
-            tasks.append(tuple(next_task))
-            next_task = []
-            next_len = 0
-
-        next_task.append((doc_len, doc_id))
-        next_len += doc_len
-
-    for task in tasks:
-        task_len = sum(x[0] for x in task)
-        task_docs = len(task)
-        task_ids = tuple(x[1] for x in task)
-        print(f'{task_len:03d}: {task_docs}')
+    print(f'Total tasks: {len(sampled_tasks)}')
+    print(f'Total docs:  {total_docs}')
+    print(f'Total sys:   {total_sys}')
+    
