@@ -192,6 +192,20 @@ class Campaign(BaseMetadata):
     def _generate_str_name(self):
         return self.campaignName
 
+    @classmethod
+    def get_campaign_or_raise(cls, campaign_name):
+        """
+        Get campaign with name campaign_name from database.
+
+        Returns Campaign instance if exists, otherwise LookupError.
+        """
+        _obj = Campaign.objects.filter(campaignName=campaign_name)
+        if not _obj.exists():
+            _msg = f'Failure to identify campaign {campaign_name}'
+            raise LookupError(_msg)
+
+        return _obj.first() # if multiple campaigns, return first
+
 
 class TrustedUser(models.Model):
     '''
