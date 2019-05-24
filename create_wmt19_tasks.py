@@ -88,7 +88,11 @@ def _create_bad_ref(seg_text, ref_text, character_based=False):
                 break
 
         # left < seg_len <= right; middle cases
+<<<<<<< Updated upstream
         elif left < seg_len <= right:
+=======
+        elif left < seg_len and seg_len <= right:
+>>>>>>> Stashed changes
             bad_len = _seg_to_bad_mapping[seg_pair]
             break
 
@@ -231,12 +235,24 @@ if __name__ == "__main__":
             create_bad_refs(ALL_DOCS['SYS'][SYS_ID], ALL_DOCS['REF'])
         )
 
+<<<<<<< Updated upstream
     # pylint: disable-msg=invalid-name
     some_doc_id = choice(list(ALL_DOCS['SYS'].keys()))
     some_seg_id = choice(list(ALL_DOCS['SYS'][some_doc_id].keys()))
     some_sys_text = ALL_DOCS['SYS'][some_doc_id][some_seg_id]
     some_bad_text = ALL_DOCS['BAD'][some_doc_id][some_seg_id]
     print(some_doc_id, some_seg_id)
+=======
+    some_sys_id = ALL_DOCS['SYS'].keys()[0]
+    some_doc_id = ALL[DOCS]['SYS'][some_sys_id].keys()[0]
+    some_sys_text = ALL_DOCS['SYS'][some_sys_id][some_doc_id][0]
+    some_bad_text = ALL_DOCS['BAD'][some_sys_id][some_doc_id][0]
+    print(some_sys_text)
+    print(some_bad_text)
+    raise ValueError()
+
+    DOC_STATS = process_sgml_file(sys.argv[1])
+>>>>>>> Stashed changes
 
     for _s, _b in zip(some_sys_text, some_bad_text):
         print(_s)
