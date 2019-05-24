@@ -65,6 +65,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'guj': 'Gujarathi (ગુજરાતી)',
     'kaz': 'Kazakh (қазақша)',
     'zsm': 'Malaysian (bahasa Malaysia)',
+    'hat': 'Haitian Creole (kreyòl ayisyen)',
 }
 
 # Ensure that all languages have a corresponding group.
