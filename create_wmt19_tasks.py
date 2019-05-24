@@ -88,11 +88,7 @@ def _create_bad_ref(seg_text, ref_text, character_based=False):
                 break
 
         # left < seg_len <= right; middle cases
-<<<<<<< Updated upstream
         elif left < seg_len <= right:
-=======
-        elif left < seg_len and seg_len <= right:
->>>>>>> Stashed changes
             bad_len = _seg_to_bad_mapping[seg_pair]
             break
 
@@ -302,8 +298,28 @@ if __name__ == "__main__":
         if not DOC_STATS[curr_key]:
             DOC_STATS.pop(curr_key)
 
+    padded_tasks = []
     for task in sampled_tasks:
-        print(sum([x[0] for x in task]))
+        task_docs = len(task)
+        task_len = sum([x[0] for x in task])
+        if task_len > 100:
+            raise NotImplementedError('No support for tasks >100 items!')
+        elif task_len < 100:
+            pad_size = 100 - task_len
+            pad_data = list(task)
+            pad_pos = 0
+            while pad_size > 0:
+                pad_data.append(pad_data[pad_pos])
+                pad_size -= pad_data[-1][0]
+                pad_pos = (pad_pos + 1) % task_docs
+            if pad_size < 0:
+                last_doc = list(pad_data[-1])
+                last_doc[0] += pad_size
+                pad_data[-1] = tuple(last_doc)
+
+        fixed_len = sum([x[0] for x in pad_data])
+
+        print(f'task_len: {task_len},\fixed_len: {fixed_len}')
 
     print(f'Total tasks: {len(sampled_tasks)}')
     print(f'Total docs:  {total_docs}')
