@@ -1,7 +1,7 @@
 """
 Appraise
 """
-# pylint: disable=C0330,W0611
+# pylint: disable=C0103,C0111,C0330,E1101
 from json import loads
 from zipfile import ZipFile, is_zipfile
 from django.contrib.auth.models import User
@@ -19,17 +19,13 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        campaign_name = options['campaign_name']
+        # Identify Campaign instance for given name.
+        try:
+            campaign = Campaign.get_campaign_or_raise(
+                options['campaign_name'])
 
-        campaign = Campaign.objects.filter(campaignName=campaign_name)
-
-        if not campaign.exists():
-            _msg = 'Failure to identify campaign {0}'.format(campaign_name)
-            self.stdout.write(_msg)
-            return
-
-        else:
-            campaign = campaign[0]
+        except LookupError as error:
+            raise CommandError(error)
 
         # Find super user
         superusers = User.objects.filter(is_superuser=True)
@@ -46,6 +42,7 @@ class Command(BaseCommand):
             print(batch_name)
 
             try:
+                # TODO: move validation code to CampaignData class.
                 if batch_name.endswith('.zip'):
                     if not is_zipfile(batch_file):
                         _msg = 'Batch {0} not a valid ZIP archive'.format(batch_name)
@@ -56,20 +53,18 @@ class Command(BaseCommand):
                     batch_json_files = [x for x in batch_zip.namelist() if x.endswith('.json')]
                     for batch_json_file in batch_json_files:
                         batch_data = batch_zip.read(batch_json_file).decode('utf-8')
-                        batch_json = loads(batch_data, encoding='utf-8')
+                        loads(batch_data, encoding='utf-8')
 
                 else:
-                    batch_json = loads(str(batch_file.read(), encoding="utf-8"))
+                    loads(str(batch_file.read(), encoding="utf-8"))
 
                 batch.dataValid = True
                 batch.save()
 
                 validated_batches += 1
 
-            except:
-                from traceback import format_exc
-                print(format_exc())
-                continue
+            except Exception as error:
+                raise CommandError(error)
 
         _msg = 'Validated {0} batches'.format(validated_batches)
         self.stdout.write(_msg)
