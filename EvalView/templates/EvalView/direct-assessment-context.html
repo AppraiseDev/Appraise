@@ -114,7 +114,7 @@ function update_score()
       <strong id="task_progress">{% if trusted_user %}<span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span> {% endif %}{{completed_blocks}}/10 blocks, {{items_left_in_block}} items left in block</strong>
     </td>
     <td style="width:33%;text-align:center;">
-      <strong>{{campaign}} #{{datask_id}}:Segment #{{item_id}}</strong>
+      <strong>{{campaign}} #{{datask_id}}:Document #{{document_id}}-{{item_id}}</strong>
     </td>
     <td style="width:33%;text-align:right;">
       <strong>{% if source_language %}{{source_language}} &rarr; {% endif %}{{target_language}}</strong>
@@ -136,7 +136,7 @@ function update_score()
 <div class="row">
 <div class="col-sm-12">
 <blockquote>
-<p>{{reference_context_left|safe}} <strong>{{reference_text|safe}}</strong> {{reference_context_right|safe}}</p>
+<p>{% if reference_context_left %}{{reference_context_left|safe}}{% endif %} <strong>{{reference_text|safe}}</strong> {% if reference_context_right %}{{reference_context_right|safe}}{% endif %}</p>
 <small>{{reference_label}}</small>
 </blockquote>
 </div>
@@ -154,7 +154,7 @@ function update_score()
 <div class="col-sm-12">
 <blockquote>
 <!--<p id="id_candidate_text" data-pseudo-content="{{candidate_text|safe}}"></p>-->
-<p>{{candidate_context_left|safe}} <strong>{{candidate_text|safe}}</strong> {{candidate_context_right|safe}}</p>
+<p>{% if candidate_context_left %}{{candidate_context_left|safe}}{% endif %} <strong>{{candidate_text|safe}}</strong> {% if candidate_context_right %}{{candidate_context_right|safe}}{% endif %}</p>
 <small>{{candidate_label}}</small>
 </blockquote>
 </div>
