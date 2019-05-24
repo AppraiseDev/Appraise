@@ -1,3 +1,4 @@
+# pylint: disable=C0103,C0111,C0330,E1101
 from django.core.management.base import BaseCommand, CommandError
 
 from Campaign.models import Campaign
@@ -13,7 +14,6 @@ CAMPAIGN_TASK_TYPES = (
     (MultiModalAssessmentTask, MultiModalAssessmentResult),
 )
 
-# pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
     help = 'Exports system scores over all results to CSV format'
 
@@ -29,14 +29,13 @@ class Command(BaseCommand):
         # TODO: add argument to specify batch user
 
     def handle(self, *args, **options):
-        campaign_name = options['campaign_name']
-        completed_only = options['completed_only']
+        # Identify Campaign instance for given name.
+        try:
+            campaign = Campaign.get_campaign_or_raise(
+                options['campaign_name'])
 
-        # Identify Campaign instance for given name
-        campaign = Campaign.objects.filter(campaignName=campaign_name).first()
-        if not campaign:
-            _msg = f'Failure to identify campaign {campaign_name}'
-            raise CommandError(_msg)
+        except LookupError as error:
+            raise CommandError(error)
 
         system_scores = []
         for task_cls, result_cls in CAMPAIGN_TASK_TYPES:
@@ -44,7 +43,8 @@ class Command(BaseCommand):
             qs_attr = f'evaldata_{qs_name}_campaign'
             qs_obj = getattr(campaign, qs_attr, None)
 
-            if completed_only:
+            # Constrain to only completed tasks, if requested.
+            if options['completed_only']:
                 qs_obj = qs_obj.filter(completed=True)
 
             if qs_obj and qs_obj.exists():
