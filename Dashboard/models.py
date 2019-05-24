@@ -67,6 +67,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'zsm': 'Malaysian (bahasa Malaysia)',
     'hat': 'Haitian Creole (kreyòl ayisyen)',
     'fil': 'Filipino (Wikang Filipino)',
+    'tah': 'Tahitian (Reo Tahiti)',
 }
 
 # Ensure that all languages have a corresponding group.
