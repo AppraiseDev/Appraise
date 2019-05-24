@@ -512,7 +512,7 @@ def dashboard(request):
       'work_completed': work_completed,
     })
 
-    return render(request, 'Dashboard/dashboard.html', context)
+    return render(request, 'Dashboard/dashboard.html', template_context)
 
 
 @login_required
