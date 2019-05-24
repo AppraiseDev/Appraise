@@ -211,9 +211,13 @@ if __name__ == "__main__":
     REF_SGML = sys.argv[2]
     SYS_PATH = sys.argv[3]
     SYS_GLOB = sys.argv[4]
+    OUT_NAME = sys.argv[5]
+    SRC_LANG = sys.argv[6]
+    TGT_LANG = sys.argv[7]
     ENC = 'utf-8'
 
-    seed(123456)
+    RND_SEED = 123456
+    seed(RND_SEED)
 
     ALL_DOCS = {}
     ALL_DOCS['SRC'] = load_docs_from_sgml_file(SRC_SGML, encoding=ENC)
@@ -259,6 +263,10 @@ if __name__ == "__main__":
                 (doc_len, doc_id, sys_id)
             )
 
+    # Randomise system order
+    for doc_len in DOC_STATS:
+        shuffle(DOC_STATS[doc_len])
+
     print(sorted(DOC_STATS.keys()))
     total_docs = 0
     total_sys = set()
@@ -298,6 +306,9 @@ if __name__ == "__main__":
         if not DOC_STATS[curr_key]:
             DOC_STATS.pop(curr_key)
 
+    # Shuffle order of tasks
+    shuffle(sampled_tasks)
+
     from time import sleep
     padded_tasks = []
     for task in sampled_tasks:
@@ -331,12 +342,140 @@ if __name__ == "__main__":
         else:
             padded_tasks.append(task)
 
-
+    csv_data = []
+    task_id = 0
     for task in padded_tasks:
+        task_id += 1
         task_len = sum([x[0] for x in task])
         print(f'task_len: {task_len}')
 
+        for doc in task:
+            csv_data.append(','.join([str(task_id)] + [str(x) for x in doc]))
+
+    with open(f'{OUT_NAME}.csv', mode='w') as _file:
+        for csv_line in csv_data:
+            _file.write(csv_line)
+            _file.write('\n')
+
+    json_data = []
+    batch_id = 0
+    for task in padded_tasks[:1]:
+        # Remember, batch numbers are one-based
+        task_data = OrderedDict({
+          'batchNo': batch_id+1,
+          'batchSize': 100,
+          'sourceLanguage': SRC_LANG,
+          'targetLanguage': TGT_LANG,
+          'requiredAnnotations': 1,
+          'randomSeed': RND_SEED,
+        })
+
+        source_id = basename(SRC_SGML)
+
+        items_data = []
+        _item = 0
+        for doc_data in task:
+            doc_len, doc_id, sys_id = doc_data
+
+            target_id = sys_id
+
+            _src = {}
+            _ref = {}
+            _bad = {}
+            _tgt = {}
+
+            for item_id, item_src in ALL_DOCS['SRC'][doc_id]:
+                seg_id = f'{doc_id}_{item_id}'
+                _src[seg_id] = item_src
+
+            for item_id, item_ref in ALL_DOCS['REF'][doc_id]:
+                seg_id = f'{doc_id}_{item_id}'
+                _ref[seg_id] = item_ref
+
+            for item_id, item_bad in ALL_DOCS['BAD'][sys_id][doc_id]:
+                seg_id = f'{doc_id}_{item_id}'
+                _bad[seg_id] = item_bad
+
+            for item_id, item_tgt in ALL_DOCS['SYS'][sys_id][doc_id]:
+                seg_id = f'{doc_id}_{item_id}'
+                _tgt[seg_id] = item_tgt
+
+            item_id = 0
+            context_src = []
+            context_ref = []
+            context_bad = []
+            context_tgt = []
+            for seg_id in _src.keys():
+                item_src = _src[seg_id]
+                item_ref = _ref[seg_id]
+                item_bad = _bad[seg_id]
+                item_tgt = _tgt[seg_id]
+
+                obj = OrderedDict()
+                obj['_item'] = _item
+                obj['_block'] = -1
+                obj['sourceID'] = source_id
+                obj['sourceContextLeft'] = ' '.join(context_src)
+                obj['sourceText'] = item_src
+                obj['targetID'] = target_id
+                obj['targetContextLeft'] = ' '.join(context_tgt)
+                obj['targetText'] = item_tgt
+                obj['itemID'] = item_id
+                obj['itemType'] = 'TGT'
+                obj['documentID'] = doc_id
+                obj['isCompleteDocument'] = False
+
+                print(seg_id)
+                print(' '.join(context_src))
+                print(item_src)
+                print('...')
+                print(' '.join(context_tgt))
+                print(item_tgt)
+                print('---')
+
+                context_src.append(item_src)
+                context_ref.append(item_ref)
+                context_bad.append(item_bad)
+                context_tgt.append(item_tgt)
+
+                items_data.append(obj)
+                _item += 1
+                item_id += 1
+
+            obj = OrderedDict()
+            obj['_item'] = _item
+            obj['_block'] = -1
+            obj['sourceID'] = source_id
+            obj['sourceText'] = ' '.join(context_src) # full document
+            obj['targetID'] = target_id
+            obj['targetText'] = ' '.join(context_tgt) # full document
+            obj['itemID'] = item_id
+            obj['itemType'] = 'TGT'
+            obj['documentID'] = doc_id
+            obj['isCompleteDocument'] = True
+            items_data.append(obj)
+
+        output_data = OrderedDict({
+            'task': task_data,
+            'items': items_data
+        })
+
+        json_data.append(output_data)
+
+        # write out JSON
+        import json
+        json_data = json.dumps(json_data, indent=2, sort_keys=True)
+        #print(json_data)
+
+        json_file_name = f'{OUT_NAME}.json'
+        with open(json_file_name, mode='w', encoding='utf8') as out_file:
+            sys.stdout.write('Creating {0} ... '.format(
+                json_file_name, ending=''))
+            out_file.write(str(json_data))
+            sys.stdout.write('OK\n')
+
+        batch_id += 1
+
     print(f'Total tasks: {len(sampled_tasks)}')
     print(f'Total docs:  {total_docs}')
-    print(f'Total sys:   {total_sys}')
-    
+    print(f'Total sys:   {len(total_sys)} {total_sys}')
