@@ -271,10 +271,10 @@ def dashboard(request):
     """
     _t1 = datetime.now()
 
-    context = {
+    template_context = {
       'active_page': 'dashboard'
     }
-    context.update(BASE_CONTEXT)
+    template_context.update(BASE_CONTEXT)
 
     annotations = DirectAssessmentResult.get_completed_for_user(request.user)
     annotations += DirectAssessmentContextResult.get_completed_for_user(request.user)
@@ -494,7 +494,7 @@ def dashboard(request):
     elif is_multi_modal_campaign:
         current_type = 'multimodal'
 
-    context.update({
+    template_context.update({
       'annotations': annotations,
       'hits': hits,
       'total_hits': total_hits,
