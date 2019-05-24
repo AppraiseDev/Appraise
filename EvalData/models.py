@@ -637,32 +637,28 @@ class TextPairWithContext(TextPair):
       verbose_name=_('Complete document?')
     )
 
-    sourceContextLeft = models.CharField(
-      max_length=MAX_SEGMENTTEXT_LENGTH,
-      verbose_name=_('Source context (left)'),
-      help_text=_(f('(max. {value} characters)',
-        value=MAX_SEGMENTTEXT_LENGTH))
+    sourceContextLeft = models.TextField(
+      blank=True,
+      null=True,
+      verbose_name=_('Source context (left)')
     )
 
-    sourceContextRight = models.CharField(
-      max_length=MAX_SEGMENTTEXT_LENGTH,
-      verbose_name=_('Source context (right)'),
-      help_text=_(f('(max. {value} characters)',
-        value=MAX_SEGMENTTEXT_LENGTH))
+    sourceContextRight = models.TextField(
+      blank=True,
+      null=True,
+      verbose_name=_('Source context (right)')
     )
 
-    targetContextLeft = models.CharField(
-      max_length=MAX_SEGMENTTEXT_LENGTH,
-      verbose_name=_('Target context (left)'),
-      help_text=_(f('(max. {value} characters)',
-        value=MAX_SEGMENTTEXT_LENGTH))
+    targetContextLeft = models.TextField(
+      blank=True,
+      null=True,
+      verbose_name=_('Target context (left)')
     )
 
-    targetContextRight = models.CharField(
-      max_length=MAX_SEGMENTTEXT_LENGTH,
-      verbose_name=_('Target context (right)'),
-      help_text=_(f('(max. {value} characters)',
-        value=MAX_SEGMENTTEXT_LENGTH))
+    targetContextRight = models.TextField(
+      blank=True,
+      null=True,
+      verbose_name=_('Target context (right)')
     )
 
     # pylint: disable=E1101
@@ -670,15 +666,6 @@ class TextPairWithContext(TextPair):
         """
         Validates the current TextPairWithContext instance, checking text.
         """
-        attributes_to_validate = (
-            self.sourceTextLeft, self.sourceTextRight,
-            self.targetTextLeft, self.targetTextRight,
-        )
-        for current_attribute in attributes_to_validate:
-            _len = len(current_attribute)
-            if _len < 1 or _len > MAX_SEGMENTTEXT_LENGTH:
-                return False
-
         return super(TextPairWithContext, self).is_valid()
 
 class TextPairWithImage(EvalItem):
@@ -1837,6 +1824,7 @@ class DirectAssessmentContextTask(BaseMetadata):
 
             print(batch_name, batch_task['task']['batchNo'])
 
+            doc_items = 0
             new_items = []
             for item in batch_task['items']:
                 current_length_id = len(item['targetID'])
@@ -1867,10 +1855,12 @@ class DirectAssessmentContextTask(BaseMetadata):
                     isCompleteDocument=item['isCompleteDocument'],
                 )
                 new_items.append(new_item)
+                if item['isCompleteDocument']:
+                    doc_items += 1
 
-            if not len(new_items) == 100:
+            if (len(new_items) - doc_items) != 100:
                 _msg = 'Expected 100 items for task but found {0}'.format(
-                    len(new_items)
+                    len(new_items) - doc_items
                 )
                 LOGGER.warn(_msg)
                 continue
@@ -1878,11 +1868,11 @@ class DirectAssessmentContextTask(BaseMetadata):
             current_count += 1
 
 
-            #for new_item in new_items:
-            #    new_item.metadata = batch_meta
-            #    new_item.save()
-            batch_meta.textpairwithcontext_set.add(*new_items, bulk=False)
-            batch_meta.save()
+            for new_item in new_items:
+                new_item.metadata = batch_meta
+                new_item.save()
+            #batch_meta.textpairwithcontext_set.add(*new_items, bulk=False)
+            #batch_meta.save()
 
             new_task = DirectAssessmentContextTask(
                 campaign=campaign,
