@@ -1,12 +1,20 @@
-from json import loads
+# pylint: disable=C0103,C0111,C0330,E1101
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
 from Campaign.models import Campaign
-from EvalData.models import DirectAssessmentTask, MultiModalAssessmentTask
-from EvalData.models import DirectAssessmentContextTask
+from EvalData.models import (
+    DirectAssessmentTask,
+    DirectAssessmentContextTask,
+    MultiModalAssessmentTask,
+)
 
-# pylint: disable=C0111,C0330,E1101
+CAMPAIGN_TASK_TYPES = {
+    'Direct': DirectAssessmentTask,
+    'DocLevelDA': DirectAssessmentContextTask,
+    'MultiModal': MultiModalAssessmentTask,
+}
+
 class Command(BaseCommand):
     help = 'Validates campaign data batches'
 
@@ -15,9 +23,10 @@ class Command(BaseCommand):
           'campaign_name', type=str,
           help='Name of the campaign you want to process data for'
         )
+        _valid_task_types = ', '.join(CAMPAIGN_TASK_TYPES.keys())
         parser.add_argument(
           'campaign_type', type=str,
-          help='Campaign type: "Direct", "DocLevelDA" or "MultiModal"'
+          help=f'Campaign type: {_valid_task_types}'
         )
         parser.add_argument(
           '--max-count', type=int, default=-1,
@@ -26,16 +35,16 @@ class Command(BaseCommand):
         # TODO: add argument to specify batch user
 
     def handle(self, *args, **options):
-        campaign_name = options['campaign_name']
+        # Identify Campaign instance for given name.
+        try:
+            campaign = Campaign.get_campaign_or_raise(
+                options['campaign_name'])
+
+        except LookupError as error:
+            raise CommandError(error)
+
         campaign_type = options['campaign_type']
         max_count = options['max_count']
-
-        # Identify Campaign instance for given name
-        campaign = Campaign.objects.filter(campaignName=campaign_name).first()
-        if not campaign:
-            _msg = 'Failure to identify campaign {0}'.format(campaign_name)
-            self.stdout.write(_msg)
-            return
 
         # Identify batch user who needs to be a superuser
         batch_user = User.objects.filter(is_superuser=True).first()
@@ -52,24 +61,24 @@ class Command(BaseCommand):
 
         # TODO: add rollback in case of errors
         for batch_data in campaign.batches.filter(dataValid=True):
-            if campaign_type == 'Direct':
-                DirectAssessmentTask.import_from_json(
-                  campaign, batch_user, batch_data, max_count
+            task_cls = CAMPAIGN_TASK_TYPES.get(campaign_type, None)
+
+            if not task_cls:
+                _msg = f'Invalid campaign type {campaign_type}'
+                raise CommandError(_msg)
+
+            try:
+                task_cls.import_from_json(
+                    campaign, batch_user, batch_data, max_count
                 )
 
-            elif campaign_type == 'DocLevelDA':
-                DirectAssessmentContextTask.import_from_json(
-                  campaign, batch_user, batch_data, max_count
-                )
+            except Exception as e:
+                raise CommandError(e)
 
-            elif campaign_type == 'MultiModal':
-                MultiModalAssessmentTask.import_from_json(
-                  campaign, batch_user, batch_data, max_count
-                )
-
-            batch_data.dataReady = True
-            batch_data.activate()
-            batch_data.save()
+            finally:
+                batch_data.dataReady = True
+                batch_data.activate()
+                batch_data.save()
 
         campaign.activate()
         campaign.save()
