@@ -298,10 +298,12 @@ if __name__ == "__main__":
         if not DOC_STATS[curr_key]:
             DOC_STATS.pop(curr_key)
 
+    from time import sleep
     padded_tasks = []
     for task in sampled_tasks:
         task_docs = len(task)
         task_len = sum([x[0] for x in task])
+        print(f'task_len: {task_len}')
         if task_len > 100:
             raise NotImplementedError('No support for tasks >100 items!')
         elif task_len < 100:
@@ -309,17 +311,30 @@ if __name__ == "__main__":
             pad_data = list(task)
             pad_pos = 0
             while pad_size > 0:
+                print(f'pad_size: {pad_size}')
+                print(f'pad_pos: {pad_pos}')
                 pad_data.append(pad_data[pad_pos])
                 pad_size -= pad_data[-1][0]
                 pad_pos = (pad_pos + 1) % task_docs
             if pad_size < 0:
+                print(f'pad_size: {pad_size}')
+                print(f'pad_pos: {pad_pos}')
+
                 last_doc = list(pad_data[-1])
+                print(last_doc[0], '-->', last_doc[0]+pad_size)
                 last_doc[0] += pad_size
                 pad_data[-1] = tuple(last_doc)
+                print(pad_data[-1])
+            padded_tasks.append(pad_data)
+            print(padded_tasks[-1])
+            #sleep(1)
+        else:
+            padded_tasks.append(task)
 
-        fixed_len = sum([x[0] for x in pad_data])
 
-        print(f'task_len: {task_len},\fixed_len: {fixed_len}')
+    for task in padded_tasks:
+        task_len = sum([x[0] for x in task])
+        print(f'task_len: {task_len}')
 
     print(f'Total tasks: {len(sampled_tasks)}')
     print(f'Total docs:  {total_docs}')
