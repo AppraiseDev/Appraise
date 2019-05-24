@@ -66,6 +66,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'kaz': 'Kazakh (қазақша)',
     'zsm': 'Malaysian (bahasa Malaysia)',
     'hat': 'Haitian Creole (kreyòl ayisyen)',
+    'fil': 'Filipino (Wikang Filipino)',
 }
 
 # Ensure that all languages have a corresponding group.
