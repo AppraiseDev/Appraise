@@ -64,6 +64,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'ton': 'Tongan (lea faka-Tonga)',
     'guj': 'Gujarathi (ગુજરાતી)',
     'kaz': 'Kazakh (қазақша)',
+    'zsm': 'Malaysian (bahasa Malaysia)',
 }
 
 # Ensure that all languages have a corresponding group.
