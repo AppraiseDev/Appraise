@@ -6,20 +6,14 @@ from glob import iglob
 from json import dumps as json_dumps
 from os.path import basename, join
 from random import choice, seed, shuffle
-from typing import (
-    Any,
-    Dict,
-    List,
-    Text,
-    Tuple,
-)
+from typing import Any, Dict, List, Text, Tuple
 
 from bs4 import BeautifulSoup
 
+
 def load_docs_from_sgml_file(
-        file_path: str,
-        encoding='utf-8'
-    ) -> Dict[str, List[Tuple[str, str]]]:
+    file_path: str, encoding='utf-8'
+) -> Dict[str, List[Tuple[str, str]]]:
     """
     Loads documents from given SGML file.
 
@@ -39,18 +33,14 @@ def load_docs_from_sgml_file(
         for curr_seg in curr_doc.find_all('seg'):
             curr_seg_id = curr_seg.attrs['id']
             curr_seg_text = curr_seg.get_text()
-            all_docs[curr_doc_id].append(
-                (curr_seg_id, curr_seg_text)
-            )
+            all_docs[curr_doc_id].append((curr_seg_id, curr_seg_text))
 
     return all_docs
 
 
 def _create_bad_ref(
-        seg_text: str,
-        ref_text: str,
-        character_based: bool = False
-    ) -> str:
+    seg_text: str, ref_text: str, character_based: bool = False
+) -> str:
     """
     Creates bad reference for given text.
 
@@ -84,7 +74,7 @@ def _create_bad_ref(
         (5, 8): 3,
         (8, 15): 4,
         (15, 20): 5,
-        (20, None): 6
+        (20, None): 6,
     }
 
     bad_len = 0
@@ -122,16 +112,16 @@ def _create_bad_ref(
         bad_pos = choice(range(seg_len - bad_len))
 
     elif seg_len > 3:
-        bad_pos = choice([x+1 for x in range(seg_len-bad_len-1)])
+        bad_pos = choice([x + 1 for x in range(seg_len - bad_len - 1)])
 
     ref_pos = 0
     if ref_len - bad_len > 0:
         ref_pos = choice(range(ref_len - bad_len))
 
     bad_data = (
-        seg_data[:bad_pos] +
-        ref_data[ref_pos:ref_pos+bad_len] +
-        seg_data[bad_pos+bad_len:]
+        seg_data[:bad_pos]
+        + ref_data[ref_pos : ref_pos + bad_len]
+        + seg_data[bad_pos + bad_len :]
     )
     bad_text = ' '.join(bad_data)
     if character_based:
@@ -141,10 +131,10 @@ def _create_bad_ref(
 
 
 def create_bad_refs(
-        docs: Dict[str, List[Tuple[str, str]]],
-        refs: Dict[str, List[Tuple[str, str]]],
-        character_based: bool = False
-    ) -> Dict[str, List[Tuple[str, str]]]:
+    docs: Dict[str, List[Tuple[str, str]]],
+    refs: Dict[str, List[Tuple[str, str]]],
+    character_based: bool = False,
+) -> Dict[str, List[Tuple[str, str]]]:
     """
     Creates bad references for given documents.
 
@@ -182,22 +172,20 @@ def create_bad_refs(
                 bad_id = choice(all_keys)
 
             curr_bad_text = _create_bad_ref(
-                curr_seg_text, all_refs[bad_id],
-                character_based=character_based)
+                curr_seg_text,
+                all_refs[bad_id],
+                character_based=character_based,
+            )
 
             # Ensure that keys can be reused.
             all_keys.append(bad_id)
 
-            bad_docs[curr_doc_id].append(
-                (curr_seg_id, curr_bad_text)
-            )
+            bad_docs[curr_doc_id].append((curr_seg_id, curr_bad_text))
 
     return bad_docs
 
 
-def process_sgml_file(
-        file_path: str
-    ) -> Dict[int, List[str]]:
+def process_sgml_file(file_path: str) -> Dict[int, List[str]]:
     """
     Extracts document stats from given SGML file.
 
@@ -248,13 +236,9 @@ if __name__ == "__main__":
     BAD_DOCS: Dict[str, Dict[str, List[Tuple[str, str]]]] = {}
     for SYS_SGML in iglob(join(SYS_PATH, SYS_GLOB)):
         SYS_ID = basename(SYS_SGML)
-        SYS_DOCS[SYS_ID] = (
-            load_docs_from_sgml_file(SYS_SGML, encoding=ENC)
-        )
+        SYS_DOCS[SYS_ID] = load_docs_from_sgml_file(SYS_SGML, encoding=ENC)
 
-        BAD_DOCS[SYS_ID] = (
-            create_bad_refs(SYS_DOCS[SYS_ID], REF_DOCS)
-        )
+        BAD_DOCS[SYS_ID] = create_bad_refs(SYS_DOCS[SYS_ID], REF_DOCS)
 
     # pylint: disable-msg=invalid-name
     some_sys_id = choice(list(SYS_DOCS.keys()))
@@ -280,9 +264,7 @@ if __name__ == "__main__":
             if not doc_len in DOC_STATS.keys():
                 DOC_STATS[doc_len] = []
 
-            DOC_STATS[doc_len].append(
-                (doc_len, doc_id, sys_id)
-            )
+            DOC_STATS[doc_len].append((doc_len, doc_id, sys_id))
 
     # Randomise system order
     for doc_len in DOC_STATS:
@@ -351,8 +333,8 @@ if __name__ == "__main__":
                 print(f'pad_pos: {pad_pos}')
 
                 last_doc: Tuple[int, str, str] = pad_data[-1]
-                print(last_doc[0], '-->', last_doc[0]+pad_size)
-                fixed_doc = (last_doc[0]+pad_size, *last_doc[1:])
+                print(last_doc[0], '-->', last_doc[0] + pad_size)
+                fixed_doc = (last_doc[0] + pad_size, *last_doc[1:])
                 pad_data[-1] = fixed_doc
                 print(pad_data[-1])
             padded_tasks.append(tuple(pad_data))
@@ -369,7 +351,9 @@ if __name__ == "__main__":
         print(f'task_len: {task_len}')
 
         for _doc in task:
-            csv_data.append(','.join([str(task_id)] + [str(x) for x in _doc]))
+            csv_data.append(
+                ','.join([str(task_id)] + [str(x) for x in _doc])
+            )
 
     with open(f'{OUT_NAME}.csv', mode='w') as _file:
         for csv_line in csv_data:
@@ -380,14 +364,16 @@ if __name__ == "__main__":
     batch_id = 0
     for task in padded_tasks[:1]:
         # Remember, batch numbers are one-based
-        task_data = OrderedDict({
-            'batchNo': batch_id+1,
-            'batchSize': 100,
-            'sourceLanguage': SRC_LANG,
-            'targetLanguage': TGT_LANG,
-            'requiredAnnotations': 1,
-            'randomSeed': RND_SEED,
-        })
+        task_data = OrderedDict(
+            {
+                'batchNo': batch_id + 1,
+                'batchSize': 100,
+                'sourceLanguage': SRC_LANG,
+                'targetLanguage': TGT_LANG,
+                'requiredAnnotations': 1,
+                'randomSeed': RND_SEED,
+            }
+        )
 
         source_id = basename(SRC_SGML)
 
@@ -465,19 +451,16 @@ if __name__ == "__main__":
             obj['_item'] = _item
             obj['_block'] = -1
             obj['sourceID'] = source_id
-            obj['sourceText'] = ' '.join(context_src) # full document
+            obj['sourceText'] = ' '.join(context_src)  # full document
             obj['targetID'] = target_id
-            obj['targetText'] = ' '.join(context_tgt) # full document
+            obj['targetText'] = ' '.join(context_tgt)  # full document
             obj['itemID'] = item_id
             obj['itemType'] = 'TGT'
             obj['documentID'] = doc_id
             obj['isCompleteDocument'] = True
             items_data.append(obj)
 
-        output_data = OrderedDict({
-            'task': task_data,
-            'items': items_data
-        })
+        output_data = OrderedDict({'task': task_data, 'items': items_data})
 
         json_data.append(output_data)
 
@@ -486,8 +469,9 @@ if __name__ == "__main__":
 
         json_file_name = f'{OUT_NAME}.json'
         with open(json_file_name, mode='w', encoding='utf8') as out_file:
-            sys.stdout.write('Creating {0} ... '.format(
-                json_file_name, ending=''))
+            sys.stdout.write(
+                'Creating {0} ... '.format(json_file_name, ending='')
+            )
             out_file.write(str(json_text))
             sys.stdout.write('OK\n')
 
