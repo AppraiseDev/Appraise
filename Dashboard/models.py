@@ -85,6 +85,7 @@ try:
 except (OperationalError, ProgrammingError):
     pass
 
+
 def validate_language_code(code_or_codes):
     """
     Validates given language code string or list of code strings.
@@ -101,51 +102,47 @@ def validate_language_code(code_or_codes):
 
     return valid
 
+
 def create_uuid4_token():
     """
     Creates a new UUID4-based token.
     """
     return uuid4().hex[:8]
 
+
 # pylint: disable=C0330,E1101,too-few-public-methods
 class UserInviteToken(models.Model):
     """
     User invite tokens allowing to register an account.
     """
-    group = models.ForeignKey(
-      Group,
-      models.PROTECT,
-      db_index=True,
-    )
+
+    group = models.ForeignKey(Group, models.PROTECT, db_index=True)
 
     user = models.ForeignKey(
-      User,
-      models.PROTECT,
-      db_index=True,
-      blank=True,
-      null=True
+        User, models.PROTECT, db_index=True, blank=True, null=True
     )
 
     token = models.CharField(
-      max_length=8,
-      db_index=True,
-      default=create_uuid4_token,
-      unique=True,
-      help_text="Unique invite token",
-      verbose_name="Invite token"
+        max_length=8,
+        db_index=True,
+        default=create_uuid4_token,
+        unique=True,
+        help_text="Unique invite token",
+        verbose_name="Invite token",
     )
 
     active = models.BooleanField(
-      db_index=True,
-      default=True,
-      help_text="Indicates that this invite can still be used.",
-      verbose_name="Active?"
+        db_index=True,
+        default=True,
+        help_text="Indicates that this invite can still be used.",
+        verbose_name="Active?",
     )
 
     class Meta:
         """
         Metadata options for the UserInviteToken object model.
         """
+
         verbose_name = "User invite token"
         verbose_name_plural = "User invite tokens"
 
@@ -154,7 +151,7 @@ class UserInviteToken(models.Model):
         Returns a Unicode String for this UserInviteToken object.
         """
         return u'<user-invite id="{0}" token="{1}" active="{2}" group="{3}" />'.format(
-          self.id, self.token, self.active, self.group.name
+            self.id, self.token, self.active, self.group.name
         )
 
 
@@ -163,20 +160,11 @@ class TimedKeyValueData(models.Model):
     """
     Stores a simple (key, value) pair.
     """
-    key = models.CharField(
-      max_length=100,
-      blank=False,
-      null=False
-    )
-    value = models.TextField(
-      blank=False,
-      null=False
-    )
+
+    key = models.CharField(max_length=100, blank=False, null=False)
+    value = models.TextField(blank=False, null=False)
     date_and_time = models.DateTimeField(
-      blank=False,
-      null=False,
-      editable=False,
-      auto_now_add=True
+        blank=False, null=False, editable=False, auto_now_add=True
     )
 
     @classmethod
