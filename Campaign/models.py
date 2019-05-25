@@ -12,7 +12,9 @@ from EvalData.models import BaseMetadata, Market, Metadata
 
 MAX_TEAMNAME_LENGTH = 250
 MAX_SMALLINTEGER_VALUE = 32767
-MAX_FILEFILED_SIZE = 10 # TODO: this does not get enforced currently; remove?
+MAX_FILEFILED_SIZE = (
+    10
+)  # TODO: this does not get enforced currently; remove?
 MAX_CAMPAIGNNAME_LENGTH = 250
 
 
@@ -20,52 +22,54 @@ class CampaignTeam(BaseMetadata):
     """
     Models a campaign team.
     """
+
     teamName = models.CharField(
-      max_length=MAX_TEAMNAME_LENGTH,
-      verbose_name=_('Team name'),
-      help_text=_(f('(max. {value} characters)',
-        value=MAX_TEAMNAME_LENGTH))
+        max_length=MAX_TEAMNAME_LENGTH,
+        verbose_name=_('Team name'),
+        help_text=_(
+            f('(max. {value} characters)', value=MAX_TEAMNAME_LENGTH)
+        ),
     )
 
     owner = models.ForeignKey(
-      User,
-      limit_choices_to={'is_staff': True},
-      on_delete=models.PROTECT,
-      related_name='%(app_label)s_%(class)s_owner',
-      related_query_name="%(app_label)s_%(class)ss",
-      verbose_name=_('Team owner'),
-      help_text=_('(must be staff member)')
+        User,
+        limit_choices_to={'is_staff': True},
+        on_delete=models.PROTECT,
+        related_name='%(app_label)s_%(class)s_owner',
+        related_query_name="%(app_label)s_%(class)ss",
+        verbose_name=_('Team owner'),
+        help_text=_('(must be staff member)'),
     )
 
     members = models.ManyToManyField(
-      User,
-      related_name='%(app_label)s_%(class)s_members',
-      related_query_name="%(app_label)s_%(class)ss",
-      verbose_name=_('Team members')
+        User,
+        related_name='%(app_label)s_%(class)s_members',
+        related_query_name="%(app_label)s_%(class)ss",
+        verbose_name=_('Team members'),
     )
 
     requiredAnnotations = models.PositiveSmallIntegerField(
-      verbose_name=_('Required annotations'),
-      help_text=_(f('(value in range=[1,{value}])',
-        value=MAX_SMALLINTEGER_VALUE))
+        verbose_name=_('Required annotations'),
+        help_text=_(
+            f('(value in range=[1,{value}])', value=MAX_SMALLINTEGER_VALUE)
+        ),
     )
 
     requiredHours = models.PositiveSmallIntegerField(
-      verbose_name=_('Required hours'),
-      help_text=_(f('(value in range=[1,{value}])',
-        value=MAX_SMALLINTEGER_VALUE))
+        verbose_name=_('Required hours'),
+        help_text=_(
+            f('(value in range=[1,{value}])', value=MAX_SMALLINTEGER_VALUE)
+        ),
     )
 
-  # pylint: disable=C0111,R0903
+    # pylint: disable=C0111,R0903
     class Meta:
         ordering = ['_str_name']
         verbose_name = 'Team'
         verbose_name_plural = 'Teams'
 
     def _generate_str_name(self):
-        return '{0} ({1})'.format(
-          self.teamName, self.owner
-        )
+        return '{0} ({1})'.format(self.teamName, self.owner)
 
     def is_valid(self):
         """
@@ -84,6 +88,7 @@ class CampaignTeam(BaseMetadata):
         Proxy method returning members count.
         """
         return self.members.count()
+
     teamMembers.short_description = '# of team members'
 
     # TODO: Connect to actual data, producing correct completion status.
@@ -97,6 +102,7 @@ class CampaignTeam(BaseMetadata):
         - # of completed hours / # required hours.
         """
         return '0%'
+
     completionStatus.short_description = 'Completion status'
 
 
@@ -104,35 +110,31 @@ class CampaignData(BaseMetadata):
     """
     Models a batch of campaign data.
     """
+
     dataFile = models.FileField(
-      verbose_name=_('Data file'),
-      upload_to='Batches'
+        verbose_name=_('Data file'), upload_to='Batches'
     )
 
     market = models.ForeignKey(
-      Market,
-      on_delete=models.PROTECT,
-      verbose_name=_('Market')
+        Market, on_delete=models.PROTECT, verbose_name=_('Market')
     )
 
     metadata = models.ForeignKey(
-      Metadata,
-      on_delete=models.PROTECT,
-      verbose_name=_('Metadata')
+        Metadata, on_delete=models.PROTECT, verbose_name=_('Metadata')
     )
 
     dataValid = models.BooleanField(
-      blank=True,
-      default=False,
-      editable=False,
-      verbose_name=_('Data valid?')
+        blank=True,
+        default=False,
+        editable=False,
+        verbose_name=_('Data valid?'),
     )
 
     dataReady = models.BooleanField(
-      blank=True,
-      default=False,
-      editable=False,
-      verbose_name=_('Data ready?')
+        blank=True,
+        default=False,
+        editable=False,
+        verbose_name=_('Data ready?'),
     )
 
     # pylint: disable=C0111,R0903
@@ -159,7 +161,9 @@ class CampaignData(BaseMetadata):
         if self.activated:
             if not self.dataValid or not self.dataReady:
                 raise ValidationError(
-                  _('Cannot activate campaign data as it is either not valid or not ready yet.')
+                    _(
+                        'Cannot activate campaign data as it is either not valid or not ready yet.'
+                    )
                 )
 
         super(CampaignData, self).clean_fields(exclude)
@@ -169,25 +173,27 @@ class Campaign(BaseMetadata):
     """
     Models an evaluation campaign.
     """
+
     campaignName = models.CharField(
-      max_length=MAX_CAMPAIGNNAME_LENGTH,
-      verbose_name=_('Campaign name'),
-      help_text=_(f('(max. {value} characters)',
-        value=MAX_CAMPAIGNNAME_LENGTH))
+        max_length=MAX_CAMPAIGNNAME_LENGTH,
+        verbose_name=_('Campaign name'),
+        help_text=_(
+            f('(max. {value} characters)', value=MAX_CAMPAIGNNAME_LENGTH)
+        ),
     )
 
     teams = models.ManyToManyField(
-      CampaignTeam,
-      related_name='%(app_label)s_%(class)s_teams',
-      related_query_name="%(app_label)s_%(class)ss",
-      verbose_name=_('Teams')
+        CampaignTeam,
+        related_name='%(app_label)s_%(class)s_teams',
+        related_query_name="%(app_label)s_%(class)ss",
+        verbose_name=_('Teams'),
     )
 
     batches = models.ManyToManyField(
-      CampaignData,
-      related_name='%(app_label)s_%(class)s_batches',
-      related_query_name="%(app_label)s_%(class)ss",
-      verbose_name=_('Batches')
+        CampaignData,
+        related_name='%(app_label)s_%(class)s_batches',
+        related_query_name="%(app_label)s_%(class)ss",
+        verbose_name=_('Batches'),
     )
 
     def _generate_str_name(self):
@@ -205,28 +211,22 @@ class Campaign(BaseMetadata):
             _msg = f'Failure to identify campaign {campaign_name}'
             raise LookupError(_msg)
 
-        return _obj.first() # if multiple campaigns, return first
+        return _obj.first()  # if multiple campaigns, return first
 
 
 class TrustedUser(models.Model):
     '''
     Models trusted users who are exempt of quality controls.
     '''
-    user = models.ForeignKey(
-      User,
-      models.PROTECT,
-      verbose_name=_('User')
-    )
+
+    user = models.ForeignKey(User, models.PROTECT, verbose_name=_('User'))
 
     campaign = models.ForeignKey(
-      Campaign,
-      models.PROTECT,
-      verbose_name=_('Campaign')
+        Campaign, models.PROTECT, verbose_name=_('Campaign')
     )
 
     # TODO: decide whether this needs to be optimized.
     def __str__(self):
         return 'trusted:{0}/{1}'.format(
-          self.user.username,
-          self.campaign.campaignName
+            self.user.username, self.campaign.campaignName
         )
