@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Text, Tuple
 from bs4 import BeautifulSoup
 
 
-def load_docs_from_sgml_file(
+def load_docs_from_sgml(
     file_path: str, encoding='utf-8'
 ) -> Dict[str, List[Tuple[str, str]]]:
     """
@@ -185,7 +185,7 @@ def create_bad_refs(
     return bad_docs
 
 
-def process_sgml_file(file_path: str) -> Dict[int, List[str]]:
+def process_sgml(file_path: str) -> Dict[int, List[str]]:
     """
     Extracts document stats from given SGML file.
 
@@ -229,14 +229,14 @@ if __name__ == "__main__":
     RND_SEED = 123456
     seed(RND_SEED)
 
-    SRC_DOCS = load_docs_from_sgml_file(SRC_SGML, encoding=ENC)
-    REF_DOCS = load_docs_from_sgml_file(REF_SGML, encoding=ENC)
+    SRC_DOCS = load_docs_from_sgml(SRC_SGML, encoding=ENC)
+    REF_DOCS = load_docs_from_sgml(REF_SGML, encoding=ENC)
 
     SYS_DOCS: Dict[str, Dict[str, List[Tuple[str, str]]]] = {}
     BAD_DOCS: Dict[str, Dict[str, List[Tuple[str, str]]]] = {}
     for SYS_SGML in iglob(join(SYS_PATH, SYS_GLOB)):
         SYS_ID = basename(SYS_SGML)
-        SYS_DOCS[SYS_ID] = load_docs_from_sgml_file(SYS_SGML, encoding=ENC)
+        SYS_DOCS[SYS_ID] = load_docs_from_sgml(SYS_SGML, encoding=ENC)
 
         BAD_DOCS[SYS_ID] = create_bad_refs(SYS_DOCS[SYS_ID], REF_DOCS)
 
