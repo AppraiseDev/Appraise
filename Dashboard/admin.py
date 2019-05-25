@@ -1,3 +1,8 @@
+"""
+Appraise evaluation framework
+
+See LICENSE for usage details
+"""
 # pylint: disable=import-error
 from django.contrib import admin
 
