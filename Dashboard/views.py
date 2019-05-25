@@ -1,9 +1,13 @@
-# pylint: disable=C0330
+"""
+Appraise evaluation framework
+
+See LICENSE for usage details
+"""
 from datetime import datetime
 from hashlib import md5
 import logging
 
-# pylint: disable=import-error
+# pylint: disable=import-error,C0330
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login

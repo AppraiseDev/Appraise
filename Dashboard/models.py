@@ -1,3 +1,8 @@
+"""
+Appraise evaluation framework
+
+See LICENSE for usage details
+"""
 from uuid import uuid4
 
 # pylint: disable=import-error
@@ -88,7 +93,7 @@ def validate_language_code(code_or_codes):
     """
     valid_codes = LANGUAGE_CODES_AND_NAMES.keys()
     valid = False
-    if isinstance(code_or_codes, list) or isinstance(code_or_codes, tuple):
+    if isinstance(code_or_codes, (list, tuple)):
         valid = all([x.lower() in valid_codes for x in code_or_codes])
 
     else:
