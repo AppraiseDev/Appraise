@@ -1,7 +1,7 @@
 """
 Campaign models.py
 """
-# pylint: disable=C0330,import-error
+# pylint: disable=C0111,C0330,E1101
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -56,6 +56,7 @@ class CampaignTeam(BaseMetadata):
         value=MAX_SMALLINTEGER_VALUE))
     )
 
+  # pylint: disable=C0111,R0903
     class Meta:
         ordering = ['_str_name']
         verbose_name = 'Team'
