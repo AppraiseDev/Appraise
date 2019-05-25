@@ -13,17 +13,16 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect, render_to_response
 
-from Appraise.settings import (
-    LOG_LEVEL,
-    LOG_HANDLER,
-    BASE_CONTEXT,
-)
+from Appraise.settings import LOG_LEVEL, LOG_HANDLER, BASE_CONTEXT
 from Dashboard.models import UserInviteToken, LANGUAGE_CODES_AND_NAMES
 from EvalData.models import (
-    DirectAssessmentTask, DirectAssessmentResult,
-    DirectAssessmentContextTask, DirectAssessmentContextResult,
-    MultiModalAssessmentTask, MultiModalAssessmentResult,
-    TaskAgenda
+    DirectAssessmentTask,
+    DirectAssessmentResult,
+    DirectAssessmentContextTask,
+    DirectAssessmentContextResult,
+    MultiModalAssessmentTask,
+    MultiModalAssessmentResult,
+    TaskAgenda,
 )
 
 
@@ -42,8 +41,11 @@ def _page_not_found(request, template_name='404.html'):
     """
     del template_name  # Unused.
 
-    LOGGER.info('Rendering HTTP 404 for user "%s". Request.path=%s',
-        request.user.username or "Anonymous", request.path)
+    LOGGER.info(
+        'Rendering HTTP 404 for user "%s". Request.path=%s',
+        request.user.username or "Anonymous",
+        request.path,
+    )
 
     return render_to_response('Dashboard/404.html', BASE_CONTEXT)
 
@@ -54,10 +56,14 @@ def _server_error(request, template_name='500.html'):
     """
     del template_name  # Unused.
 
-    LOGGER.info('Rendering HTTP 500 for user "%s". Request.path=%s',
-        request.user.username or "Anonymous", request.path)
+    LOGGER.info(
+        'Rendering HTTP 500 for user "%s". Request.path=%s',
+        request.user.username or "Anonymous",
+        request.path,
+    )
 
     return render_to_response('Dashboard/500.html', BASE_CONTEXT)
+
 
 def sso_login(request, username, password):
     """
@@ -68,26 +74,30 @@ def sso_login(request, username, password):
         user = authenticate(username=username, password=password)
         login(request, user)
 
-    LOGGER.info('Rendering SSO login view for user "%s".',
-        request.user.username or "Anonymous")
+    LOGGER.info(
+        'Rendering SSO login view for user "%s".',
+        request.user.username or "Anonymous",
+    )
 
     return redirect('dashboard')
+
 
 def frontpage(request, extra_context=None):
     """
     Appraise front page.
     """
-    LOGGER.info('Rendering frontpage view for user "%s".',
-        request.user.username or "Anonymous")
+    LOGGER.info(
+        'Rendering frontpage view for user "%s".',
+        request.user.username or "Anonymous",
+    )
 
-    context = {
-      'active_page': 'frontpage'
-    }
+    context = {'active_page': 'frontpage'}
     context.update(BASE_CONTEXT)
     if extra_context:
         context.update(extra_context)
 
     return render(request, 'Dashboard/frontpage.html', context)
+
 
 def create_profile(request):
     """
@@ -133,8 +143,8 @@ def create_profile(request):
 
                 # Create new user account and add to group.
                 password = '{0}{1}'.format(
-                  invite.group.name[:2].upper(),
-                  md5(invite.group.name.encode('utf-8')).hexdigest()[:8]
+                    invite.group.name[:2].upper(),
+                    md5(invite.group.name.encode('utf-8')).hexdigest()[:8],
                 )
                 user = User.objects.create_user(username, email, password)
 
@@ -172,7 +182,8 @@ def create_profile(request):
             # For any other exception, clean up and ask user to retry.
             except Exception:
                 from traceback import format_exc
-                print(format_exc()) # TODO: need logger here!
+
+                print(format_exc())  # TODO: need logger here!
                 username = None
                 email = None
                 token = None
@@ -196,19 +207,20 @@ def create_profile(request):
             errors = ['invalid_languages']
 
     context = {
-      'active_page': "OVERVIEW", # TODO: check
-      'errors': errors,
-      'focus_input': focus_input,
-      'username': username,
-      'email': email,
-      'token': token,
-      'languages': languages,
-      'language_choices': language_choices,
-      'title': 'Create profile',
+        'active_page': "OVERVIEW",  # TODO: check
+        'errors': errors,
+        'focus_input': focus_input,
+        'username': username,
+        'email': email,
+        'token': token,
+        'languages': languages,
+        'language_choices': language_choices,
+        'title': 'Create profile',
     }
     context.update(BASE_CONTEXT)
 
     return render(request, 'Dashboard/create-profile.html', context)
+
 
 @login_required
 def update_profile(request):
@@ -242,6 +254,7 @@ def update_profile(request):
             # For any other exception, clean up and ask user to retry.
             except Exception:
                 from traceback import format_exc
+
                 print(format_exc())
 
                 languages = set()
@@ -253,20 +266,23 @@ def update_profile(request):
 
     # Determine user target languages
     for group in request.user.groups.all():
-        if group.name.lower() in [x.lower() for x in LANGUAGE_CODES_AND_NAMES]:
+        if group.name.lower() in [
+            x.lower() for x in LANGUAGE_CODES_AND_NAMES
+        ]:
             languages.add(group.name.lower())
 
     context = {
-      'active_page': "OVERVIEW",
-      'errors': errors,
-      'focus_input': focus_input,
-      'languages': languages,
-      'language_choices': language_choices,
-      'title': 'Update profile',
+        'active_page': "OVERVIEW",
+        'errors': errors,
+        'focus_input': focus_input,
+        'languages': languages,
+        'language_choices': language_choices,
+        'title': 'Update profile',
     }
     context.update(BASE_CONTEXT)
 
     return render(request, 'Dashboard/update-profile.html', context)
+
 
 @login_required
 def dashboard(request):
@@ -275,21 +291,47 @@ def dashboard(request):
     """
     _t1 = datetime.now()
 
-    template_context = {
-      'active_page': 'dashboard'
-    }
+    template_context = {'active_page': 'dashboard'}
     template_context.update(BASE_CONTEXT)
 
-    annotations = DirectAssessmentResult.get_completed_for_user(request.user)
-    annotations += DirectAssessmentContextResult.get_completed_for_user(request.user)
-    annotations += MultiModalAssessmentResult.get_completed_for_user(request.user)
-    hits, total_hits = DirectAssessmentResult.get_hit_status_for_user(request.user)
-    _hits, _total_hits = DirectAssessmentContextResult.get_hit_status_for_user(request.user)
-    hits += _hits
-    total_hits += _total_hits
-    _hits, _total_hits = MultiModalAssessmentResult.get_hit_status_for_user(request.user)
-    hits += _hits
-    total_hits += _total_hits
+    result_types = (
+        DirectAssessmentResult,
+        DirectAssessmentContextResult,
+        MultiModalAssessmentResult,
+    )
+    annotations = 0
+    hits = 0
+    total_hits = 0
+    for result_cls in result_types:
+        annotations += result_cls.get_completed_for_user(request.user)
+        _hits, _total = result_cls.get_hit_status_for_user(request.user)
+        hits, total_hits = hits + _hits, total_hits + _total
+
+    #        hits += _hits
+    #        total_hits += _total
+
+    #    annotations = DirectAssessmentResult.get_completed_for_user(
+    #        request.user
+    #    )
+    #    annotations += DirectAssessmentContextResult.get_completed_for_user(
+    #        request.user
+    #    )
+    #    annotations += MultiModalAssessmentResult.get_completed_for_user(
+    #        request.user
+    #    )
+    #    hits, total_hits = DirectAssessmentResult.get_hit_status_for_user(
+    #        request.user
+    #    )
+    #    _hits, _total_hits = DirectAssessmentContextResult.get_hit_status_for_user(
+    #        request.user
+    #    )
+    #    hits += _hits
+    #    total_hits += _total_hits
+    #    _hits, _total_hits = MultiModalAssessmentResult.get_hit_status_for_user(
+    #        request.user
+    #    )
+    #    hits += _hits
+    #    total_hits += _total_hits
 
     # If user still has an assigned task, only offer link to this task.
     current_task = DirectAssessmentTask.get_task_for_user(request.user)
@@ -299,35 +341,45 @@ def dashboard(request):
         code = current_task.marketTargetLanguageCode()
         print(request.user.groups.all())
         if code not in request.user.groups.values_list('name', flat=True):
-            _msg = 'Language %s not specified for user %s. Giving up task %s'
+            _msg = (
+                'Language %s not specified for user %s. Giving up task %s'
+            )
             LOGGER.info(_msg, code, request.user.username, current_task)
 
             current_task.assignedTo.remove(request.user)
             current_task = None
 
     if not current_task:
-        current_task = DirectAssessmentContextTask.get_task_for_user(request.user)
+        current_task = DirectAssessmentContextTask.get_task_for_user(
+            request.user
+        )
 
     # Check if marketTargetLanguage for current_task matches user languages.
     if current_task:
         code = current_task.marketTargetLanguageCode()
         print(request.user.groups.all())
         if code not in request.user.groups.values_list('name', flat=True):
-            _msg = 'Language %s not specified for user %s. Giving up task %s'
+            _msg = (
+                'Language %s not specified for user %s. Giving up task %s'
+            )
             LOGGER.info(_msg, code, request.user.username, current_task)
 
             current_task.assignedTo.remove(request.user)
             current_task = None
 
     if not current_task:
-        current_task = MultiModalAssessmentTask.get_task_for_user(request.user)
+        current_task = MultiModalAssessmentTask.get_task_for_user(
+            request.user
+        )
 
     # Check if marketTargetLanguage for current_task matches user languages.
     if current_task:
         code = current_task.marketTargetLanguageCode()
         print(request.user.groups.all())
         if code not in request.user.groups.values_list('name', flat=True):
-            _msg = 'Language %s not specified for user %s. Giving up task %s'
+            _msg = (
+                'Language %s not specified for user %s. Giving up task %s'
+            )
             LOGGER.info(_msg, code, request.user.username, current_task)
 
             current_task.assignedTo.remove(request.user)
@@ -338,9 +390,7 @@ def dashboard(request):
     # If there is no current task, check if user is done with work agenda.
     work_completed = False
     if not current_task:
-        agendas = TaskAgenda.objects.filter(
-          user=request.user
-        )
+        agendas = TaskAgenda.objects.filter(user=request.user)
 
         for agenda in agendas:
             LOGGER.info('Identified work agenda %s', agenda)
@@ -351,8 +401,10 @@ def dashboard(request):
                 if open_task.next_item_for_user(request.user) is not None:
                     current_task = open_task
                     campaign = agenda.campaign
-                    LOGGER.info('Current task type: %s',
-                        open_task.__class__.__name__)
+                    LOGGER.info(
+                        'Current task type: %s',
+                        open_task.__class__.__name__,
+                    )
                 else:
                     tasks_to_complete.append(serialized_open_task)
 
@@ -384,23 +436,29 @@ def dashboard(request):
 
         # Remove any language for which no free task is available.
         from Campaign.models import Campaign
+
         for campaign in Campaign.objects.all():
 
             direct = DirectAssessmentTask.objects.filter(
-                campaign__campaignName=campaign.campaignName)
+                campaign__campaignName=campaign.campaignName
+            )
 
             context = DirectAssessmentContextTask.objects.filter(
-                campaign__campaignName=campaign.campaignName)
+                campaign__campaignName=campaign.campaignName
+            )
 
             multimodal = MultiModalAssessmentTask.objects.filter(
-                campaign__campaignName=campaign.campaignName)
+                campaign__campaignName=campaign.campaignName
+            )
 
             is_context_campaign = context.exists()
             is_multi_modal_campaign = multimodal.exists()
 
             if is_multi_modal_campaign:
                 multimodal_languages[campaign.campaignName] = []
-                multimodal_languages[campaign.campaignName].extend(languages)
+                multimodal_languages[campaign.campaignName].extend(
+                    languages
+                )
 
             elif is_context_campaign:
                 context_languages[campaign.campaignName] = []
@@ -421,15 +479,22 @@ def dashboard(request):
                     _cls = DirectAssessmentTask
 
                 next_task_available = _cls.get_next_free_task_for_language(
-                    code, campaign, request.user)
+                    code, campaign, request.user
+                )
 
                 if not next_task_available:
                     if is_multi_modal_campaign:
-                        multimodal_languages[campaign.campaignName].remove(code)
+                        multimodal_languages[campaign.campaignName].remove(
+                            code
+                        )
                     elif is_context_campaign:
-                        context_languages[campaign.campaignName].remove(code)
+                        context_languages[campaign.campaignName].remove(
+                            code
+                        )
                     else:
-                        campaign_languages[campaign.campaignName].remove(code)
+                        campaign_languages[campaign.campaignName].remove(
+                            code
+                        )
 
             _type = 'direct'
             _languages = campaign_languages
@@ -440,27 +505,40 @@ def dashboard(request):
                 _type = 'context'
                 _languages = context_languages
 
-            print("campaign = {0}, type = {1}, languages = {2}".format(
-              campaign.campaignName, _type, _languages[campaign.campaignName]))
+            print(
+                "campaign = {0}, type = {1}, languages = {2}".format(
+                    campaign.campaignName,
+                    _type,
+                    _languages[campaign.campaignName],
+                )
+            )
 
     _t3 = datetime.now()
 
     duration = DirectAssessmentResult.get_time_for_user(request.user)
     days = duration.days
     hours = int((duration.total_seconds() - (days * 86400)) / 3600)
-    minutes = int(((duration.total_seconds() - (days * 86400)) % 3600) / 60)
+    minutes = int(
+        ((duration.total_seconds() - (days * 86400)) % 3600) / 60
+    )
     seconds = int((duration.total_seconds() - (days * 86400)) % 60)
 
-    duration = DirectAssessmentContextResult.get_time_for_user(request.user)
+    duration = DirectAssessmentContextResult.get_time_for_user(
+        request.user
+    )
     days += duration.days
     hours += int((duration.total_seconds() - (days * 86400)) / 3600)
-    minutes += int(((duration.total_seconds() - (days * 86400)) % 3600) / 60)
+    minutes += int(
+        ((duration.total_seconds() - (days * 86400)) % 3600) / 60
+    )
     seconds += int((duration.total_seconds() - (days * 86400)) % 60)
 
     duration = MultiModalAssessmentResult.get_time_for_user(request.user)
     days += duration.days
     hours += int((duration.total_seconds() - (days * 86400)) / 3600)
-    minutes += int(((duration.total_seconds() - (days * 86400)) % 3600) / 60)
+    minutes += int(
+        ((duration.total_seconds() - (days * 86400)) % 3600) / 60
+    )
     seconds += int((duration.total_seconds() - (days * 86400)) % 60)
 
     _t4 = datetime.now()
@@ -468,29 +546,40 @@ def dashboard(request):
     all_languages = []
     for key, values in campaign_languages.items():
         for value in values:
-            all_languages.append((value, LANGUAGE_CODES_AND_NAMES[value], key))
+            all_languages.append(
+                (value, LANGUAGE_CODES_AND_NAMES[value], key)
+            )
 
     print(str(all_languages).encode('utf-8'))
 
     ctx_languages = []
     for key, values in context_languages.items():
         for value in values:
-            ctx_languages.append((value, LANGUAGE_CODES_AND_NAMES[value], key))
+            ctx_languages.append(
+                (value, LANGUAGE_CODES_AND_NAMES[value], key)
+            )
 
     print(str(ctx_languages).encode('utf-8'))
 
     mmt_languages = []
     for key, values in multimodal_languages.items():
         for value in values:
-            mmt_languages.append((value, LANGUAGE_CODES_AND_NAMES[value], key))
+            mmt_languages.append(
+                (value, LANGUAGE_CODES_AND_NAMES[value], key)
+            )
 
     print(str(mmt_languages).encode('utf-8'))
 
     is_context_campaign = False
     is_multi_modal_campaign = False
     if current_task:
-        is_context_campaign = current_task.__class__.__name__ == 'DirectAssessmentContextTask'
-        is_multi_modal_campaign = current_task.__class__.__name__ == 'MultiModalAssessmentTask'
+        is_context_campaign = (
+            current_task.__class__.__name__
+            == 'DirectAssessmentContextTask'
+        )
+        is_multi_modal_campaign = (
+            current_task.__class__.__name__ == 'MultiModalAssessmentTask'
+        )
 
     current_type = 'direct'
     if is_context_campaign:
@@ -498,23 +587,25 @@ def dashboard(request):
     elif is_multi_modal_campaign:
         current_type = 'multimodal'
 
-    template_context.update({
-      'annotations': annotations,
-      'hits': hits,
-      'total_hits': total_hits,
-      'days': days,
-      'hours': hours,
-      'minutes': minutes,
-      'seconds': seconds,
-      'current_task': current_task,
-      'current_type': current_type,
-      'languages': all_languages,
-      'context': ctx_languages,
-      'multimodal': mmt_languages,
-      'debug_times': (_t2-_t1, _t3-_t2, _t4-_t3, _t4-_t1),
-      'template_debug': 'debug' in request.GET,
-      'work_completed': work_completed,
-    })
+    template_context.update(
+        {
+            'annotations': annotations,
+            'hits': hits,
+            'total_hits': total_hits,
+            'days': days,
+            'hours': hours,
+            'minutes': minutes,
+            'seconds': seconds,
+            'current_task': current_task,
+            'current_type': current_type,
+            'languages': all_languages,
+            'context': ctx_languages,
+            'multimodal': mmt_languages,
+            'debug_times': (_t2 - _t1, _t3 - _t2, _t4 - _t3, _t4 - _t1),
+            'template_debug': 'debug' in request.GET,
+            'work_completed': work_completed,
+        }
+    )
 
     return render(request, 'Dashboard/dashboard.html', template_context)
 
@@ -526,9 +617,7 @@ def group_status(request):
     """
     _t1 = datetime.now()
 
-    context = {
-      'active_page': 'group-status'
-    }
+    context = {'active_page': 'group-status'}
     context.update(BASE_CONTEXT)
 
     _t2 = datetime.now()
@@ -538,18 +627,21 @@ def group_status(request):
     _group_status = []
     for group in group_data:
         _group_status.append(
-            (group, group_data[group][0], group_data[group][1]))
+            (group, group_data[group][0], group_data[group][1])
+        )
 
     sorted_status = sorted(_group_status, key=lambda x: x[1], reverse=True)
     _t4 = datetime.now()
 
-    context.update({
-      'group_status': list(sorted_status),
-      'sum_completed': sum([x[1] for x in _group_status]),
-      'sum_total': sum([x[2] for x in _group_status]),
-      'debug_times': (_t2-_t1, _t3-_t2, _t4-_t3, _t4-_t1),
-      'template_debug': 'debug' in request.GET,
-    })
+    context.update(
+        {
+            'group_status': list(sorted_status),
+            'sum_completed': sum([x[1] for x in _group_status]),
+            'sum_total': sum([x[2] for x in _group_status]),
+            'debug_times': (_t2 - _t1, _t3 - _t2, _t4 - _t3, _t4 - _t1),
+            'template_debug': 'debug' in request.GET,
+        }
+    )
 
     return render(request, 'Dashboard/group-status.html', context)
 
@@ -561,9 +653,7 @@ def multimodal_status(request):
     """
     _t1 = datetime.now()
 
-    context = {
-      'active_page': 'group-status'
-    }
+    context = {'active_page': 'group-status'}
     context.update(BASE_CONTEXT)
 
     _t2 = datetime.now()
@@ -573,18 +663,21 @@ def multimodal_status(request):
     _group_status = []
     for group in group_data:
         _group_status.append(
-            (group, group_data[group][0], group_data[group][1]))
+            (group, group_data[group][0], group_data[group][1])
+        )
 
     sorted_status = sorted(_group_status, key=lambda x: x[1], reverse=True)
     _t4 = datetime.now()
 
-    context.update({
-      'group_status': list(sorted_status),
-      'sum_completed': sum([x[1] for x in _group_status]),
-      'sum_total': sum([x[2] for x in _group_status]),
-      'debug_times': (_t2-_t1, _t3-_t2, _t4-_t3, _t4-_t1),
-      'template_debug': 'debug' in request.GET,
-    })
+    context.update(
+        {
+            'group_status': list(sorted_status),
+            'sum_completed': sum([x[1] for x in _group_status]),
+            'sum_total': sum([x[2] for x in _group_status]),
+            'debug_times': (_t2 - _t1, _t3 - _t2, _t4 - _t3, _t4 - _t1),
+            'template_debug': 'debug' in request.GET,
+        }
+    )
 
     return render(request, 'Dashboard/group-status.html', context)
 
@@ -596,9 +689,7 @@ def system_status(request):
     """
     _t1 = datetime.now()
 
-    context = {
-      'active_page': 'system-status'
-    }
+    context = {'active_page': 'system-status'}
     context.update(BASE_CONTEXT)
 
     _t2 = datetime.now()
@@ -615,12 +706,14 @@ def system_status(request):
             total_completed += data[1]
 
     _t4 = datetime.now()
-    context.update({
-      'system_status': sorted_status,
-      'total_completed': total_completed,
-      'debug_times': (_t2-_t1, _t3-_t2, _t4-_t3, _t4-_t1),
-      'template_debug': 'debug' in request.GET,
-    })
+    context.update(
+        {
+            'system_status': sorted_status,
+            'total_completed': total_completed,
+            'debug_times': (_t2 - _t1, _t3 - _t2, _t4 - _t3, _t4 - _t1),
+            'template_debug': 'debug' in request.GET,
+        }
+    )
 
     return render(request, 'Dashboard/system-status.html', context)
 
@@ -632,13 +725,13 @@ def multimodal_systems(request):
     """
     _t1 = datetime.now()
 
-    context = {
-      'active_page': 'system-status'
-    }
+    context = {'active_page': 'system-status'}
     context.update(BASE_CONTEXT)
 
     _t2 = datetime.now()
-    system_data = MultiModalAssessmentResult.get_system_status(sort_index=1)
+    system_data = MultiModalAssessmentResult.get_system_status(
+        sort_index=1
+    )
     _t3 = datetime.now()
     sorted_status = []
     total_completed = 0
@@ -651,12 +744,14 @@ def multimodal_systems(request):
             total_completed += data[1]
 
     _t4 = datetime.now()
-    context.update({
-      'system_status': sorted_status,
-      'total_completed': total_completed,
-      'debug_times': (_t2-_t1, _t3-_t2, _t4-_t3, _t4-_t1),
-      'template_debug': 'debug' in request.GET,
-    })
+    context.update(
+        {
+            'system_status': sorted_status,
+            'total_completed': total_completed,
+            'debug_times': (_t2 - _t1, _t3 - _t2, _t4 - _t3, _t4 - _t1),
+            'template_debug': 'debug' in request.GET,
+        }
+    )
 
     return render(request, 'Dashboard/system-status.html', context)
 
@@ -668,30 +763,43 @@ def metrics_status(request):
     """
     _t1 = datetime.now()
 
-    context = {
-      'active_page': 'system-status'
-    }
+    context = {'active_page': 'system-status'}
     context.update(BASE_CONTEXT)
 
     _t2 = datetime.now()
-    task_data = DirectAssessmentTask.objects.filter(id__in=[x+5427 for x in range(48)])
+    task_data = DirectAssessmentTask.objects.filter(
+        id__in=[x + 5427 for x in range(48)]
+    )
     _t3 = datetime.now()
     task_status = []
     for task in task_data.order_by('id'):
-        source_language = task.items.first().metadata.market.sourceLanguageCode
-        target_language = task.items.first().metadata.market.targetLanguageCode
+        source_language = (
+            task.items.first().metadata.market.sourceLanguageCode
+        )
+        target_language = (
+            task.items.first().metadata.market.targetLanguageCode
+        )
         annotators = task.assignedTo.count()
         results = task.evaldata_directassessmentresult_task.count()
-        task_status.append((
-          task.id, source_language, target_language, annotators,
-          round(100*annotators/15.0), results, round(100*results/(15*70.0))
-        ))
+        task_status.append(
+            (
+                task.id,
+                source_language,
+                target_language,
+                annotators,
+                round(100 * annotators / 15.0),
+                results,
+                round(100 * results / (15 * 70.0)),
+            )
+        )
     _t4 = datetime.now()
-    context.update({
-      'task_status': task_status,
-      'debug_times': (_t2-_t1, _t3-_t2, _t4-_t3, _t4-_t1),
-      'template_debug': 'debug' in request.GET,
-    })
+    context.update(
+        {
+            'task_status': task_status,
+            'debug_times': (_t2 - _t1, _t3 - _t2, _t4 - _t3, _t4 - _t1),
+            'template_debug': 'debug' in request.GET,
+        }
+    )
 
     return render(request, 'Dashboard/metrics-status.html', context)
 
@@ -703,9 +811,7 @@ def fe17_status(request):
     """
     _t1 = datetime.now()
 
-    context = {
-      'active_page': 'system-status'
-    }
+    context = {'active_page': 'system-status'}
     context.update(BASE_CONTEXT)
 
     _t2 = datetime.now()
@@ -713,19 +819,32 @@ def fe17_status(request):
     _t3 = datetime.now()
     task_status = []
     for task in task_data.order_by('id'):
-        source_language = task.items.first().metadata.market.sourceLanguageCode
-        target_language = task.items.first().metadata.market.targetLanguageCode
+        source_language = (
+            task.items.first().metadata.market.sourceLanguageCode
+        )
+        target_language = (
+            task.items.first().metadata.market.targetLanguageCode
+        )
         annotators = task.assignedTo.count()
         results = task.evaldata_directassessmentresult_task.count()
-        task_status.append((
-            task.id, source_language, target_language, annotators,
-            round(100*annotators/4.0), results, round(100*results/(4*100.0))
-        ))
+        task_status.append(
+            (
+                task.id,
+                source_language,
+                target_language,
+                annotators,
+                round(100 * annotators / 4.0),
+                results,
+                round(100 * results / (4 * 100.0)),
+            )
+        )
     _t4 = datetime.now()
-    context.update({
-      'task_status': task_status,
-      'debug_times': (_t2-_t1, _t3-_t2, _t4-_t3, _t4-_t1),
-      'template_debug': 'debug' in request.GET,
-    })
+    context.update(
+        {
+            'task_status': task_status,
+            'debug_times': (_t2 - _t1, _t3 - _t2, _t4 - _t3, _t4 - _t1),
+            'template_debug': 'debug' in request.GET,
+        }
+    )
 
     return render(request, 'Dashboard/metrics-status.html', context)
