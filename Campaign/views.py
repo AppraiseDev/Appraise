@@ -1,5 +1,7 @@
 """
 Appraise evaluation framework
+
+See LICENSE for usage details
 """
 # pylint: disable=E1101
 from collections import defaultdict
