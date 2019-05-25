@@ -3,7 +3,6 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
-from codecs import encode
 from datetime import datetime
 import logging
 
@@ -237,7 +236,6 @@ def direct_assessment(request, code=None, campaign_name=None):
       'reference_text': current_item.sourceText,
       'candidate_label': candidate_label,
       'candidate_text': current_item.targetText,
-      # 'candidate_text': encode(current_item.targetText, 'rot13'),
       'priming_question_text': priming_question_text,
       'item_id': current_item.itemID,
       'task_id': current_item.id,
@@ -366,7 +364,8 @@ def direct_assessment_context(request, code=None, campaign_name=None):
 
             current_item = current_task.next_item_for_user(request.user)
             if (current_item.itemID != int(item_id) or
-                current_item.id != int(task_id)):
+                current_item.id != int(task_id) or
+                current_item.documentID != document_id):
                 _msg = 'Item ID %s does not match item %s, will not save!'
                 LOGGER.debug(_msg, item_id, current_item.itemID)
 
@@ -466,7 +465,6 @@ def direct_assessment_context(request, code=None, campaign_name=None):
       'candidate_text': current_item.targetText,
       'candidate_context_left': current_item.targetContextLeft,
       'candidate_context_right': current_item.targetContextRight,
-      # 'candidate_text': encode(current_item.targetText, 'rot13'),
       'priming_question_text': priming_question_text,
       'item_id': current_item.itemID,
       'task_id': current_item.id,
