@@ -1,7 +1,9 @@
 """
 Appraise evaluation framework
+
+See LICENSE for usage details
 """
-# pylint: disable=W0611
+# pylint: disable=C0103,W0611
 from os.path import basename
 
 # pylint: disable=import-error
