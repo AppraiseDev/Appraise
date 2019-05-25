@@ -1,5 +1,7 @@
 """
 Appraise evaluation framework
+
+See LICENSE for usage details
 """
 # pylint: disable=unused-import,import-error
 from django.conf.urls import url, handler404, handler500, include

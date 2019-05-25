@@ -1,5 +1,7 @@
 """
 Appraise evaluation framework
+
+See LICENSE for usage details
 """
 # pylint: disable=W0611
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
