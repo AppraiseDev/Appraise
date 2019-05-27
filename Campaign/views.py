@@ -35,8 +35,10 @@ def campaign_status(request, campaign_name, sort_key=2):
     """
     Campaign status view with completion details.
     """
-    LOGGER.info('Rendering campaign status view for user "%s".',
-                request.user.username or "Anonymous")
+    LOGGER.info(
+        'Rendering campaign status view for user "%s".',
+        request.user.username or "Anonymous",
+    )
 
     if sort_key is None:
         sort_key = 2
@@ -72,13 +74,13 @@ def campaign_status(request, campaign_name, sort_key=2):
                 'score',
                 'item__itemID',
                 'item__targetID',
-                'item__itemType'
+                'item__itemType',
             )
 
             _annotations = len(_data)
             _start_times = [x[0] for x in _data]
             _end_times = [x[1] for x in _data]
-            _durations = [x[1]-x[0] for x in _data]
+            _durations = [x[1] - x[0] for x in _data]
 
             _user_mean = sum([x[2] for x in _data]) / (_annotations or 1)
 
@@ -86,7 +88,8 @@ def campaign_status(request, campaign_name, sort_key=2):
             _user_stdev = 1
             if _cs > 0:
                 _user_stdev = sqrt(
-                    sum(((x[2] - _user_mean) ** 2 / _cs) for x in _data))
+                    sum(((x[2] - _user_mean) ** 2 / _cs) for x in _data)
+                )
 
             if int(_user_stdev) == 0:
                 _user_stdev = 1
@@ -105,20 +108,29 @@ def campaign_status(request, campaign_name, sort_key=2):
                 _key = '{0}-{1}'.format(_x[3], _x[4])
                 _dst[_key].append(_z_score)
 
-            _first_modified = seconds_to_timedelta(min(_start_times)) if _start_times else None
-            _last_modified = seconds_to_timedelta(max(_end_times)) if _end_times else None
+            _first_modified = (
+                seconds_to_timedelta(min(_start_times))
+                if _start_times
+                else None
+            )
+            _last_modified = (
+                seconds_to_timedelta(max(_end_times))
+                if _end_times
+                else None
+            )
             _annotation_time = sum(_durations) if _durations else None
 
             _x = []
             _y = []
             for _key in set.intersection(set(_tgt.keys()), set(_bad.keys())):
-                _x.append(sum(_bad[_key])/float(len(_bad[_key] or 1)))
-                _y.append(sum(_tgt[_key])/float(len(_tgt[_key] or 1)))
+                _x.append(sum(_bad[_key]) / float(len(_bad[_key] or 1)))
+                _y.append(sum(_tgt[_key]) / float(len(_tgt[_key] or 1)))
 
             _reliable = None
             if _x and _y:
                 try:
                     from scipy.stats import mannwhitneyu
+
                     _t, pvalue = mannwhitneyu(_x, _y, alternative='less')
                     _reliable = pvalue
 
@@ -150,7 +162,9 @@ def campaign_status(request, campaign_name, sort_key=2):
             if _annotation_time:
                 _hours = int(floor(_annotation_time / 3600))
                 _minutes = int(floor((_annotation_time % 3600) / 60))
-                _annotation_time = '{0:0>2d}h{1:0>2d}m'.format(_hours, _minutes)
+                _annotation_time = '{0:0>2d}h{1:0>2d}m'.format(
+                    _hours, _minutes
+                )
 
             else:
                 _annotation_time = 'n/a'
@@ -161,8 +175,14 @@ def campaign_status(request, campaign_name, sort_key=2):
             else:
                 _reliable = 'n/a'
 
-            _item = (user.username, user.is_active, _annotations,
-                     _first_modified, _last_modified, _annotation_time)
+            _item = (
+                user.username,
+                user.is_active,
+                _annotations,
+                _first_modified,
+                _last_modified,
+                _annotation_time,
+            )
             if request.user.is_staff:
                 _item += (_reliable,)
 
@@ -170,8 +190,14 @@ def campaign_status(request, campaign_name, sort_key=2):
 
     _out.sort(key=lambda x: x[int(sort_key)])
 
-    _header = ('username', 'active', 'annotations', 'first_modified',
-               'last_modified', 'annotation_time')
+    _header = (
+        'username',
+        'active',
+        'annotations',
+        'first_modified',
+        'last_modified',
+        'annotation_time',
+    )
     if request.user.is_staff:
         _header += ('random',)
 
