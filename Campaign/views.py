@@ -15,7 +15,6 @@ from django.http import HttpResponse
 
 from Appraise.settings import LOG_LEVEL, LOG_HANDLER
 from EvalData.models import (
-    AnnotationTaskRegistry,
     DirectAssessmentResult,
     DirectAssessmentContextResult,
     MultiModalAssessmentResult,
