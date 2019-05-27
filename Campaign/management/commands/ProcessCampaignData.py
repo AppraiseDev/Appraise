@@ -64,7 +64,7 @@ class Command(BaseCommand):
             task_cls = CAMPAIGN_TASK_TYPES.get(campaign_type, None)
 
             if not task_cls:
-                _msg = f'Invalid campaign type {campaign_type}'
+                _msg = 'Invalid campaign type {0}'.format(campaign_type)
                 raise CommandError(_msg)
 
             try:
