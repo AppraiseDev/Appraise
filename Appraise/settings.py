@@ -43,7 +43,10 @@ except ImportError:
     }
 
     SECRET_KEY = 'j^g&cs_-8-%gwx**xmq64pcm6o2c3ovrxy&%9n@ez#b=qi!uc%'
-    ALLOWED_HOSTS = ['127.0.0.1']
+    ALLOWED_HOSTS = [
+        '127.0.0.1',
+        'localhost',
+    ]
 
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_BROWSER_XSS_FILTER = True
@@ -179,5 +182,5 @@ BASE_CONTEXT = {
 
 if DEBUG:
     INTERNAL_IPS = [
-      '127.0.0.1'
+      '127.0.0.1',
     ]
