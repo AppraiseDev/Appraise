@@ -14,8 +14,13 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 
 from Appraise.settings import LOG_LEVEL, LOG_HANDLER
-from EvalData.models import DirectAssessmentResult, seconds_to_timedelta
-from EvalData.models import MultiModalAssessmentResult
+from EvalData.models import (
+    AnnotationTaskRegistry,
+    DirectAssessmentResult,
+    DirectAssessmentContextResult,
+    MultiModalAssessmentResult,
+    seconds_to_timedelta,
+)
 
 from .models import Campaign
 
@@ -44,13 +49,23 @@ def campaign_status(request, campaign_name, sort_key=2):
     _out = []
     for team in campaign.teams.all():
         for user in team.members.all():
-            _data = DirectAssessmentResult.objects.filter(
+            cls_name = campaign.get_campaign_type()
+
+            # TODO: not Pythonic enough yet...
+            result_type = None
+            if cls_name == 'DirectAssessmentTask':
+                result_type = DirectAssessmentResult
+            elif cls_name == 'DirectAssessmentContextTask':
+                result_type = DirectAssessmentContextResult
+            elif cls_name == 'MultiModalAssessmentTasl':
+                result_type = MultiModalAssessmentResult
+
+            if not result_type:
+                continue  # TODO: think whether we need to raise here?
+
+            _data = result_type.objects.filter(
                 createdBy=user, completed=True, task__campaign=campaign.id
             )
-            if not _data:
-                _data = MultiModalAssessmentResult.objects.filter(
-                    createdBy=user, completed=True, task__campaign=campaign.id
-                )
 
             _data = _data.values_list(
                 'start_time',
