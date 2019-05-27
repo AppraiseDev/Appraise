@@ -453,6 +453,13 @@ def direct_assessment_context(request, code=None, campaign_name=None):
         '<em>Not at all</em> (left) to <em>Perfectly</em> (right).'
     )
 
+    if current_item.isCompleteDocument:
+        priming_question_text = (
+            'How accurately does the above candidate document convey the '
+            'original semantics of the source document? Slider ranges from '
+            '<em>Not at all</em> (left) to <em>Perfectly</em> (right).'
+        )
+
     _reference_campaigns = ('HumanEvalFY19{0}'.format(x) for x in ('7B',))
 
     _adequacy_campaigns = (
