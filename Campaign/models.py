@@ -8,7 +8,12 @@ from django.core.exceptions import ValidationError
 from django.utils.text import format_lazy as f
 from django.utils.translation import ugettext_lazy as _
 
-from EvalData.models import BaseMetadata, Market, Metadata
+from EvalData.models import (
+    AnnotationTaskRegistry,
+    BaseMetadata,
+    Market,
+    Metadata,
+)
 
 MAX_TEAMNAME_LENGTH = 250
 MAX_SMALLINTEGER_VALUE = 32767
@@ -212,6 +217,27 @@ class Campaign(BaseMetadata):
             raise LookupError(_msg)
 
         return _obj.first()  # if multiple campaigns, return first
+
+    def get_campaign_type(self) -> str:
+        """
+        Get campaign type based on evaldata_{cls_name}_campaign QuerySet.
+
+        For now, we assume that campaigns can only have a single type.
+
+        We use the following check to identify the campaign's type:
+        c.evaldata_directassessmentcontexttask_campaign.exists()
+
+        Returns class object, which is a sub class of BaseAnnotationTask.
+        """
+        for cls_name in AnnotationTaskRegistry.get_types():
+            qs_name = cls_name.lower()
+            qs_attr = 'evaldata_{0}_campaign'.format(qs_name)
+            qs_obj = getattr(self, qs_attr, None)
+            if qs_obj and qs_obj.exists():
+                return cls_name
+
+        _msg = 'Unknown type for campaign {0}'.format(self.campaignName)
+        raise LookupError(_msg)  # This should never happen, thus raise!
 
 
 class TrustedUser(models.Model):

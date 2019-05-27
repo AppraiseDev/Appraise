@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from json import loads
 from re import compile as re_compile
 from traceback import format_exc
+from typing import Set
 from zipfile import ZipFile, is_zipfile
 from django.db import models
 from django.contrib import messages
@@ -49,6 +50,7 @@ SET_ITEMTYPE_CHOICES = (
   ('BAD', 'Bad reference'),
   ('CHK', 'Redundant check')
 )
+
 
 def seconds_to_timedelta(value):
     """
@@ -108,6 +110,31 @@ class ObjectID(models.Model):
 
     def __str__(self):
         return str(self.id)+'.'+self.typeName+'.'+self.primaryID
+
+
+class AnnotationTaskRegistry():
+    """
+    Keeps a registry of known annotation task types.
+
+    Use @AnnotationTaskRegistry.register decorator to register class.
+    """
+    _ANNOTATION_TASK_REGISTRY: Set[str] = set()
+
+    @staticmethod
+    def register(obj):
+        """
+        Add annotation task type to registry.
+        """
+        _cls_name = obj.__name__
+        AnnotationTaskRegistry._ANNOTATION_TASK_REGISTRY.add(_cls_name)
+        return obj
+
+    @staticmethod
+    def get_types():
+        """
+        Get annotation task types in registry.
+        """
+        return AnnotationTaskRegistry._ANNOTATION_TASK_REGISTRY
 
 
 # pylint: disable=C0103,R0903
@@ -724,6 +751,7 @@ class TextPairWithImage(EvalItem):
         return super(TextPairWithImage, self).is_valid()
 
 
+@AnnotationTaskRegistry.register
 class DirectAssessmentTask(BaseMetadata):
     """
     Models a direct assessment evaluation task.
@@ -1523,6 +1551,7 @@ class DirectAssessmentResult(BaseMetadata):
         return len(set(results))
 
 
+@AnnotationTaskRegistry.register
 class DirectAssessmentContextTask(BaseMetadata):
     """
     Models a direct assessment context evaluation task.
@@ -2341,6 +2370,7 @@ class DirectAssessmentContextResult(BaseMetadata):
         return len(set(results))
 
 
+@AnnotationTaskRegistry.register
 class MultiModalAssessmentTask(BaseMetadata):
     """
     Models a multimodal assessment evaluation task.
