@@ -25,6 +25,8 @@ from Appraise.settings import LOG_LEVEL, LOG_HANDLER
 # from Appraise.settings import STATIC_URL, BASE_CONTEXT
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 
+from deprecated import add_deprecated_method
+
 # Setup logging support.
 logging.basicConfig(level=LOG_LEVEL)
 LOGGER = logging.getLogger('EvalData.models')
@@ -125,8 +127,8 @@ class AnnotationTaskRegistry():
         """
         Add annotation task type to registry.
         """
-        _cls_name = obj.__name__
-        AnnotationTaskRegistry._ANNOTATION_TASK_REGISTRY.add(_cls_name)
+        _name = obj.__name__
+        AnnotationTaskRegistry._ANNOTATION_TASK_REGISTRY.add(_name)
         return obj
 
     @staticmethod
@@ -3104,32 +3106,13 @@ class TaskAgenda(models.Model):
           self._completed_tasks.count()
         )
 
-    # pylint: disable=protected-access
+    # pylint: disable=protected-access,missing-docstring
     @classmethod
+    @add_deprecated_method
     def reassign_tasks(cls, old_username, new_username):
-        """
-        Reassigns tasks in TaskAgenda for old user to new user.
-        """
-        old_user = User.objects.get(username=old_username)
-        new_user = User.objects.get(username=new_username)
-
-        old_agenda = cls.objects.get(user=old_user)
-        new_agenda = cls()
-        new_agenda.user = new_user
-        new_agenda.campaign = old_agenda.campaign
-        new_agenda.save()
-
-        for _t in old_agenda._completed_tasks.all():
-            new_agenda._open_tasks.add(_t)
-        for _t in old_agenda._open_tasks.all():
-            new_agenda._open_tasks.add(_t)
-        new_agenda.save()
-
-        old_tasks = list(old_agenda._completed_tasks.all())
-        old_tasks.extend(old_agenda._open_tasks.all())
-        new_tasks = list(new_agenda._open_tasks.all())
-
-        return (old_tasks, new_tasks)
+        _method = 'reassign_tasks'  # TODO: how to identify method name?
+        _msg = '{0}.{1} deprecated as of 5/27/2019.'.format(cls, _method)
+        raise NotImplementedError(_msg)
 
     # pylint: disable=undefined-variable
     def reset_taskagenda(self):
