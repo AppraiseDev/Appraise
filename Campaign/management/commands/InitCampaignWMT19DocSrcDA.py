@@ -512,9 +512,13 @@ class Command(BaseCommand):
           return
         c = c[0]
 
-        from EvalData.models import DirectAssessmentTask, TaskAgenda, ObjectID
+        from EvalData.models import (
+            DirectAssessmentContextTask,
+            TaskAgenda,
+            ObjectID,
+        )
         from collections import defaultdict
-        tasks = DirectAssessmentTask.objects.filter(
+        tasks = DirectAssessmentContextTask.objects.filter(
           campaign=c, activated=True
         )
 
@@ -589,7 +593,7 @@ class Command(BaseCommand):
                     a = a[0]
 
                 serialized_t = ObjectID.objects.get_or_create(
-                  typeName='DirectAssessmentTask',
+                  typeName='DirectAssessmentContextTask',
                   primaryID=t.id
                 )
 
