@@ -279,8 +279,10 @@ if __name__ == "__main__":
         for x in DOC_STATS[doc_len]:
             total_sys.add(x[2])
 
+    all_systems = list(total_sys)
     sampled_tasks: List[Tuple[Tuple[int, str, str], ...]] = []
     CURR_LEN = 0
+    CURR_SYS = 0
     curr_task: List[Tuple[int, str, str]] = []
     while DOC_STATS.keys():
         ALL_KEYS = list(DOC_STATS.keys())
@@ -302,7 +304,23 @@ if __name__ == "__main__":
             curr_key = choice(valid_keys)
 
         CURR_LEN += curr_key
-        curr_val = DOC_STATS[curr_key].pop(0)
+
+        curr_val = DOC_STATS[curr_key].pop(0)  # This takes a random system.
+
+        # Below code would pick systems one after the other
+        #
+        #curr_val = None
+        #for iter_val in DOC_STATS[curr_key]:
+        #    if iter_val[2] == all_systems[CURR_SYS]:
+        #        curr_val = iter_val
+        #        DOC_STATS[curr_key].remove(iter_val)
+        #        break
+        #
+        #if not curr_val:
+        #    curr_val = DOC_STATS[curr_key].pop(0)
+        #    CURR_SYS = all_systems.index(curr_val[2])
+        #CURR_SYS = (CURR_SYS + 1) % len(all_systems)
+
         curr_task.append(curr_val)
         if not DOC_STATS[curr_key]:
             DOC_STATS.pop(curr_key)
