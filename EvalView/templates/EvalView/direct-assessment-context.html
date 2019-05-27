@@ -123,18 +123,23 @@ function update_score()
   </table>
 </div>
 
-<!--
 <div class="row">
 <div class="col-sm-12">
-<emph>MAGIC QUESTION GOES HERE AT SOME POINT</emph>
+{% if isCompleteDocument %}
+<p>Below are the sentences you have just rated as a single <strong>document</strong>. Please state how much you agree that:</p>
+<p align="center"><strong>The black text adequately expresses the meaning of the gray text in {{target_language}}.</strong></p>
+{% else %}
+<p>For the pair of <strong>sentences</strong> below: Read the text and state how much you agree that:</p>
+<p align="center"><strong>The black text adequately expresses the meaning of the gray text in {{target_language}}.</strong></p>
+
+{% endif %}
 </div>
 </div>
--->
 
 <div class="row">
 <div class="col-sm-12">
 <blockquote>
-<p>{% if reference_context_left %}{{reference_context_left|safe}}{% endif %} <strong>{{reference_text|safe}}</strong> {% if reference_context_right %}{{reference_context_right|safe}}{% endif %}</p>
+<p style="color: gray;">{% if reference_context_left %}{{reference_context_left|safe}}{% endif %} <strong>{{reference_text|safe}}</strong> {% if reference_context_right %}{{reference_context_right|safe}}{% endif %}</p>
 <small>{{reference_label}}</small>
 </blockquote>
 </div>
@@ -152,7 +157,7 @@ function update_score()
 <div class="col-sm-12">
 <blockquote>
 <!--<p id="id_candidate_text" data-pseudo-content="{{candidate_text|safe}}"></p>-->
-<p>{% if candidate_context_left %}{{candidate_context_left|safe}}{% endif %} <strong>{{candidate_text|safe}}</strong> {% if candidate_context_right %}{{candidate_context_right|safe}}{% endif %}</p>
+<p style="color: black;">{% if candidate_context_left %}{{candidate_context_left|safe}}{% endif %} <strong>{{candidate_text|safe}}</strong> {% if candidate_context_right %}{{candidate_context_right|safe}}{% endif %}</p>
 <small>{{candidate_label}}</small>
 </blockquote>
 </div>
