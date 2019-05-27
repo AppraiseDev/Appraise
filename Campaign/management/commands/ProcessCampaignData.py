@@ -26,7 +26,7 @@ class Command(BaseCommand):
         _valid_task_types = ', '.join(CAMPAIGN_TASK_TYPES.keys())
         parser.add_argument(
           'campaign_type', type=str,
-          help=f'Campaign type: {_valid_task_types}'
+          help='Campaign type: {0}'.format(_valid_task_types)
         )
         parser.add_argument(
           '--max-count', type=int, default=-1,
