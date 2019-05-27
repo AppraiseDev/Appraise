@@ -224,6 +224,7 @@ if __name__ == "__main__":
     OUT_NAME = sys.argv[5]
     SRC_LANG = sys.argv[6]
     TGT_LANG = sys.argv[7]
+    TASK_MAX = int(sys.argv[8])
     ENC = 'utf-8'
 
     RND_SEED = 123456
@@ -380,7 +381,7 @@ if __name__ == "__main__":
 
     json_data = []
     batch_id = 0
-    for task in padded_tasks[:1]:
+    for task in padded_tasks[:TASK_MAX]:
         # Remember, batch numbers are one-based
         task_data = OrderedDict(
             {
@@ -429,6 +430,8 @@ if __name__ == "__main__":
             context_bad: List[Text] = []
             context_tgt: List[Text] = []
             for seg_id in _src:
+                if seg_counter >= doc_len:  # Padding tasks are shorter!
+                    break
                 item_src = _src[seg_id]
                 item_ref = _ref[seg_id]
                 item_bad = _bad[seg_id]
