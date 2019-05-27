@@ -111,7 +111,7 @@ function update_score()
   <table style="width:100%">
   <tr>
     <td style="width:33%;text-align:left;">
-      <strong id="task_progress">{% if trusted_user %}<span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span> {% endif %}{{completed_blocks}}/10 blocks, {{items_left_in_block}} items left in block</strong>
+      <strong>{% if isCompleteDocument %}Document{% else %}Sentence pair{% endif %}</strong>
     </td>
     <td style="width:33%;text-align:center;">
       <strong>{{campaign}} #{{datask_id}}:Document #{{document_id}}-{{item_id}}</strong>
@@ -177,7 +177,9 @@ function update_score()
 <div class="col-sm-12">
 <blockquote>
 <div id="slider"></div>
+<!--
 <small>{{priming_question_text|safe}}</small>
+-->
 </blockquote>
 </div>
 </div>
