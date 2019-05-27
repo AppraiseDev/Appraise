@@ -577,11 +577,9 @@ class TextPair(EvalItem):
         value=MAX_SEGMENTID_LENGTH))
     )
 
-    sourceText = models.CharField(
-      max_length=MAX_SEGMENTTEXT_LENGTH,
+    sourceText = models.TextField(
+      blank=True,
       verbose_name=_('Source text'),
-      help_text=_(f('(max. {value} characters)',
-        value=MAX_SEGMENTTEXT_LENGTH))
     )
 
     targetID = models.CharField(
@@ -591,11 +589,9 @@ class TextPair(EvalItem):
         value=MAX_SEGMENTID_LENGTH))
     )
 
-    targetText = models.CharField(
-      max_length=MAX_SEGMENTTEXT_LENGTH,
+    targetText = models.TextField(
+      blank=True,
       verbose_name=_('Target text'),
-      help_text=_(f('(max. {value} characters)',
-        value=MAX_SEGMENTTEXT_LENGTH))
     )
 
     # pylint: disable=E1101
