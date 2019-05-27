@@ -1606,7 +1606,7 @@ class DirectAssessmentContextTask(BaseMetadata):
         return None
 
     def completed_items_for_user(self, user):
-        results = DirectAssessmentResult.objects.filter(
+        results = DirectAssessmentContextResult.objects.filter(
           task=self,
           activated=False,
           completed=True,
