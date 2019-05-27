@@ -208,7 +208,7 @@ class Campaign(BaseMetadata):
         """
         _obj = Campaign.objects.filter(campaignName=campaign_name)
         if not _obj.exists():
-            _msg = f'Failure to identify campaign {campaign_name}'
+            _msg = 'Failure to identify campaign {0}'.format(campaign_name)
             raise LookupError(_msg)
 
         return _obj.first()  # if multiple campaigns, return first
