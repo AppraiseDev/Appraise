@@ -88,9 +88,9 @@ TASKS_TO_ANNOTATORS = {
     ('eng', 'ces') : _create_uniform_task_map(130, 260, REDUNDANCY),
     ('eng', 'deu') : _create_uniform_task_map(250, 500, REDUNDANCY),
     ('eng', 'fin') : _create_uniform_task_map(140, 280, REDUNDANCY),
-    ('eng', 'guj') : _create_uniform_task_map(130, 260, REDUNDANCY),
-    ('eng', 'kaz') : _create_uniform_task_map(130, 260, REDUNDANCY),
-    ('eng', 'lit') : _create_uniform_task_map(140, 280, REDUNDANCY),
+    ('eng', 'guj') : _create_uniform_task_map(76, 152, REDUNDANCY),
+    ('eng', 'kaz') : _create_uniform_task_map(76, 152, REDUNDANCY),
+    ('eng', 'lit') : _create_uniform_task_map(83, 166, REDUNDANCY),
     ('eng', 'rus') : _create_uniform_task_map(140, 280, REDUNDANCY),
     ('eng', 'zho') : _create_uniform_task_map(150, 300, REDUNDANCY),
 }
