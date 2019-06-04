@@ -3130,8 +3130,25 @@ class TaskAgenda(models.Model):
 
         Returns True upon success, False otherwise.
         """
-        annotated_output_for_user = DirectAssessmentResult.objects.filter(
-          createdBy=self.user)
+        type_to_result_class_mapping = {
+            'DirectAssessmentTask': DirectAssessmentResult,
+            'DirectAssessmentContextTask': DirectAssessmentContextResult,
+            'MultiModalAssessmentTask': MultiModalAssessmentResult,
+        }
+
+        result_class = type_to_result_class_mapping.get(
+            self.campaign.get_campaign_type(), None
+        )
+
+        if not result_class:
+            _msg = 'Unknown annotation type {0} for user {1}'.format(
+                self.campaign.get_campaign_type(), self.user
+            )
+            _lvl = messages.ERROR
+            return (False, _msg, _lvl)
+
+        annotated_output_for_user = result_class.objects.filter(
+            createdBy=self.user)
 
         if not annotated_output_for_user.exists():
             _msg = 'Nothing to be done for user {0}.'.format(self.user)
