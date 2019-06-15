@@ -11,7 +11,7 @@ EX_LANGUAGES = (
 )
 
 XE_LANGUAGES = (
-    'ben', 'bos', 'ton',
+    'ben', 'bos',
 )
 
 XY_LANGUAGES = (
