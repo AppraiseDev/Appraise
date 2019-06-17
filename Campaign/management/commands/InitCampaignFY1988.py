@@ -1,6 +1,6 @@
 from hashlib import md5
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.core.management.base import BaseCommand, CommandError
 
 from Campaign.models import Campaign, CampaignTeam
@@ -8,12 +8,11 @@ from Dashboard.models import validate_language_code
 from EvalData.models import Market, Metadata
 
 EX_LANGUAGES = (
-    'ara', 'deu', 'fra', 'hin', 'ita', 'jpn', 'kor', 'rus',
-    'spa', 'zho'
+    'zho',
 )
 
 XE_LANGUAGES = (
-    'fra', 'hin', 'ita', 'rus', 'spa', 'zho'
+    'zho',
 )
 
 XY_LANGUAGES = (
@@ -62,9 +61,9 @@ def _create_uniform_task_map(annotators, tasks, redudancy):
 TASKS_TO_ANNOTATORS = {}
 
 CAMPAIGN_URL = 'http://msrmt.appraise.cf/dashboard/sso/'
-CAMPAIGN_NAME = 'HumanEvalFY198E'
-CAMPAIGN_KEY = 'FY198E'
-CAMPAIGN_NO = 230
+CAMPAIGN_NAME = 'HumanEvalFY1988'
+CAMPAIGN_KEY = 'FY1988'
+CAMPAIGN_NO = 224
 ANNOTATORS = None # Will be determined by TASKS_TO_ANNOTATORS mapping
 TASKS = None
 REDUNDANCY = 1
@@ -72,7 +71,7 @@ REDUNDANCY = 1
 for code in EX_LANGUAGES + XE_LANGUAGES + XY_LANGUAGES:
     if not validate_language_code(code):
         _msg = '{0!r} contains invalid language code!'.format(code)
-        raise CommandError(_msg)
+        raise ValueError(_msg)
 
 for ex_code in EX_LANGUAGES:
     TASKS_TO_ANNOTATORS[('eng', ex_code)] = _create_uniform_task_map(
@@ -105,7 +104,7 @@ def _create_campaign_team(name, owner, tasks, redudancy):
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
-    help = 'Initialises campaign FY19 #142'
+    help = 'Initialises campaign FY19 #136'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -118,7 +117,7 @@ class Command(BaseCommand):
         self.stdout.write('CSV output path: {0!r}'.format(csv_output))
         if csv_output and not csv_output.endswith('.csv'):
             _msg = 'csv_output does not point to .csv file'
-            raise CommandError(_msg)
+            raise ValueError(_msg)
 
         # We will collect user credentials for later print out or CSV export.
         credentials = {}
@@ -139,7 +138,7 @@ class Command(BaseCommand):
             _ex_market = Market.objects.filter(
               sourceLanguageCode='eng',
               targetLanguageCode=code,
-              domainName='AppenFY19'
+              domainName='AppenFY19'              
             )
 
             if not _ex_market.exists():
@@ -158,7 +157,7 @@ class Command(BaseCommand):
               market=_ex_market,
               corpusName='AppenFY19',
               versionInfo='1.0',
-              source='official'
+              source='official'             
             )
 
             if not _ex_meta.exists():
@@ -179,7 +178,7 @@ class Command(BaseCommand):
             _xe_market = Market.objects.filter(
               sourceLanguageCode=code,
               targetLanguageCode='eng',
-              domainName='AppenFY19'
+              domainName='AppenFY19'              
             )
 
             if not _xe_market.exists():
@@ -198,7 +197,7 @@ class Command(BaseCommand):
               market=_xe_market,
               corpusName='AppenFY19',
               versionInfo='1.0',
-              source='official'
+              source='official'             
             )
 
             if not _xe_meta.exists():
@@ -219,7 +218,7 @@ class Command(BaseCommand):
             _xy_market = Market.objects.filter(
               sourceLanguageCode=source,
               targetLanguageCode=target,
-              domainName='AppenFY19'
+              domainName='AppenFY19'              
             )
 
             if not _xy_market.exists():
@@ -238,7 +237,7 @@ class Command(BaseCommand):
               market=_xy_market,
               corpusName='AppenFY19',
               versionInfo='1.0',
-              source='official'
+              source='official'             
             )
 
             if not _xy_meta.exists():
@@ -525,7 +524,7 @@ class Command(BaseCommand):
               CAMPAIGN_NO
             )
             tasks_for_market[market].append(task)
-
+        
         # This assigns tasks like this
         #
         # T1 U1 U3

@@ -106,7 +106,7 @@ def _create_campaign_team(name, owner, tasks, redudancy):
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
-    help = 'Initialises campaign FY19 #141'
+    help = 'Initialises campaign FY19 #143'
 
     def add_arguments(self, parser):
         parser.add_argument(
