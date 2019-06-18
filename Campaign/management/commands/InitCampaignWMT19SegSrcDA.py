@@ -59,7 +59,7 @@ def _create_uniform_task_map(annotators, tasks, redudancy):
 # }
 TASKS_TO_ANNOTATORS = {}
 
-CAMPAIGN_URL = 'http://msrmt.appraise.cf/dashboard/sso/'
+CAMPAIGN_URL = 'http://wmt19.appraise.cf/dashboard/sso/'
 CAMPAIGN_NAME = 'WMT19SegSrcDA'
 CAMPAIGN_KEY = 'WMT19SegSrcDA'
 CAMPAIGN_NO = 231
