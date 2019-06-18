@@ -11,6 +11,9 @@ from typing import Any, Dict, List, Text, Tuple
 from bs4 import BeautifulSoup
 
 
+MAX_TASK_SIZE = 100
+
+
 def load_docs_from_sgml(
     file_path: str, encoding='utf-8'
 ) -> Dict[str, List[Tuple[str, str]]]:
@@ -207,7 +210,7 @@ def process_sgml(file_path: str) -> Dict[int, List[str]]:
 
     curr_len = 0
     for doc in all_docs:
-        if curr_len + doc > 100:
+        if curr_len + doc > REQUIRED_SEGS:
             print(curr_len)
             curr_len = 0
         curr_len += doc
@@ -225,10 +228,17 @@ if __name__ == "__main__":
     SRC_LANG = sys.argv[6]
     TGT_LANG = sys.argv[7]
     TASK_MAX = int(sys.argv[8])
+    CONTROLS = bool(sys.argv[9])
     ENC = 'utf-8'
 
     RND_SEED = 123456
     seed(RND_SEED)
+
+    if CONTROLS:
+        REQUIRED_SEGS = 80
+    else:
+        REQUIRED_SEGS = 100
+    print(f'Setting REQUIRED_SEGS={REQUIRED_SEGS}')
 
     SRC_DOCS = load_docs_from_sgml(SRC_SGML, encoding=ENC)
     REF_DOCS = load_docs_from_sgml(REF_SGML, encoding=ENC)
@@ -287,7 +297,7 @@ if __name__ == "__main__":
     curr_task: List[Tuple[int, str, str]] = []
     while DOC_STATS.keys():
         ALL_KEYS = list(DOC_STATS.keys())
-        max_delta = 100 - CURR_LEN
+        max_delta = REQUIRED_SEGS - CURR_LEN
         valid_keys = [x for x in ALL_KEYS if x <= max_delta]
 
         if not valid_keys:
@@ -334,17 +344,20 @@ if __name__ == "__main__":
         task_docs = len(task)
         task_len = sum([x[0] for x in task])
         print(f'task_len: {task_len}')
-        if task_len > 100:
-            raise NotImplementedError('No support for tasks >100 items!')
+        if task_len > MAX_TASK_SIZE:
+            raise NotImplementedError(
+                'No support for tasks >{0} items!'.format(MAX_TASK_SIZE)
+            )
 
-        elif task_len < 100:
-            pad_size = 100 - task_len
+        elif task_len < MAX_TASK_SIZE:
+            pad_size = MAX_TASK_SIZE - task_len
             pad_data: List[Tuple[int, str, str]] = list(task)
             pad_pos = 0
             while pad_size > 0:
                 print(f'pad_size: {pad_size}')
                 print(f'pad_pos: {pad_pos}')
-                pad_data.append(pad_data[pad_pos])
+                pad_data.append(tuple(list(pad_data[pad_pos]) + [True]))
+                print(pad_data[-1])
                 pad_size -= pad_data[-1][0]
                 pad_pos = (pad_pos + 1) % task_docs
             if pad_size < 0:
@@ -355,12 +368,13 @@ if __name__ == "__main__":
                 print(last_doc[0], '-->', last_doc[0] + pad_size)
                 fixed_doc = (last_doc[0] + pad_size, *last_doc[1:])
                 pad_data[-1] = fixed_doc
-                print(pad_data[-1])
+                print(pad_data[-1][0])
             padded_tasks.append(tuple(pad_data))
             print(padded_tasks[-1])
 
         else:
-            padded_tasks.append(tuple(task))
+            raise NotImplementedError('Needs isControl=True update!')
+            padded_tasks.append(tuple(task))  # TODO: does this ever occur?
 
     csv_data = []
     task_id = 0
@@ -370,8 +384,15 @@ if __name__ == "__main__":
         print(f'task_len: {task_len}')
 
         for _doc in task:
+            _data = [str(task_id)]
+            for x in _doc:
+                _data.append(str(x))
+
+            if _data[-1] != 'True':
+                _data.append('False')  # isControl=False
+            print(_data)
             csv_data.append(
-                ','.join([str(task_id)] + [str(x) for x in _doc])
+                ','.join(_data)
             )
 
     with open(f'{OUT_NAME}.csv', mode='w') as _file:
@@ -399,7 +420,9 @@ if __name__ == "__main__":
         items_data = []
         _item = 0
         for doc_data in task:
-            doc_len, doc_id, sys_id = doc_data
+            doc_len, doc_id, sys_id, *rest = doc_data
+
+            isControl = rest is not None and rest
 
             target_id = sys_id
 
@@ -437,6 +460,16 @@ if __name__ == "__main__":
                 item_bad = _bad[seg_id]
                 item_tgt = _tgt[seg_id]
 
+                target_text = item_tgt
+                target_type = 'TGT'
+                if isControl:
+                    randomCoinFlip = choice(
+                        [False, False, True, True, True]  # 60:40 chance
+                    )
+                    if randomCoinFlip:
+                        target_text = item_bad
+                        target_type = 'BAD'
+
                 obj: Dict[str, Any] = OrderedDict()
                 obj['_item'] = _item
                 obj['_block'] = -1
@@ -445,9 +478,9 @@ if __name__ == "__main__":
                 obj['sourceText'] = item_src
                 obj['targetID'] = target_id
                 obj['targetContextLeft'] = ' '.join(context_tgt)
-                obj['targetText'] = item_tgt
+                obj['targetText'] = target_text
                 obj['itemID'] = seg_counter
-                obj['itemType'] = 'TGT'
+                obj['itemType'] = target_type
                 obj['documentID'] = doc_id
                 obj['isCompleteDocument'] = False
 
@@ -456,13 +489,13 @@ if __name__ == "__main__":
                 print(item_src)
                 print('...')
                 print(' '.join(context_tgt))
-                print(item_tgt)
+                print(item_tgt.encode('utf-8'))
                 print('---')
 
                 context_src.append(item_src)
                 context_ref.append(item_ref)
                 context_bad.append(item_bad)
-                context_tgt.append(item_tgt)
+                context_tgt.append(target_text)
 
                 items_data.append(obj)
                 _item += 1
