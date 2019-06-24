@@ -107,14 +107,15 @@ for xy_code in XY_LANGUAGES:
     )
 
 
-def _create_campaign_team(name, owner, tasks, redudancy):
+def _get_or_create_campaign_team(name, owner, tasks, redudancy):
     """
     Creates CampaignTeam instance, if it does not exist yet.
 
     Returns reference to CampaignTeam instance.
     """
+    # pylint: disable-msg=no-member
     _cteam = CampaignTeam.objects.get_or_create(
-        teamName=CAMPAIGN_NAME,
+        teamName=name,
         owner=owner,
         requiredAnnotations=100,  # (tasks * redudancy), # TODO: fix
         requiredHours=50,  # (tasks * redudancy) / 2,
@@ -123,6 +124,39 @@ def _create_campaign_team(name, owner, tasks, redudancy):
     _cteam[0].members.add(owner)
     _cteam[0].save()
     return _cteam[0]
+
+
+def _get_or_create_market(source_code, target_code, domain_name, owner):
+    """
+    Creates Market instance, if it does not exist yet.
+
+    Returns reference to Market instance.
+    """
+    # pylint: disable-msg=no-member
+    _market, _unused_created_signal = Market.objects.get_or_create(
+        sourceLanguageCode=source_code,
+        targetLanguageCode=target_code,
+        domainName=domain_name,
+        createdBy=owner,
+    )
+    return _market
+
+
+def _get_or_create_meta(market, corpus_name, version_info, source, owner):
+    """
+    Creates Meta instance, if it does not exist yet.
+
+    Returns reference to Meta instance.
+    """
+    # pylint: disable-msg=no-member
+    _meta, _unused_created_signal = Metadata.objects.get_or_create(
+        market=market,
+        corpusName=corpus_name,
+        versionInfo=version_info,
+        source=source,
+        createdBy=owner,
+    )
+    return _meta
 
 
 # pylint: disable=C0111,C0330,E1101
@@ -158,242 +192,60 @@ class Command(BaseCommand):
         _msg = 'Identified superuser: {0}'.format(superusers[0])
         self.stdout.write(_msg)
 
+        # Compute list of all language pairs
+        _all_languages = (
+            [('eng', _tgt) for _tgt in EX_LANGUAGES]
+            + [(_src, 'eng') for _src in XE_LANGUAGES]
+            + [(_src, _tgt) for _src, _tgt in XY_LANGUAGES]
+        )
+
         # Create Market and Metadata instances for all language pairs
-        for code in EX_LANGUAGES:
-            # EX
-            _ex_market = Market.objects.filter(
-                sourceLanguageCode='eng',
-                targetLanguageCode=code,
-                domainName='AppenFY19',
+        for _src, _tgt in _all_languages:
+            _market = _get_or_create_market(
+                source_code=_src,
+                target_code=_tgt,
+                domain_name='AppenFY19',
+                owner=superusers[0],
             )
 
-            if not _ex_market.exists():
-                _ex_market = Market.objects.get_or_create(
-                    sourceLanguageCode='eng',
-                    targetLanguageCode=code,
-                    domainName='AppenFY19',
-                    createdBy=superusers[0],
-                )
-                _ex_market = _ex_market[0]
-
-            else:
-                _ex_market = _ex_market.first()
-
-            _ex_meta = Metadata.objects.filter(
-                market=_ex_market,
-                corpusName='AppenFY19',
-                versionInfo='1.0',
+            _meta = _get_or_create_meta(
+                market=_market,
+                corpus_name='AppenFY19',
+                version_info='1.0',
                 source='official',
+                owner=superusers[0],
             )
-
-            if not _ex_meta.exists():
-                _ex_meta = Metadata.objects.get_or_create(
-                    market=_ex_market,
-                    corpusName='AppenFY19',
-                    versionInfo='1.0',
-                    source='official',
-                    createdBy=superusers[0],
-                )
-                _ex_meta = _ex_meta[0]
-
-            else:
-                _ex_meta = _ex_meta.first()
-
-        for code in XE_LANGUAGES:
-            # XE
-            _xe_market = Market.objects.filter(
-                sourceLanguageCode=code,
-                targetLanguageCode='eng',
-                domainName='AppenFY19',
-            )
-
-            if not _xe_market.exists():
-                _xe_market = Market.objects.get_or_create(
-                    sourceLanguageCode=code,
-                    targetLanguageCode='eng',
-                    domainName='AppenFY19',
-                    createdBy=superusers[0],
-                )
-                _xe_market = _xe_market[0]
-
-            else:
-                _xe_market = _xe_market.first()
-
-            _xe_meta = Metadata.objects.filter(
-                market=_xe_market,
-                corpusName='AppenFY19',
-                versionInfo='1.0',
-                source='official',
-            )
-
-            if not _xe_meta.exists():
-                _xe_meta = Metadata.objects.get_or_create(
-                    market=_xe_market,
-                    corpusName='AppenFY19',
-                    versionInfo='1.0',
-                    source='official',
-                    createdBy=superusers[0],
-                )
-                _xe_meta = _xe_meta[0]
-
-            else:
-                _xe_meta = _xe_meta.first()
-
-        for source, target in XY_LANGUAGES:
-            # XY
-            _xy_market = Market.objects.filter(
-                sourceLanguageCode=source,
-                targetLanguageCode=target,
-                domainName='AppenFY19',
-            )
-
-            if not _xy_market.exists():
-                _xy_market = Market.objects.get_or_create(
-                    sourceLanguageCode=source,
-                    targetLanguageCode=target,
-                    domainName='AppenFY19',
-                    createdBy=superusers[0],
-                )
-                _xy_market = _xy_market[0]
-
-            else:
-                _xy_market = _xy_market.first()
-
-            _xy_meta = Metadata.objects.filter(
-                market=_xy_market,
-                corpusName='AppenFY19',
-                versionInfo='1.0',
-                source='official',
-            )
-
-            if not _xy_meta.exists():
-                _xy_meta = Metadata.objects.get_or_create(
-                    market=_xy_market,
-                    corpusName='AppenFY19',
-                    versionInfo='1.0',
-                    source='official',
-                    createdBy=superusers[0],
-                )
-                _xy_meta = _xy_meta[0]
-
-            else:
-                _xy_meta = _xy_meta.first()
 
         _msg = 'Processed Market/Metadata instances'
         self.stdout.write(_msg)
 
-        # Create User accounts
-        for code in EX_LANGUAGES:
-            _tasks_map = TASKS_TO_ANNOTATORS.get(('eng', code))
+        # Create User accounts for all language pairs
+        for _src, _tgt in _all_languages:
+            _tasks_map = TASKS_TO_ANNOTATORS.get((_src, _tgt))
             if _tasks_map is None:
                 _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    ('eng', code)
+                    (_src, _tgt)
                 )
                 self.stdout.write(_msg)
                 continue
 
             if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
                 _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    ('eng', code)
+                    (_src, _tgt)
                 )
                 self.stdout.write(_msg)
                 continue
 
-            TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
-            ANNOTATORS = len(_tasks_map)
+            _tasks = sum([len(x) for x in _tasks_map]) // REDUNDANCY
+            _annotators = len(_tasks_map)
 
-            campaign_team_object = _create_campaign_team(
-                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS
+            campaign_team_object = _get_or_create_campaign_team(
+                CAMPAIGN_NAME, superusers[0], _tasks, _annotators
             )
 
-            # EX
-            for user_id in range(ANNOTATORS):
+            for user_id in range(_annotators):
                 username = '{0}{1}{2:02x}{3:02x}'.format(
-                    'eng', code, CAMPAIGN_NO, user_id + 1
-                )
-
-                hasher = md5()
-                hasher.update(username.encode('utf8'))
-                hasher.update(CAMPAIGN_KEY.encode('utf8'))
-                secret = hasher.hexdigest()[:8]
-
-                if not User.objects.filter(username=username).exists():
-                    new_user = User.objects.create_user(
-                        username=username, password=secret
-                    )
-                    new_user.save()
-
-                credentials[username] = secret
-
-        for code in XE_LANGUAGES:
-            _tasks_map = TASKS_TO_ANNOTATORS.get((code, 'eng'))
-            if _tasks_map is None:
-                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (code, 'eng')
-                )
-                self.stdout.write(_msg)
-                continue
-
-            if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
-                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (code, 'eng')
-                )
-                self.stdout.write(_msg)
-                continue
-
-            TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
-            ANNOTATORS = len(_tasks_map)
-
-            _cteam = _create_campaign_team(
-                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS
-            )
-
-            # XE
-            for user_id in range(ANNOTATORS):
-                username = '{0}{1}{2:02x}{3:02x}'.format(
-                    code, 'eng', CAMPAIGN_NO, user_id + 1
-                )
-
-                hasher = md5()
-                hasher.update(username.encode('utf8'))
-                hasher.update(CAMPAIGN_KEY.encode('utf8'))
-                secret = hasher.hexdigest()[:8]
-
-                if not User.objects.filter(username=username).exists():
-                    new_user = User.objects.create_user(
-                        username=username, password=secret
-                    )
-                    new_user.save()
-
-                credentials[username] = secret
-
-        for source, target in XY_LANGUAGES:
-            _tasks_map = TASKS_TO_ANNOTATORS.get((source, target))
-            if _tasks_map is None:
-                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (source, target)
-                )
-                self.stdout.write(_msg)
-                continue
-
-            if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
-                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (source, target)
-                )
-                self.stdout.write(_msg)
-                continue
-
-            TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
-            ANNOTATORS = len(_tasks_map)
-
-            _cteam = _create_campaign_team(
-                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS
-            )
-
-            # XY
-            for user_id in range(ANNOTATORS):
-                username = '{0}{1}{2:02x}{3:02x}'.format(
-                    source, target, CAMPAIGN_NO, user_id + 1
+                    _src, _tgt, CAMPAIGN_NO, user_id + 1
                 )
 
                 hasher = md5()
@@ -445,7 +297,7 @@ class Command(BaseCommand):
             TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
             ANNOTATORS = len(_tasks_map)
 
-            campaign_team_object = _create_campaign_team(
+            campaign_team_object = _get_or_create_campaign_team(
                 CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS
             )
 
@@ -484,7 +336,7 @@ class Command(BaseCommand):
             TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
             ANNOTATORS = len(_tasks_map)
 
-            campaign_team_object = _create_campaign_team(
+            campaign_team_object = _get_or_create_campaign_team(
                 CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS
             )
 
@@ -523,7 +375,7 @@ class Command(BaseCommand):
             TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
             ANNOTATORS = len(_tasks_map)
 
-            campaign_team_object = _create_campaign_team(
+            campaign_team_object = _get_or_create_campaign_team(
                 CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS
             )
 
