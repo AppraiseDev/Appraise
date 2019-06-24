@@ -112,6 +112,47 @@ for xy_code in XY_LANGUAGES:
     )
 
 
+def _identify_super_users():
+    """
+    Identify QuerySet of super users for the current Django instance.
+
+    Raises CommandError if no super user can be found.
+    """
+    superusers = User.objects.filter(is_superuser=True)
+    if not superusers.exists():
+        _msg = 'Failure to identify superuser'
+        raise CommandError(_msg)
+
+    return superusers
+
+
+def _process_market_and_metadata(language_pairs, owner, **kwargs):
+    """
+    Create Market and Metadata instances for all given language pairs.
+
+    Parameter
+    - owner:User sets the creator/owner of Market and Metadata objects;
+    - **kwargs allows to override defaults for other settings.
+    """
+    _context = dict(**kwargs)
+
+    for _src, _tgt in language_pairs:
+        _market = _get_or_create_market(
+            source_code=_src,
+            target_code=_tgt,
+            domain_name=_context.get('domain_name', 'AppenFY19'),
+            owner=owner,
+        )
+
+        _meta = _get_or_create_meta(
+            market=_market,
+            corpus_name=_context.get('corpus_name', 'AppenFY19'),
+            version_info=_context.get('version_info', '1.0'),
+            source=_context.get('source', 'official'),
+            owner=owner,
+        )
+
+
 def _get_or_create_campaign_team(name, owner, tasks, redudancy):
     """
     Creates CampaignTeam instance, if it does not exist yet.
@@ -188,11 +229,7 @@ class Command(BaseCommand):
         credentials = {}
 
         # Find super user
-        superusers = User.objects.filter(is_superuser=True)
-        if not superusers.exists():
-            _msg = 'Failure to identify superuser'
-            self.stdout.write(_msg)
-            return
+        superusers = _identify_super_users()
 
         _msg = 'Identified superuser: {0}'.format(superusers[0])
         self.stdout.write(_msg)
@@ -204,22 +241,8 @@ class Command(BaseCommand):
             + [(_src, _tgt) for _src, _tgt in XY_LANGUAGES]
         )
 
-        # Create Market and Metadata instances for all language pairs
-        for _src, _tgt in _all_languages:
-            _market = _get_or_create_market(
-                source_code=_src,
-                target_code=_tgt,
-                domain_name='AppenFY19',
-                owner=superusers[0],
-            )
-
-            _meta = _get_or_create_meta(
-                market=_market,
-                corpus_name='AppenFY19',
-                version_info='1.0',
-                source='official',
-                owner=superusers[0],
-            )
+        # Process Market and Metadata instances for all language pairs
+        _process_market_and_metadata(_all_languages, superusers[0])
 
         _msg = 'Processed Market/Metadata instances'
         self.stdout.write(_msg)
