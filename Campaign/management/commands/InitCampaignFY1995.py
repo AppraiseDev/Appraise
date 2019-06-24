@@ -1,3 +1,8 @@
+"""
+Appraise evaluation framework
+
+See LICENSE for usage details
+"""
 from hashlib import md5
 
 from django.contrib.auth.models import User
@@ -47,7 +52,7 @@ def _create_uniform_task_map(annotators, tasks, redudancy):
 
     _results = []
     _current_task_id = 0
-    for annotator_id in range(annotators):
+    for _unused_annotator_id in range(annotators):
         _annotator_tasks = []
         for annotator_task in range(_tasks_per_annotator):
             task_id = (_current_task_id + annotator_task) % tasks
@@ -271,118 +276,39 @@ class Command(BaseCommand):
         # Write credentials to CSV file if specified.
         if csv_output:
             csv_lines = [','.join(('Username', 'Password', 'URL')) + '\n']
-            for u, p in credentials.items():
-                url = '{0}{1}/{2}/'.format(CAMPAIGN_URL, u, p)
-                csv_lines.append(','.join((u, p, url)) + '\n')
+            for _user, _password in credentials.items():
+                _url = '{0}{1}/{2}/'.format(CAMPAIGN_URL, _user, _password)
+                csv_lines.append(','.join((_user, _password, _url)) + '\n')
             with open(csv_output, mode='w') as out_file:
                 out_file.writelines(csv_lines)
 
         # Add user instances as CampaignTeam members
-        for code in EX_LANGUAGES:
-            _tasks_map = TASKS_TO_ANNOTATORS.get(('eng', code))
+        for _src, _tgt in _all_languages:
+            _tasks_map = TASKS_TO_ANNOTATORS.get((_src, _tgt))
             if _tasks_map is None:
                 _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    ('eng', code)
+                    (_src, _tgt)
                 )
                 self.stdout.write(_msg)
                 continue
 
             if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
                 _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    ('eng', code)
+                    (_src, _tgt)
                 )
                 self.stdout.write(_msg)
                 continue
 
-            TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
-            ANNOTATORS = len(_tasks_map)
+            _tasks = sum([len(x) for x in _tasks_map]) // REDUNDANCY
+            _annotators = len(_tasks_map)
 
             campaign_team_object = _get_or_create_campaign_team(
-                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS
+                CAMPAIGN_NAME, superusers[0], _tasks, _annotators
             )
 
-            # EX
-            for user_id in range(ANNOTATORS):
+            for user_id in range(_annotators):
                 username = '{0}{1}{2:02x}{3:02x}'.format(
-                    'eng', code, CAMPAIGN_NO, user_id + 1
-                )
-
-                user_object = User.objects.get(username=username)
-                if user_object not in campaign_team_object.members.all():
-                    print(
-                        '{0} --> {1}'.format(
-                            campaign_team_object.teamName,
-                            user_object.username,
-                        )
-                    )
-                    campaign_team_object.members.add(user_object)
-
-        for code in XE_LANGUAGES:
-            _tasks_map = TASKS_TO_ANNOTATORS.get((code, 'eng'))
-            if _tasks_map is None:
-                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (code, 'eng')
-                )
-                self.stdout.write(_msg)
-                continue
-
-            if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
-                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (code, 'eng')
-                )
-                self.stdout.write(_msg)
-                continue
-
-            TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
-            ANNOTATORS = len(_tasks_map)
-
-            campaign_team_object = _get_or_create_campaign_team(
-                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS
-            )
-
-            # XE
-            for user_id in range(ANNOTATORS):
-                username = '{0}{1}{2:02x}{3:02x}'.format(
-                    code, 'eng', CAMPAIGN_NO, user_id + 1
-                )
-
-                user_object = User.objects.get(username=username)
-                if user_object not in campaign_team_object.members.all():
-                    print(
-                        '{0} --> {1}'.format(
-                            campaign_team_object.teamName,
-                            user_object.username,
-                        )
-                    )
-                    campaign_team_object.members.add(user_object)
-
-        for source, target in XY_LANGUAGES:
-            _tasks_map = TASKS_TO_ANNOTATORS.get((source, target))
-            if _tasks_map is None:
-                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (source, target)
-                )
-                self.stdout.write(_msg)
-                continue
-
-            if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
-                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (source, target)
-                )
-                self.stdout.write(_msg)
-                continue
-
-            TASKS = sum([len(x) for x in _tasks_map]) // REDUNDANCY
-            ANNOTATORS = len(_tasks_map)
-
-            campaign_team_object = _get_or_create_campaign_team(
-                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS
-            )
-
-            # XY
-            for user_id in range(ANNOTATORS):
-                username = '{0}{1}{2:02x}{3:02x}'.format(
-                    source, target, CAMPAIGN_NO, user_id + 1
+                    _src, _tgt, CAMPAIGN_NO, user_id + 1
                 )
 
                 user_object = User.objects.get(username=username)
@@ -398,10 +324,15 @@ class Command(BaseCommand):
         _msg = 'Processed CampaignTeam members'
         self.stdout.write(_msg)
 
-        c = Campaign.objects.filter(campaignName=CAMPAIGN_NAME)
-        if not c.exists():
-            return
-        c = c[0]
+        _campaign = Campaign.objects.filter(campaignName=CAMPAIGN_NAME)
+        if not _campaign.exists():
+            _msg = (
+                'Campaign {0!r} does not exist. No task agendas '
+                'have been assigned.'.format(CAMPAIGN_NAME)
+            )
+            raise CommandError(_msg)
+
+        _campaign = _campaign[0]
 
         from EvalData.models import (
             DirectAssessmentTask,
@@ -411,7 +342,7 @@ class Command(BaseCommand):
         from collections import defaultdict
 
         tasks = DirectAssessmentTask.objects.filter(
-            campaign=c, activated=True
+            campaign=_campaign, activated=True
         )
 
         # Assignment scheme:
@@ -471,10 +402,12 @@ class Command(BaseCommand):
             for u, t in zip(_users, _tasks):
                 print(u, '-->', t.id)
 
-                a = TaskAgenda.objects.filter(user=u, campaign=c)
+                a = TaskAgenda.objects.filter(user=u, campaign=_campaign)
 
                 if not a.exists():
-                    a = TaskAgenda.objects.create(user=u, campaign=c)
+                    a = TaskAgenda.objects.create(
+                        user=u, campaign=_campaign
+                    )
                 else:
                     a = a[0]
 
