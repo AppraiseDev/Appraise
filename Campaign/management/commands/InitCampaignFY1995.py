@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+from collections import defaultdict
 from hashlib import md5
 
 from django.contrib.auth.models import User
@@ -10,7 +11,13 @@ from django.core.management.base import BaseCommand, CommandError
 
 from Campaign.models import Campaign, CampaignTeam
 from Dashboard.models import validate_language_code
-from EvalData.models import Market, Metadata
+from EvalData.models import (
+    DirectAssessmentTask,
+    TaskAgenda,
+    ObjectID,
+    Market,
+    Metadata,
+)
 
 EX_LANGUAGES = (
     'afr',
@@ -128,9 +135,10 @@ def _identify_super_users():
 
 def _process_market_and_metadata(language_pairs, owner, **kwargs):
     """
-    Create Market and Metadata instances for all given language pairs.
+    Create Market and Metadata instances for given language pairs.
 
-    Parameter
+    Parameters:
+    - language_pairs:list[tuple(str, str), ...] list of language pairs;
     - owner:User sets the creator/owner of Market and Metadata objects;
     - **kwargs allows to override defaults for other settings.
     """
@@ -151,6 +159,104 @@ def _process_market_and_metadata(language_pairs, owner, **kwargs):
             source=_context.get('source', 'official'),
             owner=owner,
         )
+
+
+def _process_users(language_pairs):
+    """
+    Create User instances for given language pairs.
+
+    Parameters:
+    - language_pairs:list[tuple(str, str), ...] list of language pairs.
+    """
+    _credentials = {}
+    for _src, _tgt in language_pairs:
+        _tasks_map = _get_tasks_map_for_language_pair(_src, _tgt)
+        _annotators = len(_tasks_map)
+
+        for user_id in range(_annotators):
+            username = '{0}{1}{2:02x}{3:02x}'.format(
+                _src, _tgt, CAMPAIGN_NO, user_id + 1
+            )
+
+            hasher = md5()
+            hasher.update(username.encode('utf8'))
+            hasher.update(CAMPAIGN_KEY.encode('utf8'))
+            secret = hasher.hexdigest()[:8]
+
+            if not User.objects.filter(username=username).exists():
+                new_user = User.objects.create_user(
+                    username=username, password=secret
+                )
+                new_user.save()
+
+            _credentials[username] = secret
+
+    return _credentials
+
+
+def _process_campaign_teams(language_pairs, owner):
+    """
+    Adds User objects to CampaignTeam instances for given language pairs.
+
+    Parameters:
+    - language_pairs:list[tuple(str, str), ...] list of language pairs;
+    - owner:User sets the creator/owner of related campaign objects.
+    """
+    for _src, _tgt in language_pairs:
+        try:
+            _tasks_map = _get_tasks_map_for_language_pair(_src, _tgt)
+
+        except (LookupError, ValueError) as _exc:
+            self.stdout.write(str(_exc))
+            continue
+
+        _tasks = sum([len(x) for x in _tasks_map]) // REDUNDANCY
+        _annotators = len(_tasks_map)
+
+        campaign_team_object = _get_or_create_campaign_team(
+            CAMPAIGN_NAME, owner, _tasks, _annotators
+        )
+
+        for user_id in range(_annotators):
+            username = '{0}{1}{2:02x}{3:02x}'.format(
+                _src, _tgt, CAMPAIGN_NO, user_id + 1
+            )
+
+            user_object = User.objects.get(username=username)
+            if user_object not in campaign_team_object.members.all():
+                print(
+                    '{0} --> {1}'.format(
+                        campaign_team_object.teamName, user_object.username
+                    )
+                )
+                campaign_team_object.members.add(user_object)
+
+
+def _get_tasks_map_for_language_pair(source_code, target_code):
+    """
+    Gets tasks-to-annotators map for given language pair.
+
+    Parameter:
+    - source_code:str specifies source language ISO 639-2/3 code;
+    - target_code:str specifies target language ISO 639-2/3 code.
+
+    Returns:
+    - tasks_map:list[int] encodes number of annotators and assigned tasks.
+    """
+    _tasks_map = TASKS_TO_ANNOTATORS.get((source_code, target_code))
+    if _tasks_map is None:
+        _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
+            (source_code, target_code)
+        )
+        raise LookupError(_msg)
+
+    if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
+        _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
+            (source_code, target_code)
+        )
+        raise ValueError(_msg)
+
+    return _tasks_map
 
 
 def _get_or_create_campaign_team(name, owner, tasks, redudancy):
@@ -225,9 +331,6 @@ class Command(BaseCommand):
             _msg = 'csv_output does not point to .csv file'
             raise CommandError(_msg)
 
-        # We will collect user credentials for later print out or CSV export.
-        credentials = {}
-
         # Find super user
         superusers = _identify_super_users()
 
@@ -247,47 +350,9 @@ class Command(BaseCommand):
         _msg = 'Processed Market/Metadata instances'
         self.stdout.write(_msg)
 
-        # Create User accounts for all language pairs
-        for _src, _tgt in _all_languages:
-            _tasks_map = TASKS_TO_ANNOTATORS.get((_src, _tgt))
-            if _tasks_map is None:
-                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (_src, _tgt)
-                )
-                self.stdout.write(_msg)
-                continue
-
-            if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
-                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (_src, _tgt)
-                )
-                self.stdout.write(_msg)
-                continue
-
-            _tasks = sum([len(x) for x in _tasks_map]) // REDUNDANCY
-            _annotators = len(_tasks_map)
-
-            campaign_team_object = _get_or_create_campaign_team(
-                CAMPAIGN_NAME, superusers[0], _tasks, _annotators
-            )
-
-            for user_id in range(_annotators):
-                username = '{0}{1}{2:02x}{3:02x}'.format(
-                    _src, _tgt, CAMPAIGN_NO, user_id + 1
-                )
-
-                hasher = md5()
-                hasher.update(username.encode('utf8'))
-                hasher.update(CAMPAIGN_KEY.encode('utf8'))
-                secret = hasher.hexdigest()[:8]
-
-                if not User.objects.filter(username=username).exists():
-                    new_user = User.objects.create_user(
-                        username=username, password=secret
-                    )
-                    new_user.save()
-
-                credentials[username] = secret
+        # Create User accounts for all language pairs. We collect the
+        # resulting user credentials for later print out/CSV export.
+        credentials = _process_users(_all_languages)
 
         _msg = 'Processed User instances'
         self.stdout.write(_msg)
@@ -306,43 +371,7 @@ class Command(BaseCommand):
                 out_file.writelines(csv_lines)
 
         # Add user instances as CampaignTeam members
-        for _src, _tgt in _all_languages:
-            _tasks_map = TASKS_TO_ANNOTATORS.get((_src, _tgt))
-            if _tasks_map is None:
-                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (_src, _tgt)
-                )
-                self.stdout.write(_msg)
-                continue
-
-            if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
-                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (_src, _tgt)
-                )
-                self.stdout.write(_msg)
-                continue
-
-            _tasks = sum([len(x) for x in _tasks_map]) // REDUNDANCY
-            _annotators = len(_tasks_map)
-
-            campaign_team_object = _get_or_create_campaign_team(
-                CAMPAIGN_NAME, superusers[0], _tasks, _annotators
-            )
-
-            for user_id in range(_annotators):
-                username = '{0}{1}{2:02x}{3:02x}'.format(
-                    _src, _tgt, CAMPAIGN_NO, user_id + 1
-                )
-
-                user_object = User.objects.get(username=username)
-                if user_object not in campaign_team_object.members.all():
-                    print(
-                        '{0} --> {1}'.format(
-                            campaign_team_object.teamName,
-                            user_object.username,
-                        )
-                    )
-                    campaign_team_object.members.add(user_object)
+        _process_campaign_teams(_all_languages, superusers[0])
 
         _msg = 'Processed CampaignTeam members'
         self.stdout.write(_msg)
@@ -356,13 +385,6 @@ class Command(BaseCommand):
             raise CommandError(_msg)
 
         _campaign = _campaign[0]
-
-        from EvalData.models import (
-            DirectAssessmentTask,
-            TaskAgenda,
-            ObjectID,
-        )
-        from collections import defaultdict
 
         tasks = DirectAssessmentTask.objects.filter(
             campaign=_campaign, activated=True
@@ -403,12 +425,14 @@ class Command(BaseCommand):
 
             source = key[:3]
             target = key[3:6]
-            _tasks_map = TASKS_TO_ANNOTATORS.get((source, target))
-            if _tasks_map is None:
-                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (source, target)
+
+            try:
+                _tasks_map = _get_tasks_map_for_language_pair(
+                    source, target
                 )
-                self.stdout.write(_msg)
+
+            except (LookupError, ValueError) as _exc:
+                self.stdout.write(str(_exc))
                 continue
 
             _tasks = tasks_for_market[key]
