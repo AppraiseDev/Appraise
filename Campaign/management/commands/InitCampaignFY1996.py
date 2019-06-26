@@ -21,29 +21,29 @@ from Dashboard.models import validate_language_code
 from EvalData.models import DirectAssessmentTask, TaskAgenda, ObjectID
 
 EX_LANGUAGES = (
-    "ara",
-    "deu",
-    "fra",
-    "ita",
-    "jpn",
-    "kor",
-    "por",
-    "rus",
-    "spa",
-    "zho",
+    'ara',
+    'deu',
+    'fra',
+    'ita',
+    'jpn',
+    'kor',
+    'por',
+    'rus',
+    'spa',
+    'zho',
 )
 
 XE_LANGUAGES = (
-    "ara",
-    "deu",
-    "fra",
-    "ita",
-    "jpn",
-    "kor",
-    "por",
-    "rus",
-    "spa",
-    "zho",
+    'ara',
+    'deu',
+    'fra',
+    'ita',
+    'jpn',
+    'kor',
+    'por',
+    'rus',
+    'spa',
+    'zho',
 )
 
 XY_LANGUAGES = ()
@@ -68,23 +68,23 @@ XY_LANGUAGES = ()
 # }
 TASKS_TO_ANNOTATORS = {}
 
-CAMPAIGN_URL = "http://msrmt.appraise.cf/dashboard/sso/"
-CAMPAIGN_NAME = "HumanEvalFY1996"
-CAMPAIGN_KEY = "FY1996"
+CAMPAIGN_URL = 'http://msrmt.appraise.cf/dashboard/sso/'
+CAMPAIGN_NAME = 'HumanEvalFY1996'
+CAMPAIGN_KEY = 'FY1996'
 CAMPAIGN_NO = 238
 ANNOTATORS = None  # Will be determined by TASKS_TO_ANNOTATORS mapping
 TASKS = None
 REDUNDANCY = 1
 
 CONTEXT = {
-    "ANNOTATORS": ANNOTATORS,
-    "CAMPAIGN_KEY": CAMPAIGN_KEY,
-    "CAMPAIGN_NAME": CAMPAIGN_NAME,
-    "CAMPAIGN_NO": CAMPAIGN_NO,
-    "CAMPAIGN_URL": CAMPAIGN_URL,
-    "REDUNDANCY": REDUNDANCY,
-    "TASKS": TASKS,
-    "TASKS_TO_ANNOTATORS": TASKS_TO_ANNOTATORS,
+    'ANNOTATORS': ANNOTATORS,
+    'CAMPAIGN_KEY': CAMPAIGN_KEY,
+    'CAMPAIGN_NAME': CAMPAIGN_NAME,
+    'CAMPAIGN_NO': CAMPAIGN_NO,
+    'CAMPAIGN_URL': CAMPAIGN_URL,
+    'REDUNDANCY': REDUNDANCY,
+    'TASKS': TASKS,
+    'TASKS_TO_ANNOTATORS': TASKS_TO_ANNOTATORS,
 }
 
 for code in EX_LANGUAGES + XE_LANGUAGES + XY_LANGUAGES:
@@ -94,12 +94,12 @@ for code in EX_LANGUAGES + XE_LANGUAGES + XY_LANGUAGES:
         )
 
 for ex_code in EX_LANGUAGES:
-    TASKS_TO_ANNOTATORS[("eng", ex_code)] = _create_uniform_task_map(
+    TASKS_TO_ANNOTATORS[('eng', ex_code)] = _create_uniform_task_map(
         10, 20, REDUNDANCY
     )
 
 for xe_code in XE_LANGUAGES:
-    TASKS_TO_ANNOTATORS[(xe_code, "eng")] = _create_uniform_task_map(
+    TASKS_TO_ANNOTATORS[(xe_code, 'eng')] = _create_uniform_task_map(
         10, 20, REDUNDANCY
     )
 
@@ -111,20 +111,20 @@ for xy_code in XY_LANGUAGES:
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
-    help = "Initialises campaign FY19 #150"
+    help = 'Initialises campaign FY19 #150'
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--csv-output",
+            '--csv-output',
             type=str,
             default=None,
-            metavar="--csv",
-            help="Path used to create CSV file containing credentials.",
+            metavar='--csv',
+            help='Path used to create CSV file containing credentials.',
         )
 
     def handle(self, *args, **options):
-        csv_output = options["csv_output"]
-        self.stdout.write("CSV output path: {0!r}".format(csv_output))
+        csv_output = options['csv_output']
+        self.stdout.write('CSV output path: {0!r}'.format(csv_output))
         if csv_output and not csv_output.lower().endswith('.csv'):
             raise CommandError(
                 'csv_output {0!r} does not point to .csv file'.format(
@@ -140,8 +140,8 @@ class Command(BaseCommand):
 
         # Compute list of all language pairs
         _all_languages = (
-            [("eng", _tgt) for _tgt in EX_LANGUAGES]
-            + [(_src, "eng") for _src in XE_LANGUAGES]
+            [('eng', _tgt) for _tgt in EX_LANGUAGES]
+            + [(_src, 'eng') for _src in XE_LANGUAGES]
             + [(_src, _tgt) for _src, _tgt in XY_LANGUAGES]
         )
 
@@ -160,11 +160,11 @@ class Command(BaseCommand):
 
         # Write credentials to CSV file if specified.
         if csv_output:
-            csv_lines = [",".join(("Username", "Password", "URL")) + "\n"]
+            csv_lines = [','.join(('Username', 'Password', 'URL')) + '\n']
             for _user, _password in credentials.items():
-                _url = "{0}{1}/{2}/".format(CAMPAIGN_URL, _user, _password)
-                csv_lines.append(",".join((_user, _password, _url)) + "\n")
-            with open(csv_output, mode="w") as out_file:
+                _url = '{0}{1}/{2}/'.format(CAMPAIGN_URL, _user, _password)
+                csv_lines.append(','.join((_user, _password, _url)) + '\n')
+            with open(csv_output, mode='w') as out_file:
                 out_file.writelines(csv_lines)
 
         # Add User instances as CampaignTeam members
@@ -191,9 +191,9 @@ class Command(BaseCommand):
         # To assign this, we need to duplicate Ts below.
         tasks_for_market = defaultdict(list)
         users_for_market = defaultdict(list)
-        for task in tasks.order_by("id"):
-            market = "{0}{1:02x}".format(
-                task.marketName().replace("_", "")[:6], CAMPAIGN_NO
+        for task in tasks.order_by('id'):
+            market = '{0}{1:02x}'.format(
+                task.marketName().replace('_', '')[:6], CAMPAIGN_NO
             )
             tasks_for_market[market].append(task)
 
@@ -228,7 +228,7 @@ class Command(BaseCommand):
 
             _tasks = tasks_for_market[key]
             tasks_for_market[key] = []
-            for user, tasks in zip(users.order_by("id"), _tasks_map):
+            for user, tasks in zip(users.order_by('id'), _tasks_map):
                 print(source, target, user, tasks)
                 for task_id in tasks:
                     users_for_market[key].append(user)
@@ -244,7 +244,7 @@ class Command(BaseCommand):
             _tasks = tasks_for_market[key]
             _users = users_for_market[key]
             for user, task in zip(_users, _tasks):
-                print(user, "-->", task.id)
+                print(user, '-->', task.id)
 
                 agenda = TaskAgenda.objects.filter(
                     user=user, campaign=_campaign
@@ -258,7 +258,7 @@ class Command(BaseCommand):
                     agenda = agenda[0]
 
                 serialized_t = ObjectID.objects.get_or_create(
-                    typeName="DirectAssessmentTask", primaryID=task.id
+                    typeName='DirectAssessmentTask', primaryID=task.id
                 )
 
                 _task_done_for_user = task.next_item_for_user(user) is None
