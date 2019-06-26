@@ -6,15 +6,10 @@ See LICENSE for usage details
 from hashlib import md5
 
 from django.contrib.auth.models import User
+from django.core.management.base import CommandError
 
 from Campaign.models import Campaign, CampaignTeam
-from EvalData.models import (
-    DirectAssessmentTask,
-    TaskAgenda,
-    ObjectID,
-    Market,
-    Metadata,
-)
+from EvalData.models import Market, Metadata
 
 
 def _create_uniform_task_map(annotators, tasks, redudancy):
@@ -49,8 +44,7 @@ def _identify_super_users():
     """
     superusers = User.objects.filter(is_superuser=True)
     if not superusers.exists():
-        _msg = 'Failure to identify superuser'
-        raise CommandError(_msg)
+        raise CommandError("Failure to identify superuser")
 
     return superusers
 
@@ -70,15 +64,15 @@ def _process_market_and_metadata(language_pairs, owner, **kwargs):
         _market = _get_or_create_market(
             source_code=_src,
             target_code=_tgt,
-            domain_name=_context.get('domain_name', 'AppenFY19'),
+            domain_name=_context.get("domain_name", "AppenFY19"),
             owner=owner,
         )
 
         _meta = _get_or_create_meta(
             market=_market,
-            corpus_name=_context.get('corpus_name', 'AppenFY19'),
-            version_info=_context.get('version_info', '1.0'),
-            source=_context.get('source', 'official'),
+            corpus_name=_context.get("corpus_name", "AppenFY19"),
+            version_info=_context.get("version_info", "1.0"),
+            source=_context.get("source", "official"),
             owner=owner,
         )
 
@@ -92,21 +86,22 @@ def _process_users(language_pairs, context):
     - context:dict specifies additional context:
       CAMPAIGN_KEY, CAMPAIGN_NO, REDUNDANCY and TASKS_TO_ANNOTATORS.
     """
-    CAMPAIGN_KEY = context.get('CAMPAIGN_KEY')
-    CAMPAIGN_NO = context.get('CAMPAIGN_NO')
+    required_keys = ("CAMPAIGN_KEY", "CAMPAIGN_NO")
+    _validate_required_keys(context, required_keys)
+
     _credentials = {}
     for _src, _tgt in language_pairs:
         _tasks_map = _get_tasks_map_for_language_pair(_src, _tgt, context)
         _annotators = len(_tasks_map)
 
         for user_id in range(_annotators):
-            username = '{0}{1}{2:02x}{3:02x}'.format(
-                _src, _tgt, CAMPAIGN_NO, user_id + 1
+            username = "{0}{1}{2:02x}{3:02x}".format(
+                _src, _tgt, context.get("CAMPAIGN_NO"), user_id + 1
             )
 
             hasher = md5()
-            hasher.update(username.encode('utf8'))
-            hasher.update(CAMPAIGN_KEY.encode('utf8'))
+            hasher.update(username.encode("utf8"))
+            hasher.update(context.get("CAMPAIGN_KEY").encode("utf8"))
             secret = hasher.hexdigest()[:8]
 
             if not User.objects.filter(username=username).exists():
@@ -120,6 +115,26 @@ def _process_users(language_pairs, context):
     return _credentials
 
 
+def _validate_required_keys(context, required_keys):
+    """
+    Checks that all required keys exist in given context dict.
+
+    Parameters:
+    - context:dict specifies context dictionary;
+    - required_keys:tuple[str] specifies set of required keys.
+
+    Raises:
+    - CommandError in case of missing required key.
+    """
+    for required_key in required_keys:
+        if not required_key in context.keys():
+            raise ValueError(
+                "context does not contain required key {0!r}".format(
+                    required_key
+                )
+            )
+
+
 def _process_campaign_teams(language_pairs, owner, context):
     """
     Adds User objects to CampaignTeam instances for given language pairs.
@@ -130,10 +145,14 @@ def _process_campaign_teams(language_pairs, owner, context):
     - context:dict specifies additional context:
       CAMPAIGN_NAME, CAMPAIGN_NO, REDUNDANCY and TASKS_TO_ANNOTATORS.
     """
-    CAMPAIGN_NAME = context.get('CAMPAIGN_NAME')
-    CAMPAIGN_NO = context.get('CAMPAIGN_NO')
-    REDUNDANCY = context.get('REDUNDANCY')
-    TASKS_TO_ANNOTATORS = context.get('TASKS_TO_ANNOTATORS')
+    required_keys = (
+        "CAMPAIGN_NAME",
+        "CAMPAIGN_NO",
+        "REDUNDANCY",
+        "TASKS_TO_ANNOTATORS",
+    )
+    _validate_required_keys(context, required_keys)
+
     for _src, _tgt in language_pairs:
         try:
             _tasks_map = _get_tasks_map_for_language_pair(
@@ -141,36 +160,55 @@ def _process_campaign_teams(language_pairs, owner, context):
             )
 
         except (LookupError, ValueError) as _exc:
-            self.stdout.write(str(_exc))
+            print(str(_exc))
             continue
 
-        _tasks = sum([len(x) for x in _tasks_map]) // REDUNDANCY
+        _tasks = sum([len(x) for x in _tasks_map]) // context.get(
+            "REDUNDANCY"
+        )
         _annotators = len(_tasks_map)
 
         campaign_team_object = _get_or_create_campaign_team(
-            CAMPAIGN_NAME, owner, _tasks, _annotators
+            context.get("CAMPAIGN_NAME"), owner, _tasks, _annotators
         )
 
         for user_id in range(_annotators):
-            username = '{0}{1}{2:02x}{3:02x}'.format(
-                _src, _tgt, CAMPAIGN_NO, user_id + 1
+            username = "{0}{1}{2:02x}{3:02x}".format(
+                _src, _tgt, context.get("CAMPAIGN_NO"), user_id + 1
             )
 
             user_object = User.objects.get(username=username)
             if user_object not in campaign_team_object.members.all():
                 print(
-                    '{0} --> {1}'.format(
+                    "{0} --> {1}".format(
                         campaign_team_object.teamName, user_object.username
                     )
                 )
                 campaign_team_object.members.add(user_object)
 
 
+def _get_campaign_instance(campaign_name):
+    """
+    Gets campaign instance for given campaign name.
+
+    Paramters:
+    - campaign_name:str specifies name of Campaign instance.
+    """
+    _campaign = Campaign.objects.filter(campaignName=campaign_name)
+    if not _campaign.exists():
+        raise CommandError(
+            "Campaign {0!r} does not exist. No task agendas "
+            "have been assigned.".format(campaign_name)
+        )
+
+    return _campaign[0]
+
+
 def _get_tasks_map_for_language_pair(source_code, target_code, context):
     """
     Gets tasks-to-annotators map for given language pair.
 
-    Parameter:
+    Parameters:
     - source_code:str specifies source language ISO 639-2/3 code;
     - target_code:str specifies target language ISO 639-2/3 code;
     - context:dict specifices REDUNDANCY and TASKS_TO_ANNOTATORS.
@@ -178,17 +216,20 @@ def _get_tasks_map_for_language_pair(source_code, target_code, context):
     Returns:
     - tasks_map:list[int] encodes number of annotators and assigned tasks.
     """
-    TASKS_TO_ANNOTATORS = context.get('TASKS_TO_ANNOTATORS')
-    REDUNDANCY = context.get('REDUNDANCY')
-    _tasks_map = TASKS_TO_ANNOTATORS.get((source_code, target_code))
+    required_keys = ("REDUNDANCY", "TASKS_TO_ANNOTATORS")
+    _validate_required_keys(context, required_keys)
+
+    _tasks_map = context.get("TASKS_TO_ANNOTATORS").get(
+        (source_code, target_code)
+    )
     if _tasks_map is None:
-        _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
+        _msg = "No TASKS_TO_ANNOTATORS mapping for {0}".format(
             (source_code, target_code)
         )
         raise LookupError(_msg)
 
-    if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
-        _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
+    if sum([len(x) for x in _tasks_map]) % context.get("REDUNDANCY") > 0:
+        _msg = "Bad TASKS_TO_ANNOTATORS mapping for {0}".format(
             (source_code, target_code)
         )
         raise ValueError(_msg)
