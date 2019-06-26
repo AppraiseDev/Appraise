@@ -3,13 +3,20 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+from collections import defaultdict
 from hashlib import md5
 
 from django.contrib.auth.models import User
 from django.core.management.base import CommandError
 
 from Campaign.models import Campaign, CampaignTeam
-from EvalData.models import Market, Metadata
+from EvalData.models import (
+    DirectAssessmentTask,
+    Market,
+    Metadata,
+    ObjectID,
+    TaskAgenda,
+)
 
 
 def _create_uniform_task_map(annotators, tasks, redudancy):
@@ -44,7 +51,7 @@ def _identify_super_users():
     """
     superusers = User.objects.filter(is_superuser=True)
     if not superusers.exists():
-        raise CommandError("Failure to identify superuser")
+        raise CommandError('Failure to identify superuser')
 
     return superusers
 
@@ -64,15 +71,15 @@ def _process_market_and_metadata(language_pairs, owner, **kwargs):
         _market = _get_or_create_market(
             source_code=_src,
             target_code=_tgt,
-            domain_name=_context.get("domain_name", "AppenFY19"),
+            domain_name=_context.get('domain_name', 'AppenFY19'),
             owner=owner,
         )
 
         _meta = _get_or_create_meta(
             market=_market,
-            corpus_name=_context.get("corpus_name", "AppenFY19"),
-            version_info=_context.get("version_info", "1.0"),
-            source=_context.get("source", "official"),
+            corpus_name=_context.get('corpus_name', 'AppenFY19'),
+            version_info=_context.get('version_info', '1.0'),
+            source=_context.get('source', 'official'),
             owner=owner,
         )
 
@@ -86,7 +93,7 @@ def _process_users(language_pairs, context):
     - context:dict specifies additional context:
       CAMPAIGN_KEY, CAMPAIGN_NO, REDUNDANCY and TASKS_TO_ANNOTATORS.
     """
-    required_keys = ("CAMPAIGN_KEY", "CAMPAIGN_NO")
+    required_keys = ('CAMPAIGN_KEY', 'CAMPAIGN_NO')
     _validate_required_keys(context, required_keys)
 
     _credentials = {}
@@ -95,13 +102,13 @@ def _process_users(language_pairs, context):
         _annotators = len(_tasks_map)
 
         for user_id in range(_annotators):
-            username = "{0}{1}{2:02x}{3:02x}".format(
-                _src, _tgt, context.get("CAMPAIGN_NO"), user_id + 1
+            username = '{0}{1}{2:02x}{3:02x}'.format(
+                _src, _tgt, context.get('CAMPAIGN_NO'), user_id + 1
             )
 
             hasher = md5()
-            hasher.update(username.encode("utf8"))
-            hasher.update(context.get("CAMPAIGN_KEY").encode("utf8"))
+            hasher.update(username.encode('utf8'))
+            hasher.update(context.get('CAMPAIGN_KEY').encode('utf8'))
             secret = hasher.hexdigest()[:8]
 
             if not User.objects.filter(username=username).exists():
@@ -129,7 +136,7 @@ def _validate_required_keys(context, required_keys):
     for required_key in required_keys:
         if not required_key in context.keys():
             raise ValueError(
-                "context does not contain required key {0!r}".format(
+                'context does not contain required key {0!r}'.format(
                     required_key
                 )
             )
@@ -144,12 +151,15 @@ def _process_campaign_teams(language_pairs, owner, context):
     - owner:User sets the creator/owner of related campaign objects;
     - context:dict specifies additional context:
       CAMPAIGN_NAME, CAMPAIGN_NO, REDUNDANCY and TASKS_TO_ANNOTATORS.
+
+    Raises:
+    - CommandError in case of missing required key.
     """
     required_keys = (
-        "CAMPAIGN_NAME",
-        "CAMPAIGN_NO",
-        "REDUNDANCY",
-        "TASKS_TO_ANNOTATORS",
+        'CAMPAIGN_NAME',
+        'CAMPAIGN_NO',
+        'REDUNDANCY',
+        'TASKS_TO_ANNOTATORS',
     )
     _validate_required_keys(context, required_keys)
 
@@ -164,23 +174,23 @@ def _process_campaign_teams(language_pairs, owner, context):
             continue
 
         _tasks = sum([len(x) for x in _tasks_map]) // context.get(
-            "REDUNDANCY"
+            'REDUNDANCY'
         )
         _annotators = len(_tasks_map)
 
         campaign_team_object = _get_or_create_campaign_team(
-            context.get("CAMPAIGN_NAME"), owner, _tasks, _annotators
+            context.get('CAMPAIGN_NAME'), owner, _tasks, _annotators
         )
 
         for user_id in range(_annotators):
-            username = "{0}{1}{2:02x}{3:02x}".format(
-                _src, _tgt, context.get("CAMPAIGN_NO"), user_id + 1
+            username = '{0}{1}{2:02x}{3:02x}'.format(
+                _src, _tgt, context.get('CAMPAIGN_NO'), user_id + 1
             )
 
             user_object = User.objects.get(username=username)
             if user_object not in campaign_team_object.members.all():
                 print(
-                    "{0} --> {1}".format(
+                    '{0} --> {1}'.format(
                         campaign_team_object.teamName, user_object.username
                     )
                 )
@@ -197,8 +207,8 @@ def _get_campaign_instance(campaign_name):
     _campaign = Campaign.objects.filter(campaignName=campaign_name)
     if not _campaign.exists():
         raise CommandError(
-            "Campaign {0!r} does not exist. No task agendas "
-            "have been assigned.".format(campaign_name)
+            'Campaign {0!r} does not exist. No task agendas'
+            'have been assigned.'.format(campaign_name)
         )
 
     return _campaign[0]
@@ -213,23 +223,26 @@ def _get_tasks_map_for_language_pair(source_code, target_code, context):
     - target_code:str specifies target language ISO 639-2/3 code;
     - context:dict specifices REDUNDANCY and TASKS_TO_ANNOTATORS.
 
+    Raises:
+    - CommandError in case of missing required key.
+
     Returns:
     - tasks_map:list[int] encodes number of annotators and assigned tasks.
     """
-    required_keys = ("REDUNDANCY", "TASKS_TO_ANNOTATORS")
+    required_keys = ('REDUNDANCY', 'TASKS_TO_ANNOTATORS')
     _validate_required_keys(context, required_keys)
 
-    _tasks_map = context.get("TASKS_TO_ANNOTATORS").get(
+    _tasks_map = context.get('TASKS_TO_ANNOTATORS').get(
         (source_code, target_code)
     )
     if _tasks_map is None:
-        _msg = "No TASKS_TO_ANNOTATORS mapping for {0}".format(
+        _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
             (source_code, target_code)
         )
         raise LookupError(_msg)
 
-    if sum([len(x) for x in _tasks_map]) % context.get("REDUNDANCY") > 0:
-        _msg = "Bad TASKS_TO_ANNOTATORS mapping for {0}".format(
+    if sum([len(x) for x in _tasks_map]) % context.get('REDUNDANCY') > 0:
+        _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
             (source_code, target_code)
         )
         raise ValueError(_msg)
@@ -287,3 +300,143 @@ def _get_or_create_meta(market, corpus_name, version_info, source, owner):
         createdBy=owner,
     )
     return _meta
+
+
+def _get_tasks_by_market(tasks, context):
+    """
+    Gets tasks by market, converting QuerySet to dictionary of lists of tasks.
+
+    Assignment scheme:
+
+    - T1 U1 U2
+    - T2 U3 U4
+    - T3 U1 U2
+    - T4 U3 U4
+
+    To assign this, we nuplicate tasks, per market, based on REDUNDANCY
+
+    Parameters:
+    - tasks:QuerySet contains task instances to extract market keys for;
+    - context:dict specifices CAMPAIGN_NO and REDUNDANCY.
+
+    Raises:
+    - CommandError in case of missing required key.
+
+    Returns:
+    - tasks_by_market:dict[list[str]] organises tasks by market.
+    """
+    required_keys = ('CAMPAIGN_NO', 'REDUNDANCY')
+    _validate_required_keys(context, required_keys)
+
+    tasks_by_market = defaultdict(list)
+    for task in tasks.order_by('id'):
+        key = '{0}{1:02x}'.format(
+            task.marketName().replace('_', '')[:6],
+            context.get('CAMPAIGN_NO'),
+        )
+        for _unused_counter in range(context.get('REDUNDANCY')):
+            tasks_by_market[key].append(task)
+    return tasks_by_market
+
+
+def _map_tasks_to_users_by_market(tasks, context):
+    """
+    Map tasks to users, by market, and considering TASKS_TO_ANNOTATORS.
+
+    Parameters:
+    - tasks:QuerySet contains task instances to map to users;
+    - context:dict specifices CAMPAIGN_NO, REDUNDANCY and TASKS_TO_ANNOTATORS.
+
+    Raises:
+    - CommandError in case of missing required key.
+
+    Returns:
+    - tasks_to_users:dict[list[tuple(User,Task)]] maps tasks to users.
+    """
+    required_keys = ('CAMPAIGN_NO', 'REDUNDANCY', 'TASKS_TO_ANNOTATORS')
+    _validate_required_keys(context, required_keys)
+
+    # Organise tasks by market
+    tasks_by_market = _get_tasks_by_market(tasks, context)
+
+    # Create map containing pairs (user, task)
+    tasks_to_users_map = defaultdict(list)
+
+    for key in tasks_by_market:
+        users = User.objects.filter(username__startswith=key)
+
+        source_code = key[:3]
+        target_code = key[3:6]
+
+        try:
+            _tasks_map = _get_tasks_map_for_language_pair(
+                source_code, target_code, context
+            )
+
+        except (LookupError, ValueError) as _exc:
+            print(str(_exc))
+            continue
+
+        _tasks_for_current_key = tasks_by_market[key]
+
+        for user, tasks_for_user in zip(users.order_by('id'), _tasks_map):
+            print(source_code, target_code, user, tasks_for_user)
+            for task_id in tasks_for_user:
+                tasks_to_users_map[key].append(
+                    (_tasks_for_current_key[task_id], user)
+                )
+
+    return tasks_to_users_map
+
+
+def _process_campaign_agendas(context):
+    """
+    Processes TaskAgenda instances for campaign specified by CAMPAIGN_NAME.
+
+    Parameters:
+    - context:dict specifices CAMPAIGN_NO, REDUNDANCY and TASKS_TO_ANNOTATORS.
+
+    Raises:
+    - CommandError in case of missing required key.
+    """
+    required_keys = ('CAMPAIGN_NO', 'REDUNDANCY', 'TASKS_TO_ANNOTATORS')
+    _validate_required_keys(context, required_keys)
+
+    # Get Campaign instance for campaign name
+    _campaign = _get_campaign_instance(context.get('CAMPAIGN_NAME'))
+    print('Identified Campaign {0!r}'.format(context.get('CAMPAIGN_NAME')))
+
+    # Get all activated tasks for this campaign
+    tasks = DirectAssessmentTask.objects.filter(
+        campaign=_campaign, activated=True
+    )
+
+    # Map tasks to users, by market, and considering TASKS_TO_ANNOTATORS
+    tasks_to_users_map = _map_tasks_to_users_by_market(tasks, context)
+
+    for key in tasks_to_users_map:
+        print('[{0}]'.format(key))
+        for task, user in tasks_to_users_map[key]:
+            print(user, '-->', task.id)
+
+            agenda = TaskAgenda.objects.filter(
+                user=user, campaign=_campaign
+            )
+
+            if not agenda.exists():
+                agenda = TaskAgenda.objects.create(
+                    user=user, campaign=_campaign
+                )
+            else:
+                agenda = agenda[0]
+
+            serialized_t = ObjectID.objects.get_or_create(
+                typeName='DirectAssessmentTask', primaryID=task.id
+            )
+
+            _task_done_for_user = task.next_item_for_user(user) is None
+            if _task_done_for_user:
+                agenda.complete_open_task(serialized_t[0])
+
+            else:
+                agenda.activate_completed_task(serialized_t[0])
