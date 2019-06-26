@@ -3086,6 +3086,17 @@ class TaskAgenda(models.Model):
     def completed_tasks(self):
         return (x.get_object_instance() for x in self._completed_tasks.all())
 
+    def activate_completed_task(self, task):
+        if not task in self._completed_tasks.all():
+            return False
+
+        self._completed_tasks.remove(task)
+
+        if not task in self._open_tasks.all():
+            self._open_tasks.add(task)
+
+        return True
+
     def complete_open_task(self, task):
         if not task in self._open_tasks.all():
             return False
