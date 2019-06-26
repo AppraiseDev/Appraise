@@ -3,22 +3,17 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
-from collections import defaultdict
-
-from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand, CommandError
 
 from Campaign.utils import (
     _create_uniform_task_map,
-    _get_campaign_instance,
-    _get_tasks_map_for_language_pair,
     _identify_super_users,
+    _process_campaign_agendas,
     _process_campaign_teams,
     _process_market_and_metadata,
     _process_users,
 )
 from Dashboard.models import validate_language_code
-from EvalData.models import DirectAssessmentTask, TaskAgenda, ObjectID
 
 EX_LANGUAGES = (
     'ara',
@@ -47,7 +42,6 @@ XE_LANGUAGES = (
 )
 
 XY_LANGUAGES = ()
-
 
 # Allows for arbitrary task to annotator mappings.
 #
@@ -171,99 +165,5 @@ class Command(BaseCommand):
         _process_campaign_teams(_all_languages, superusers[0], CONTEXT)
         self.stdout.write('Processed CampaignTeam members')
 
-        # Get Campaign instance
-        _campaign = _get_campaign_instance(CAMPAIGN_NAME)
-        self.stdout.write(
-            'Identified Campaign {0!r} instance'.format(CAMPAIGN_NAME)
-        )
-
-        tasks = DirectAssessmentTask.objects.filter(
-            campaign=_campaign, activated=True
-        )
-
-        # Assignment scheme:
-        #
-        # T1 U1 U2
-        # T2 U3 U4
-        # T3 U1 U2
-        # T4 U3 U4
-        #
-        # To assign this, we need to duplicate Ts below.
-        tasks_for_market = defaultdict(list)
-        users_for_market = defaultdict(list)
-        for task in tasks.order_by('id'):
-            market = '{0}{1:02x}'.format(
-                task.marketName().replace('_', '')[:6], CAMPAIGN_NO
-            )
-            tasks_for_market[market].append(task)
-
-        # This assigns tasks like this
-        #
-        # T1 U1 U3
-        # T2 U1 U4
-        # T3 U2 U4
-        # T4 U2 U5
-        # T5 U3 U5
-        #
-        #        tasks_for_current_market = tasks_for_market[market]
-        #        redundant_tasks = []
-        #        for i in range(REDUNDANCY):
-        #            redundant_tasks.extend(tasks_for_current_market)
-        #        tasks_for_market[market] = redundant_tasks
-
-        for key in tasks_for_market:
-            users = User.objects.filter(username__startswith=key)
-
-            source = key[:3]
-            target = key[3:6]
-
-            try:
-                _tasks_map = _get_tasks_map_for_language_pair(
-                    source, target, CONTEXT
-                )
-
-            except (LookupError, ValueError) as _exc:
-                self.stdout.write(str(_exc))
-                continue
-
-            _tasks = tasks_for_market[key]
-            tasks_for_market[key] = []
-            for user, tasks in zip(users.order_by('id'), _tasks_map):
-                print(source, target, user, tasks)
-                for task_id in tasks:
-                    users_for_market[key].append(user)
-                    tasks_for_market[key].append(_tasks[task_id])
-
-            # _tasks should match _users in size
-            if not len(_tasks) == len(_users):
-                raise CommandError(
-                    'Length mismatch between _tasks ({0}) and '
-                    '_users ({1})'.format(len(_tasks), len(_users))
-                )
-
-            _tasks = tasks_for_market[key]
-            _users = users_for_market[key]
-            for user, task in zip(_users, _tasks):
-                print(user, '-->', task.id)
-
-                agenda = TaskAgenda.objects.filter(
-                    user=user, campaign=_campaign
-                )
-
-                if not agenda.exists():
-                    agenda = TaskAgenda.objects.create(
-                        user=user, campaign=_campaign
-                    )
-                else:
-                    agenda = agenda[0]
-
-                serialized_t = ObjectID.objects.get_or_create(
-                    typeName='DirectAssessmentTask', primaryID=task.id
-                )
-
-                _task_done_for_user = task.next_item_for_user(user) is None
-                if _task_done_for_user:
-                    agenda.complete_open_task(serialized_t[0])
-
-                else:
-                    agenda.activate_completed_task(serialized_t[0])
+        # Process TaskAgenda instances for current campaign
+        _process_campaign_agendas(CONTEXT)
