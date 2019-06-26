@@ -234,7 +234,7 @@ class Command(BaseCommand):
 
             try:
                 _tasks_map = _get_tasks_map_for_language_pair(
-                    source, target
+                    source, target, CONTEXT
                 )
 
             except (LookupError, ValueError) as _exc:
