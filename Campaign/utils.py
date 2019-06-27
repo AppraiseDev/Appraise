@@ -103,10 +103,10 @@ def _process_campaign_agendas(context):
 
             _task_done_for_user = task.next_item_for_user(user) is None
             if _task_done_for_user:
-                agenda.complete_open_task(serialized_t[0])
+                agenda.complete_task(serialized_t[0])
 
             else:
-                agenda.activate_completed_task(serialized_t[0])
+                agenda.activate_task(serialized_t[0])
 
 
 def _process_campaign_teams(language_pairs, owner, context):

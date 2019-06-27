@@ -3086,8 +3086,11 @@ class TaskAgenda(models.Model):
     def completed_tasks(self):
         return (x.get_object_instance() for x in self._completed_tasks.all())
 
-    def activate_completed_task(self, task):
-        if not task in self._completed_tasks.all():
+    def activate_task(self, task):
+        return self.activate_completed_task(task, only_completed=False)
+
+    def activate_completed_task(self, task, only_completed=True):
+        if only_completed and not task in self._completed_tasks.all():
             return False
 
         self._completed_tasks.remove(task)
@@ -3097,8 +3100,11 @@ class TaskAgenda(models.Model):
 
         return True
 
+    def complete_task(self, task):
+        return self.complete_open_task(task, only_open=False)
+
     def complete_open_task(self, task):
-        if not task in self._open_tasks.all():
+        if only_open and not task in self._open_tasks.all():
             return False
 
         self._open_tasks.remove(task)
