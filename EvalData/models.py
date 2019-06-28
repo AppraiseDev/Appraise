@@ -3103,7 +3103,7 @@ class TaskAgenda(models.Model):
     def complete_task(self, task):
         return self.complete_open_task(task, only_open=False)
 
-    def complete_open_task(self, task):
+    def complete_open_task(self, task, only_open=False):
         if only_open and not task in self._open_tasks.all():
             return False
 
