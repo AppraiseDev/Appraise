@@ -398,6 +398,11 @@ def dashboard(request):
             tasks_to_complete = []
             for serialized_open_task in agenda.serialized_open_tasks():
                 open_task = serialized_open_task.get_object_instance()
+
+                # Skip tasks which are not available anymore
+                if open_task is None:
+                    continue
+
                 if open_task.next_item_for_user(request.user) is not None:
                     current_task = open_task
                     campaign = agenda.campaign
