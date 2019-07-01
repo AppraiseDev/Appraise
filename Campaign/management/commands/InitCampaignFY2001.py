@@ -15,9 +15,9 @@ from Campaign.utils import (
 )
 from Dashboard.models import validate_language_code
 
-EX_LANGUAGES = ('afr', 'nld', 'ron', 'slv', 'swe',)
+EX_LANGUAGES = ('afr', 'nld', 'ron', 'slv', 'swe')
 
-XE_LANGUAGES = ('afr', 'fas', 'lav', 'nld', 'slk', 'swe', 'urd',)
+XE_LANGUAGES = ('afr', 'fas', 'lav', 'nld', 'slk', 'swe', 'urd')
 
 XY_LANGUAGES = ()
 
@@ -118,7 +118,12 @@ class Command(BaseCommand):
         )
 
         # Process Market and Metadata instances for all language pairs
-        _process_market_and_metadata(_all_languages, superusers[0])
+        _process_market_and_metadata(
+            _all_languages,
+            superusers[0],
+            domain_name='AppenFY20',
+            corpus_name='AppenFY20',
+        )
         self.stdout.write('Processed Market/Metadata instances')
 
         # Create User accounts for all language pairs. We collect the
