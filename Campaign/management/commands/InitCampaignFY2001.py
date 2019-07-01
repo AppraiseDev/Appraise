@@ -15,9 +15,9 @@ from Campaign.utils import (
 )
 from Dashboard.models import validate_language_code
 
-EX_LANGUAGES = ('afr', 'nld', 'ron', 'slv', 'swe')
+EX_LANGUAGES = ('afr', 'fas', 'lav', 'nld', 'slk', 'swe', 'urd')
 
-XE_LANGUAGES = ('afr', 'fas', 'lav', 'nld', 'slk', 'swe', 'urd')
+XE_LANGUAGES = ('afr', 'nld', 'ron', 'slv', 'swe')
 
 XY_LANGUAGES = ()
 
