@@ -3090,6 +3090,12 @@ class TaskAgenda(models.Model):
         return self.activate_completed_task(task, only_completed=False)
 
     def activate_completed_task(self, task, only_completed=True):
+        if not isinstance(task, ObjectID):
+            raise ValueError(
+                'Invalid task {0!r} not ObjectID '
+                'instance'.format(task)
+            )
+
         if only_completed and not task in self._completed_tasks.all():
             return False
 
@@ -3104,6 +3110,12 @@ class TaskAgenda(models.Model):
         return self.complete_open_task(task, only_open=False)
 
     def complete_open_task(self, task, only_open=False):
+        if not isinstance(task, ObjectID):
+            raise ValueError(
+                'Invalid task {0!r} not ObjectID '
+                'instance'.format(task)
+            )
+
         if only_open and not task in self._open_tasks.all():
             return False
 
