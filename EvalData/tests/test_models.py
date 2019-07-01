@@ -35,7 +35,12 @@ class TaskAgendaTests(TestCase):
         )
 
         non_existing_task = 'does-not-exist'
-        self.assertFalse(agenda.complete_open_task(non_existing_task))
+        expected_message = (
+            'Invalid task {0!r} not ObjectID '
+            'instance'.format(non_existing_task)
+        )
+        with self.assertRaisesMessage(ValueError, expected_message):
+            agenda.complete_open_task(non_existing_task)
 
     def test_completed_task_moved_correctly(self):
         """
