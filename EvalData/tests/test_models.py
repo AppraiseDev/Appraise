@@ -30,8 +30,7 @@ class TaskAgendaTests(TestCase):
 
     def test_cannot_complete_non_existing_task(self):
         agenda = TaskAgenda.objects.create(
-            user=self.valid_user,
-            campaign=self.valid_campaign,
+            user=self.valid_user, campaign=self.valid_campaign
         )
 
         non_existing_task = 'does-not-exist'
@@ -47,13 +46,11 @@ class TaskAgendaTests(TestCase):
         Completing an open task moves it from _open_tasks to _completed_tasks.
         """
         agenda = TaskAgenda.objects.create(
-            user=self.valid_user,
-            campaign=self.valid_campaign,
+            user=self.valid_user, campaign=self.valid_campaign
         )
 
         dummy_task = ObjectID.objects.create(
-            typeName='DirectAssessmentTask',
-            primaryID='123'
+            typeName='DirectAssessmentTask', primaryID='123'
         )
         agenda._open_tasks.add(dummy_task)
 
@@ -65,16 +62,16 @@ class TaskAgendaTests(TestCase):
 class MarketTests(TestCase):
     def test_cannot_exceed_max_length_for_source_language_code(self):
         pass
-    
+
     def test_cannot_exceed_max_length_for_target_language_code(self):
         pass
-    
+
     def test_cannot_exceed_max_length_for_domain_name(self):
         pass
-    
+
     def test_cannot_recreate_existing_market(self):
         pass
-    
+
     def test_cannot_modify_market_id(self):
         pass
 
@@ -102,13 +99,13 @@ class MetadataTests(TestCase):
 
     def test_cannot_exceed_maxlength_for_corpus_name(self):
         pass
-    
+
     def test_cannot_exceed_maxlength_for_version_info(self):
         pass
-    
+
     def test_cannot_exceed_maxlength_for_source(self):
         pass
-    
+
     def test_cannot_not_set_market(self):
         pass
 
@@ -153,13 +150,17 @@ class TextSegmentTests(TestCase):
         """
         Test that valid instance has createdBy set.
         """
-        self.assertTrue(hasattr(TextSegmentTests.valid_textsegment, 'createdBy'))
+        self.assertTrue(
+            hasattr(TextSegmentTests.valid_textsegment, 'createdBy')
+        )
 
     def test_valid_instance_has_datecreated(self):
         """
         Test that valid instance has dateCreated set.
         """
-        self.assertTrue(hasattr(TextSegmentTests.valid_textsegment, 'dateCreated'))
+        self.assertTrue(
+            hasattr(TextSegmentTests.valid_textsegment, 'dateCreated')
+        )
 
     def test_cannot_use_negative_integer_as_id(self):
         """
@@ -213,6 +214,7 @@ class TextSegmentTests(TestCase):
         a string longer than .models.MAX_SEGMENTTEXT_LENGTH as value.
         """
         from EvalData.models import MAX_SEGMENTTEXT_LENGTH
+
         _too_long_string = 'a' * (MAX_SEGMENTTEXT_LENGTH + 1)
 
         test_obj = TextSegmentTests.valid_textsegment
@@ -249,6 +251,7 @@ class TextSegmentTests(TestCase):
         sentenceText should accept up to max_length Unicode characters.
         """
         from EvalData.models import MAX_SEGMENTTEXT_LENGTH
+
         _correct_length_string = '\u0394' * MAX_SEGMENTTEXT_LENGTH
 
         test_obj = TextSegmentTests.valid_textsegment
@@ -292,6 +295,7 @@ class TextSegmentTests(TestCase):
         itemType cannot be set to too long value.
         """
         from EvalData.models import MAX_SEGMENTID_LENGTH
+
         _too_long_bad_itemtype = 'F' * (MAX_SEGMENTID_LENGTH + 1)
 
         test_obj = TextSegmentTests.valid_textsegment
@@ -303,6 +307,7 @@ class TextSegmentTests(TestCase):
         itemType can be set to known values.
         """
         from EvalData.models import SET_ITEMTYPE_CHOICES
+
         test_obj = TextSegmentTests.valid_textsegment
 
         for itemtype in SET_ITEMTYPE_CHOICES:
