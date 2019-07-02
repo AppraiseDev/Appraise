@@ -12,14 +12,14 @@ from Campaign.utils import (
     _process_campaign_teams,
     _process_market_and_metadata,
     _process_users,
+    _validate_language_codes,
 )
-from Dashboard.models import validate_language_code
 
 EX_LANGUAGES = ('afr', 'nld', 'ron', 'slv', 'swe')
-
 XE_LANGUAGES = ('afr', 'fas', 'lav', 'nld', 'slk', 'swe', 'urd')
-
 XY_LANGUAGES = ()
+
+_validate_language_codes(EX_LANGUAGES + XE_LANGUAGES + XY_LANGUAGES)
 
 # Allows for arbitrary task to annotator mappings.
 #
@@ -58,12 +58,6 @@ CONTEXT = {
     'TASKS': TASKS,
     'TASKS_TO_ANNOTATORS': TASKS_TO_ANNOTATORS,
 }
-
-for code in EX_LANGUAGES + XE_LANGUAGES + XY_LANGUAGES:
-    if not validate_language_code(code):
-        raise CommandError(
-            '{0!r} contains invalid language code!'.format(code)
-        )
 
 for ex_code in EX_LANGUAGES:
     TASKS_TO_ANNOTATORS[('eng', ex_code)] = _create_uniform_task_map(
