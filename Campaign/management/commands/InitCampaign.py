@@ -43,22 +43,24 @@ class Command(BaseCommand):
         # Load manifest data, this may raise CommandError
         manifest_data = _load_campaign_manifest(manifest_json)
 
-        EX_LANGUAGES = tuple(manifest_data['EX_LANGUAGES'])
-        XE_LANGUAGES = tuple(manifest_data['XE_LANGUAGES'])
-        XY_LANGUAGES = tuple(manifest_data['XY_LANGUAGES'])
-        _validate_language_codes(
-            EX_LANGUAGES + XE_LANGUAGES + XY_LANGUAGES
-        )
-
+        # TODO: refactor into _create_context()
         GENERATORS = {'uniform': _create_uniform_task_map}
+        ALL_LANGUAGES = []
+        ALL_LANGUAGE_CODES = set()
         TASKS_TO_ANNOTATORS = {}
         for pair_data in manifest_data['TASKS_TO_ANNOTATORS']:
             source_code, target_code, mode, annotators, tasks = pair_data
+
+            ALL_LANGUAGES.append((source_code, target_code))
+            ALL_LANGUAGE_CODES.add(source_code)
+            ALL_LANGUAGE_CODES.add(target_code)
 
             generator = GENERATORS[mode]
             TASKS_TO_ANNOTATORS[(source_code, target_code)] = generator(
                 annotators, tasks, manifest_data['REDUNDANCY']
             )
+
+        _validate_language_codes(ALL_LANGUAGE_CODES)
 
         CONTEXT = {
             'CAMPAIGN_KEY': manifest_data['CAMPAIGN_KEY'],
@@ -68,6 +70,7 @@ class Command(BaseCommand):
             'REDUNDANCY': manifest_data['REDUNDANCY'],
             'TASKS_TO_ANNOTATORS': TASKS_TO_ANNOTATORS,
         }
+        # END refactor
 
         csv_output = options['csv_output']
         self.stdout.write('CSV output path: {0!r}'.format(csv_output))
@@ -84,16 +87,9 @@ class Command(BaseCommand):
             'Identified superuser: {0}'.format(superusers[0])
         )
 
-        # Compute list of all language pairs
-        _all_languages = (
-            [('eng', _tgt) for _tgt in EX_LANGUAGES]
-            + [(_src, 'eng') for _src in XE_LANGUAGES]
-            + [(_src, _tgt) for _src, _tgt in XY_LANGUAGES]
-        )
-
         # Process Market and Metadata instances for all language pairs
         _process_market_and_metadata(
-            _all_languages,
+            ALL_LANGUAGES,
             superusers[0],
             domain_name='AppenFY20',
             corpus_name='AppenFY20',
@@ -102,7 +98,7 @@ class Command(BaseCommand):
 
         # Create User accounts for all language pairs. We collect the
         # resulting user credentials for later print out/CSV export.
-        credentials = _process_users(_all_languages, CONTEXT)
+        credentials = _process_users(ALL_LANGUAGES, CONTEXT)
         self.stdout.write('Processed User instances')
 
         # Print credentials to screen.
@@ -120,7 +116,7 @@ class Command(BaseCommand):
                 out_file.writelines(csv_lines)
 
         # Add User instances as CampaignTeam members
-        _process_campaign_teams(_all_languages, superusers[0], CONTEXT)
+        _process_campaign_teams(ALL_LANGUAGES, superusers[0], CONTEXT)
         self.stdout.write('Processed CampaignTeam members')
 
         # Process TaskAgenda instances for current campaign
