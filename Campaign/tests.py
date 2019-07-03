@@ -57,7 +57,7 @@ class TestInitCampaign(TestCase):
             }
 
             expected_msg = (
-                'Campaign {0!r} does not exist. No task agendas'
+                'Campaign {0!r} does not exist. No task agendas '
                 'have been assigned.'.format(campaign_name)
             )
 
