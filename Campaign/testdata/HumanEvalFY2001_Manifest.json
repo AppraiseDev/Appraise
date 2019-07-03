@@ -1,0 +1,22 @@
+{
+    "CAMPAIGN_URL": "http://example.org/sso/",
+    "CAMPAIGN_NAME": "HumanEvalFY2001",
+    "CAMPAIGN_KEY": "FY2001",
+    "CAMPAIGN_NO": 241,
+    "REDUNDANCY": 1,
+
+    "TASKS_TO_ANNOTATORS": [
+        ["eng", "afr", "uniform", 5, 10],
+        ["eng", "fas", "uniform", 5, 10],
+        ["eng", "lav", "uniform", 5, 10],
+        ["eng", "nld", "uniform", 5, 10],
+        ["eng", "slk", "uniform", 5, 10],
+        ["eng", "swe", "uniform", 5, 10],
+        ["eng", "urd", "uniform", 5, 10],
+        ["afr", "eng", "uniform", 5, 10],
+        ["nld", "eng", "uniform", 5, 10],
+        ["ron", "eng", "uniform", 5, 10],
+        ["slv", "eng", "uniform", 5, 10],
+        ["swe", "eng", "uniform", 5, 10]
+    ]
+}
