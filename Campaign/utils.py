@@ -5,6 +5,7 @@ See LICENSE for usage details
 """
 from collections import defaultdict
 from hashlib import md5
+from json import JSONDecodeError, load
 
 from django.contrib.auth.models import User
 from django.core.management.base import CommandError
@@ -197,6 +198,29 @@ def _get_tasks_map_for_language_pair(source_code, target_code, context):
         raise ValueError(_msg)
 
     return _tasks_map
+
+
+def _load_campaign_manifest(json_path):
+    """Loads campaign manifest data from JSON file.
+
+    Parameters:
+    - json_path:str specifies path to JSON file containing manifest.
+
+    Raises:
+    - CommandError in case of errors parsing/loading from JSON file.
+
+    Returns:
+    - campaign_data:dict[str]->any campaign data parsed from JSON file.
+    """
+    with open(json_path, encoding='utf-8') as json_file:
+        try:
+            campaign_data = load(json_file)
+
+        except JSONDecodeError as exc:
+            raise CommandError(exc)
+
+        else:
+            return campaign_data
 
 
 def _map_tasks_to_users_by_market(tasks, context):
