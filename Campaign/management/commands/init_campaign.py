@@ -23,6 +23,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             'manifest-json',
+            metavar='manifest_json',
             type=str,
             help='Path to manifest file in JSON format',
         )
@@ -36,7 +37,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        manifest_json = options['manifest-json']
+        manifest_json = options['manifest_json']
         self.stdout.write(
             'JSON manifest path: {0!r}'.format(manifest_json)
         )
