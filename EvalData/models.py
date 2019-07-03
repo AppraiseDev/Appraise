@@ -7,6 +7,7 @@ See LICENSE for usage details
 import logging
 from collections import defaultdict
 from datetime import datetime, timedelta
+from inspect import currentframe, getframeinfo
 from json import loads
 from re import compile as re_compile
 from traceback import format_exc
@@ -3139,7 +3140,7 @@ class TaskAgenda(models.Model):
     @classmethod
     @add_deprecated_method
     def reassign_tasks(cls, old_username, new_username):
-        _method = 'reassign_tasks'  # TODO: how to identify method name?
+        _method = getframeinfo(currentframe()).function
         _msg = '{0}.{1} deprecated as of 5/27/2019.'.format(cls, _method)
         raise NotImplementedError(_msg)
 
