@@ -69,9 +69,10 @@ class Command(BaseCommand):
 
         # TODO: add rollback in case of errors
         for batch_data in campaign.batches.filter(dataValid=True):
-            task_cls = CAMPAIGN_TASK_TYPES.get(campaign_type, None)
+            try:
+                task_cls = CAMPAIGN_TASK_TYPES.get(campaign_type)
 
-            if not task_cls:
+            except KeyError:
                 raise CommandError(
                     'Invalid campaign type {0}'.format(campaign_type)
                 )
