@@ -69,13 +69,8 @@ class Command(BaseCommand):
 
         # TODO: add rollback in case of errors
         for batch_data in campaign.batches.filter(dataValid=True):
-            try:
-                task_cls = CAMPAIGN_TASK_TYPES.get(campaign_type)
-
-            except KeyError:
-                raise CommandError(
-                    'Invalid campaign type {0}'.format(campaign_type)
-                )
+            # We have already verified that campaign_type is valid
+            task_cls = CAMPAIGN_TASK_TYPES.get(campaign_type)
 
             try:
                 task_cls.import_from_json(
