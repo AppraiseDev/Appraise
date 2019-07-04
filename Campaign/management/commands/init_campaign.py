@@ -3,7 +3,11 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+from datetime import datetime
+
 from django.core.management.base import BaseCommand, CommandError
+
+from tablib import Dataset
 
 from Campaign.utils import (
     _create_uniform_task_map,
@@ -25,7 +29,7 @@ class Command(BaseCommand):
             'manifest_json',
             metavar='manifest-json',
             type=str,
-            help='Path to manifest file in JSON format',
+            help='Path to manifest file in JSON format.',
         )
 
         parser.add_argument(
@@ -34,6 +38,14 @@ class Command(BaseCommand):
             default=None,
             metavar='--csv',
             help='Path used to create CSV file containing credentials.',
+        )
+
+        parser.add_argument(
+            '--xlsx-output',
+            type=str,
+            default=None,
+            metavar='--xlsx',
+            help='Path used to create Excel file containing credentials.',
         )
 
     def handle(self, *args, **options):
@@ -82,6 +94,15 @@ class Command(BaseCommand):
                 )
             )
 
+        xlsx_output = options['xlsx_output']
+        self.stdout.write('Excel output path: {0!r}'.format(xlsx_output))
+        if xlsx_output and not xlsx_output.lower().endswith('.xlsx'):
+            raise CommandError(
+                'xlsx_output {0!r} does not point to .xlsx file'.format(
+                    xlsx_output
+                )
+            )
+
         # Find super user
         superusers = _identify_super_users()
         self.stdout.write(
@@ -115,6 +136,20 @@ class Command(BaseCommand):
                 csv_lines.append(','.join((_user, _password, _url)) + '\n')
             with open(csv_output, mode='w') as out_file:
                 out_file.writelines(csv_lines)
+
+        # Write credentials to Excel file if specified.
+        if xlsx_output:
+            base_url = manifest_data['CAMPAIGN_URL']
+            xlsx_data = Dataset()
+            xlsx_data.headers = ('Username', 'Password', 'URL')
+            xlsx_data.title = datetime.strftime(datetime.now(), '%Y%m%d')
+
+            for _user, _password in credentials.items():
+                _url = '{0}{1}/{2}/'.format(base_url, _user, _password)
+                xlsx_data.append((_user, _password, _url))
+
+            with open(xlsx_output, mode='wb') as out_file:
+                out_file.write(xlsx_data.export('xlsx'))
 
         # Add User instances as CampaignTeam members
         _process_campaign_teams(ALL_LANGUAGES, superusers[0], CONTEXT)
