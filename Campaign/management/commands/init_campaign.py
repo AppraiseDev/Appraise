@@ -127,29 +127,25 @@ class Command(BaseCommand):
         for username, secret in credentials.items():
             print(username, secret)
 
+        # Generate Dataset with user credentials and SSO URLs
+        export_data = Dataset()
+        export_data.headers = ('Username', 'Password', 'URL')
+        export_data.title = datetime.strftime(datetime.now(), '%Y%m%d')
+
+        base_url = manifest_data['CAMPAIGN_URL']
+        for _user, _password in credentials.items():
+            _url = '{0}{1}/{2}/'.format(base_url, _user, _password)
+            export_data.append((_user, _password, _url))
+
         # Write credentials to CSV file if specified.
         if csv_output:
-            base_url = manifest_data['CAMPAIGN_URL']
-            csv_lines = [','.join(('Username', 'Password', 'URL')) + '\n']
-            for _user, _password in credentials.items():
-                _url = '{0}{1}/{2}/'.format(base_url, _user, _password)
-                csv_lines.append(','.join((_user, _password, _url)) + '\n')
-            with open(csv_output, mode='w') as out_file:
-                out_file.writelines(csv_lines)
+            with open(csv_output, mode='w', newline='') as out_file:
+                out_file.write(export_data.export('csv'))
 
         # Write credentials to Excel file if specified.
         if xlsx_output:
-            base_url = manifest_data['CAMPAIGN_URL']
-            xlsx_data = Dataset()
-            xlsx_data.headers = ('Username', 'Password', 'URL')
-            xlsx_data.title = datetime.strftime(datetime.now(), '%Y%m%d')
-
-            for _user, _password in credentials.items():
-                _url = '{0}{1}/{2}/'.format(base_url, _user, _password)
-                xlsx_data.append((_user, _password, _url))
-
             with open(xlsx_output, mode='wb') as out_file:
-                out_file.write(xlsx_data.export('xlsx'))
+                out_file.write(export_data.export('xlsx'))
 
         # Add User instances as CampaignTeam members
         _process_campaign_teams(ALL_LANGUAGES, superusers[0], CONTEXT)
