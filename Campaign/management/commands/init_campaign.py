@@ -174,7 +174,15 @@ class Command(BaseCommand):
             with open(csv_output, mode='w', newline='') as out_file:
                 out_file.write(export_data.export('csv'))
 
+            self.stdout.write(
+                'Exported CSV file: {0!r}'.format(csv_output)
+            )
+
         # Write credentials to Excel file if specified.
         if xlsx_output:
             with open(xlsx_output, mode='wb') as out_file:
                 out_file.write(export_data.export('xlsx'))
+
+            self.stdout.write(
+                'Exported Excel file: {0!r}'.format(xlsx_output)
+            )
