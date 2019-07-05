@@ -112,7 +112,7 @@ def _validate_tasks_to_annotators_map(tasks_to_annotators, redundancy):
 
     if not isinstance(tasks_to_annotators, list):
         raise ValidationError(
-            "manifest.json key 'TASKS_TO_ANNOTATORS' should be "
+            "manifest.json key 'TASKS_TO_ANNOTATORS' should have "
             'list type, is {0!r}'.format(tasks_to_annotators)
         )
 
@@ -121,7 +121,7 @@ def _validate_tasks_to_annotators_map(tasks_to_annotators, redundancy):
         if not isinstance(item, list):
             raise ValidationError(
                 "manifest.json key 'TASKS_TO_ANNOTATORS' list "
-                'item should list type, is {0!r}'.format(item)
+                'item should have list type, is {0!r}'.format(item)
             )
 
         if not len(item) == 5:
@@ -168,8 +168,8 @@ def _validate_tasks_to_annotators_map(tasks_to_annotators, redundancy):
         expected = annotators * 2 * redundancy
         if not expected == tasks:
             raise ValidationError(
-                "manifest.json key 'TASKS_TO_ANNOTATORS' list item has bad "
-                'task map ({0} * 2 * {1} != {2}), check {3!r}'.format(
+                "manifest.json key 'TASKS_TO_ANNOTATORS' list item has "
+                'bad task map ({0} * 2 * {1} != {2}), check {3!r}'.format(
                     annotators, redundancy, tasks, item
                 )
             )
