@@ -2,6 +2,9 @@
 Campaign models.py
 """
 # pylint: disable=C0111,C0330,E1101
+from json import JSONDecodeError, loads
+from zipfile import ZipFile, is_zipfile
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
@@ -21,6 +24,129 @@ MAX_FILEFILED_SIZE = (
     10
 )  # TODO: this does not get enforced currently; remove?
 MAX_CAMPAIGNNAME_LENGTH = 250
+
+
+{
+    "CAMPAIGN_URL": "http://msrmt.appraise.cf/dashboard/sso/",
+    "CAMPAIGN_NAME": "HumanEvalFY2003",
+    "CAMPAIGN_KEY": "FY2003",
+    "CAMPAIGN_NO": 243,
+    "REDUNDANCY": 1,
+    "TASKS_TO_ANNOTATORS": [
+        ["eng", "trk", "uniform", 18, 36],
+        ["trk", "eng", "uniform", 18, 36],
+    ],
+}
+
+
+def _validate_manifest_json(manifest_json):
+    '''Validates manifest JSON data.
+
+    Parameters:
+    - manifest_json:str contains manifest.json contents for validation.
+
+    Raises:
+    - JSONDecodeError in case of invalid JSON contents;
+    - ValidationError in case of missing manifest data.
+    '''
+    manifest_data = loads(manifest_json)  # May raise JSONDecodeError
+
+    if not isinstance(manifest_data, dict):
+        raise ValidationError('manifest.json should contain single object')
+
+    required_keys = (
+        'CAMPAIGN_URL',
+        'CAMPAIGN_NAME',
+        'CAMPAIGN_KEY',
+        'CAMPAIGN_NO',
+        'REDUNDANCY',
+        'TASKS_TO_ANNOTATORS',
+    )
+    for required_key in required_keys:
+        if not required_key in manifest_data.keys():
+            raise ValidationError(
+                'manifest.json should contain {0!r} key'.format(
+                    required_key
+                )
+            )
+
+    # Validate string types
+    string_types = ('CAMPAIGN_URL', 'CAMPAIGN_NAME', 'CAMPAIGN_KEY')
+    for string_type in string_types:
+        if not isinstance(manifest_data[string_type], str):
+            raise ValidationError(
+                'manifest.json key {0!r} should be string type, '
+                'is {1!r}'.format(string_type, manifest_data[string_type])
+            )
+
+    # Validate int types
+    int_types = ('CAMPAIGN_NO', 'REDUNDANCY')
+    for int_type in int_types:
+        if not isinstance(manifest_data[int_type], int):
+            raise ValidationError(
+                'manifest.json key {0!r} should be number (int) type, '
+                'is {1!r}'.format(int_type, manifest_data[int_type])
+            )
+
+    # Validate TASKS_TO_ANNOTATORS
+    #
+    # This should be an array of arrays, like this:
+    #     "TASKS_TO_ANNOTATORS": [
+    #         ["eng", "trk", "uniform", 18, 36],
+    #         ["trk", "eng", "uniform", 18, 36]
+    #     ]
+    #
+    # Each inner array should have five values:
+    #     1. string: source language code
+    #     2. string: target language code
+    #     3. string: task map setup mode
+    #     4. int: number of annotators
+    #     5. int: number of tasks
+    tasks_to_annotators = manifest_data['TASKS_TO_ANNOTATORS']
+    if not isinstance(tasks_to_annotators, list):
+        raise ValidationError(
+            "manifest.json key 'TASKS_TO_ANNOTATORS' should be "
+            'list type, is {0!r}'.format(tasks_to_annotators)
+        )
+
+
+def _validate_package_file(package_file):
+    '''Validates package file.
+
+    Parameters:
+    - package_file:FieldFile contains binary contents of package ZIP file.
+
+    Raises:
+    - django.core.exceptions.ValidationError if package file is invalid.
+    '''
+    if not package_file.name.lower().endswith('.zip'):
+        raise ValidationError(
+            'Invalid package file {0!r} -- expected '
+            "'.zip' extension".format(package_file.name)
+        )
+
+    if not is_zipfile(package_file):
+        raise ValidationError(
+            'Invalid package file {0!r} -- expected '
+            'valid ZIP archive'.format(package_file.name)
+        )
+
+    package_zip = ZipFile(package_file)
+    if not 'manifest.json' in package_zip.namelist():
+        raise ValidationError(
+            'Invalid package file {0!r} -- expected '
+            'manifest.json'.format(package_file.name)
+        )
+
+    manifest_json = package_zip.read('manifest.json').decode('utf-8')
+    try:
+        _validate_manifest_json(manifest_json)
+
+    except JSONDecodeError as exc:
+        raise ValidationError(
+            'Invalid package file {0!r} -- bad JSON: '
+            '{1}'.format(package_file.name, exc)
+        )
 
 
 class CampaignTeam(BaseMetadata):
@@ -190,7 +316,6 @@ class Campaign(BaseMetadata):
     teams = models.ManyToManyField(
         CampaignTeam,
         blank=True,
-        null=True,
         related_name='%(app_label)s_%(class)s_teams',
         related_query_name="%(app_label)s_%(class)ss",
         verbose_name=_('Teams'),
@@ -199,7 +324,6 @@ class Campaign(BaseMetadata):
     batches = models.ManyToManyField(
         CampaignData,
         blank=True,
-        null=True,
         related_name='%(app_label)s_%(class)s_batches',
         related_query_name="%(app_label)s_%(class)ss",
         verbose_name=_('Batches'),
@@ -210,6 +334,7 @@ class Campaign(BaseMetadata):
         null=True,
         verbose_name=_('Package file'),
         upload_to='Packages',
+        validators=[_validate_package_file],
     )
 
     def _generate_str_name(self):
