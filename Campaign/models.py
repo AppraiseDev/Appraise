@@ -227,6 +227,12 @@ def _validate_package_file(package_file):
             '{1}'.format(package_file.name, exc)
         )
 
+    if not 'Batches/' in package_zip.namelist():
+        raise ValidationError(
+            'Invalid package file {0!r} -- expected '
+            'Batches/ folder'.format(package_file.name)
+        )
+
     return True
 
 
