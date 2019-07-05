@@ -53,8 +53,39 @@ class Command(BaseCommand):
         self.stdout.write(
             'JSON manifest path: {0!r}'.format(manifest_json)
         )
+
+        csv_output = options['csv_output']
+        self.stdout.write('CSV output path: {0!r}'.format(csv_output))
+        if csv_output and not csv_output.lower().endswith('.csv'):
+            raise CommandError(
+                'csv_output {0!r} does not point to .csv file'.format(
+                    csv_output
+                )
+            )
+
+        xlsx_output = options['xlsx_output']
+        self.stdout.write('Excel output path: {0!r}'.format(xlsx_output))
+        if xlsx_output and not xlsx_output.lower().endswith('.xlsx'):
+            raise CommandError(
+                'xlsx_output {0!r} does not point to .xlsx file'.format(
+                    xlsx_output
+                )
+            )
+
         # Load manifest data, this may raise CommandError
         manifest_data = _load_campaign_manifest(manifest_json)
+
+        # Initialise campaign based on manifest data
+        self.init_campaign(manifest_data, csv_output, xlsx_output)
+
+    def init_campaign(self, manifest_data, csv_output, xlsx_output):
+        '''Initialises campaign based on manifest data.
+
+        Parameters:
+        - manifest_data:dict[str]->any dictionary containing manifest data;
+        - csv_output:str path to CSV output file, or None;
+        - xlsx_output:str path to Excel output file, or None.
+        '''
 
         # TODO: refactor into _create_context()
         GENERATORS = {'uniform': _create_uniform_task_map}
@@ -84,24 +115,6 @@ class Command(BaseCommand):
             'TASKS_TO_ANNOTATORS': TASKS_TO_ANNOTATORS,
         }
         # END refactor
-
-        csv_output = options['csv_output']
-        self.stdout.write('CSV output path: {0!r}'.format(csv_output))
-        if csv_output and not csv_output.lower().endswith('.csv'):
-            raise CommandError(
-                'csv_output {0!r} does not point to .csv file'.format(
-                    csv_output
-                )
-            )
-
-        xlsx_output = options['xlsx_output']
-        self.stdout.write('Excel output path: {0!r}'.format(xlsx_output))
-        if xlsx_output and not xlsx_output.lower().endswith('.xlsx'):
-            raise CommandError(
-                'xlsx_output {0!r} does not point to .xlsx file'.format(
-                    xlsx_output
-                )
-            )
 
         # Find super user
         superusers = _identify_super_users()
@@ -137,6 +150,25 @@ class Command(BaseCommand):
             _url = '{0}{1}/{2}/'.format(base_url, _user, _password)
             export_data.append((_user, _password, _url))
 
+        # Export credentials to CSV or Excel files, if specified
+        self.export_credentials(export_data, csv_output, xlsx_output)
+
+        # Add User instances as CampaignTeam members
+        _process_campaign_teams(ALL_LANGUAGES, superusers[0], CONTEXT)
+        self.stdout.write('Processed CampaignTeam members')
+
+        # Process TaskAgenda instances for current campaign
+        _process_campaign_agendas(CONTEXT)
+
+    def export_credentials(self, export_data, csv_output, xlsx_output):
+        '''Export credentials to screen, CSV and Excel files.
+
+        Parameters:
+        - export_data:Dataset contains triples (username, password, url);
+        - csv_output:str path to CSV output file, or None;
+        - xlsx_output:str path to Excel output file, or None.
+        '''
+
         # Write credentials to CSV file if specified.
         if csv_output:
             with open(csv_output, mode='w', newline='') as out_file:
@@ -146,10 +178,3 @@ class Command(BaseCommand):
         if xlsx_output:
             with open(xlsx_output, mode='wb') as out_file:
                 out_file.write(export_data.export('xlsx'))
-
-        # Add User instances as CampaignTeam members
-        _process_campaign_teams(ALL_LANGUAGES, superusers[0], CONTEXT)
-        self.stdout.write('Processed CampaignTeam members')
-
-        # Process TaskAgenda instances for current campaign
-        _process_campaign_agendas(CONTEXT)
