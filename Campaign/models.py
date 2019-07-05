@@ -91,9 +91,9 @@ def _validate_tasks_to_annotators_map(tasks_to_annotators, redundancy):
         ]
 
     Each inner array should have five values:
-        1. string: source language code
-        2. string: target language code
-        3. string: task map setup mode
+        1. str: source language code
+        2. str: target language code
+        3. str: task map setup mode
         4. int: number of annotators
         5. int: number of tasks
 
