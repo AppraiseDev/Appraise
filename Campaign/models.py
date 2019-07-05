@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.utils.text import format_lazy as f
 from django.utils.translation import ugettext_lazy as _
 
+from Dashboard.models import validate_language_code
 from EvalData.models import (
     AnnotationTaskRegistry,
     BaseMetadata,
@@ -24,19 +25,6 @@ MAX_FILEFILED_SIZE = (
     10
 )  # TODO: this does not get enforced currently; remove?
 MAX_CAMPAIGNNAME_LENGTH = 250
-
-
-{
-    "CAMPAIGN_URL": "http://msrmt.appraise.cf/dashboard/sso/",
-    "CAMPAIGN_NAME": "HumanEvalFY2003",
-    "CAMPAIGN_KEY": "FY2003",
-    "CAMPAIGN_NO": 243,
-    "REDUNDANCY": 1,
-    "TASKS_TO_ANNOTATORS": [
-        ["eng", "trk", "uniform", 18, 36],
-        ["trk", "eng", "uniform", 18, 36],
-    ],
-}
 
 
 def _validate_manifest_json(manifest_json):
@@ -88,26 +76,103 @@ def _validate_manifest_json(manifest_json):
                 'is {1!r}'.format(int_type, manifest_data[int_type])
             )
 
-    # Validate TASKS_TO_ANNOTATORS
-    #
-    # This should be an array of arrays, like this:
-    #     "TASKS_TO_ANNOTATORS": [
-    #         ["eng", "trk", "uniform", 18, 36],
-    #         ["trk", "eng", "uniform", 18, 36]
-    #     ]
-    #
-    # Each inner array should have five values:
-    #     1. string: source language code
-    #     2. string: target language code
-    #     3. string: task map setup mode
-    #     4. int: number of annotators
-    #     5. int: number of tasks
     tasks_to_annotators = manifest_data['TASKS_TO_ANNOTATORS']
+    redundancy = manifest_data['REDUNDANCY']
+    _validate_tasks_to_annotators_map(tasks_to_annotators, redundancy)
+
+
+def _validate_tasks_to_annotators_map(tasks_to_annotators, redundancy):
+    '''Validates TASKS_TO_ANNOTATORS data.
+
+    This should be an array of arrays, like this:
+        "TASKS_TO_ANNOTATORS": [
+            ["eng", "trk", "uniform", 18, 36],
+            ["trk", "eng", "uniform", 18, 36]
+        ]
+
+    Each inner array should have five values:
+        1. string: source language code
+        2. string: target language code
+        3. string: task map setup mode
+        4. int: number of annotators
+        5. int: number of tasks
+
+    Currently, the only supported task map setup mode is "uniform";
+    this requires the following invariant:
+
+        annotators * 2 * redundancy == tasks
+
+    Parameters:
+    - tasks_to_annototators:dict contains TASKS_TO_ANNOTATORS dict;
+    - redundancy:int specifies campaign redundancy.
+
+    Raises:
+    - ValidationError in case of missing manifest data.
+    '''
+
     if not isinstance(tasks_to_annotators, list):
         raise ValidationError(
             "manifest.json key 'TASKS_TO_ANNOTATORS' should be "
             'list type, is {0!r}'.format(tasks_to_annotators)
         )
+
+    # Validate items in TASKS_TO_ANNOTATORS
+    for item in tasks_to_annotators:
+        if not isinstance(item, list):
+            raise ValidationError(
+                "manifest.json key 'TASKS_TO_ANNOTATORS' list "
+                'item should list type, is {0!r}'.format(item)
+            )
+
+        if not len(item) == 5:
+            raise ValidationError(
+                "manifest.json key 'TASKS_TO_ANNOTATORS' list "
+                'item should be 5-tuple, is {0!r}'.format(item)
+            )
+
+        source_code, target_code, mode, annotators, tasks = item
+
+        # Vaidate correct item type signature: <str, str, str, int, int>
+        correct_types = [
+            isinstance(x, str) for x in (source_code, target_code, mode)
+        ]
+        correct_types.extend(
+            [isinstance(x, int) for x in (annotators, tasks)]
+        )
+        if not all(correct_types):
+            raise ValidationError(
+                "manifest.json key 'TASKS_TO_ANNOTATORS' list "
+                'item should have <str, str, str, int, int> '
+                'signature, is {0!r}'.format(item)
+            )
+
+        # Validate that source_code/target_code are valid language codes
+        valid_language_codes = [
+            validate_language_code(x) for x in (source_code, target_code)
+        ]
+        if not all(valid_language_codes):
+            raise ValidationError(
+                "manifest.json key 'TASKS_TO_ANNOTATORS' list item "
+                'has invalid language codes, check {0!r}'.format(item)
+            )
+
+        # Validate mode is set to "uniform" -- which is the only task
+        # map creation mode currently supported. For "uniform" mode, we
+        # also require that: annotators * 2 * REDUNDANCY == tasks.
+        if not mode.lower() == 'uniform':
+            raise ValidationError(
+                "manifest.json key 'TASKS_TO_ANNOTATORS' list item only"
+                'supports "uniform" mode, check {0!r}'.format(item)
+            )
+
+        expected = annotators * 2 * redundancy
+        if not expected == tasks:
+            raise ValidationError(
+                "manifest.json key 'TASKS_TO_ANNOTATORS' list item has bad "
+                'task map ({0} * 2 * {1} != {2}), check {3!r}'.format(
+                    annotators, redundancy, tasks, item
+                )
+            )
 
 
 def _validate_package_file(package_file):
