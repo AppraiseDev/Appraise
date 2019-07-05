@@ -83,7 +83,7 @@ class CampaignAdmin(BaseMetadataAdmin):
 
     fieldsets = (
       (None, {
-        'fields': ('campaignName', 'teams', 'batches')
+        'fields': ('campaignName', 'packageFile', 'teams', 'batches')
       }),
     ) + BaseMetadataAdmin.fieldsets
 
