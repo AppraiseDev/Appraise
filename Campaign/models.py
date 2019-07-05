@@ -189,6 +189,8 @@ class Campaign(BaseMetadata):
 
     teams = models.ManyToManyField(
         CampaignTeam,
+        blank=True,
+        null=True,
         related_name='%(app_label)s_%(class)s_teams',
         related_query_name="%(app_label)s_%(class)ss",
         verbose_name=_('Teams'),
@@ -196,9 +198,18 @@ class Campaign(BaseMetadata):
 
     batches = models.ManyToManyField(
         CampaignData,
+        blank=True,
+        null=True,
         related_name='%(app_label)s_%(class)s_batches',
         related_query_name="%(app_label)s_%(class)ss",
         verbose_name=_('Batches'),
+    )
+
+    packageFile = models.FileField(
+        blank=True,
+        null=True,
+        verbose_name=_('Package file'),
+        upload_to='Packages',
     )
 
     def _generate_str_name(self):
