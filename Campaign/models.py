@@ -36,6 +36,9 @@ def _validate_manifest_json(manifest_json):
     Raises:
     - JSONDecodeError in case of invalid JSON contents;
     - ValidationError in case of missing manifest data.
+
+    Returns:
+    - True if validation is successful.
     '''
     manifest_data = loads(manifest_json)  # May raise JSONDecodeError
 
@@ -80,27 +83,30 @@ def _validate_manifest_json(manifest_json):
     redundancy = manifest_data['REDUNDANCY']
     _validate_tasks_to_annotators_map(tasks_to_annotators, redundancy)
 
+    return True
+
 
 def _validate_tasks_to_annotators_map(tasks_to_annotators, redundancy):
     '''Validates TASKS_TO_ANNOTATORS data.
 
-    This should be an array of arrays, like this:
-        "TASKS_TO_ANNOTATORS": [
-            ["eng", "trk", "uniform", 18, 36],
-            ["trk", "eng", "uniform", 18, 36]
-        ]
+    Description:
+        This should be an array of arrays, like this:
+            "TASKS_TO_ANNOTATORS": [
+                ["eng", "trk", "uniform", 18, 36],
+                ["trk", "eng", "uniform", 18, 36]
+            ]
 
-    Each inner array should have five values:
-        1. str: source language code
-        2. str: target language code
-        3. str: task map setup mode
-        4. int: number of annotators
-        5. int: number of tasks
+        Each inner array should have five values:
+            1. str: source language code
+            2. str: target language code
+            3. str: task map setup mode
+            4. int: number of annotators
+            5. int: number of tasks
 
-    Currently, the only supported task map setup mode is "uniform";
-    this requires the following invariant:
+        Currently, the only supported task map setup mode is "uniform";
+        this requires the following invariant:
 
-        annotators * 2 * redundancy == tasks
+            annotators * 2 * redundancy == tasks
 
     Parameters:
     - tasks_to_annototators:dict contains TASKS_TO_ANNOTATORS dict;
@@ -108,6 +114,9 @@ def _validate_tasks_to_annotators_map(tasks_to_annotators, redundancy):
 
     Raises:
     - ValidationError in case of missing manifest data.
+
+    Returns:
+    - True if validation is successful.
     '''
 
     if not isinstance(tasks_to_annotators, list):
@@ -174,6 +183,8 @@ def _validate_tasks_to_annotators_map(tasks_to_annotators, redundancy):
                 )
             )
 
+    return True
+
 
 def _validate_package_file(package_file):
     '''Validates package file.
@@ -183,6 +194,9 @@ def _validate_package_file(package_file):
 
     Raises:
     - django.core.exceptions.ValidationError if package file is invalid.
+
+    Returns:
+    - True if validation is successful.
     '''
     if not package_file.name.lower().endswith('.zip'):
         raise ValidationError(
@@ -212,6 +226,8 @@ def _validate_package_file(package_file):
             'Invalid package file {0!r} -- bad JSON: '
             '{1}'.format(package_file.name, exc)
         )
+
+    return True
 
 
 class CampaignTeam(BaseMetadata):
