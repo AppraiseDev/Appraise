@@ -6,18 +6,21 @@ See LICENSE for usage details
 from pathlib import Path
 
 from django.contrib.auth.models import User
+from django.core.files.base import File
 from django.core.management.base import CommandError
 from django.test import TestCase
 
+from Campaign.models import _validate_package_file, Campaign
+
 
 class TestInitCampaign(TestCase):
-    """Tests init_campaign management command."""
+    '''Tests init_campaign management command.'''
 
     def setUp(self):
         User.objects.create(username="admin", is_superuser=True)
 
     def test_creates_correct_csv_for_sample_manifests(self):
-        """Verifies correct CSV creation for sample manifests."""
+        '''Verifies correct CSV creation for sample manifests.'''
         from Campaign.management.commands.init_campaign import Command
 
         test_data = (
@@ -69,3 +72,15 @@ class TestInitCampaign(TestCase):
 
             # Clean up
             out_path.unlink()
+
+    def test_validates_good_package_file(self):
+        '''Verifies that good package file passes validation.'''
+        package_file = Path(
+            'Campaign/testdata/ValidManifest/ValidManifest.zip'
+        )
+
+        campaign = Campaign()
+        campaign.campaignName = 'SomeCampaignName'
+        campaign.packageFile = File(package_file.open(mode='rb'))
+
+        self.assertTrue(_validate_package_file(campaign.packageFile))
