@@ -1,0 +1,9 @@
+{
+    "CAMPAIGN_URL": "http://example.org/sso/",
+    "CAMPAIGN_NAME": "HumanEvalFY2003",
+    "CAMPAIGN_KEY": "FY2003",
+    "CAMPAIGN_NO": 243,
+    "REDUNDANCY": 1,
+
+    "TASKS_TO_ANNOTATORS": 123
+}

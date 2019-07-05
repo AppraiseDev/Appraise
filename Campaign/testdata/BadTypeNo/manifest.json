@@ -1,0 +1,12 @@
+{
+    "CAMPAIGN_URL": "http://example.org/sso/",
+    "CAMPAIGN_NAME": "HumanEvalFY2003",
+    "CAMPAIGN_KEY": "FY2003",
+    "CAMPAIGN_NO": "Not a number (int) value...",
+    "REDUNDANCY": 1,
+
+    "TASKS_TO_ANNOTATORS": [
+        ["eng", "trk", "uniform", 18, 36],
+        ["trk", "eng", "uniform", 18, 36]
+    ]
+}

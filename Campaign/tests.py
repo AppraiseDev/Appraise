@@ -6,6 +6,7 @@ See LICENSE for usage details
 from pathlib import Path
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.core.files.base import File
 from django.core.management.base import CommandError
 from django.test import TestCase
@@ -84,3 +85,65 @@ class TestInitCampaign(TestCase):
         campaign.packageFile = File(package_file.open(mode='rb'))
 
         self.assertTrue(_validate_package_file(campaign.packageFile))
+
+    def test_invalidates_bad_package_files(self):
+        '''Verifies that bad package files raise ValidationError.'''
+        package_paths = (
+            (
+                'BadCode/BadCode.zip',
+                "manifest.json key 'TASKS_TO_ANNOTATORS' list item has "
+                "invalid language codes, check ['eng', 'abc', 'uniform', "
+                "18, 36]",
+            ),
+            (
+                'BadContent/BadContent.zip',
+                "manifest.json should contain 'CAMPAIGN_KEY' key",
+            ),
+            (
+                'BadJSONType/BadJSONType.zip',
+                'manifest.json should contain single object',
+            ),
+            (
+                'BadTaskMap/BadTaskMap.zip',
+                "manifest.json key 'TASKS_TO_ANNOTATORS' list item has "
+                "bad task map (17 * 2 * 1 != 36), check ['eng', 'trk', "
+                "'uniform', 17, 36]",
+            ),
+            (
+                'BadTaskMapRedundancy/BadTaskMapRedundancy.zip',
+                "manifest.json key 'TASKS_TO_ANNOTATORS' list item has "
+                "bad task map (18 * 2 * 2 != 36), check ['trk', 'eng', "
+                "'uniform', 18, 36]",
+            ),
+            (
+                'BadTypeNo/BadTypeNo.zip',
+                "manifest.json key 'CAMPAIGN_NO' should be number (int) "
+                "type, is 'Not a number (int) value...'",
+            ),
+            (
+                'BadTypeTasksToAnnotators/BadTypeTasksToAnnotators.zip',
+                "manifest.json key 'TASKS_TO_ANNOTATORS' should have list "
+                'type, is 123',
+            ),
+            (
+                'BadTypeTasksToAnnotatorsItem/BadTypeTasksToAnnotatorsItem.zip',
+                "manifest.json key 'TASKS_TO_ANNOTATORS' list item should "
+                "have <str, str, str, int, int> signature, is ['trk', 123, "
+                "'uniform', 18, 36]",
+            ),
+            (
+                'BadTypeURL/BadTypeURL.zip',
+                "manifest.json key 'CAMPAIGN_URL' should be string type, "
+                'is 123',
+            ),
+        )
+
+        for package_path, expected_msg in package_paths:
+            package_file = 'Campaign/testdata' / Path(package_path)
+
+            campaign = Campaign()
+            campaign.campaignName = 'SomeCampaignName'
+            campaign.packageFile = File(package_file.open(mode='rb'))
+
+            with self.assertRaisesMessage(ValidationError, expected_msg):
+                _validate_package_file(campaign.packageFile)
