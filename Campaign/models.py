@@ -233,6 +233,24 @@ def _validate_package_file(package_file):
             'Batches/ folder'.format(package_file.name)
         )
 
+    batches_zips = [
+        x
+        for x in package_zip.namelist()
+        if x.startswith('Batches/') and x.endswith('.zip')
+    ]
+
+    if not batches_zips:
+        raise ValidationError(
+            'Invalid package file {0!r} -- expected at least one '
+            'batch ZIP archive file'.format(package_file.name)
+        )
+
+    # TODO:
+    #
+    # 1. Ensure that batch ZIP archive files match all language pairs;
+    # 2. Ensure that for each such batch file, number of tasks is correct;
+    # 3. Ensure that all batch files are valid.
+
     return True
 
 
