@@ -253,7 +253,7 @@ def _validate_package_file(package_file):
         raise ValidationError(
             'Invalid package file {0!r} -- wrong number of batches '
             '({1} != {2})'.format(
-                package_path.name, len(manifest_tasks), len(batches_json)
+                package_path.name, len(batches_json), len(manifest_tasks)
             )
         )
 
