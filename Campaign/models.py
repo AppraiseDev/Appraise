@@ -3,6 +3,7 @@ Campaign models.py
 """
 # pylint: disable=C0111,C0330,E1101
 from json import JSONDecodeError, loads
+from pathlib import Path
 from zipfile import ZipFile, is_zipfile
 
 from django.db import models
@@ -118,7 +119,6 @@ def _validate_tasks_to_annotators_map(tasks_to_annotators, redundancy):
     Returns:
     - True if validation is successful.
     '''
-
     if not isinstance(tasks_to_annotators, list):
         raise ValidationError(
             "manifest.json key 'TASKS_TO_ANNOTATORS' should have "
@@ -198,6 +198,8 @@ def _validate_package_file(package_file):
     Returns:
     - True if validation is successful.
     '''
+    package_path = Path(package_file.name)
+
     if not package_file.name.lower().endswith('.zip'):
         raise ValidationError(
             'Invalid package file {0!r} -- expected '
@@ -242,20 +244,21 @@ def _validate_package_file(package_file):
     if not batches_json:
         raise ValidationError(
             'Invalid package file {0!r} -- expected at least one '
-            'batch JSON archive file'.format(package_file.name)
+            'batch JSON archive file'.format(package_path.name)
         )
 
     manifest_data = loads(manifest_json)
     manifest_tasks = manifest_data['TASKS_TO_ANNOTATORS']
     if not len(manifest_tasks) == len(batches_json):
         raise ValidationError(
-            'Invalid package file {0!r} -- expected at least one '
-            'batch JSON archive file'.format(package_file.name)
+            'Invalid package file {0!r} -- wrong number of batches '
+            '({1} != {2})'.format(
+                package_path.name, len(manifest_tasks), len(batches_json)
+            )
         )
 
     for task in manifest_tasks:
         source_code, target_code, mode, annotators, tasks = task
-
 
     # TODO:
     #

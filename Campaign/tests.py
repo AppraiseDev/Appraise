@@ -135,11 +135,16 @@ class TestInitCampaign(TestCase):
                 'is 123',
             ),
             (
+
                 'ValidManifest/ValidManifest.zip',
-                "Invalid package file 'Campaign\\\\\\\\testdata\\\\\\\\"
-                "ValidManifest\\\\\\\\ValidManifest.zip' -- expected at "
+                "Invalid package file 'ValidManifest.zip' -- expected at "
                 'least one batch JSON archive file',
-            ),  # Requires \\\\\\\\ due to implicit double repr()
+            ),
+            (
+                'ValidManifestNoBatches/ValidManifestNoBatches.zip',
+                "Invalid package file 'ValidManifestNoBatches.zip' -- "
+                'expected at least one batch JSON archive file',
+            ),
         )
 
         for package_path, expected_msg in package_paths:
