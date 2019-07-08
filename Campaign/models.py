@@ -202,20 +202,20 @@ def _validate_package_file(package_file):
         raise ValidationError(
             'Invalid package file {0!r} -- expected '
             "'.zip' extension".format(package_file.name)
-        )
+        )  # TODO: add test
 
     if not is_zipfile(package_file):
         raise ValidationError(
             'Invalid package file {0!r} -- expected '
             'valid ZIP archive'.format(package_file.name)
-        )
+        )  # TODO: add test
 
     package_zip = ZipFile(package_file)
     if not 'manifest.json' in package_zip.namelist():
         raise ValidationError(
             'Invalid package file {0!r} -- expected '
             'manifest.json'.format(package_file.name)
-        )
+        )  # TODO: add test
 
     manifest_json = package_zip.read('manifest.json').decode('utf-8')
     try:
