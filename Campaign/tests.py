@@ -124,7 +124,8 @@ class TestInitCampaign(TestCase):
                 'type, is 123',
             ),
             (
-                'BadTypeTasksToAnnotatorsItem/BadTypeTasksToAnnotatorsItem.zip',
+                'BadTypeTasksToAnnotatorsItem/BadTypeTasksToAnnotators'
+                'Item.zip',
                 "manifest.json key 'TASKS_TO_ANNOTATORS' list item should "
                 "have <str, str, str, int, int> signature, is ['trk', 123, "
                 "'uniform', 18, 36]",
@@ -135,15 +136,15 @@ class TestInitCampaign(TestCase):
                 'is 123',
             ),
             (
-
                 'ValidManifest/ValidManifest.zip',
                 "Invalid package file 'ValidManifest.zip' -- expected at "
                 'least one batch JSON archive file',
             ),
             (
-                'ValidManifestNoBatches/ValidManifestNoBatches.zip',
-                "Invalid package file 'ValidManifestNoBatches.zip' -- "
-                'expected at least one batch JSON archive file',
+                'ValidManifestNotEnoughBatches/ValidManifestNotEnough'
+                'Batches.zip',
+                "Invalid package file 'ValidManifestNotEnoughBatches.zip' -- "
+                'wrong number of batches (1 != 9)',
             ),
         )
 
