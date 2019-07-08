@@ -225,25 +225,37 @@ def _validate_package_file(package_file):
         raise ValidationError(
             'Invalid package file {0!r} -- bad JSON: '
             '{1}'.format(package_file.name, exc)
-        )
+        )  # TODO: add test
 
     if not 'Batches/' in package_zip.namelist():
         raise ValidationError(
             'Invalid package file {0!r} -- expected '
             'Batches/ folder'.format(package_file.name)
-        )
+        )  # TODO: add test
 
-    batches_zips = [
+    batches_json = [
         x
         for x in package_zip.namelist()
-        if x.startswith('Batches/') and x.endswith('.zip')
+        if x.startswith('Batches/') and x.endswith('.json')
     ]
 
-    if not batches_zips:
+    if not batches_json:
         raise ValidationError(
             'Invalid package file {0!r} -- expected at least one '
-            'batch ZIP archive file'.format(package_file.name)
+            'batch JSON archive file'.format(package_file.name)
         )
+
+    manifest_data = loads(manifest_json)
+    manifest_tasks = manifest_data['TASKS_TO_ANNOTATORS']
+    if not len(manifest_tasks) == len(batches_json):
+        raise ValidationError(
+            'Invalid package file {0!r} -- expected at least one '
+            'batch JSON archive file'.format(package_file.name)
+        )
+
+    for task in manifest_tasks:
+        source_code, target_code, mode, annotators, tasks = task
+
 
     # TODO:
     #

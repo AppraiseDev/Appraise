@@ -138,7 +138,7 @@ class TestInitCampaign(TestCase):
                 'ValidManifest/ValidManifest.zip',
                 "Invalid package file 'Campaign\\\\\\\\testdata\\\\\\\\"
                 "ValidManifest\\\\\\\\ValidManifest.zip' -- expected at "
-                'least one batch ZIP archive file',
+                'least one batch JSON archive file',
             ),  # Requires \\\\\\\\ due to implicit double repr()
         )
 
