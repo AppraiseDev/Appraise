@@ -229,7 +229,10 @@ def _validate_package_file(package_file):
             '{1}'.format(package_file.name, exc)
         )  # TODO: add test
 
-    if not 'Batches/' in package_zip.namelist():
+    contains_batches_folder = any(
+        [x.startswith('Batches/') for x in package_zip.namelist()]
+    )
+    if not contains_batches_folder:
         raise ValidationError(
             'Invalid package file {0!r} -- expected '
             'Batches/ folder'.format(package_file.name)
