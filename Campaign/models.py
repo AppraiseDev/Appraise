@@ -262,14 +262,18 @@ def _validate_package_file(package_file):
             )
         )
 
-    for task in manifest_tasks:
-        source_code, target_code, mode, annotators, tasks = task
+    # Capture from task definition:
+    # - source_code: 0;
+    # - target_code: 1;
+    # - tasks: 4.
+    task_data_from_manifest = set(((x[0], x[1], x[4]) for x in manifest_tasks))
+    print(task_data_from_manifest)
 
     # TODO:
     #
-    # 1. Ensure that batch ZIP archive files match all language pairs;
-    # 2. Ensure that for each such batch file, number of tasks is correct;
-    # 3. Ensure that all batch files are valid.
+    # 1. Loop over all batch JSON files;
+    # 2. Validate batch JSON data;
+    # 3. Extract source_code, target_code, tasks
 
     return True
 
