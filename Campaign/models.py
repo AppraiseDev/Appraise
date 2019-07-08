@@ -28,6 +28,8 @@ MAX_FILEFILED_SIZE = (
 MAX_CAMPAIGNNAME_LENGTH = 250
 
 
+# TODO: _validate_task_json(task_json)
+
 def _validate_manifest_json(manifest_json):
     '''Validates manifest JSON data.
 
@@ -167,7 +169,7 @@ def _validate_tasks_to_annotators_map(tasks_to_annotators, redundancy):
 
         # Validate mode is set to "uniform" -- which is the only task
         # map creation mode currently supported. For "uniform" mode, we
-        # also require that: annotators * 2 * REDUNDANCY == tasks.
+        # also require that: annotators * 2 * redundancy == tasks.
         if not mode.lower() == 'uniform':
             raise ValidationError(
                 "manifest.json key 'TASKS_TO_ANNOTATORS' list item only"
