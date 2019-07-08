@@ -76,9 +76,7 @@ class TestInitCampaign(TestCase):
 
     def test_validates_good_package_file(self):
         '''Verifies that good package file passes validation.'''
-        package_file = Path(
-            'Campaign/testdata/ValidManifest/ValidManifest.zip'
-        )
+        package_file = Path('Campaign/testdata/FY2002/FY2002.zip')
 
         campaign = Campaign()
         campaign.campaignName = 'SomeCampaignName'
@@ -136,6 +134,12 @@ class TestInitCampaign(TestCase):
                 "manifest.json key 'CAMPAIGN_URL' should be string type, "
                 'is 123',
             ),
+            (
+                'ValidManifest/ValidManifest.zip',
+                "Invalid package file 'Campaign\\\\\\\\testdata\\\\\\\\"
+                "ValidManifest\\\\\\\\ValidManifest.zip' -- expected at "
+                'least one batch ZIP archive file',
+            ),  # Requires \\\\\\\\ due to implicit double repr()
         )
 
         for package_path, expected_msg in package_paths:
