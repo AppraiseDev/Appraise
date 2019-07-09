@@ -765,51 +765,13 @@ def multimodal_systems(request):
 
 
 @login_required
+@add_deprecated_method
 def metrics_status(request):
-    """
-    Appraise system status page.
-    """
-    _t1 = datetime.now()
-
-    context = {'active_page': 'system-status'}
-    context.update(BASE_CONTEXT)
-
-    _t2 = datetime.now()
-    task_data = DirectAssessmentTask.objects.filter(
-        id__in=[x + 5427 for x in range(48)]
+    _method = getframeinfo(currentframe()).function
+    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format(
+        'Dashboard.views', _method
     )
-    _t3 = datetime.now()
-    task_status = []
-    for task in task_data.order_by('id'):
-        source_language = (
-            task.items.first().metadata.market.sourceLanguageCode
-        )
-        target_language = (
-            task.items.first().metadata.market.targetLanguageCode
-        )
-        annotators = task.assignedTo.count()
-        results = task.evaldata_directassessmentresult_task.count()
-        task_status.append(
-            (
-                task.id,
-                source_language,
-                target_language,
-                annotators,
-                round(100 * annotators / 15.0),
-                results,
-                round(100 * results / (15 * 70.0)),
-            )
-        )
-    _t4 = datetime.now()
-    context.update(
-        {
-            'task_status': task_status,
-            'debug_times': (_t2 - _t1, _t3 - _t2, _t4 - _t3, _t4 - _t1),
-            'template_debug': 'debug' in request.GET,
-        }
-    )
-
-    return render(request, 'Dashboard/metrics-status.html', context)
+    raise NotImplementedError(_msg)
 
 
 @login_required
