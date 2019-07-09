@@ -74,11 +74,6 @@ urlpatterns = [
         name='dashboard'),
 
     url(
-        r'^group-status/$',
-        dashboard_views.group_status,
-        name='group-status'), # TODO: remove?
-
-    url(
         r'^direct-assessment/$',
         evalview_views.direct_assessment,
         name='direct-assessment'),
