@@ -30,6 +30,13 @@ LOGGER = logging.getLogger('Dashboard.views')
 LOGGER.addHandler(LOG_HANDLER)
 
 
+RESULT_TYPE_BY_CLASS_NAME = {
+    'DirectAssessmentTask': DirectAssessmentResult,
+    'DirectAssessmentContextTask': DirectAssessmentContextResult,
+    'MultiModalAssessmentTasl': MultiModalAssessmentResult,
+}
+
+
 @login_required
 def campaign_status(request, campaign_name, sort_key=2):
     """
@@ -50,19 +57,19 @@ def campaign_status(request, campaign_name, sort_key=2):
     _out = []
     for team in campaign.teams.all():
         for user in team.members.all():
-            cls_name = campaign.get_campaign_type()
+            try:
+                result_type = RESULT_TYPE_BY_CLASS_NAME[
+                    campaign.get_campaign_type()
+                ]  # May raise KeyError
 
-            # TODO: not Pythonic enough yet...
-            result_type = None
-            if cls_name == 'DirectAssessmentTask':
-                result_type = DirectAssessmentResult
-            elif cls_name == 'DirectAssessmentContextTask':
-                result_type = DirectAssessmentContextResult
-            elif cls_name == 'MultiModalAssessmentTasl':
-                result_type = MultiModalAssessmentResult
-
-            if not result_type:
-                continue  # TODO: think whether we need to raise here?
+            except KeyError as exc:
+                LOGGER.debug(
+                    'Invalid campaign type %s for campaign %s',
+                    campaign.get_campaign_type(),
+                    campaign.campaign_name,
+                )
+                LOGGER.error(exc)
+                continue
 
             _data = result_type.objects.filter(
                 createdBy=user, completed=True, task__campaign=campaign.id
