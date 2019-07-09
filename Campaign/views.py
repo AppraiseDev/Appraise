@@ -11,17 +11,17 @@ from math import floor, sqrt
 
 # pylint: disable=import-error
 from django.contrib.auth.decorators import login_required
+from django.core.management.base import CommandError
 from django.http import HttpResponse
 
 from Appraise.settings import LOG_LEVEL, LOG_HANDLER
+from Campaign.utils import _get_campaign_instance
 from EvalData.models import (
     DirectAssessmentResult,
     DirectAssessmentContextResult,
     MultiModalAssessmentResult,
     seconds_to_timedelta,
 )
-
-from .models import Campaign
 
 
 # Setup logging support.
@@ -49,8 +49,12 @@ def campaign_status(request, campaign_name, sort_key=2):
 
     if sort_key is None:
         sort_key = 2
-    campaign = Campaign.objects.filter(campaignName=campaign_name).first()
-    if not campaign:
+
+    # Get Campaign instance for campaign name
+    try:
+        campaign = _get_campaign_instance(campaign_name)
+
+    except CommandError:
         _msg = 'Failure to identify campaign {0}'.format(campaign_name)
         return HttpResponse(_msg, content_type='text/plain')
 
