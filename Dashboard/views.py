@@ -726,44 +726,17 @@ def system_status(request):
     return render(request, 'Dashboard/system-status.html', context)
 
 
+# pylint: disable=missing-docstring
 @login_required
 def multimodal_systems(request):
-    """
-    Appraise system status page.
-    """
-    _t1 = datetime.now()
-
-    context = {'active_page': 'system-status'}
-    context.update(BASE_CONTEXT)
-
-    _t2 = datetime.now()
-    system_data = MultiModalAssessmentResult.get_system_status(
-        sort_index=1
+    _method = getframeinfo(currentframe()).function
+    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format(
+        'Dashboard.views', _method
     )
-    _t3 = datetime.now()
-    sorted_status = []
-    total_completed = 0
-    for code in system_data:
-        if not system_data[code]:
-            continue
-
-        for data in system_data[code]:
-            sorted_status.append((code, data[0], data[1]))
-            total_completed += data[1]
-
-    _t4 = datetime.now()
-    context.update(
-        {
-            'system_status': sorted_status,
-            'total_completed': total_completed,
-            'debug_times': (_t2 - _t1, _t3 - _t2, _t4 - _t3, _t4 - _t1),
-            'template_debug': 'debug' in request.GET,
-        }
-    )
-
-    return render(request, 'Dashboard/system-status.html', context)
+    raise NotImplementedError(_msg)
 
 
+# pylint: disable=missing-docstring
 @login_required
 @add_deprecated_method
 def metrics_status(request):
@@ -774,6 +747,7 @@ def metrics_status(request):
     raise NotImplementedError(_msg)
 
 
+# pylint: disable=missing-docstring
 @login_required
 @add_deprecated_method
 def fe17_status(request):
