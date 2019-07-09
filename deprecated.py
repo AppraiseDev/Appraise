@@ -31,6 +31,7 @@ def get_deprecated_methods():
     return _DEPRECATED_METHOD_REGISTRY
 
 
+# pylint: disable=undefined-variable
 def fe17_status(request):
     """
     Appraise system status page.
