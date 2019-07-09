@@ -94,11 +94,6 @@ urlpatterns = [
         name='multimodal-systems'), # TODO: remove?
 
     url(
-        r'^metrics-status/$',
-        dashboard_views.metrics_status,
-        name='metrics-status'),  # TODO: remove?
-
-    url(
         r'^direct-assessment/$',
         evalview_views.direct_assessment,
         name='direct-assessment'),
