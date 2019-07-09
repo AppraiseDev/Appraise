@@ -310,32 +310,6 @@ def dashboard(request):
         _hits, _total = result_cls.get_hit_status_for_user(request.user)
         hits, total_hits = hits + _hits, total_hits + _total
 
-    #        hits += _hits
-    #        total_hits += _total
-
-    #    annotations = DirectAssessmentResult.get_completed_for_user(
-    #        request.user
-    #    )
-    #    annotations += DirectAssessmentContextResult.get_completed_for_user(
-    #        request.user
-    #    )
-    #    annotations += MultiModalAssessmentResult.get_completed_for_user(
-    #        request.user
-    #    )
-    #    hits, total_hits = DirectAssessmentResult.get_hit_status_for_user(
-    #        request.user
-    #    )
-    #    _hits, _total_hits = DirectAssessmentContextResult.get_hit_status_for_user(
-    #        request.user
-    #    )
-    #    hits += _hits
-    #    total_hits += _total_hits
-    #    _hits, _total_hits = MultiModalAssessmentResult.get_hit_status_for_user(
-    #        request.user
-    #    )
-    #    hits += _hits
-    #    total_hits += _total_hits
-
     # If user still has an assigned task, only offer link to this task.
     current_task = DirectAssessmentTask.get_task_for_user(request.user)
 
