@@ -654,40 +654,14 @@ def group_status(request):
     return render(request, 'Dashboard/group-status.html', context)
 
 
+# pylint: disable=missing-docstring
 @login_required
 def multimodal_status(request):
-    """
-    Appraise group status page.
-    """
-    _t1 = datetime.now()
-
-    context = {'active_page': 'group-status'}
-    context.update(BASE_CONTEXT)
-
-    _t2 = datetime.now()
-    group_data = MultiModalAssessmentResult.compute_accurate_group_status()
-    _t3 = datetime.now()
-
-    _group_status = []
-    for group in group_data:
-        _group_status.append(
-            (group, group_data[group][0], group_data[group][1])
-        )
-
-    sorted_status = sorted(_group_status, key=lambda x: x[1], reverse=True)
-    _t4 = datetime.now()
-
-    context.update(
-        {
-            'group_status': list(sorted_status),
-            'sum_completed': sum([x[1] for x in _group_status]),
-            'sum_total': sum([x[2] for x in _group_status]),
-            'debug_times': (_t2 - _t1, _t3 - _t2, _t4 - _t3, _t4 - _t1),
-            'template_debug': 'debug' in request.GET,
-        }
+    _method = getframeinfo(currentframe()).function
+    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format(
+        'Dashboard.views', _method
     )
-
-    return render(request, 'Dashboard/group-status.html', context)
+    raise NotImplementedError(_msg)
 
 
 @login_required
