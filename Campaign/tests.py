@@ -69,7 +69,7 @@ class TestInitCampaign(TestCase):
             with self.assertRaisesMessage(CommandError, expected_msg):
                 cmd.handle(**options)
 
-            self.assertEqual(out_path.read_bytes(), csv_path.read_bytes())
+            self.assertEqual(out_path.read_text(), csv_path.read_text())
 
             # Clean up
             out_path.unlink()
