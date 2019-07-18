@@ -365,12 +365,14 @@ class Command(BaseCommand):
                         local_src_path, encoding, ignore_empty)
 
             for segment_id, segment_text in system_txt.items():
-                md5hash = hashlib.new(
-                    'md5', segment_text.encode(encoding)).hexdigest()
-
                 # TODO: fix long lines.
                 _src = local_src[segment_id] if use_local_src else source_file[segment_id]
                 _ref = local_ref[segment_id] if use_local_ref else reference_file[segment_id]
+
+                md5hash = hashlib.new(
+                    'md5', segment_text.encode(encoding) + _src.encode(encoding) + _ref.encode(encoding)
+                ).hexdigest()
+
                 _url = urls_file[segment_id] if urls_file else None
 
                 # Determine length of bad phrase, relative to segment length
