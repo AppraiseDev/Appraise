@@ -367,7 +367,11 @@ def _process_campaign_teams(language_pairs, owner, context):
         )
 
         for user_id in range(_annotators):
-            username = '{0}{1}{2:02x}{3:02x}'.format(
+            format_str = '{{0}}{{1}}{{2:0{0}x}}{{3:0{1}x}}'.format(
+                len(hex(context.get('CAMPAIGN_NO'))[2:]),
+                len(hex(_annotators)[2:])
+            )
+            username = format_str.format(
                 _src, _tgt, context.get('CAMPAIGN_NO'), user_id + 1
             )
 
@@ -427,7 +431,11 @@ def _process_users(language_pairs, context):
         _annotators = len(_tasks_map)
 
         for user_id in range(_annotators):
-            username = '{0}{1}{2:02x}{3:02x}'.format(
+            format_str = '{{0}}{{1}}{{2:0{0}x}}{{3:0{1}x}}'.format(
+                len(hex(context.get('CAMPAIGN_NO'))[2:]),
+                len(hex(_annotators)[2:])
+            )
+            username = format_str.format(
                 _src, _tgt, context.get('CAMPAIGN_NO'), user_id + 1
             )
 
