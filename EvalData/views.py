@@ -18,7 +18,7 @@ from .models import TaskAgenda
 
 
 @login_required
-@permission_required('EvalData.reset_taskagenda')
+@permission_required("EvalData.reset_taskagenda")
 def reset_taskagenda(request, agenda_id):
     """
     Attempts to reset the TaskAgenda matching the given pk.
