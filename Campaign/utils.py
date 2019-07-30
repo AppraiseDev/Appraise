@@ -366,11 +366,13 @@ def _process_campaign_teams(language_pairs, owner, context):
             context.get('CAMPAIGN_NAME'), owner, _tasks, _annotators
         )
 
+        # Hexadecimal ids are zero-prefixed and have at least two digits
+        format_str = '{{0}}{{1}}{{2:0{0}x}}{{3:0{1}x}}'.format(
+            max(len(hex(context.get('CAMPAIGN_NO'))[2:]), 2),
+            max(len(hex(_annotators)[2:]), 2)
+        )
+
         for user_id in range(_annotators):
-            format_str = '{{0}}{{1}}{{2:0{0}x}}{{3:0{1}x}}'.format(
-                len(hex(context.get('CAMPAIGN_NO'))[2:]),
-                len(hex(_annotators)[2:])
-            )
             username = format_str.format(
                 _src, _tgt, context.get('CAMPAIGN_NO'), user_id + 1
             )
@@ -430,11 +432,13 @@ def _process_users(language_pairs, context):
         _tasks_map = _get_tasks_map_for_language_pair(_src, _tgt, context)
         _annotators = len(_tasks_map)
 
+        # Hexadecimal ids are zero-prefixed and have at least two digits
+        format_str = '{{0}}{{1}}{{2:0{0}x}}{{3:0{1}x}}'.format(
+            max(len(hex(context.get('CAMPAIGN_NO'))[2:]), 2),
+            max(len(hex(_annotators)[2:]), 2)
+        )
+
         for user_id in range(_annotators):
-            format_str = '{{0}}{{1}}{{2:0{0}x}}{{3:0{1}x}}'.format(
-                len(hex(context.get('CAMPAIGN_NO'))[2:]),
-                len(hex(_annotators)[2:])
-            )
             username = format_str.format(
                 _src, _tgt, context.get('CAMPAIGN_NO'), user_id + 1
             )
