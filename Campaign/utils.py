@@ -153,9 +153,14 @@ def _get_tasks_by_market(tasks, context):
     required_keys = ('CAMPAIGN_NO', 'REDUNDANCY')
     _validate_required_keys(context, required_keys)
 
+    # Hexadecimal ids are zero-prefixed and have at least two digits
+    format_str = '{{0}}{{1:0{0}x}}'.format(
+        max(len(hex(context.get('CAMPAIGN_NO'))[2:]), 2)
+    )
+
     tasks_by_market = defaultdict(list)
     for task in tasks.order_by('id'):
-        key = '{0}{1:02x}'.format(
+        key = format_str.format(
             task.marketName().replace('_', '')[:6],
             context.get('CAMPAIGN_NO'),
         )
