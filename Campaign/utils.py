@@ -271,10 +271,10 @@ def _map_tasks_to_users_by_market(tasks, usernames, context):
 
         # Check that len(_tasks_for_current_key) == sum([len(tasks_for_user)])
         _available_tasks = len(_tasks_for_current_key)
-        _required_tasks = sum([len(x[1]) for x in _tasks_map])
+        _required_tasks = sum([len(x) for x in _tasks_map])
         if _available_tasks != _required_tasks:
             _msg = 'Mismatch of vailable/required tasks ({0} != {1})'.format(
-                (_available_tasks, _required_tasks)
+                _available_tasks, _required_tasks
             )
             raise CommandError(_msg)
 
