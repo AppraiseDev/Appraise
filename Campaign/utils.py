@@ -238,7 +238,7 @@ def _map_tasks_to_users_by_market(tasks, usernames, context):
     - context:dict specifices CAMPAIGN_NO, REDUNDANCY and TASKS_TO_ANNOTATORS.
 
     Raises:
-    - CommandError in case of missing required key.
+    - CommandError in case of missing required key or tasks/users issues.
 
     Returns:
     - tasks_to_users:dict[list[tuple(User,Task)]] maps tasks to users.
@@ -269,6 +269,15 @@ def _map_tasks_to_users_by_market(tasks, usernames, context):
 
         _tasks_for_current_key = tasks_by_market[key]
 
+        # Check that len(_tasks_for_current_key) == sum([len(tasks_for_user)])
+        _available_tasks = len(_tasks_for_current_key)
+        _required_tasks = sum([len(x[1]) for x in _tasks_map])
+        if _available_tasks != _required_tasks:
+            _msg = 'Mismatch of vailable/required tasks ({0} != {1})'.format(
+                (_available_tasks, _required_tasks)
+            )
+            raise CommandError(_msg)
+
         for user, tasks_for_user in zip(users.order_by('id'), _tasks_map):
             print(source_code, target_code, user, tasks_for_user)
             for task_id in tasks_for_user:
@@ -279,13 +288,14 @@ def _map_tasks_to_users_by_market(tasks, usernames, context):
     return tasks_to_users_map
 
 
-def _process_campaign_agendas(usernames, context):
+def _process_campaign_agendas(usernames, context, only_activated=True):
     """
     Processes TaskAgenda instances for campaign specified by CAMPAIGN_NAME.
 
     Parameters:
     - usernames:list specifies user names for campaign;
-    - context:dict specifices CAMPAIGN_NO, REDUNDANCY and TASKS_TO_ANNOTATORS.
+    - context:dict specifices CAMPAIGN_NO, REDUNDANCY and TASKS_TO_ANNOTATORS;
+    - only_activated:bool only include activated tasks for agenda creation.
 
     Raises:
     - CommandError in case of missing required key.
@@ -297,10 +307,12 @@ def _process_campaign_agendas(usernames, context):
     _campaign = _get_campaign_instance(context.get('CAMPAIGN_NAME'))
     print('Identified Campaign {0!r}'.format(context.get('CAMPAIGN_NAME')))
 
-    # Get all activated tasks for this campaign
-    tasks = DirectAssessmentTask.objects.filter(
-        campaign=_campaign, activated=True
-    )
+    # Get all tasks for this campaign
+    tasks = DirectAssessmentTask.objects.filter(campaign=_campaign)
+
+    # Constrain to only activated, if requested
+    if only_activated:
+        tasks = tasks.filter(activated=True)
 
     # Map tasks to users, by market, and considering TASKS_TO_ANNOTATORS
     tasks_to_users_map = _map_tasks_to_users_by_market(
@@ -378,7 +390,7 @@ def _process_campaign_teams(language_pairs, owner, context):
         # Hexadecimal ids are zero-prefixed and have at least two digits
         format_str = '{{0}}{{1}}{{2:0{0}x}}{{3:0{1}x}}'.format(
             max(len(hex(context.get('CAMPAIGN_NO'))[2:]), 2),
-            max(len(hex(_annotators)[2:]), 2)
+            max(len(hex(_annotators)[2:]), 2),
         )
 
         for user_id in range(_annotators):
@@ -444,7 +456,7 @@ def _process_users(language_pairs, context):
         # Hexadecimal ids are zero-prefixed and have at least two digits
         format_str = '{{0}}{{1}}{{2:0{0}x}}{{3:0{1}x}}'.format(
             max(len(hex(context.get('CAMPAIGN_NO'))[2:]), 2),
-            max(len(hex(_annotators)[2:]), 2)
+            max(len(hex(_annotators)[2:]), 2),
         )
 
         for user_id in range(_annotators):
