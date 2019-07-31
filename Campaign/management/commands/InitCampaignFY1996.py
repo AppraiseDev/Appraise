@@ -166,4 +166,4 @@ class Command(BaseCommand):
         self.stdout.write('Processed CampaignTeam members')
 
         # Process TaskAgenda instances for current campaign
-        _process_campaign_agendas(CONTEXT)
+        _process_campaign_agendas(credentials.keys(), CONTEXT)
