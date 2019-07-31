@@ -47,6 +47,11 @@ class Command(BaseCommand):
             metavar='--xlsx',
             help='Path used to create Excel file containing credentials.',
         )
+        parser.add_argument(
+            '--include-completed',
+            action='store_true',
+            help='Include completed tasks in task agenda re-assignment',
+        )
 
     def handle(self, *args, **options):
         manifest_json = options['manifest_json']
@@ -75,16 +80,25 @@ class Command(BaseCommand):
         # Load manifest data, this may raise CommandError
         manifest_data = _load_campaign_manifest(manifest_json)
 
-        # Initialise campaign based on manifest data
-        self.init_campaign(manifest_data, csv_output, xlsx_output)
+        # By default, we only include activated tasks into agenda creation.
+        # Compute Boolean flag based on negation of --include-completed state.
+        only_activated = not options['include_completed']
 
-    def init_campaign(self, manifest_data, csv_output, xlsx_output):
+        # Initialise campaign based on manifest data
+        self.init_campaign(
+            manifest_data, csv_output, xlsx_output, only_activated
+        )
+
+    def init_campaign(
+        self, manifest_data, csv_output, xlsx_output, only_activated=True
+    ):
         '''Initialises campaign based on manifest data.
 
         Parameters:
         - manifest_data:dict[str]->any dictionary containing manifest data;
         - csv_output:str path to CSV output file, or None;
-        - xlsx_output:str path to Excel output file, or None.
+        - xlsx_output:str path to Excel output file, or None;
+        - only_activated:bool only include activated tasks for agenda creation.
         '''
 
         # TODO: refactor into _create_context()
@@ -158,7 +172,9 @@ class Command(BaseCommand):
         self.stdout.write('Processed CampaignTeam members')
 
         # Process TaskAgenda instances for current campaign
-        _process_campaign_agendas(credentials.keys(), CONTEXT)
+        _process_campaign_agendas(
+            credentials.keys(), CONTEXT, only_activated=only_activated
+        )
 
     def export_credentials(self, export_data, csv_output, xlsx_output):
         '''Export credentials to screen, CSV and Excel files.
