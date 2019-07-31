@@ -44,7 +44,7 @@ urlpatterns = [
         name='sign-in'),
 
     url(
-        (r'^dashboard/sso/(?P<username>[a-zA-Z0-9]{10})/'
+        (r'^dashboard/sso/(?P<username>[a-zA-Z0-9]{10,12})/'
          r'(?P<password>[a-fA-F0-9]{8})/$'),
         dashboard_views.sso_login),
 
