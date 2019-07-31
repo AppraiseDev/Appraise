@@ -228,12 +228,13 @@ def _load_campaign_manifest(json_path):
             return campaign_data
 
 
-def _map_tasks_to_users_by_market(tasks, context):
+def _map_tasks_to_users_by_market(tasks, usernames, context):
     """
     Map tasks to users, by market, and considering TASKS_TO_ANNOTATORS.
 
     Parameters:
     - tasks:QuerySet contains task instances to map to users;
+    - usernames:list specifies user names for campaign;
     - context:dict specifices CAMPAIGN_NO, REDUNDANCY and TASKS_TO_ANNOTATORS.
 
     Raises:
@@ -252,7 +253,7 @@ def _map_tasks_to_users_by_market(tasks, context):
     tasks_to_users_map = defaultdict(list)
 
     for key in tasks_by_market:
-        users = User.objects.filter(username__startswith=key)
+        users = User.objects.filter(username__in=usernames)
 
         source_code = key[:3]
         target_code = key[3:6]
@@ -278,11 +279,12 @@ def _map_tasks_to_users_by_market(tasks, context):
     return tasks_to_users_map
 
 
-def _process_campaign_agendas(context):
+def _process_campaign_agendas(usernames, context):
     """
     Processes TaskAgenda instances for campaign specified by CAMPAIGN_NAME.
 
     Parameters:
+    - usernames:list specifies user names for campaign;
     - context:dict specifices CAMPAIGN_NO, REDUNDANCY and TASKS_TO_ANNOTATORS.
 
     Raises:
@@ -301,7 +303,9 @@ def _process_campaign_agendas(context):
     )
 
     # Map tasks to users, by market, and considering TASKS_TO_ANNOTATORS
-    tasks_to_users_map = _map_tasks_to_users_by_market(tasks, context)
+    tasks_to_users_map = _map_tasks_to_users_by_market(
+        tasks, usernames, context
+    )
 
     for key in tasks_to_users_map:
         print('[{0}]'.format(key))
