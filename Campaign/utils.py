@@ -254,7 +254,7 @@ def _map_tasks_to_users_by_market(tasks, usernames, context):
 
     for key in tasks_by_market:
         # Constrain set of users to those matching current market
-        _usernames = (x for x in usernames if x.startswith(key[:6]))
+        _usernames = (x for x in usernames if x.startswith(key))
         users = User.objects.filter(username__in=_usernames)
 
         source_code = key[:3]
@@ -340,6 +340,10 @@ def _process_campaign_agendas(usernames, context, only_activated=True):
             serialized_t = ObjectID.objects.get_or_create(
                 typeName='DirectAssessmentTask', primaryID=task.id
             )
+
+            # Only process current task if it is new
+            if agenda.contains_task(serialized_t[0]):
+                continue
 
             _task_done_for_user = task.next_item_for_user(user) is None
             if _task_done_for_user:

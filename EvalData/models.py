@@ -3127,6 +3127,18 @@ class TaskAgenda(models.Model):
 
         return True
 
+    def contains_task(self, task):
+        """
+        Returns True if task is assigned in this TaskAgenda, False otherwise.
+        """
+        if task in self._open_tasks.all():
+            return True
+
+        if task in self._completed_tasks.all():
+            return True
+
+        return False
+
     # TODO: decide whether this needs to be optimized.
     def __str__(self):
         return '{0}/{1}[{2}:{3}]'.format(
