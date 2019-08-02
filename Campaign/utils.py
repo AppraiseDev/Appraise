@@ -253,7 +253,9 @@ def _map_tasks_to_users_by_market(tasks, usernames, context):
     tasks_to_users_map = defaultdict(list)
 
     for key in tasks_by_market:
-        users = User.objects.filter(username__in=usernames)
+        # Constrain set of users to those matching current market
+        _usernames = (x for x in usernames if x.startswith(key[:6]))
+        users = User.objects.filter(username__in=_usernames)
 
         source_code = key[:3]
         target_code = key[3:6]
