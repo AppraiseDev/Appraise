@@ -73,6 +73,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'hat': 'Haitian Creole (kreyòl ayisyen)',
     'fil': 'Filipino (Wikang Filipino)',
     'tah': 'Tahitian (Reo Tahiti)',
+    'mri': 'Maori (Te reo Māori)',
 }
 
 # Ensure that all languages have a corresponding group.
