@@ -67,7 +67,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'swa': 'Swahili (Kiswahili)',
     'fij': 'Fijian (Na Vosa Vakaviti)',
     'ton': 'Tongan (lea faka-Tonga)',
-    'guj': 'Gujarathi (ગુજરાતી)',
+    'guj': 'Gujarati (ગુજરાતી)',
     'kaz': 'Kazakh (қазақша)',
     'zsm': 'Malaysian (bahasa Malaysia)',
     'hat': 'Haitian Creole (kreyòl ayisyen)',
@@ -77,7 +77,6 @@ LANGUAGE_CODES_AND_NAMES = {
     'pan': 'Punjabi (ਪੰਜਾਬੀ)',
     'kan': 'Kannada (ಕನ್ನಡ)',
     'mal': 'Malayalam (മലയാളം)',
-    'guj': 'Gujarati (ગુજરાતી)',
     'mar': 'Marathi (मराठी)',
     'kat': 'Georgian (ქართული)',
 }
