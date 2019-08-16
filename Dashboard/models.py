@@ -74,6 +74,12 @@ LANGUAGE_CODES_AND_NAMES = {
     'fil': 'Filipino (Wikang Filipino)',
     'tah': 'Tahitian (Reo Tahiti)',
     'mri': 'Maori (Te reo Māori)',
+    'pan': 'Punjabi (ਪੰਜਾਬੀ)',
+    'kan': 'Kannada (ಕನ್ನಡ)',
+    'mal': 'Malayalam (മലയാളം)',
+    'guj': 'Gujarati (ગુજરાતી)',
+    'mar': 'Marathi (मराठी)',
+    'kat': 'Georgian (ქართული)',
 }
 
 # Ensure that all languages have a corresponding group.
