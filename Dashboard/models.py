@@ -79,6 +79,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'mal': 'Malayalam (മലയാളം)',
     'mar': 'Marathi (मराठी)',
     'kat': 'Georgian (ქართული)',
+    'gle': 'Irish (Gaeilge)',
 }
 
 # Ensure that all languages have a corresponding group.
