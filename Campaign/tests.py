@@ -59,6 +59,7 @@ class TestInitCampaign(TestCase):
                 'manifest_json': str(json_path),
                 'csv_output': str(out_path),
                 'xlsx_output': None,  # Defaults to None
+                'include_completed': False,  # Defaults to False
             }
 
             expected_msg = (

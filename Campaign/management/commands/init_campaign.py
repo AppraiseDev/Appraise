@@ -50,6 +50,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--include-completed',
             action='store_true',
+            default=False,
             help='Include completed tasks in task agenda re-assignment',
         )
 
