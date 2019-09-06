@@ -28,14 +28,14 @@ RESULT_TYPE_BY_CLASS_NAME = {
     'MultiModalAssessmentTasl': MultiModalAssessmentResult,
 }
 
+LOGGER = _get_logger(name=__name__)
+
 
 @login_required
 def campaign_status(request, campaign_name, sort_key=2):
     """
     Campaign status view with completion details.
     """
-    LOGGER = _get_logger()
-
     LOGGER.info(
         'Rendering campaign status view for user "%s".',
         request.user.username or "Anonymous",
