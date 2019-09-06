@@ -48,6 +48,8 @@ SET_ITEMTYPE_CHOICES = (
   ('CHK', 'Redundant check')
 )
 
+LOGGER = _get_logger(name=__name__)
+
 
 def seconds_to_timedelta(value):
     """
@@ -84,8 +86,6 @@ class ObjectID(models.Model):
         """
         Returns actual object instance for current ObjectID instance.
         """
-        LOGGER = _get_logger(name=__name__)
-
         instance = None
         try:
             # TODO: add registry of type names to models.py and ensure only
@@ -334,8 +334,6 @@ class BaseMetadata(models.Model):
 
         Also, we ensure that a matching ObjectID binding is created.
         """
-        LOGGER = _get_logger(name=__name__)
-
         if self.id:
             _new_name = self._generate_str_name()
             if self._str_name != _new_name:
@@ -857,8 +855,6 @@ class DirectAssessmentTask(BaseMetadata):
         return trusted_user.exists()
 
     def next_item_for_user(self, user, return_completed_items=False):
-        LOGGER = _get_logger(name=__name__)
-
         trusted_user = self.is_trusted_user(user)
 
         next_item = None
@@ -930,8 +926,6 @@ class DirectAssessmentTask(BaseMetadata):
 
     @classmethod
     def get_next_free_task_for_language(cls, code, campaign=None, user=None):
-        LOGGER = _get_logger(name=__name__)
-
         active_tasks = cls.objects.filter(
           activated=True,
           completed=False,
@@ -1013,8 +1007,6 @@ class DirectAssessmentTask(BaseMetadata):
         """
         Creates new DirectAssessmentTask instances based on JSON input.
         """
-        LOGGER = _get_logger(name=__name__)
-
         batch_meta = batch_data.metadata
         batch_name = batch_data.dataFile.name
         batch_file = batch_data.dataFile
@@ -1663,8 +1655,6 @@ class DirectAssessmentContextTask(BaseMetadata):
         return trusted_user.exists()
 
     def next_item_for_user(self, user, return_completed_items=False):
-        LOGGER = _get_logger(name=__name__)
-
         trusted_user = self.is_trusted_user(user)
 
         next_item = None
@@ -1736,8 +1726,6 @@ class DirectAssessmentContextTask(BaseMetadata):
 
     @classmethod
     def get_next_free_task_for_language(cls, code, campaign=None, user=None):
-        LOGGER = _get_logger(name=__name__)
-
         active_tasks = cls.objects.filter(
           activated=True,
           completed=False,
@@ -1819,8 +1807,6 @@ class DirectAssessmentContextTask(BaseMetadata):
         """
         Creates new DirectAssessmentContextTask instances based on JSON input.
         """
-        LOGGER = _get_logger(name=__name__)
-
         batch_meta = batch_data.metadata
         batch_name = batch_data.dataFile.name
         batch_file = batch_data.dataFile
@@ -2488,8 +2474,6 @@ class MultiModalAssessmentTask(BaseMetadata):
         return trusted_user.exists()
 
     def next_item_for_user(self, user, return_completed_items=False):
-        LOGGER = _get_logger(name=__name__)
-
         trusted_user = self.is_trusted_user(user)
 
         next_item = None
@@ -2560,8 +2544,6 @@ class MultiModalAssessmentTask(BaseMetadata):
 
     @classmethod
     def get_next_free_task_for_language(cls, code, campaign=None, user=None):
-        LOGGER = _get_logger(name=__name__)
-
         active_tasks = cls.objects.filter(
           activated=True,
           completed=False,
@@ -2620,8 +2602,6 @@ class MultiModalAssessmentTask(BaseMetadata):
         """
         Creates new MultiModalAssessmentTask instances based on JSON input.
         """
-        LOGGER = _get_logger(name=__name__)
-
         batch_meta = batch_data.metadata
         batch_name = batch_data.dataFile.name
         batch_file = batch_data.dataFile

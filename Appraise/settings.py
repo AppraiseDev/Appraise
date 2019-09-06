@@ -68,7 +68,6 @@ LOG_FORMATTER = logging.Formatter(LOG_FORMAT, LOG_DATE)
 # pylint: disable=C0330
 LOG_HANDLER = RotatingFileHandler(filename=LOG_FILENAME, mode="a",
   maxBytes=50*1024*1024, backupCount=5, encoding="utf-8")
-LOG_HANDLER.setLevel(level=LOG_LEVEL)
 LOG_HANDLER.setFormatter(LOG_FORMATTER)
 
 LOGIN_URL = '/dashboard/sign-in/'

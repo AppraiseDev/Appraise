@@ -28,8 +28,10 @@ from EvalData.models import (
 
 from deprecated import add_deprecated_method
 
+LOGGER = _get_logger(name=__name__)
 
 HITS_REQUIRED_BEFORE_ENGLISH_ALLOWED = 5
+
 
 # HTTP error handlers supporting COMMIT_TAG.
 def _page_not_found(request, template_name='404.html'):
@@ -37,8 +39,6 @@ def _page_not_found(request, template_name='404.html'):
     Custom HTTP 404 handler that preserves URL_PREFIX.
     """
     del template_name  # Unused.
-
-    LOGGER = _get_logger(name=__name__)
 
     LOGGER.info(
         'Rendering HTTP 404 for user "%s". Request.path=%s',
@@ -54,8 +54,6 @@ def _server_error(request, template_name='500.html'):
     Custom HTTP 500 handler that preserves URL_PREFIX.
     """
     del template_name  # Unused.
-
-    LOGGER = _get_logger(name=__name__)
 
     LOGGER.info(
         'Rendering HTTP 500 for user "%s". Request.path=%s',
@@ -75,8 +73,6 @@ def sso_login(request, username, password):
         user = authenticate(username=username, password=password)
         login(request, user)
 
-    LOGGER = _get_logger(name=__name__)
-
     LOGGER.info(
         'Rendering SSO login view for user "%s".',
         request.user.username or "Anonymous",
@@ -89,8 +85,6 @@ def frontpage(request, extra_context=None):
     """
     Appraise front page.
     """
-    LOGGER = _get_logger(name=__name__)
-
     LOGGER.info(
         'Rendering frontpage view for user "%s".',
         request.user.username or "Anonymous",
@@ -295,8 +289,6 @@ def dashboard(request):
     Appraise dashboard page.
     """
     _t1 = datetime.now()
-
-    LOGGER = _get_logger(name=__name__)
 
     template_context = {'active_page': 'dashboard'}
     template_context.update(BASE_CONTEXT)

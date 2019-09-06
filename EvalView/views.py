@@ -23,6 +23,8 @@ from EvalData.models import (
     TaskAgenda,
 )
 
+LOGGER = _get_logger(name=__name__)
+
 
 # pylint: disable=C0103,C0330
 @login_required
@@ -30,8 +32,6 @@ def direct_assessment(request, code=None, campaign_name=None):
     """
     Direct assessment annotation view.
     """
-    LOGGER = _get_logger(name=__name__)
-
     t1 = datetime.now()
 
     campaign = None
@@ -278,8 +278,6 @@ def direct_assessment_context(request, code=None, campaign_name=None):
     """
     Direct assessment context annotation view.
     """
-    LOGGER = _get_logger(name=__name__)
-
     t1 = datetime.now()
 
     campaign = None
@@ -544,8 +542,6 @@ def multimodal_assessment(request, code=None, campaign_name=None):
     """
     Multi modal assessment annotation view.
     """
-    LOGGER = _get_logger(name=__name__)
-
     t1 = datetime.now()
 
     campaign = None
