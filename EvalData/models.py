@@ -4,7 +4,6 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=C0103,C0330,no-member
-import logging
 from collections import defaultdict
 from datetime import datetime, timedelta
 from inspect import currentframe, getframeinfo
@@ -21,17 +20,12 @@ from django.utils.text import format_lazy as f
 from django.utils.timezone import utc
 from django.utils.translation import ugettext_lazy as _
 
-from Appraise.settings import LOG_LEVEL, LOG_HANDLER
 # TODO: Unclear if these are needed?
 # from Appraise.settings import STATIC_URL, BASE_CONTEXT
+from Appraise.utils import _get_logger
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 
 from deprecated import add_deprecated_method
-
-# Setup logging support.
-logging.basicConfig(level=LOG_LEVEL)
-LOGGER = logging.getLogger('EvalData.models')
-LOGGER.addHandler(LOG_HANDLER)
 
 MAX_DOMAINNAME_LENGTH = 20
 MAX_LANGUAGECODE_LENGTH = 10
@@ -90,6 +84,8 @@ class ObjectID(models.Model):
         """
         Returns actual object instance for current ObjectID instance.
         """
+        LOGGER = _get_logger(name=__name__)
+
         instance = None
         try:
             # TODO: add registry of type names to models.py and ensure only
@@ -338,6 +334,8 @@ class BaseMetadata(models.Model):
 
         Also, we ensure that a matching ObjectID binding is created.
         """
+        LOGGER = _get_logger(name=__name__)
+
         if self.id:
             _new_name = self._generate_str_name()
             if self._str_name != _new_name:
@@ -859,6 +857,8 @@ class DirectAssessmentTask(BaseMetadata):
         return trusted_user.exists()
 
     def next_item_for_user(self, user, return_completed_items=False):
+        LOGGER = _get_logger(name=__name__)
+
         trusted_user = self.is_trusted_user(user)
 
         next_item = None
@@ -930,6 +930,8 @@ class DirectAssessmentTask(BaseMetadata):
 
     @classmethod
     def get_next_free_task_for_language(cls, code, campaign=None, user=None):
+        LOGGER = _get_logger(name=__name__)
+
         active_tasks = cls.objects.filter(
           activated=True,
           completed=False,
@@ -1011,6 +1013,8 @@ class DirectAssessmentTask(BaseMetadata):
         """
         Creates new DirectAssessmentTask instances based on JSON input.
         """
+        LOGGER = _get_logger(name=__name__)
+
         batch_meta = batch_data.metadata
         batch_name = batch_data.dataFile.name
         batch_file = batch_data.dataFile
@@ -1659,6 +1663,8 @@ class DirectAssessmentContextTask(BaseMetadata):
         return trusted_user.exists()
 
     def next_item_for_user(self, user, return_completed_items=False):
+        LOGGER = _get_logger(name=__name__)
+
         trusted_user = self.is_trusted_user(user)
 
         next_item = None
@@ -1730,6 +1736,8 @@ class DirectAssessmentContextTask(BaseMetadata):
 
     @classmethod
     def get_next_free_task_for_language(cls, code, campaign=None, user=None):
+        LOGGER = _get_logger(name=__name__)
+
         active_tasks = cls.objects.filter(
           activated=True,
           completed=False,
@@ -1811,6 +1819,8 @@ class DirectAssessmentContextTask(BaseMetadata):
         """
         Creates new DirectAssessmentContextTask instances based on JSON input.
         """
+        LOGGER = _get_logger(name=__name__)
+
         batch_meta = batch_data.metadata
         batch_name = batch_data.dataFile.name
         batch_file = batch_data.dataFile
@@ -2478,6 +2488,8 @@ class MultiModalAssessmentTask(BaseMetadata):
         return trusted_user.exists()
 
     def next_item_for_user(self, user, return_completed_items=False):
+        LOGGER = _get_logger(name=__name__)
+
         trusted_user = self.is_trusted_user(user)
 
         next_item = None
@@ -2548,6 +2560,8 @@ class MultiModalAssessmentTask(BaseMetadata):
 
     @classmethod
     def get_next_free_task_for_language(cls, code, campaign=None, user=None):
+        LOGGER = _get_logger(name=__name__)
+
         active_tasks = cls.objects.filter(
           activated=True,
           completed=False,
@@ -2606,6 +2620,8 @@ class MultiModalAssessmentTask(BaseMetadata):
         """
         Creates new MultiModalAssessmentTask instances based on JSON input.
         """
+        LOGGER = _get_logger(name=__name__)
+
         batch_meta = batch_data.metadata
         batch_name = batch_data.dataFile.name
         batch_file = batch_data.dataFile

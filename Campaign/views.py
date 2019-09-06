@@ -6,7 +6,6 @@ See LICENSE for usage details
 # pylint: disable=E1101
 from collections import defaultdict
 from datetime import datetime
-import logging
 from math import floor, sqrt
 
 # pylint: disable=import-error
@@ -14,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.management.base import CommandError
 from django.http import HttpResponse
 
-from Appraise.settings import LOG_LEVEL, LOG_HANDLER
+from Appraise.utils import _get_logger
 from Campaign.utils import _get_campaign_instance
 from EvalData.models import (
     DirectAssessmentResult,
@@ -22,13 +21,6 @@ from EvalData.models import (
     MultiModalAssessmentResult,
     seconds_to_timedelta,
 )
-
-
-# Setup logging support.
-logging.basicConfig(level=LOG_LEVEL)
-LOGGER = logging.getLogger('Dashboard.views')
-LOGGER.addHandler(LOG_HANDLER)
-
 
 RESULT_TYPE_BY_CLASS_NAME = {
     'DirectAssessmentTask': DirectAssessmentResult,
@@ -42,6 +34,8 @@ def campaign_status(request, campaign_name, sort_key=2):
     """
     Campaign status view with completion details.
     """
+    LOGGER = _get_logger()
+
     LOGGER.info(
         'Rendering campaign status view for user "%s".',
         request.user.username or "Anonymous",

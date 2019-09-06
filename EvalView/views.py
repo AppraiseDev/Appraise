@@ -4,14 +4,14 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 from datetime import datetime
-import logging
 
 # pylint: disable=import-error
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.timezone import utc
 
-from Appraise.settings import LOG_LEVEL, LOG_HANDLER, BASE_CONTEXT
+from Appraise.settings import BASE_CONTEXT
+from Appraise.utils import _get_logger
 from Campaign.models import Campaign
 from EvalData.models import (
     DirectAssessmentTask,
@@ -24,18 +24,14 @@ from EvalData.models import (
 )
 
 
-# Setup logging support.
-logging.basicConfig(level=LOG_LEVEL)
-LOGGER = logging.getLogger('Dashboard.views')
-LOGGER.addHandler(LOG_HANDLER)
-
-
 # pylint: disable=C0103,C0330
 @login_required
 def direct_assessment(request, code=None, campaign_name=None):
     """
     Direct assessment annotation view.
     """
+    LOGGER = _get_logger(name=__name__)
+
     t1 = datetime.now()
 
     campaign = None
@@ -282,6 +278,8 @@ def direct_assessment_context(request, code=None, campaign_name=None):
     """
     Direct assessment context annotation view.
     """
+    LOGGER = _get_logger(name=__name__)
+
     t1 = datetime.now()
 
     campaign = None
@@ -546,6 +544,8 @@ def multimodal_assessment(request, code=None, campaign_name=None):
     """
     Multi modal assessment annotation view.
     """
+    LOGGER = _get_logger(name=__name__)
+
     t1 = datetime.now()
 
     campaign = None

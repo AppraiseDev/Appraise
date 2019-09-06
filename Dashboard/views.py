@@ -6,7 +6,6 @@ See LICENSE for usage details
 from datetime import datetime
 from hashlib import md5
 from inspect import currentframe, getframeinfo
-import logging
 
 # pylint: disable=import-error,C0330
 from django.contrib.auth.decorators import login_required
@@ -14,7 +13,8 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login
 from django.shortcuts import render, redirect, render_to_response
 
-from Appraise.settings import LOG_LEVEL, LOG_HANDLER, BASE_CONTEXT
+from Appraise.settings import BASE_CONTEXT
+from Appraise.utils import _get_logger
 from Dashboard.models import UserInviteToken, LANGUAGE_CODES_AND_NAMES
 from EvalData.models import (
     DirectAssessmentTask,
@@ -29,12 +29,6 @@ from EvalData.models import (
 from deprecated import add_deprecated_method
 
 
-# Setup logging support.
-logging.basicConfig(level=LOG_LEVEL)
-LOGGER = logging.getLogger('Dashboard.views')
-LOGGER.addHandler(LOG_HANDLER)
-
-
 HITS_REQUIRED_BEFORE_ENGLISH_ALLOWED = 5
 
 # HTTP error handlers supporting COMMIT_TAG.
@@ -43,6 +37,8 @@ def _page_not_found(request, template_name='404.html'):
     Custom HTTP 404 handler that preserves URL_PREFIX.
     """
     del template_name  # Unused.
+
+    LOGGER = _get_logger(name=__name__)
 
     LOGGER.info(
         'Rendering HTTP 404 for user "%s". Request.path=%s',
@@ -58,6 +54,8 @@ def _server_error(request, template_name='500.html'):
     Custom HTTP 500 handler that preserves URL_PREFIX.
     """
     del template_name  # Unused.
+
+    LOGGER = _get_logger(name=__name__)
 
     LOGGER.info(
         'Rendering HTTP 500 for user "%s". Request.path=%s',
@@ -77,6 +75,8 @@ def sso_login(request, username, password):
         user = authenticate(username=username, password=password)
         login(request, user)
 
+    LOGGER = _get_logger(name=__name__)
+
     LOGGER.info(
         'Rendering SSO login view for user "%s".',
         request.user.username or "Anonymous",
@@ -89,6 +89,8 @@ def frontpage(request, extra_context=None):
     """
     Appraise front page.
     """
+    LOGGER = _get_logger(name=__name__)
+
     LOGGER.info(
         'Rendering frontpage view for user "%s".',
         request.user.username or "Anonymous",
@@ -293,6 +295,8 @@ def dashboard(request):
     Appraise dashboard page.
     """
     _t1 = datetime.now()
+
+    LOGGER = _get_logger(name=__name__)
 
     template_context = {'active_page': 'dashboard'}
     template_context.update(BASE_CONTEXT)
