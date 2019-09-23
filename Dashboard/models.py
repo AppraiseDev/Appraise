@@ -103,7 +103,7 @@ def validate_language_code(code_or_codes):
 
     Returns True if valid, False otherwise.
     """
-    valid_codes = LANGUAGE_CODES_AND_NAMES.keys()
+    valid_codes = [x.lower() for x in LANGUAGE_CODES_AND_NAMES.keys()]
     valid = False
     if isinstance(code_or_codes, (list, tuple)):
         valid = all([x.lower() in valid_codes for x in code_or_codes])
