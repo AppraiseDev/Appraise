@@ -80,6 +80,10 @@ LANGUAGE_CODES_AND_NAMES = {
     'mar': 'Marathi (मराठी)',
     'kat': 'Georgian (ქართული)',
     'gle': 'Irish (Gaeilge)',
+    'zho-Hans': 'Simplified Chinese (中文 - 简化字)',
+    'zho-Hant': 'Traditional Chinese (中文 - 正體字/繁體字)',
+    'srp-Cyrl': 'Serbian (српски)',
+    'srp-Latn': 'Serbian (srpski)',
 }
 
 # Ensure that all languages have a corresponding group.
