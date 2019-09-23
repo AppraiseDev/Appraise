@@ -110,9 +110,16 @@ class Command(BaseCommand):
         for pair_data in manifest_data['TASKS_TO_ANNOTATORS']:
             source_code, target_code, mode, annotators, tasks = pair_data
 
-            ALL_LANGUAGES.append((source_code, target_code))
+            # Validation needs access to full language codes,
+            # including any script specification
             ALL_LANGUAGE_CODES.add(source_code)
             ALL_LANGUAGE_CODES.add(target_code)
+
+            # TODO: assumes ISO-639-3 codes without script information
+            source_code = source_code[:3]
+            target_code = target_code[:3]
+
+            ALL_LANGUAGES.append((source_code, target_code))
 
             generator = GENERATORS[mode]
             TASKS_TO_ANNOTATORS[(source_code, target_code)] = generator(

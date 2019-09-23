@@ -100,6 +100,10 @@ def _get_or_create_market(source_code, target_code, domain_name, owner):
 
     Returns reference to Market instance.
     """
+    # TODO: assumes ISO-639-2/3 codes without script information
+    source_code = source_code[:3]
+    target_code = target_code[:3]
+
     # pylint: disable-msg=no-member
     _market, _unused_created_signal = Market.objects.get_or_create(
         sourceLanguageCode=source_code,
@@ -160,6 +164,7 @@ def _get_tasks_by_market(tasks, context):
 
     tasks_by_market = defaultdict(list)
     for task in tasks.order_by('id'):
+        # TODO: assumes ISO-639-2/3 codes without script information
         key = format_str.format(
             task.marketName().replace('_', '')[:6],
             context.get('CAMPAIGN_NO'),
@@ -186,6 +191,10 @@ def _get_tasks_map_for_language_pair(source_code, target_code, context):
     """
     required_keys = ('REDUNDANCY', 'TASKS_TO_ANNOTATORS')
     _validate_required_keys(context, required_keys)
+
+    # TODO: assumes ISO-639-2/3 codes without script information
+    source_code = source_code[:3]
+    target_code = target_code[:3]
 
     _tasks_map = context.get('TASKS_TO_ANNOTATORS').get(
         (source_code, target_code)
@@ -257,6 +266,7 @@ def _map_tasks_to_users_by_market(tasks, usernames, context):
         _usernames = (x for x in usernames if x.startswith(key))
         users = User.objects.filter(username__in=_usernames)
 
+        # TODO: assumes ISO-639-2/3 codes without script information
         source_code = key[:3]
         target_code = key[3:6]
 
@@ -375,6 +385,10 @@ def _process_campaign_teams(language_pairs, owner, context):
     _validate_required_keys(context, required_keys)
 
     for _src, _tgt in language_pairs:
+        # TODO: assumes ISO-639-2/3 codes without script information
+        _src = _src[:3]
+        _tgt = _tgt[:3]
+
         try:
             _tasks_map = _get_tasks_map_for_language_pair(
                 _src, _tgt, context
@@ -426,6 +440,10 @@ def _process_market_and_metadata(language_pairs, owner, **kwargs):
     _context = dict(**kwargs)
 
     for _src, _tgt in language_pairs:
+        # TODO: assumes ISO-639-2/3 codes without script information
+        _src = _src[:3]
+        _tgt = _tgt[:3]
+
         _market = _get_or_create_market(
             source_code=_src,
             target_code=_tgt,
@@ -456,6 +474,10 @@ def _process_users(language_pairs, context):
 
     _credentials = {}
     for _src, _tgt in language_pairs:
+        # TODO: assumes ISO-639-2/3 codes without script information
+        _src = _src[:3]
+        _tgt = _tgt[:3]
+
         _tasks_map = _get_tasks_map_for_language_pair(_src, _tgt, context)
         _annotators = len(_tasks_map)
 
