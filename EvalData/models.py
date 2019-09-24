@@ -497,8 +497,9 @@ class Metadata(BaseMetadata):
         verbose_name = 'Metadata record'
 
     def _generate_str_name(self):
-        return '{0}/{1}["{2}"]'.format(
-          str(self.market)[:7].replace('_', '-'),
+        return '{0}->{1}/{2}["{3}"]'.format(
+          self.market.sourceLanguageCode,
+          self.market.targetLanguageCode,
           self.corpusName,
           self.versionInfo
         )
