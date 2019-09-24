@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 from django.core.management.base import CommandError
 
 from Campaign.models import Campaign, CampaignTeam
-from Dashboard.models import validate_language_code
+from Dashboard.models import LANGUAGE_CODES_AND_NAMES, validate_language_code
 from EvalData.models import (
     DirectAssessmentTask,
     Market,
@@ -100,10 +100,6 @@ def _get_or_create_market(source_code, target_code, domain_name, owner):
 
     Returns reference to Market instance.
     """
-    # TODO: assumes ISO-639-2/3 codes without script information
-    source_code = source_code[:3]
-    target_code = target_code[:3]
-
     # pylint: disable-msg=no-member
     _market, _unused_created_signal = Market.objects.get_or_create(
         sourceLanguageCode=source_code,
@@ -142,7 +138,7 @@ def _get_tasks_by_market(tasks, context):
     - T3 U1 U2
     - T4 U3 U4
 
-    To assign this, we nuplicate tasks, per market, based on REDUNDANCY
+    To assign this, we duplicate tasks, per market, based on REDUNDANCY
 
     Parameters:
     - tasks:QuerySet contains task instances to extract market keys for;
@@ -164,9 +160,12 @@ def _get_tasks_by_market(tasks, context):
 
     tasks_by_market = defaultdict(list)
     for task in tasks.order_by('id'):
-        # TODO: assumes ISO-639-2/3 codes without script information
+        market_code = '{0}{1}'.format(
+            task.marketSourceLanguageCode().replace('-', ''),
+            task.marketTargetLanguageCode().replace('-', '')
+        )
         key = format_str.format(
-            task.marketName().replace('_', '')[:6],
+            market_code.lower(),
             context.get('CAMPAIGN_NO'),
         )
         for _unused_counter in range(context.get('REDUNDANCY')):
@@ -191,10 +190,6 @@ def _get_tasks_map_for_language_pair(source_code, target_code, context):
     """
     required_keys = ('REDUNDANCY', 'TASKS_TO_ANNOTATORS')
     _validate_required_keys(context, required_keys)
-
-    # TODO: assumes ISO-639-2/3 codes without script information
-    source_code = source_code[:3]
-    target_code = target_code[:3]
 
     _tasks_map = context.get('TASKS_TO_ANNOTATORS').get(
         (source_code, target_code)
@@ -237,6 +232,32 @@ def _load_campaign_manifest(json_path):
             return campaign_data
 
 
+def _identify_codes_for_key(key):
+    """
+    Given some market key, identifies source and target language codes.
+    """
+    key = key.lower()
+
+    target_pos = 0
+    source_code = ""
+    for code in LANGUAGE_CODES_AND_NAMES:
+        cmp_code = code.lower().replace('-', '')
+        if key.startswith(cmp_code):
+            if len(cmp_code) > len(source_code):
+                source_code = code
+                target_pos = len(cmp_code)
+
+    key = key[target_pos:]
+    target_code = ""
+    for code in LANGUAGE_CODES_AND_NAMES:
+        cmp_code = code.lower().replace('-', '')
+        if key.startswith(cmp_code):
+            if len(cmp_code) > len(target_code):
+                target_code = code
+
+    return (source_code, target_code)
+
+
 def _map_tasks_to_users_by_market(tasks, usernames, context):
     """
     Map tasks to users, by market, and considering TASKS_TO_ANNOTATORS.
@@ -266,9 +287,7 @@ def _map_tasks_to_users_by_market(tasks, usernames, context):
         _usernames = (x for x in usernames if x.startswith(key))
         users = User.objects.filter(username__in=_usernames)
 
-        # TODO: assumes ISO-639-2/3 codes without script information
-        source_code = key[:3]
-        target_code = key[3:6]
+        source_code, target_code = _identify_codes_for_key(key)
 
         try:
             _tasks_map = _get_tasks_map_for_language_pair(
@@ -385,10 +404,6 @@ def _process_campaign_teams(language_pairs, owner, context):
     _validate_required_keys(context, required_keys)
 
     for _src, _tgt in language_pairs:
-        # TODO: assumes ISO-639-2/3 codes without script information
-        _src = _src[:3]
-        _tgt = _tgt[:3]
-
         try:
             _tasks_map = _get_tasks_map_for_language_pair(
                 _src, _tgt, context
@@ -415,7 +430,10 @@ def _process_campaign_teams(language_pairs, owner, context):
 
         for user_id in range(_annotators):
             username = format_str.format(
-                _src, _tgt, context.get('CAMPAIGN_NO'), user_id + 1
+                _src.lower().replace('-', ''),
+                _tgt.lower().replace('-', ''),
+                context.get('CAMPAIGN_NO'),
+                user_id + 1
             )
 
             user_object = User.objects.get(username=username)
@@ -440,10 +458,6 @@ def _process_market_and_metadata(language_pairs, owner, **kwargs):
     _context = dict(**kwargs)
 
     for _src, _tgt in language_pairs:
-        # TODO: assumes ISO-639-2/3 codes without script information
-        _src = _src[:3]
-        _tgt = _tgt[:3]
-
         _market = _get_or_create_market(
             source_code=_src,
             target_code=_tgt,
@@ -474,10 +488,6 @@ def _process_users(language_pairs, context):
 
     _credentials = {}
     for _src, _tgt in language_pairs:
-        # TODO: assumes ISO-639-2/3 codes without script information
-        _src = _src[:3]
-        _tgt = _tgt[:3]
-
         _tasks_map = _get_tasks_map_for_language_pair(_src, _tgt, context)
         _annotators = len(_tasks_map)
 
@@ -489,7 +499,10 @@ def _process_users(language_pairs, context):
 
         for user_id in range(_annotators):
             username = format_str.format(
-                _src, _tgt, context.get('CAMPAIGN_NO'), user_id + 1
+                _src.lower().replace('-', ''),
+                _tgt.lower().replace('-', ''),
+                context.get('CAMPAIGN_NO'),
+                user_id + 1
             )
 
             hasher = md5()
