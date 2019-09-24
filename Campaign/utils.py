@@ -11,7 +11,10 @@ from django.contrib.auth.models import User
 from django.core.management.base import CommandError
 
 from Campaign.models import Campaign, CampaignTeam
-from Dashboard.models import LANGUAGE_CODES_AND_NAMES, validate_language_code
+from Dashboard.models import (
+    LANGUAGE_CODES_AND_NAMES,
+    validate_language_code,
+)
 from EvalData.models import (
     DirectAssessmentTask,
     Market,
@@ -162,11 +165,10 @@ def _get_tasks_by_market(tasks, context):
     for task in tasks.order_by('id'):
         market_code = '{0}{1}'.format(
             task.marketSourceLanguageCode().replace('-', ''),
-            task.marketTargetLanguageCode().replace('-', '')
+            task.marketTargetLanguageCode().replace('-', ''),
         )
         key = format_str.format(
-            market_code.lower(),
-            context.get('CAMPAIGN_NO'),
+            market_code.lower(), context.get('CAMPAIGN_NO')
         )
         for _unused_counter in range(context.get('REDUNDANCY')):
             tasks_by_market[key].append(task)
@@ -433,7 +435,7 @@ def _process_campaign_teams(language_pairs, owner, context):
                 _src.lower().replace('-', ''),
                 _tgt.lower().replace('-', ''),
                 context.get('CAMPAIGN_NO'),
-                user_id + 1
+                user_id + 1,
             )
 
             user_object = User.objects.get(username=username)
@@ -502,7 +504,7 @@ def _process_users(language_pairs, context):
                 _src.lower().replace('-', ''),
                 _tgt.lower().replace('-', ''),
                 context.get('CAMPAIGN_NO'),
-                user_id + 1
+                user_id + 1,
             )
 
             hasher = md5()
