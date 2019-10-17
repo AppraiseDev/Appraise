@@ -84,6 +84,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'zho-Hant': 'Traditional Chinese (中文 - 正體字/繁體字)',
     'srp-Cyrl': 'Serbian (српски)',
     'srp-Latn': 'Serbian (srpski)',
+    'asm': 'Assamese (অসমীয়া)',
 }
 
 # Ensure that all languages have a corresponding group.
@@ -103,7 +104,7 @@ def validate_language_code(code_or_codes):
 
     Returns True if valid, False otherwise.
     """
-    valid_codes = [x.lower() for x in LANGUAGE_CODES_AND_NAMES.keys()]
+    valid_codes = [x.lower() for x in LANGUAGE_CODES_AND_NAMES]
     valid = False
     if isinstance(code_or_codes, (list, tuple)):
         valid = all([x.lower() in valid_codes for x in code_or_codes])
