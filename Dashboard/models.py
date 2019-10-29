@@ -85,6 +85,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'srp-Cyrl': 'Serbian (српски)',
     'srp-Latn': 'Serbian (srpski)',
     'asm': 'Assamese (অসমীয়া)',
+    'ori': 'Odia (ଓଡ଼ିଆ)',
 }
 
 # Ensure that all languages have a corresponding group.
