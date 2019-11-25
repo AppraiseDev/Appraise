@@ -39,7 +39,7 @@ def _create_uniform_task_map(annotators, tasks, redudancy):
     for _unused_annotator_id in range(annotators):
         _annotator_tasks = []
         for annotator_task in range(_tasks_per_annotator):
-            task_id = (_current_task_id + annotator_task) % tasks
+            task_id = (_current_task_id + annotator_task) % _total_tasks
             _annotator_tasks.append(task_id)
             _current_task_id = task_id
         _current_task_id += 1
@@ -170,8 +170,12 @@ def _get_tasks_by_market(tasks, context):
         key = format_str.format(
             market_code.lower(), context.get('CAMPAIGN_NO')
         )
-        for _unused_counter in range(context.get('REDUNDANCY')):
-            tasks_by_market[key].append(task)
+        tasks_by_market[key].append(task)
+
+    for key in tasks_by_market.keys():
+        _single_copy = list(tasks_by_market[key])
+        tasks_by_market[key] = _single_copy * context.get("REDUNDANCY")
+
     return tasks_by_market
 
 
