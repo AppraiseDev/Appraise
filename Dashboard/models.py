@@ -189,6 +189,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'bbg': 'Barama (Varama)',
     'kmr': 'Kurmanji (Kurmancî)',
     'ckb': 'Sorani (کوردیی ناوەندی)',
+    'nep': 'Nepali (नेपाली)',
 }
 
 # Ensure that all languages have a corresponding group.
