@@ -190,6 +190,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'kmr': 'Kurmanji (Kurmancî)',
     'ckb': 'Sorani (کوردیی ناوەندی)',
     'nep': 'Nepali (नेपाली)',
+    'yue': 'Cantonese (廣東話)',
 }
 
 # Ensure that all languages have a corresponding group.
