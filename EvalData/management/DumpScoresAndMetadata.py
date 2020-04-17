@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+from gzip import open as gz_open
 from os.path import basename
 
 # pylint: disable=E0401,W0611
@@ -32,7 +33,8 @@ class Command(BaseCommand):
         _msg = '\n[{0}]\n\n'.format(basename(__file__))
         self.stdout.write(_msg)
 
-        self.stdout.write('target_file: {0}'.format(options['target_file']))
+        target_file = options['target_file']
+        self.stdout.write('target_file: {0}'.format(target_file))
 
         self.stdout.write('\n[INIT]\n\n')
 
@@ -42,7 +44,11 @@ class Command(BaseCommand):
         total_blocks = labels.count() // 1000 + 1
         output = []
         batch_size = 1000
-        out_file = open(options['target_file'], 'a', encoding='utf-8')
+
+        _open = open
+        if target_file.lower().endswith('.gz'):
+            _open = gz_open
+        out_file = _open(target_file, 'a', encoding='utf-8')
 
         label_values = (
             'id',
