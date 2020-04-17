@@ -29,14 +29,14 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
-        _msg = '\n[{0}]\n\n'.format(path.basename(__file__))
+        _msg = '\n[{0}]\n\n'.format(basename(__file__))
         self.stdout.write(_msg)
 
         self.stdout.write('target_file: {0}'.format(options['target_file']))
 
         self.stdout.write('\n[INIT]\n\n')
 
-        labels = DirectAssessmentResult.objects.filter(activated=True)
+        labels = DirectAssessmentResult.objects.filter(completed=True)
 
         blocks = 0
         total_blocks = labels.count() // 1000 + 1
@@ -44,19 +44,33 @@ class Command(BaseCommand):
         batch_size = 1000
         out_file = open(options['target_file'], 'a', encoding='utf-8')
 
-        for label in labels.order_by('-id').iterator():
-            result_id = label.id
-            date_created = label.dateCreated
-            campaign_name = label.task.campaign.campaignName
-            item_id = label.item.itemID
-            item_type = label.item.itemType
-            source_text = label.item.sourceText
-            source_id = label.item.sourceID
-            target_text = label.item.targetText
-            target_id = label.item.targetID
-            item_score = label.score
-            source_language_code = label.item.metadata.market.sourceLanguageCode
-            target_language_code = label.item.metadata.market.targetLanguageCode
+        label_values = (
+            'id',
+            'dateCreated',
+            'task__campaign__campaignName',
+            'item__itemID',
+            'item__itemType',
+            'item__sourceText',
+            'item__sourceID',
+            'item__targetText',
+            'item__targetID',
+            'score',
+            'item__metadata__market__sourceLanguageCode',
+            'item__metadata__market__targetLanguageCode',
+        )
+        for label_data in labels.order_by('-id').values_list(*label_values):
+            result_id = label_data[0]
+            date_created = label_data[1]
+            campaign_name = label_data[2]
+            item_id = label_data[3]
+            item_type = label_data[4]
+            source_text = label_data[5]
+            source_id = label_data[6]
+            target_text = label_data[7]
+            target_id = label_data[8]
+            item_score = label_data[9]
+            source_language_code = label_data[10]
+            target_language_code = label_data[11]
 
             data = (
                 result_id,
@@ -96,7 +110,7 @@ class Command(BaseCommand):
                 output = []
                 lines = []
                 blocks += 1
-                print('{0}/{1} blocks written, {2:.2}% completed'.format(blocks, total_blocks, 100.0 * float(blocks)/float(total_blocks)))
+                print('{0}/{1} blocks written, {2:05.1f}% completed'.format(blocks, total_blocks, 100.0 * float(blocks)/float(total_blocks)))
 
         lines = []
         for data in output:
@@ -117,6 +131,6 @@ class Command(BaseCommand):
         output = []
         lines = []
         blocks += 1
-        print('{0}/{1} blocks written, {2:.2}% completed'.format(blocks, total_blocks, 100.0 * float(blocks)/float(total_blocks)))
+        print('{0}/{1} blocks written, {2:05.1f}% completed'.format(blocks, total_blocks, 100.0 * float(blocks)/float(total_blocks)))
 
         self.stdout.write('\n[DONE]\n\n')
