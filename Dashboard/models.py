@@ -191,6 +191,13 @@ LANGUAGE_CODES_AND_NAMES = {
     'ckb': 'Sorani (کوردیی ناوەندی)',
     'nep': 'Nepali (नेपाली)',
     'yue': 'Cantonese (廣東話)',
+    'apc': 'Levantine Arabic (اللَّهْجَةُ الشَّامِيَّة)',
+    'arz': 'Egyptian Arabic (اللهجه المصريه)',
+    'afb': 'Gulf Arabic (خليجي)',
+    'mww': 'Hmong Daw',
+    'otq': 'Querétaro Otomi',
+    'tlh': 'Klingon (tlhIngan Hol)',
+    'yua': 'Yucatec Maya (mayaʼ tʼàan)',
 }
 
 # Ensure that all languages have a corresponding group.
