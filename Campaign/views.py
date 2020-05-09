@@ -82,7 +82,7 @@ def campaign_status(request, campaign_name, sort_key=2):
                 'item__itemType',
             )
 
-            _annotations = len(_data)
+            _annotations = len(set([x[3] for x in _data])) #  len(_data)
             _start_times = [x[0] for x in _data]
             _end_times = [x[1] for x in _data]
             _durations = [x[1] - x[0] for x in _data]
