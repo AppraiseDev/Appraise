@@ -1197,12 +1197,15 @@ class DirectAssessmentResult(BaseMetadata):
         return self.item.itemType
 
     @classmethod
-    def get_completed_for_user(cls, user):
-        return cls.objects.filter(
+    def get_completed_for_user(cls, user, unique_only=True):
+        _query = cls.objects.filter(
           createdBy=user,
           activated=False,
           completed=True
-        ).count()
+        )
+        if unique_only:
+            return _query.values_list('item__id').distinct().count()
+        return _query.count()
 
     @classmethod
     def get_hit_status_for_user(cls, user):
@@ -2006,12 +2009,15 @@ class DirectAssessmentContextResult(BaseMetadata):
         return self.item.itemType
 
     @classmethod
-    def get_completed_for_user(cls, user):
-        return cls.objects.filter(
+    def get_completed_for_user(cls, user, unique_only=True):
+        _query = cls.objects.filter(
           createdBy=user,
           activated=False,
           completed=True
-        ).count()
+        )
+        if unique_only:
+            return _query.values_list('item__id').distinct().count()
+        return _query.count()
 
     @classmethod
     def get_hit_status_for_user(cls, user):
@@ -2793,12 +2799,15 @@ class MultiModalAssessmentResult(BaseMetadata):
         return self.item.itemType
 
     @classmethod
-    def get_completed_for_user(cls, user):
-        return cls.objects.filter(
+    def get_completed_for_user(cls, user, unique_only=True):
+        _query = cls.objects.filter(
           createdBy=user,
           activated=False,
           completed=True
-        ).count()
+        )
+        if unique_only:
+            return _query.values_list('item__id').distinct().count()
+        return _query.count()
 
     @classmethod
     def get_hit_status_for_user(cls, user):
