@@ -103,9 +103,9 @@ def campaign_status(request, campaign_name, sort_key=2):
             _tgt = defaultdict(list)
             _bad = defaultdict(list)
             for _x in _data:
-                if _x[-1] == 'TGT':
+                if _x[-2] == 'TGT':
                     _dst = _tgt
-                elif _x[-1] == 'BAD':
+                elif _x[-2] == 'BAD':
                     _dst = _bad
                 else:
                     continue
