@@ -1,1 +1,11 @@
-*.pyc
+# Python
+*.py[cod]
+__pycache__
+
+# Temporary files
+*~
+appraise.log
+
+# Editors
+.vscode
+*.sw[po]
