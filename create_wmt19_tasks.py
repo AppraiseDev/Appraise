@@ -11,7 +11,8 @@ from typing import Any, Dict, List, Text, Tuple
 from bs4 import BeautifulSoup
 
 
-MAX_TASK_SIZE = 100
+MAX_TASK_SIZE = 100     # No support for tasks over 100 items
+MAX_DOC_LENGTH = 70     # We do not support documents longer than 70 segments
 
 
 def load_docs_from_sgml(
@@ -21,6 +22,7 @@ def load_docs_from_sgml(
     Loads documents from given SGML file.
 
     Returns dict mapping document ids to list of segments [segments].
+    Each segment is a tuple (segment id, segment text).
     """
     soup = None
 
@@ -220,14 +222,14 @@ def process_sgml(file_path: str) -> Dict[int, List[str]]:
 
 
 if __name__ == "__main__":
-    SRC_SGML = sys.argv[1]
-    REF_SGML = sys.argv[2]
-    SYS_PATH = sys.argv[3]
-    SYS_GLOB = sys.argv[4]
-    OUT_NAME = sys.argv[5]
-    SRC_LANG = sys.argv[6]
-    TGT_LANG = sys.argv[7]
-    TASK_MAX = int(sys.argv[8])
+    SRC_SGML = sys.argv[1]        # Path to source .sgm file
+    REF_SGML = sys.argv[2]        # Path to reference .sgm file
+    SYS_PATH = sys.argv[3]        # Path to the directory with system outputs
+    SYS_GLOB = sys.argv[4]        # Pattern for .sgm files, e.g '*.sgm'
+    OUT_NAME = sys.argv[5]        # Prefix for .csv and .json output files
+    SRC_LANG = sys.argv[6]        # Code for source language, e.g. eng
+    TGT_LANG = sys.argv[7]        # Code for target language, e.g. deu
+    TASK_MAX = int(sys.argv[8])   # Maximum number of tasks
     CONTROLS = bool(sys.argv[9])
     ENC = 'utf-8'
 
@@ -240,15 +242,18 @@ if __name__ == "__main__":
         REQUIRED_SEGS = 100
     print(f'Setting REQUIRED_SEGS={REQUIRED_SEGS}')
 
+    print(f'Loading source docs from {SRC_SGML}')
     SRC_DOCS = load_docs_from_sgml(SRC_SGML, encoding=ENC)
+    print(f'Loading reference docs from {SRC_SGML}')
     REF_DOCS = load_docs_from_sgml(REF_SGML, encoding=ENC)
 
     SYS_DOCS: Dict[str, Dict[str, List[Tuple[str, str]]]] = {}
     BAD_DOCS: Dict[str, Dict[str, List[Tuple[str, str]]]] = {}
     for SYS_SGML in iglob(join(SYS_PATH, SYS_GLOB)):
         SYS_ID = basename(SYS_SGML)
-        SYS_DOCS[SYS_ID] = load_docs_from_sgml(SYS_SGML, encoding=ENC)
+        print(f'Loading outputs of {SYS_ID}')
 
+        SYS_DOCS[SYS_ID] = load_docs_from_sgml(SYS_SGML, encoding=ENC)
         BAD_DOCS[SYS_ID] = create_bad_refs(SYS_DOCS[SYS_ID], REF_DOCS)
 
     # pylint: disable-msg=invalid-name
@@ -269,7 +274,7 @@ if __name__ == "__main__":
             doc_len = len(SYS_DOCS[sys_id][doc_id])
 
             # We do not support documents longer than 70 segments.
-            if doc_len > 70:
+            if doc_len > MAX_DOC_LENGTH:
                 continue
 
             if not doc_len in DOC_STATS.keys():
