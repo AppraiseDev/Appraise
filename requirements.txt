@@ -1,0 +1,3 @@
+bs4
+django<3
+tablib
