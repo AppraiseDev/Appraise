@@ -7,3 +7,4 @@ from .base_models import *
 from .direct_assessment import *
 from .direct_assessment_context import *
 from .multi_modal_assessment import *
+from .pairwise_assessment import *
