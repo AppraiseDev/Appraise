@@ -10,11 +10,13 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.timezone import utc
 from .models import Market, Metadata, TextSegment, TextPair, TextPairWithImage
-from .models import TextPairWithContext
+from .models import TextPairWithContext, TextSegmentWithTwoTargets
 from .models import DirectAssessmentTask, DirectAssessmentResult
 from .models import DirectAssessmentContextTask, DirectAssessmentContextResult
 from .models import MultiModalAssessmentTask, MultiModalAssessmentResult
+from .models import PairwiseAssessmentTask, PairwiseAssessmentResult
 from .models import WorkAgenda, TaskAgenda
+
 
 # TODO:chrife: find a way to use SELECT-based filtering widgets
 class BaseMetadataAdmin(admin.ModelAdmin):
@@ -144,6 +146,65 @@ class TextSegmentAdmin(BaseMetadataAdmin):
       (None, {
         'fields': (['metadata', 'itemID', 'itemType', 'segmentID',
           'segmentText'])
+      }),
+    ) + BaseMetadataAdmin.fieldsets
+
+
+class TextSegmentWithTwoTargetsAdmin(BaseMetadataAdmin):
+    """
+    Model admin for TextPair instances.
+    """
+    list_display = [
+      '__str__', 'itemID', 'itemType', 'segmentID', 'segmentText',
+      'target1ID', 'target1Text', 'target2ID', 'target2Text'
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      'metadata__corpusName',
+      'metadata__versionInfo',
+      'metadata__market__sourceLanguageCode',
+      'metadata__market__targetLanguageCode',
+      'metadata__market__domainName',
+      'itemType'
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      'segmentID', 'segmentText',
+      'target1ID', 'target1Text',
+      'target2ID', 'target2Text'
+    ] + BaseMetadataAdmin.search_fields
+
+    fieldsets = (
+      (None, {
+        'fields': (['metadata', 'itemID', 'itemType',
+          'segmentID', 'segmentText',
+          'target1ID', 'target1Text',
+          'target2ID', 'target2Text'])
+      }),
+    ) + BaseMetadataAdmin.fieldsets
+
+
+class TextPairAdmin(BaseMetadataAdmin):
+    """
+    Model admin for TextPair instances.
+    """
+    list_display = [
+      '__str__', 'itemID', 'itemType', 'sourceID', 'sourceText', 'targetID',
+      'targetText'
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      'metadata__corpusName', 'metadata__versionInfo',
+      'metadata__market__sourceLanguageCode',
+      'metadata__market__targetLanguageCode',
+      'metadata__market__domainName',
+      'itemType'
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      'sourceID', 'sourceText', 'targetID', 'targetText'
+    ] + BaseMetadataAdmin.search_fields
+
+    fieldsets = (
+      (None, {
+        'fields': (['metadata', 'itemID', 'itemType', 'sourceID',
+          'sourceText', 'targetID', 'targetText'])
       }),
     ) + BaseMetadataAdmin.fieldsets
 
@@ -438,15 +499,69 @@ class TaskAgendaAdmin(admin.ModelAdmin):
     reset_taskagenda.short_description = "Reset task agenda"
 
 
+class PairwiseAssessmentTaskAdmin(BaseMetadataAdmin):
+    """
+    Model admin for PairwiseAssessmentTask instances.
+    """
+    list_display = [
+      'dataName', 'batchNo', 'campaign', 'requiredAnnotations'
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      'campaign__campaignName',
+      'campaign__batches__market__targetLanguageCode',
+      'campaign__batches__market__sourceLanguageCode', 'batchData'
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      'campaign__campaignName', 'assignedTo'
+    ] + BaseMetadataAdmin.search_fields
+
+    fieldsets = (
+      (None, {
+        'fields': (['batchData', 'batchNo', 'campaign', 'items',
+        'requiredAnnotations', 'assignedTo'])
+      }),
+    ) + BaseMetadataAdmin.fieldsets
+
+
+class PairwiseAssessmentResultAdmin(BaseMetadataAdmin):
+    """
+    Model admin for PairwiseAssessmentResult instances.
+    """
+    list_display = [
+      '__str__', 'score1', 'score2', 'start_time', 'end_time', 'duration',
+      'item_type'
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      'item__itemType', 'task__completed'
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      # nothing model specific
+    ] + BaseMetadataAdmin.search_fields
+
+    readonly_fields = ('item', 'task')
+
+    fieldsets = (
+      (None, {
+        'fields': (['score1', 'score2', 'start_time', 'end_time'])
+      }),
+      ('Related', {
+        'fields': (['item', 'task'])
+      })
+    ) + BaseMetadataAdmin.fieldsets
+
+
 admin.site.register(Market, MarketAdmin)
 admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(TextSegment, TextSegmentAdmin)
 admin.site.register(TextPair, TextPairAdmin)
 admin.site.register(TextPairWithContext, TextPairWithContextAdmin)
 admin.site.register(TextPairWithImage, TextPairWithImageAdmin)
+admin.site.register(TextSegmentWithTwoTargets, TextSegmentWithTwoTargetsAdmin)
 admin.site.register(DirectAssessmentTask, DirectAssessmentTaskAdmin)
 admin.site.register(DirectAssessmentResult, DirectAssessmentResultAdmin)
 admin.site.register(DirectAssessmentContextTask, DirectAssessmentContextTaskAdmin)
+admin.site.register(PairwiseAssessmentTask, PairwiseAssessmentTaskAdmin)
+admin.site.register(PairwiseAssessmentResult, PairwiseAssessmentResultAdmin)
 admin.site.register(DirectAssessmentContextResult, DirectAssessmentContextResultAdmin)
 admin.site.register(MultiModalAssessmentTask, MultiModalAssessmentTaskAdmin)
 admin.site.register(MultiModalAssessmentResult, MultiModalAssessmentResultAdmin)

@@ -1,0 +1,1980 @@
+[
+  {
+    "items": [
+      {
+        "_block": 0,
+        "_item": 0,
+        "itemID": 47,
+        "itemType": "REF",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Chad Hammel sagte KSWB-TV in San Diego, er habe mit Freunden f\u00fcr eine halbe Stunde am Samstagmorgen getaucht, als er den Jungen um Hilfe schreien h\u00f6rte. Er sei dann mit den anderen r\u00fcbergepaddelt, um ihn aus dem Wasser zu retten.",
+        "targets": [
+          {
+            "_itemAll": 0,
+            "_target": 0,
+            "targetID": "newstest2019-ende-ref.de",
+            "targetText": "Chad Hammel sagte KSWB-TV in San Diego, er habe mit Freunden f\u00fcr eine halbe Stunde am Samstagmorgen getaucht, als er den Jungen um Hilfe schreien h\u00f6rte. Er sei dann mit den anderen r\u00fcbergepaddelt, um ihn aus dem Wasser zu retten."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 0,
+        "_item": 1,
+        "itemID": 40,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Herr Merriweather sagte, dass St. Martin's ihn nicht ersetzt hat.",
+        "targets": [
+          {
+            "_itemAll": 1,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Mr. Merriweather sagte, dass St. Martin's ihn nicht ersetzte."
+          },
+          {
+            "_itemAll": 2,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Herr Merriweather sagte, dass St. Martin's ihn nicht ersetzt habe."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 0,
+        "_item": 2,
+        "itemID": 48,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "\u201eZuerst dachte ich, jemand freut sich, weil er einen Hummer gefangen hat\u201c, sagte Hammel. Aber dann bemerkte ich, dass jemand schrie: \u201eIch wurde gebissen!\u201c",
+        "targets": [
+          {
+            "_itemAll": 3,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Hammel sagte zun\u00e4chst, dass er dachte, es sei nur Aufregung, einen Hummer zu fangen, aber dann \u201eerkennte er, dass er schrie: 'Ich habe Biss!"
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 0,
+        "_item": 3,
+        "itemID": 54,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Rettungsschwimmer Kapit\u00e4n Larry Giles sagte bei einer Medienbesprechung, dass ein Hai einige Wochen zuvor in der Gegend gesichtet worden war, aber es wurde festgestellt, dass es sich nicht um eine gef\u00e4hrliche Haiart handelt.",
+        "targets": [
+          {
+            "_itemAll": 4,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Rettungsschwimmer Capt. Larry Giles sagte bei einem Medienbriefing, dass ein Hai in der Gegend ein paar Wochen zuvor gesichtet worden war, aber es wurde festgestellt, nicht eine gef\u00e4hrliche Haiart zu sein."
+          },
+          {
+            "_itemAll": 5,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Rettungsschwimmer Capt. Larry Giles sagte bei einem Medienbriefing, dass ein Hai in dem Gebiet einige Wochen zuvor gesichtet worden war, aber es wurde festgestellt, dass es sich nicht um eine gef\u00e4hrliche Haiart handelt."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 0,
+        "_item": 4,
+        "itemID": 22,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die Bef\u00fcrworter des Referendums, einschlie\u00dflich des Premierministers Zoran Zaev, argumentieren jedoch, dass die Namens\u00e4nderung ganz einfach der Preis ist, den man f\u00fcr den Beitritt zur EU und zur NATO zahlen muss.",
+        "targets": [
+          {
+            "_itemAll": 6,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Die Bef\u00fcrworter des Referendums, darunter Ministerpr\u00e4sident Zoran Zaev, argumentieren jedoch, dass die Namens\u00e4nderung einfach der Preis sei, den man zahlen m\u00fcsse, um der EU und der NATO beizutreten."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 0,
+        "_item": 5,
+        "itemID": 64,
+        "itemType": "CHK",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die Supermarktkette belebt auch ihre hauseigene Makeup-Marke \u201eBoutique\u201c neu, die zahlreiche bei jungen K\u00e4ufern beliebte vegane Produkte im Angebot hat.",
+        "targets": [
+          {
+            "_itemAll": 7,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Der Supermarkt bringt auch sein Boutique-Make-up-Sortiment neu auf den Markt, so dass die Mehrheit der Produkte vegan-freundlich ist \u2013 etwas, das zunehmend von j\u00fcngeren K\u00e4ufern verlangt wird."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 0,
+        "_item": 6,
+        "itemID": 41,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Was sich in den letzten Monaten bei St. Martin abgespielt hat, war eine komplizierte Geschichte von Architekten und Bauunternehmern, einige wurden von den Laienf\u00fchrern der Kirche, andere von der Bischofsdi\u00f6zese eingebracht.",
+        "targets": [
+          {
+            "_itemAll": 8,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Was sich in den letzten Monaten in St. Martin's abgespielt hat, war eine komplizierte Geschichte von Architekten und Bauunternehmern, von denen einige von den Laienf\u00fchrern der Kirche, andere von der Bischofsdi\u00f6zese eingebracht wurden."
+          },
+          {
+            "_itemAll": 9,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Was sich in St. Martin's in den letzten Monaten abgespielt hat, war eine komplizierte Geschichte von Architekten und Auftragnehmern, einige von den Laienf\u00fchrern der Kirche, andere von der Bischofsdi\u00f6zese."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 0,
+        "_item": 7,
+        "itemID": 15,
+        "itemType": "CHK",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die Rechtsvorschriften \u00fcber die Reformen wird \u00c4nderungen in der Arbeitsweise der Versammlung beinhalten, einschlie\u00dflich der Vorschriften f\u00fcr die Disqualifikation von Mitgliedern des walisischen Parlaments und die Gestaltung des Auschusssystems.",
+        "targets": [
+          {
+            "_itemAll": 10,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Die Rechtsvorschriften zu den Reformen werden weitere \u00c4nderungen an der Arbeitsweise der Versammlung beinhalten, darunter Vorschriften \u00fcber den Ausschluss von AMs und die Gestaltung des Ausschusssystems."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 0,
+        "_item": 8,
+        "itemID": 63,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Auch bestehende Sortimente von L'Oreal, Maybelline und Burt's Bees werden mehr Platz in Markenbereichen erhalten, \u00e4hnlich wie sie in Gesch\u00e4ften wie Boots zu finden sind.",
+        "targets": [
+          {
+            "_itemAll": 11,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Bestehende Sortimente von L'Oreal, Maybelline und Burt's Bees erhalten ebenfalls mehr Platz mit Markenbereichen, die denen in Gesch\u00e4ften wie Boots \u00e4hneln."
+          },
+          {
+            "_itemAll": 12,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Bestehende Sortimente von L'Oreal, Maybelline und Burt's Bees werden ebenfalls mehr Platz mit Markenbereichen erhalten, die denen in Gesch\u00e4ften wie Boots \u00e4hneln."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 0,
+        "_item": 9,
+        "itemID": 69,
+        "itemType": "REF",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Der fr\u00fchere Versuch des Supermarktes, seine Sch\u00f6nheits- und Apothekenabteilungen zu \u00fcberarbeiten, endete mit einem Misserfolg.",
+        "targets": [
+          {
+            "_itemAll": 13,
+            "_target": 0,
+            "targetID": "newstest2019-ende-ref.de",
+            "targetText": "Der fr\u00fchere Versuch des Supermarktes, seine Sch\u00f6nheits- und Apothekenabteilungen zu \u00fcberarbeiten, endete mit einem Misserfolg."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 1,
+        "_item": 10,
+        "itemID": 60,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Im Rahmen eines umfangreichen Pushs in den britische Sch\u00f6nheitsmarkt in Gro\u00dfbritannien, der weiter w\u00e4chst und \u00a32.8bn wert ist, werden Mode-und Homeware-Verk\u00e4ufe zur\u00fcckfallen. Die gr\u00f6\u00dferen 11 Filialen, die das Land getestet und im n\u00e4chsten Jahr wieder in mehr L\u00e4den gebracht hat, um Erfolg zu zeigen.",
+        "targets": [
+          {
+            "_itemAll": 14,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Als Teil eines erheblichen Vorsto\u00dfes in den britischen Sch\u00f6nheitsmarkt mit einem Volumen von 2,8 Mrd. Pfund, der weiter w\u00e4chst, w\u00e4hrend die Verk\u00e4ufe von Mode und Haushaltswaren zur\u00fcckgehen, werden die gr\u00f6\u00dferen Beauty-G\u00e4nge in 11 Gesch\u00e4ften im ganzen Land getestet und im n\u00e4chsten Jahr in weitere L\u00e4den gebracht, wenn sich dies als Erfolg erweist."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 1,
+        "_item": 11,
+        "itemID": 18,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Am Sonntag stimmen die Wahlberechtigten \u00fcber die \u00c4nderung des Landesnamens zu \u201eRepublik Nordmazedonien\u201c ab.",
+        "targets": [
+          {
+            "_itemAll": 15,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Die W\u00e4hler werden am Sonntag dar\u00fcber abstimmen, ob sie den Namen ihres Landes in \u201eRepublik Nordmakedonien\u201c \u00e4ndern wollen."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 1,
+        "_item": 12,
+        "itemID": 44,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Hai verletzt 13-j\u00e4hrigen Jungen beim Hummertauchen in Kalifornien",
+        "targets": [
+          {
+            "_itemAll": 16,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Hai verletzt 13-J\u00e4hrigen bei Hummer-Tauchgang in Kalifornien"
+          },
+          {
+            "_itemAll": 17,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Hai verletzt 13-J\u00e4hrigen beim Hummertauchen in Kalifornien"
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 1,
+        "_item": 13,
+        "itemID": 58,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Sainsbury plant, den britischen Beauty-Markt zu erobern",
+        "targets": [
+          {
+            "_itemAll": 18,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Sainsbury's plant Vorsto\u00df in den britischen Sch\u00f6nheitsmarkt"
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 1,
+        "_item": 14,
+        "itemID": 25,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "\u201eHeute gibt es weder noch.\"",
+        "targets": [
+          {
+            "_itemAll": 19,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "\u201eHeute gibt es weder das eine noch das andere\u201c."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 1,
+        "_item": 15,
+        "itemID": 67,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Mike Coupe, der Chef von Sainsbury's, hat gesagt, dass die Verkaufsstellen in zunehmendem Ma\u00dfe wie Warenh\u00e4user aussehen werden, da die Supermarktkette versucht Discounter wie Aldi und Lidl mit mehr Dienstleistungen und Non-Food zu bek\u00e4mpfen.",
+        "targets": [
+          {
+            "_itemAll": 20,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Mike Coupe, der Gesch\u00e4ftsf\u00fchrer von Sainsbury's, sagte, dass die Verkaufsstellen zunehmend wie Kaufh\u00e4user aussehen werden, da die Supermarktkette versucht, sich gegen die Discounter Aldi und Lidl mit mehr Dienstleistungen und Non-Food zu wehren."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 1,
+        "_item": 16,
+        "itemID": 45,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Am Samstag griff ein Hai einen 13-j\u00e4hrigen Jungen an und verletzte ihn, w\u00e4hrend er in Kalifornien am Er\u00f6ffnungstag der Hummersaison nach Hummern tauchte, sagten Beamte.",
+        "targets": [
+          {
+            "_itemAll": 21,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Ein Hai hat am Samstag einen 13-j\u00e4hrigen Jungen beim Hummertauchen in Kalifornien am Er\u00f6ffnungstag der Hummersaison angegriffen und verletzt, sagten Beamte."
+          },
+          {
+            "_itemAll": 22,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Ein Hai hat am Samstag einen 13-j\u00e4hrigen Jungen angegriffen und verletzt, als er am Er\u00f6ffnungstag der Hummersaison in Kalifornien nach Hummer taumelte, sagten Beamte."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 1,
+        "_item": 17,
+        "itemID": 48,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "\u201eZuerst dachte ich, jemand freut sich, weil er einen Hummer gefangen hat\u201c, sagte Hammel. Aber dann bemerkte ich, dass jemand schrie: \u201eIch wurde gebissen!\u201c",
+        "targets": [
+          {
+            "_itemAll": 23,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Hammel sagte zun\u00e4chst, er dachte, es sei nur Aufregung, einen Hummer zu fangen, aber dann \u201eerkannte er, dass er schrie: 'Ich habe gebissen!"
+          },
+          {
+            "_itemAll": 24,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Hammel sagte zun\u00e4chst, dass er dachte, es sei nur Aufregung, einen Hummer zu fangen, aber dann \u201eerkennte er, dass er schrie: 'Ich habe Biss!"
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 1,
+        "_item": 18,
+        "itemID": 58,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Sainsbury plant, den britischen Beauty-Markt zu erobern",
+        "targets": [
+          {
+            "_itemAll": 25,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Sainsbury's plant Vorsto\u00df in den britischen Beauty-Markt"
+          },
+          {
+            "_itemAll": 26,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Sainsburys Pl\u00e4ne dr\u00e4ngen in den britischen Sch\u00f6nheitsmarkt"
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 1,
+        "_item": 19,
+        "itemID": 47,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Chad Hammel sagte KSWB-TV in San Diego, er habe mit Freunden f\u00fcr eine halbe Stunde am Samstagmorgen getaucht, als er den Jungen um Hilfe schreien h\u00f6rte. Er sei dann mit den anderen r\u00fcbergepaddelt, um ihn aus dem Wasser zu retten.",
+        "targets": [
+          {
+            "_itemAll": 27,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Chad Hammel erz\u00e4hlte KSWB-TV in San Diego, dass am Er\u00f6ffnungstag der Hummersaison nach Hummern Stunde mit Freunden getaucht war, als er den Jungen um Hilfe schreien h\u00f6rte und dann mit einer Gruppe hin\u00fcberpaddelte, um ihn aus dem Wasser zu ziehen."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 2,
+        "_item": 20,
+        "itemID": 68,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Sainsbury's hat Argos-Outlets in Hunderten von Gesch\u00e4ften platziert und auch eine Reihe von Habitats eingef\u00fchrt, seit es beide Ketten vor zwei Jahren gekauft hat, was angeblich den Lebensmittelverkauf gest\u00e4rkt und die Akquisitionen profitabler gemacht hat.",
+        "targets": [
+          {
+            "_itemAll": 28,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Sainsbury's hat Argos-Gesch\u00e4fte in Hunderten von Gesch\u00e4ften eingerichtet und auch eine Reihe von Habitats eingef\u00fchrt, seit es vor zwei Jahren beide Ketten gekauft hat, was, wie es hei\u00dft, die Lebensmittelverk\u00e4ufe gest\u00e4rkt und die Akquisitionen profitabler gemacht hat."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 2,
+        "_item": 21,
+        "itemID": 31,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die \u00fcberw\u00e4ltigende Mehrheit der Menschen, die Eigentumswohnungen in diesen Geb\u00e4uden kaufen, wird wei\u00df sein, sagte er, \"und wird daher den Tag, an dem diese Kirchen ganz geschlossen werden, beschleunigen, da es unwahrscheinlich ist, dass die meisten dieser Personen, die in diese Eigentumswohnungen einziehen, Mitglieder dieser Kirchen werden.\"",
+        "targets": [
+          {
+            "_itemAll": 29,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "\u201eDie \u00fcberw\u00e4ltigende Mehrheit der Menschen, die Eigentumswohnungen in diesen Geb\u00e4uden kaufen, werden wei\u00df sein\u201c, sagte er, \u201eund werden daher den Tag beschleunigen, an dem diese Kirchen ganz geschlossen werden, weil es unwahrscheinlich ist, dass die meisten dieser Menschen, die in diese Eigentumswohnungen ziehen, Mitglieder dieser Kirchen werden\u201c."
+          },
+          {
+            "_itemAll": 30,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "\u201eDie \u00fcberw\u00e4ltigende Mehrheit der Menschen, die Eigentumswohnungen in diesen Geb\u00e4uden kaufen, wird wei\u00df sein\u201c, sagte er, \u201eund wird daher den Tag beschleunigen, an dem diese Kirchen ganz geschlossen werden, weil es unwahrscheinlich ist, dass die meisten dieser Menschen, die in diese Eigentumswohnungen ziehen, Mitglieder dieser Kirchen werden\u201c."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 2,
+        "_item": 22,
+        "itemID": 33,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die urspr\u00fcngliche wei\u00dfe methodistische Gemeinde zog in den 1930er Jahren aus.",
+        "targets": [
+          {
+            "_itemAll": 31,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Die urspr\u00fcngliche wei\u00dfe Methodistengemeinde zog in den 1930er Jahren aus."
+          },
+          {
+            "_itemAll": 32,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Die urspr\u00fcngliche wei\u00dfe methodistische Gemeinde zog in den 1930er Jahren aus."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 2,
+        "_item": 23,
+        "itemID": 13,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Bei der Frage um den Titel der Versammlungsmitglieder bevorzugte die Kommission walisischen Parlamentsmitglieder oder WMPs, jedoch bekam die MWP-Option die meiste Unterst\u00fctzung in einer \u00f6ffentlichen Befragung.",
+        "targets": [
+          {
+            "_itemAll": 33,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Was den Titel der AM betrifft, so bevorzugte die Kommission walisische Parlamentsabgeordnete oder WMPs, aber die MWP-Option erhielt in einer \u00f6ffentlichen Konsultation die gr\u00f6\u00dfte Unterst\u00fctzung."
+          },
+          {
+            "_itemAll": 34,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "In der Frage des Titels der AMs bevorzugte die Kommission walisische Parlamentsmitglieder oder WMPs, aber die MWP-Option erhielt in einer \u00f6ffentlichen Konsultation die meiste Unterst\u00fctzung."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 2,
+        "_item": 24,
+        "itemID": 68,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Sainsbury's hat Argos-Outlets in Hunderten von Gesch\u00e4ften platziert und auch eine Reihe von Habitats eingef\u00fchrt, seit es beide Ketten vor zwei Jahren gekauft hat, was angeblich den Lebensmittelverkauf gest\u00e4rkt und die Akquisitionen profitabler gemacht hat.",
+        "targets": [
+          {
+            "_itemAll": 35,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Sainsbury's hat Argos-Gesch\u00e4fte in Hunderten von Gesch\u00e4ften eingerichtet und auch eine Reihe von Habitats eingef\u00fchrt, seit es vor zwei Jahren beide Ketten gekauft hat, was, wie es hei\u00dft, die Lebensmittelverk\u00e4ufe gest\u00e4rkt und die Akquisitionen profitabler gemacht hat."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 2,
+        "_item": 25,
+        "itemID": 53,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die f\u00fcr den Angriff verantwortliche Haiart ist unbekannt.",
+        "targets": [
+          {
+            "_itemAll": 36,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Die f\u00fcr den Angriff verantwortliche Haiart war unbekannt."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 2,
+        "_item": 26,
+        "itemID": 23,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die Glocken von St. Martin verstummenn, da Kirchen in Harlem Probleme haben",
+        "targets": [
+          {
+            "_itemAll": 37,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Die Glocken von St. Martins Fall Territorium darstellt und hat Harlem Kampf"
+          },
+          {
+            "_itemAll": 38,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Die Glocken von St. Martin Angriff fand kurz vor in Harlem k\u00e4mpfen"
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 2,
+        "_item": 27,
+        "itemID": 59,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Sainsbury's \u00fcbernimmt Boots, Superdrug und Debenhams mit Regalen mit Sch\u00f6nheitsprodukten im Kaufhausstil, die mit Fachassistenten besetzt sind.",
+        "targets": [
+          {
+            "_itemAll": 39,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Sainsbury's nimmt Boots, Superdrug und Debenhams mit Kaufhaus-Stil Sch\u00f6nheit G\u00e4nge mit spezialisierten Assistenten besetzt."
+          },
+          {
+            "_itemAll": 40,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Sainsbury's \u00fcbernimmt Boots, Superdrug und Debenhams mit Beauty-G\u00e4ngen im Kaufhausstil, die mit spezialisierten Assistenten besetzt sind."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 2,
+        "_item": 28,
+        "itemID": 47,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Chad Hammel sagte KSWB-TV in San Diego, er habe mit Freunden f\u00fcr eine halbe Stunde am Samstagmorgen getaucht, als er den Jungen um Hilfe schreien h\u00f6rte. Er sei dann mit den anderen r\u00fcbergepaddelt, um ihn aus dem Wasser zu retten.",
+        "targets": [
+          {
+            "_itemAll": 41,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Chad Hammel erz\u00e4hlte KSWB-TV in San Diego, dass er am Samstagmorgen etwa eine halbe Stunde lang mit Freunden getaucht war, als er den Jungen um Hilfe schreien h\u00f6rte und dann mit einer Gruppe hin\u00fcberpaddelte, um ihn aus dem Wasser zu ziehen."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 2,
+        "_item": 29,
+        "itemID": 75,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Unser Markenportfolio l\u00e4sst keine W\u00fcnsche offen. Das elegante Ambiente, die g\u00fcnstige Innenstadtlage und ein revolutioniertes Kauferlebnis machen uns zu einem beliebten Anlaufziel in Beauty-Fragen.",
+        "targets": [
+          {
+            "_itemAll": 42,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Unsere Markenpalette ist f\u00fcr jeden Bedarf ausgelegt, und die verlockende Umgebung und die g\u00fcnstigen Lagen bedeuten, dass wir jetzt ein \u00fcberzeugendes Beauty-Reiseziel sind, das die alte Art des Einkaufens herausfordert\u201c."
+          },
+          {
+            "_itemAll": 43,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Unsere Markenpalette ist auf jeden Bedarf zugeschnitten und die verf\u00fchrerische Umgebung und die g\u00fcnstigen Lagen machen uns zu einem attraktiven Beauty-Destination, die die alte Art des Einkaufens herausfordert\u201c."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 3,
+        "_item": 30,
+        "itemID": 45,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Am Samstag griff ein Hai einen 13-j\u00e4hrigen Jungen an und verletzte ihn, w\u00e4hrend er in Kalifornien am Er\u00f6ffnungstag der Hummersaison nach Hummern tauchte, sagten Beamte.",
+        "targets": [
+          {
+            "_itemAll": 44,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Ein Hai hat am Samstag einen 13-j\u00e4hrigen Jungen beim Hummertauchen in Kalifornien am Er\u00f6ffnungstag der Hummersaison angegriffen und verletzt, sagten Beamte."
+          },
+          {
+            "_itemAll": 45,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Ein Hai hat am Samstag einen 13-j\u00e4hrigen Jungen angegriffen und verletzt, als er am Er\u00f6ffnungstag der Hummersaison in Kalifornien nach Hummer taumelte, sagten Beamte."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 3,
+        "_item": 31,
+        "itemID": 30,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Kirchen k\u00f6nnten durch Mehrfamilienh\u00e4user mit Eigentumswohnungen ersetzt werden, die mit der Art von Menschen gef\u00fcllt sind, die den verbleibenden Zufluchtsst\u00e4tten des Stadtteils nicht helfen werden.",
+        "targets": [
+          {
+            "_itemAll": 46,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Kirchen, f\u00fcgte er hinzu, k\u00f6nnten durch Mehrfamilienh\u00e4user mit Eigentumswohnungen ersetzt werden, die mit der Art von Menschen gef\u00fcllt sind, die den verbliebenen Heiligt\u00fcmern der Nachbarschaft nicht helfen werden."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 3,
+        "_item": 32,
+        "itemID": 20,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Athen beharrt seit langem darauf, dass der Name seines n\u00f6rdlichen Nachbarn einen Anspruch auf sein Territorium darstellt und hat wiederholt Einspruch gegen seinen Aufnahmeantrag f\u00fcr die EU und die NATO erhoben.",
+        "targets": [
+          {
+            "_itemAll": 47,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Athen besteht seit langem darauf, dass der Name seines n\u00f6rdlichen Nachbarn einen Anspruch auf sein Territorium darstellt, und hat wiederholt Einspruch gegen seine Beitrittsgesuche f\u00fcr die EU und die NATO erhoben."
+          },
+          {
+            "_itemAll": 48,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Athen besteht seit langem darauf, dass der Name seines n\u00f6rdlichen Nachbarn einen Anspruch auf sein Territorium darstellt, und hat wiederholt Einw\u00e4nde gegen seine Beitrittsgesuche f\u00fcr die EU und die NATO erhoben."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 3,
+        "_item": 33,
+        "itemID": 42,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die Sakristei \u2013 das Leitungsorgan der Pfarrei, das sich aus Laienf\u00fchrern zusammensetzt \u2013 schrieb im Juli an die Di\u00f6zese mit der Sorge, dass die Di\u00f6zese \"versuchen w\u00fcrde, die Kosten an die Sakristei weiterzugeben\", obwohl die Sakristei nicht an der Beauftragung der Architekten und Auftragnehmer der Di\u00f6zese beteiligt war.",
+        "targets": [
+          {
+            "_itemAll": 49,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Die Sakristei \u2013 das Leitungsgremium der Pfarrei, das sich aus Laienf\u00fchrern zusammensetzt \u2013 schrieb die Di\u00f6zese im Juli mit der Sorge, dass die Di\u00f6zese versuchen w\u00fcrde, die Kosten auf die Sakristei abzuw\u00e4lzen, obwohl die Sakristei nicht an der Einstellung der Architekten und Bauunternehmer beteiligt war, die von der Di\u00f6zese entsandt wurden."
+          },
+          {
+            "_itemAll": 50,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Die Sakristei \u2013 das Leitungsgremium der Pfarrei, das sich aus Laienf\u00fchrern zusammensetzt \u2013 schrieb der Di\u00f6zese im Juli mit der Bef\u00fcrchtung, dass die Di\u00f6zese versuchen w\u00fcrde, die Kosten auf die Sakristei abzuw\u00e4lzen, obwohl die Sakristei nicht an der Einstellung der von der Di\u00f6zese entsandten Architekten und Bauunternehmer beteiligt gewesen sei."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 3,
+        "_item": 34,
+        "itemID": 40,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Herr Merriweather sagte, dass St. Martin's ihn nicht ersetzt hat.",
+        "targets": [
+          {
+            "_itemAll": 51,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Herr Merriweather sagte, dass St. Martin's ihn nicht ersetzt habe."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 3,
+        "_item": 35,
+        "itemID": 28,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "\"Kneipen sind keine Wohnzimmer mehr in der Nachbarschaft, in denen man sich regelm\u00e4\u00dfig trifft.\"",
+        "targets": [
+          {
+            "_itemAll": 52,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "\u201eBars sind keine Nachbarschaftswohnzimmer mehr, in die die Menschen regelm\u00e4\u00dfig gehen\u201c."
+          },
+          {
+            "_itemAll": 53,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "\u201eBars sind keine Nachbarschafts-Wohnzimmer mehr, in die die Leute regelm\u00e4\u00dfig gehen\u201c."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 3,
+        "_item": 36,
+        "itemID": 44,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Hai verletzt 13-j\u00e4hrigen Jungen beim Hummertauchen in Kalifornien",
+        "targets": [
+          {
+            "_itemAll": 54,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Hai verletzt 13-J\u00e4hrigen beim Hummertauchen in Kalifornien"
+          },
+          {
+            "_itemAll": 55,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Hai verletzt 13-J\u00e4hrigen bei Hummer-Tauchgang in Kalifornien"
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 3,
+        "_item": 37,
+        "itemID": 27,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "\"Menschen kn\u00fcpfen Komtakte auf eine andere Art und Weise\", heutzutage sagte er.",
+        "targets": [
+          {
+            "_itemAll": 56,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "\u201eDie Menschen sozialisieren sich heute auf eine andere Weise\u201c, sagte er."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 3,
+        "_item": 38,
+        "itemID": 28,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "\"Kneipen sind keine Wohnzimmer mehr in der Nachbarschaft, in denen man sich regelm\u00e4\u00dfig trifft.\"",
+        "targets": [
+          {
+            "_itemAll": 57,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "\u201eBars sind keine Nachbarschaftswohnzimmer \"nicht gl\u00fccklich\" und hat Menschen regelm\u00e4\u00dfig gehen\u201c."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 3,
+        "_item": 39,
+        "itemID": 62,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Sainsbury teilte mit, dass das Angebot an Beauty-Produkten auf 3000 Produkte verdoppelt werde, indem erstmals auch Marken wie Revlon, Essie, Tweezerman und Dr. PawPaw in das Produktportfolio aufgenommen werden.",
+        "targets": [
+          {
+            "_itemAll": 58,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Sainsbury's sagte, es w\u00e4re die Verdoppelung der Gr\u00f6\u00dfe seines Beauty-Angebot auf schwarzen Metropole wurde \u2013 Metropolitan Community, wie Revlon, Essie, Tweezerman und Dr. PawPaw zum ersten Mal."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 4,
+        "_item": 40,
+        "itemID": 62,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Sainsbury teilte mit, dass das Angebot an Beauty-Produkten auf 3000 Produkte verdoppelt werde, indem erstmals auch Marken wie Revlon, Essie, Tweezerman und Dr. PawPaw in das Produktportfolio aufgenommen werden.",
+        "targets": [
+          {
+            "_itemAll": 59,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Sainsbury's erkl\u00e4rte, es werde die Gr\u00f6\u00dfe seines Beauty-Angebots auf bis zu 3.000 Produkte verdoppeln, darunter zum ersten Mal Marken wie Revlon, Essie, Tweezerman und Dr. PawPaw."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 4,
+        "_item": 41,
+        "itemID": 23,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die Glocken von St. Martin verstummenn, da Kirchen in Harlem Probleme haben",
+        "targets": [
+          {
+            "_itemAll": 60,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Die Glocken des St. Martin's Fall Silent als Kirchen in Harlem Kampf"
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 4,
+        "_item": 42,
+        "itemID": 38,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Der Experte, der im Juli das Glockenspiel spielte, nannte es noch etwas anderes: \"Ein Kulturschatz\" und \"ein unersetzliches historisches Instrument\".",
+        "targets": [
+          {
+            "_itemAll": 61,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Der Experte, der das Carillon im Juli spielte, nannte es etwas anderes: \u201eEin kultureller Schatz\u201c und \u201eein unersetzliches historisches Instrument\u201c."
+          },
+          {
+            "_itemAll": 62,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Der Experte, der das Glockenspiel im Juli spielte, nannte es etwas anderes: \u201eEin kultureller Schatz\u201c und \u201eein unersetzliches historisches Instrument\u201c."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 4,
+        "_item": 43,
+        "itemID": 14,
+        "itemType": "REF",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Mitglieder des walisischen Parlaments schlagen offenbar alternative Optionen vor, aber der Kampf zu einem Konsens zu gelangen, k\u00f6nnte der Vorsitzenden Elin JONES Kopfschmerzen bereiten. Von ihr wird erwartet, dass sie einen Gesetzesentwurf f\u00fcr diese \u00c4nderungen in den n\u00e4chsten Wochen vorlegt.",
+        "targets": [
+          {
+            "_itemAll": 63,
+            "_target": 0,
+            "targetID": "newstest2019-ende-ref.de",
+            "targetText": "Mitglieder des walisischen Parlaments schlagen offenbar alternative Optionen vor, aber der Kampf zu einem Konsens zu gelangen, k\u00f6nnte der Vorsitzenden Elin JONES Kopfschmerzen bereiten. Von ihr wird erwartet, dass sie einen Gesetzesentwurf f\u00fcr diese \u00c4nderungen in den n\u00e4chsten Wochen vorlegt."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 4,
+        "_item": 44,
+        "itemID": 47,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Chad Hammel sagte KSWB-TV in San Diego, er habe mit Freunden f\u00fcr eine halbe Stunde am Samstagmorgen getaucht, als er den Jungen um Hilfe schreien h\u00f6rte. Er sei dann mit den anderen r\u00fcbergepaddelt, um ihn aus dem Wasser zu retten.",
+        "targets": [
+          {
+            "_itemAll": 64,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Chad Hammel Der Junge wurde ins Rady Children's er am Samstagmorgen etwa eine halbe Stunde lang mit Freunden getaucht war, als er den Jungen um Hilfe schreien h\u00f6rte und dann mit einer Gruppe hin\u00fcberpaddelte, um ihn aus dem Wasser zu ziehen."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 4,
+        "_item": 45,
+        "itemID": 8,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Ein walisischer Konservativer sagte, seine Gruppe w\u00e4re \u201eoffen\u201c f\u00fcr eine Namens\u00e4nderung, wies aber darauf hin, dass es von \u201eMWP\u201c (Mitglied des Walisischen Parlaments) nur ein kurzer verbaler Sprung zu \u201eMuppet\u201c ist.",
+        "targets": [
+          {
+            "_itemAll": 65,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Ein walisischer Konservativer sagte, seine Fraktion sei \u201eaufgeschlossen\u201c gegen\u00fcber der Namens\u00e4nderung, merkte jedoch an, dass es sich um einen kurzen verbalen Sprung von MWP zu Muppet handelte."
+          },
+          {
+            "_itemAll": 66,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Ein walisischer Konservativer sagte, seine Fraktion sei \u201eoffen\u201c \u00fcber die Namens\u00e4nderung, merkte aber an, dass es sich um einen kurzen verbalen Sprung von MWP zu Muppet handele."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 4,
+        "_item": 46,
+        "itemID": 41,
+        "itemType": "CHK",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Was sich in den letzten Monaten bei St. Martin abgespielt hat, war eine komplizierte Geschichte von Architekten und Bauunternehmern, einige wurden von den Laienf\u00fchrern der Kirche, andere von der Bischofsdi\u00f6zese eingebracht.",
+        "targets": [
+          {
+            "_itemAll": 67,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Was sich in den letzten Monaten in St. Martin's abgespielt hat, war eine komplizierte Geschichte von Architekten und Bauunternehmern, von denen einige von den Laienf\u00fchrern der Kirche, andere von der Bischofsdi\u00f6zese eingebracht wurden."
+          },
+          {
+            "_itemAll": 68,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Was sich in den letzten Monaten in St. Martin abgespielt hat, war eine komplizierte Geschichte von Architekten und Bauunternehmern, von denen einige von den Laienf\u00fchrern der Kirche, andere von der Bischofsdi\u00f6zese eingebracht wurden."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 4,
+        "_item": 47,
+        "itemID": 55,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Giles f\u00fcgte im Oberk\u00f6rperbereich seines Opfers traumatische Verletzungen hinzu.",
+        "targets": [
+          {
+            "_itemAll": 69,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Giles f\u00fcgte hinzu, das Opfer erlitt traumatische Verletzungen an seinem oberen Oberk\u00f6rperbereich."
+          },
+          {
+            "_itemAll": 70,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Giles f\u00fcgte hinzu, dass das Opfer traumatische Verletzungen an seinem Oberk\u00f6rperbereich erlitt."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 4,
+        "_item": 48,
+        "itemID": 45,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Am Samstag griff ein Hai einen 13-j\u00e4hrigen Jungen an und verletzte ihn, w\u00e4hrend er in Kalifornien am Er\u00f6ffnungstag der Hummersaison nach Hummern tauchte, sagten Beamte.",
+        "targets": [
+          {
+            "_itemAll": 71,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Ein Hai angegriffen und verletzt einen 13-j\u00e4hrigen Jungen Samstag, w\u00e4hrend er f\u00fcr Hummer in Kalifornien am Er\u00f6ffnungstag der Hummersaison tauchen, sagten Beamte."
+          },
+          {
+            "_itemAll": 72,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Ein Hai hat am Samstag einen 13-j\u00e4hrigen Jungen angegriffen und verletzt, als er am Er\u00f6ffnungstag der Hummersaison in Kalifornien nach Hummer taumelte, sagten Beamte."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 4,
+        "_item": 49,
+        "itemID": 75,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Unser Markenportfolio l\u00e4sst keine W\u00fcnsche offen. Das elegante Ambiente, die g\u00fcnstige Innenstadtlage und ein revolutioniertes Kauferlebnis machen uns zu einem beliebten Anlaufziel in Beauty-Fragen.",
+        "targets": [
+          {
+            "_itemAll": 73,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Unsere Markenpalette ist auf jeden Bedarf zugeschnitten und die verf\u00fchrerische Umgebung und die g\u00fcnstigen Lagen machen uns zu einem attraktiven Beauty-Destination, die die alte Art des Einkaufens herausfordert\u201c."
+          },
+          {
+            "_itemAll": 74,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Unsere Markenpalette ist f\u00fcr jeden Bedarf ausgelegt, und die verlockende Umgebung und die g\u00fcnstigen Lagen bedeuten, dass wir jetzt ein \u00fcberzeugendes Beauty-Reiseziel sind, das die alte Art des Einkaufens herausfordert\u201c."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 5,
+        "_item": 50,
+        "itemID": 47,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Chad Hammel sagte KSWB-TV in San Diego, er habe mit Freunden f\u00fcr eine halbe Stunde am Samstagmorgen getaucht, als er den Jungen um Hilfe schreien h\u00f6rte. Er sei dann mit den anderen r\u00fcbergepaddelt, um ihn aus dem Wasser zu retten.",
+        "targets": [
+          {
+            "_itemAll": 75,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Chad Hammel erz\u00e4hlte KSWB-TV in San Diego, dass er am Samstagmorgen etwa eine halbe Stunde lang mit Freunden getaucht war, als er den Jungen um Hilfe schreien h\u00f6rte und dann mit einer Gruppe hin\u00fcberpaddelte, um ihn aus dem Wasser zu ziehen."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 5,
+        "_item": 51,
+        "itemID": 40,
+        "itemType": "REF",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Herr Merriweather sagte, dass St. Martin's ihn nicht ersetzt hat.",
+        "targets": [
+          {
+            "_itemAll": 76,
+            "_target": 0,
+            "targetID": "newstest2019-ende-ref.de",
+            "targetText": "Herr Merriweather sagte, dass St. Martin's ihn nicht ersetzt hat."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 5,
+        "_item": 52,
+        "itemID": 50,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Sein ganzes Schl\u00fcsselbein wurde aufgerissen, sagte Hammel, er stellte dies fest als er zu dem Jungen kam.",
+        "targets": [
+          {
+            "_itemAll": 77,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Sein ganzes Schl\u00fcsselbein war aufgerissen\u201c, sagte Hammel, als er zu dem Jungen kam."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 5,
+        "_item": 53,
+        "itemID": 37,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Pfarrer David Johnson, Sohn von Pater Johnson und Nachfolger in St. Martin's, nannte das Glockenspiel stolz \u201edie Glocken der Armen.\"",
+        "targets": [
+          {
+            "_itemAll": 78,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Rev. David Johnson, Pater Johnsons Sohn und Nachfolger bei St. Martin's, nannte das Glockenspiel stolz \u201edie Glocken der Armen\u201c."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 5,
+        "_item": 54,
+        "itemID": 10,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die Kommission der Nationalversammlung, die gerade an einem Gesetzentwurf f\u00fcr die Namens\u00e4nderungen arbeitet, sagte: \u201eDie finale Entscheidung \u00fcber die Bezeichnung der Mitglieder der Nationalversammlung liegt nat\u00fcrlich bei den Mitgliedern selbst.\u201c",
+        "targets": [
+          {
+            "_itemAll": 79,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Die Versammlungskommission, die derzeit Rechtsvorschriften zur Einf\u00fchrung der Namens\u00e4nderung ausarbeitet, sagte: \u201eDie endg\u00fcltige Entscheidung \u00fcber alle Deskriptoren dessen, was Versammlungsmitglieder genannt werden, wird nat\u00fcrlich Sache der Mitglieder selbst sein\u201c."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 5,
+        "_item": 55,
+        "itemID": 64,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die Supermarktkette belebt auch ihre hauseigene Makeup-Marke \u201eBoutique\u201c neu, die zahlreiche bei jungen K\u00e4ufern beliebte vegane Produkte im Angebot hat.",
+        "targets": [
+          {
+            "_itemAll": 80,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Der Supermarkt bringt auch sein Boutique-Make-up-Sortiment neu auf den Markt, so dass die Mehrheit der Produkte vegan-freundlich ist \u2013 etwas, das zunehmend von j\u00fcngeren K\u00e4ufern verlangt wird."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 5,
+        "_item": 56,
+        "itemID": 18,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Am Sonntag stimmen die Wahlberechtigten \u00fcber die \u00c4nderung des Landesnamens zu \u201eRepublik Nordmazedonien\u201c ab.",
+        "targets": [
+          {
+            "_itemAll": 81,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Die W\u00e4hler werden am Sonntag dar\u00fcber abstimmen, ob sie den Namen ihres Landes in \u201eRepublik Nordmakedonien\u201c \u00e4ndern wollen."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 5,
+        "_item": 57,
+        "itemID": 15,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die Rechtsvorschriften \u00fcber die Reformen wird \u00c4nderungen in der Arbeitsweise der Versammlung beinhalten, einschlie\u00dflich der Vorschriften f\u00fcr die Disqualifikation von Mitgliedern des walisischen Parlaments und die Gestaltung des Auschusssystems.",
+        "targets": [
+          {
+            "_itemAll": 82,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Die Rechtsvorschriften zu den Reformen werden weitere \u00c4nderungen an der Arbeitsweise der Versammlung beinhalten, darunter Vorschriften \u00fcber den Ausschluss von AMs und die Gestaltung des Ausschusssystems."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 5,
+        "_item": 58,
+        "itemID": 40,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Herr Merriweather sagte, dass St. Martin's ihn nicht ersetzt hat.",
+        "targets": [
+          {
+            "_itemAll": 83,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Herr Merriweather sagte, dass St. Martin's ihn nicht ersetzt habe."
+          },
+          {
+            "_itemAll": 84,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Mr. Merriweather sagte, dass St. Martin's ihn nicht ersetzte."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 5,
+        "_item": 59,
+        "itemID": 69,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Der fr\u00fchere Versuch des Supermarktes, seine Sch\u00f6nheits- und Apothekenabteilungen zu \u00fcberarbeiten, endete mit einem Misserfolg.",
+        "targets": [
+          {
+            "_itemAll": 85,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Der fr\u00fchere Versuch des Supermarktes, seine Sch\u00f6nheits- und Apothekenabteilungen umzugestalten, scheiterte."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 6,
+        "_item": 60,
+        "itemID": 56,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Beamte schlossen den Zugang zum Strand von Ponto Beach in Casablad zu Swami's in Ecinitas f\u00fcr 48 Stunden aus Sicherheitsgr\u00fcnden.",
+        "targets": [
+          {
+            "_itemAll": 86,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Beamte sperrten den Strandzugang von Ponto Beach in Casablad zu Swami's in Ecinitas f\u00fcr 48 Stunden f\u00fcr Ermittlungs- und Sicherheitszwecke."
+          },
+          {
+            "_itemAll": 87,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Beamte sperrten den Strandzugang von Ponto Beach in Casablad zu Swami's in Ecinitas f\u00fcr 48 Stunden zu Untersuchungs- und Sicherheitszwecken."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 6,
+        "_item": 61,
+        "itemID": 11,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Mit dem Government of Wales Act 2017 erhielt das walisische Parlament die M\u00f6glichkeit, seinen Namen zu \u00e4ndern.",
+        "targets": [
+          {
+            "_itemAll": 88,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Der Government of Wales Act 2017 gab der walisischen Versammlung die Befugnis, ihren Namen zu \u00e4ndern."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 6,
+        "_item": 62,
+        "itemID": 5,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Ein Labour-Abgeordneter sagte, dass seine Gruppe \"sich mit Twp und Pwp reimt\".",
+        "targets": [
+          {
+            "_itemAll": 89,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Ein Labour AM sagte, seine Gruppe sei besorgt, \u201ees reimt sich mit Twp und Pwp\u201c."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 6,
+        "_item": 63,
+        "itemID": 71,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die neue Strategie kommt, nachdem Sainsbury's sein 281-Filialen-Apothekengesch\u00e4ft vor drei Jahren f\u00fcr 125 Millionen Pfund an Celesio, den Eigent\u00fcmer der Lloyds Pharmacy Kette, verkauft hat.",
+        "targets": [
+          {
+            "_itemAll": 90,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Die neue Strategie kommt, nachdem Sainsbury's vor drei Jahren sein 281-Store-Apothekengesch\u00e4ft an Celesio, den Eigent\u00fcmer der Lloyds-Apothekenkette, f\u00fcr 125 Mio. GBP verkauft hat."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 6,
+        "_item": 64,
+        "itemID": 10,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die Kommission der Nationalversammlung, die gerade an einem Gesetzentwurf f\u00fcr die Namens\u00e4nderungen arbeitet, sagte: \u201eDie finale Entscheidung \u00fcber die Bezeichnung der Mitglieder der Nationalversammlung liegt nat\u00fcrlich bei den Mitgliedern selbst.\u201c",
+        "targets": [
+          {
+            "_itemAll": 91,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Die Vollversammlungskommission, die derzeit ein Gesetz zur Einf\u00fchrung der Namens\u00e4nderungen ausarbeitet, sagte: \u201eDie endg\u00fcltige Entscheidung \u00fcber alle Deskriptoren dessen, was Vollversammlungsmitglieder genannt werden, wird selbstverst\u00e4ndlich eine Angelegenheit der Mitglieder selbst sein\u201c."
+          },
+          {
+            "_itemAll": 92,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Die Versammlungskommission, die derzeit Rechtsvorschriften zur Einf\u00fchrung der Namens\u00e4nderung ausarbeitet, sagte: \u201eDie endg\u00fcltige Entscheidung \u00fcber alle Deskriptoren dessen, was Versammlungsmitglieder genannt werden, wird nat\u00fcrlich Sache der Mitglieder selbst sein\u201c."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 6,
+        "_item": 65,
+        "itemID": 59,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Sainsbury's \u00fcbernimmt Boots, Superdrug und Debenhams mit Regalen mit Sch\u00f6nheitsprodukten im Kaufhausstil, die mit Fachassistenten besetzt sind.",
+        "targets": [
+          {
+            "_itemAll": 93,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Sainsbury's \u00fcbernimmt Boots, Superdrug und Debenhams mit Beauty-G\u00e4ngen im Kaufhausstil, die mit spezialisierten Assistenten besetzt sind."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 6,
+        "_item": 66,
+        "itemID": 41,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Was sich in den letzten Monaten bei St. Martin abgespielt hat, war eine komplizierte Geschichte von Architekten und Bauunternehmern, einige wurden von den Laienf\u00fchrern der Kirche, andere von der Bischofsdi\u00f6zese eingebracht.",
+        "targets": [
+          {
+            "_itemAll": 94,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Was sich in St. Martin's in den letzten Monaten abgespielt hat, war eine komplizierte Geschichte von Architekten und Auftragnehmern, einige von den Laienf\u00fchrern der Kirche, andere von der Bischofsdi\u00f6zese."
+          },
+          {
+            "_itemAll": 95,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Was sich in den letzten Monaten in St. Martin's abgespielt hat, war eine komplizierte Geschichte von Architekten und Bauunternehmern, von denen einige von den Laienf\u00fchrern der Kirche, andere von der Bischofsdi\u00f6zese eingebracht wurden."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 6,
+        "_item": 67,
+        "itemID": 12,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Im Juni vergangenen Jahres hat die Kommission die Ergebnisse einer \u00f6ffentlichen Anh\u00f6rung zu den Vorschl\u00e4gen ver\u00f6ffentlicht, wonach die Namens\u00e4nderung in Walisisches Parlament breite Zustimmung findet.",
+        "targets": [
+          {
+            "_itemAll": 96,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Im Juni ver\u00f6ffentlichte die Kommission die Ergebnisse einer \u00f6ffentlichen Konsultation zu den Vorschl\u00e4gen, die breite Unterst\u00fctzung daf\u00fcr fand, die Versammlung ein walisisches Parlament zu nennen."
+          },
+          {
+            "_itemAll": 97,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Im Juni ver\u00f6ffentlichte die Kommission die Ergebnisse einer \u00f6ffentlichen Konsultation zu den Vorschl\u00e4gen, die breite Unterst\u00fctzung f\u00fcr die Bezeichnung der Versammlung als walisisches Parlament fand."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 6,
+        "_item": 68,
+        "itemID": 2,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Es herrscht Best\u00fcrzung unter einigen Mitgliedern der Versammlung \u00fcber einen Vorschlag, der ihren Titel zu MWPs (Mitglied der walisischen Parlament) \u00e4ndern soll.",
+        "targets": [
+          {
+            "_itemAll": 98,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Einige AMs sind best\u00fcrzt \u00fcber den Vorschlag, ihren Titel in MWPs (Mitglied des Walisischen Parlaments) zu \u00e4ndern."
+          },
+          {
+            "_itemAll": 99,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Es gibt Best\u00fcrzung unter einigen AMs \u00fcber einen Vorschlag, ihren Titel in MWPs (Mitglied des walisischen Parlaments) zu \u00e4ndern."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 6,
+        "_item": 69,
+        "itemID": 47,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Chad Hammel sagte KSWB-TV in San Diego, er habe mit Freunden f\u00fcr eine halbe Stunde am Samstagmorgen getaucht, als er den Jungen um Hilfe schreien h\u00f6rte. Er sei dann mit den anderen r\u00fcbergepaddelt, um ihn aus dem Wasser zu retten.",
+        "targets": [
+          {
+            "_itemAll": 100,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Chad Hammel erz\u00e4hlte KSWB-TV in San Diego, dass er am Samstagmorgen etwa eine halbe Stunde mit Freunden getaucht war, als er den Jungen um Hilfe schreien h\u00f6rte und dann mit einer Gruppe hin\u00fcberpaddelte, um ihn aus dem Wasser zu ziehen."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 7,
+        "_item": 70,
+        "itemID": 30,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Kirchen k\u00f6nnten durch Mehrfamilienh\u00e4user mit Eigentumswohnungen ersetzt werden, die mit der Art von Menschen gef\u00fcllt sind, die den verbleibenden Zufluchtsst\u00e4tten des Stadtteils nicht helfen werden.",
+        "targets": [
+          {
+            "_itemAll": 101,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Kirchen, f\u00fcgte er hinzu, k\u00f6nnten durch Mehrfamilienh\u00e4user mit Eigentumswohnungen ersetzt werden, die mit der Art von Menschen gef\u00fcllt sind, die den verbleibenden Heiligt\u00fcmern des Viertels nicht helfen werden."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 7,
+        "_item": 71,
+        "itemID": 10,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die Kommission der Nationalversammlung, die gerade an einem Gesetzentwurf f\u00fcr die Namens\u00e4nderungen arbeitet, sagte: \u201eDie finale Entscheidung \u00fcber die Bezeichnung der Mitglieder der Nationalversammlung liegt nat\u00fcrlich bei den Mitgliedern selbst.\u201c",
+        "targets": [
+          {
+            "_itemAll": 102,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Die Versammlungskommission, die derzeit Rechtsvorschriften zur Einf\u00fchrung der Namens\u00e4nderung ausarbeitet, sagte: \u201eDie endg\u00fcltige Entscheidung \u00fcber die Bezeichnung der Mitglieder der Versammlung wird nat\u00fcrlich Sache der Mitglieder selbst sein\u201c."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 7,
+        "_item": 72,
+        "itemID": 47,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Chad Hammel sagte KSWB-TV in San Diego, er habe mit Freunden f\u00fcr eine halbe Stunde am Samstagmorgen getaucht, als er den Jungen um Hilfe schreien h\u00f6rte. Er sei dann mit den anderen r\u00fcbergepaddelt, um ihn aus dem Wasser zu retten.",
+        "targets": [
+          {
+            "_itemAll": 103,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Chad Hammel erz\u00e4hlte KSWB-TV in San Diego, dass er am Samstagmorgen etwa eine halbe Stunde mit Freunden getaucht war, als er den Jungen um Hilfe schreien h\u00f6rte und dann mit einer Gruppe hin\u00fcberpaddelte, um ihn aus dem Wasser zu ziehen."
+          },
+          {
+            "_itemAll": 104,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Chad Hammel erz\u00e4hlte KSWB-TV in San Diego, dass er am Samstagmorgen etwa eine halbe Stunde lang mit Freunden getaucht sei, als er den Jungen um Hilfe schreien h\u00f6rte und dann mit einer Gruppe paddelte, um ihn aus dem Wasser zu ziehen."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 7,
+        "_item": 73,
+        "itemID": 13,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Bei der Frage um den Titel der Versammlungsmitglieder bevorzugte die Kommission walisischen Parlamentsmitglieder oder WMPs, jedoch bekam die MWP-Option die meiste Unterst\u00fctzung in einer \u00f6ffentlichen Befragung.",
+        "targets": [
+          {
+            "_itemAll": 105,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Was den Titel der AM betrifft, so bevorzugte die Kommission walisische Parlamentsabgeordnete oder WMPs, aber die MWP-Option erhielt in einer \u00f6ffentlichen Konsultation die gr\u00f6\u00dfte Unterst\u00fctzung."
+          },
+          {
+            "_itemAll": 106,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "In der Frage des Titels der AMs favorisierte die Kommission walisische Parlamentsmitglieder oder WMPs, aber die MWP-Option erhielt in einer \u00f6ffentlichen Konsultation die meiste Unterst\u00fctzung."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 7,
+        "_item": 74,
+        "itemID": 68,
+        "itemType": "CHK",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Sainsbury's hat Argos-Outlets in Hunderten von Gesch\u00e4ften platziert und auch eine Reihe von Habitats eingef\u00fchrt, seit es beide Ketten vor zwei Jahren gekauft hat, was angeblich den Lebensmittelverkauf gest\u00e4rkt und die Akquisitionen profitabler gemacht hat.",
+        "targets": [
+          {
+            "_itemAll": 107,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Sainsbury's hat Argos-Gesch\u00e4fte in Hunderten von Gesch\u00e4ften eingerichtet und auch eine Reihe von Habitats eingef\u00fchrt, seit es vor zwei Jahren beide Ketten gekauft hat, was, wie es hei\u00dft, die Lebensmittelverk\u00e4ufe gest\u00e4rkt und die Akquisitionen profitabler gemacht hat."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 7,
+        "_item": 75,
+        "itemID": 34,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Eine schwarze Gemeinde, die in der N\u00e4he eine Religion aus\u00fcbten, erwarb das Geb\u00e4ude.",
+        "targets": [
+          {
+            "_itemAll": 108,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Eine schwarze Gemeinde, die in der N\u00e4he angebetet hatte, \u00fcbernahm den Titel des Geb\u00e4udes."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 7,
+        "_item": 76,
+        "itemID": 23,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die Glocken von St. Martin verstummenn, da Kirchen in Harlem Probleme haben",
+        "targets": [
+          {
+            "_itemAll": 109,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Die Glocken von St. Martins Fall schweigen als Kirchen in Harlem Kampf"
+          },
+          {
+            "_itemAll": 110,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Die Glocken von St. Martin verstummen, w\u00e4hrend die Kirchen in Harlem k\u00e4mpfen"
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 7,
+        "_item": 77,
+        "itemID": 73,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Paul Mills-Hicks, Werbechef von Sainsbury, sagte: \u201eWir haben das Erscheinungsbild unserer Regale f\u00fcr Sch\u00f6nheitsprodukte ver\u00e4ndert, um die Ausstattung f\u00fcr unsere Kunden zu verbessern.",
+        "targets": [
+          {
+            "_itemAll": 111,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Paul Mills-Hicks, der kaufm\u00e4nnische Direktor von Sainsbury, sagte: \u201eWir haben das Aussehen und das Gef\u00fchl unserer Beauty-G\u00e4nge ver\u00e4ndert, um das Umfeld f\u00fcr unsere Kunden zu verbessern."
+          },
+          {
+            "_itemAll": 112,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Paul Mills-Hicks, kaufm\u00e4nnischer Direktor von Sainsbury, sagte: \u201eWir haben das Aussehen und die Haptik unserer Beauty-G\u00e4nge ver\u00e4ndert, um die Umwelt f\u00fcr unsere Kunden zu verbessern."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 7,
+        "_item": 78,
+        "itemID": 47,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Chad Hammel sagte KSWB-TV in San Diego, er habe mit Freunden f\u00fcr eine halbe Stunde am Samstagmorgen getaucht, als er den Jungen um Hilfe schreien h\u00f6rte. Er sei dann mit den anderen r\u00fcbergepaddelt, um ihn aus dem Wasser zu retten.",
+        "targets": [
+          {
+            "_itemAll": 113,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Chad Hammel Der Junge wurde ins Rady Children's er am Samstagmorgen etwa eine halbe Stunde lang mit Freunden getaucht war, als er den Jungen um Hilfe schreien h\u00f6rte und dann mit einer Gruppe hin\u00fcberpaddelte, um ihn aus dem Wasser zu ziehen."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 7,
+        "_item": 79,
+        "itemID": 9,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Hinweis: Der walisische Buchstabe W wird \u00e4hnlich ausgesprochen wie das U im Englischen.",
+        "targets": [
+          {
+            "_itemAll": 114,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "In diesem Zusammenhang wird der walisische Buchstabe w \u00e4hnlich wie die Yorkshire-Englische Aussprache des Buchstabens u ausgesprochen."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 8,
+        "_item": 80,
+        "itemID": 7,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Ein Versammlungsmitglied von Plaid Cymru sagte, die Gruppe als Ganzes sei \"nicht gl\u00fccklich\" und hat Alternativen vorgeschlagen.",
+        "targets": [
+          {
+            "_itemAll": 115,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Ein Plaid AM sagte, die Gruppe als Ganzes sei \u201enicht gl\u00fccklich\u201c und habe Alternativen vorgeschlagen."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 8,
+        "_item": 81,
+        "itemID": 30,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Kirchen k\u00f6nnten durch Mehrfamilienh\u00e4user mit Eigentumswohnungen ersetzt werden, die mit der Art von Menschen gef\u00fcllt sind, die den verbleibenden Zufluchtsst\u00e4tten des Stadtteils nicht helfen werden.",
+        "targets": [
+          {
+            "_itemAll": 116,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Kirchen, f\u00fcgte er hinzu, k\u00f6nnten durch Mehrfamilienh\u00e4user eine Bar und eine Kirche gab\", der Art von Menschen gef\u00fcllt sind, die den verbliebenen Heiligt\u00fcmern der Nachbarschaft nicht helfen werden."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 8,
+        "_item": 82,
+        "itemID": 20,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Athen beharrt seit langem darauf, dass der Name seines n\u00f6rdlichen Nachbarn einen Anspruch auf sein Territorium darstellt und hat wiederholt Einspruch gegen seinen Aufnahmeantrag f\u00fcr die EU und die NATO erhoben.",
+        "targets": [
+          {
+            "_itemAll": 117,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Athen besteht seit langem darauf, dass der Name seines n\u00f6rdlichen Nachbarn einen Anspruch auf sein Territorium darstellt, und hat wiederholt der Arbeitsweise der Versammlung beinhalten, einschlie\u00dflich EU und die NATO erhoben."
+          },
+          {
+            "_itemAll": 118,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Athen besteht seit erwartet, dass sie einen Gesetzesentwurf f\u00fcr n\u00f6rdlichen Nachbarn einen Anspruch auf sein Territorium darstellt, und hat wiederholt Einw\u00e4nde gegen seine Beitrittsgesuche f\u00fcr die EU und die NATO erhoben."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 8,
+        "_item": 83,
+        "itemID": 36,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Ein Brand im Jahr 1939 hinterlie\u00df das Geb\u00e4ude schwer besch\u00e4digt, aber als die Gemeindemitglieder von Pater Johnson Pl\u00e4ne zum Wiederaufbau machten, beauftragten sie das Glockenspiel.",
+        "targets": [
+          {
+            "_itemAll": 119,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Ein Brand im Jahre 1939 hinterlie\u00df das Geb\u00e4ude schwer besch\u00e4digt, aber als Pfarrangeh\u00f6rige von Pater Johnson Pl\u00e4ne zum Wiederaufbau machten, gaben sie das Glockenspiel in Auftrag."
+          },
+          {
+            "_itemAll": 120,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Ein Brand im Jahr 1939 hat das Geb\u00e4ude schwer besch\u00e4digt, aber als die Gemeindemitglieder von Pater Johnson Pl\u00e4ne zum Wiederaufbau machten, beauftragten sie das Glockenspiel."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 8,
+        "_item": 84,
+        "itemID": 21,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Der mazedonische Pr\u00e4sident Gjorge Ivanov, ein Gegner des Referendums bez\u00fcglich der Namens\u00e4nderung, hat gesagt, er werde die Abstimmung ignorieren.",
+        "targets": [
+          {
+            "_itemAll": 121,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Der mazedonische Pr\u00e4sident Gjorge Ivanov, ein Gegner der Volksabstimmung \u00fcber die Namens\u00e4nderung, hat erkl\u00e4rt, er werde die Abstimmung missachten."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 8,
+        "_item": 85,
+        "itemID": 28,
+        "itemType": "CHK",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "\"Kneipen sind keine Wohnzimmer mehr in der Nachbarschaft, in denen man sich regelm\u00e4\u00dfig trifft.\"",
+        "targets": [
+          {
+            "_itemAll": 122,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "\u201eBars sind keine Nachbarschafts-Wohnzimmer mehr, in die die Leute regelm\u00e4\u00dfig gehen\u201c."
+          },
+          {
+            "_itemAll": 123,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "\u201eBars sind keine Nachbarschaftswohnzimmer mehr, in die die Menschen regelm\u00e4\u00dfig gehen\u201c."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 8,
+        "_item": 86,
+        "itemID": 3,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Der Grund daf\u00fcr waren Pl\u00e4ne, den Namen der Nationalversammlung in Walisisches Parlament zu \u00e4ndern.",
+        "targets": [
+          {
+            "_itemAll": 124,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Er entstand aufgrund von Pl\u00e4nen, den Namen der Versammlung in das walisische Parlament umzu\u00e4ndern."
+          },
+          {
+            "_itemAll": 125,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Der Grund daf\u00fcr sind Pl\u00e4ne, den Namen der Versammlung in das Walisische Parlament zu \u00e4ndern."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 8,
+        "_item": 87,
+        "itemID": 27,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "\"Menschen kn\u00fcpfen Komtakte auf eine andere Art und Weise\", heutzutage sagte er.",
+        "targets": [
+          {
+            "_itemAll": 126,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Uhr morgens nahe dem heute auf eine andere Weise\u201c, sagte er."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 8,
+        "_item": 88,
+        "itemID": 28,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "\"Kneipen sind keine Wohnzimmer mehr in der Nachbarschaft, in denen man sich regelm\u00e4\u00dfig trifft.\"",
+        "targets": [
+          {
+            "_itemAll": 127,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "\u201eBars sind keine Nachbarschaftswohnzimmer mehr, in die die Menschen regelm\u00e4\u00dfig gehen\u201c."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 8,
+        "_item": 89,
+        "itemID": 62,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Sainsbury teilte mit, dass das Angebot an Beauty-Produkten auf 3000 Produkte verdoppelt werde, indem erstmals auch Marken wie Revlon, Essie, Tweezerman und Dr. PawPaw in das Produktportfolio aufgenommen werden.",
+        "targets": [
+          {
+            "_itemAll": 128,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Sainsbury's sagte, es w\u00e4re die Verdoppelung der Gr\u00f6\u00dfe seines Beauty-Angebot auf bis zu 3.000 Produkte, darunter Marken wie Revlon, Essie, Tweezerman und Dr. PawPaw zum ersten Mal."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 9,
+        "_item": 90,
+        "itemID": 55,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Giles f\u00fcgte im Oberk\u00f6rperbereich seines Opfers traumatische Verletzungen hinzu.",
+        "targets": [
+          {
+            "_itemAll": 129,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Giles f\u00fcgte hinzu, das Opfer erlitt traumatische Verletzungen an seinem oberen Oberk\u00f6rperbereich."
+          },
+          {
+            "_itemAll": 130,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Giles f\u00fcgte hinzu, dass das Opfer traumatische Verletzungen an seinem Oberk\u00f6rperbereich erlitt."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 9,
+        "_item": 91,
+        "itemID": 23,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die Glocken von St. Martin verstummenn, da Kirchen in Harlem Probleme haben",
+        "targets": [
+          {
+            "_itemAll": 131,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Die Glocken des mehr Dienstleistungen und Non-Food als Kirchen in Harlem Kampf"
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 9,
+        "_item": 92,
+        "itemID": 38,
+        "itemType": "REF",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Der Experte, der im Juli das Glockenspiel spielte, nannte es noch etwas anderes: \"Ein Kulturschatz\" und \"ein unersetzliches historisches Instrument\".",
+        "targets": [
+          {
+            "_itemAll": 132,
+            "_target": 0,
+            "targetID": "newstest2019-ende-ref.de",
+            "targetText": "Der Experte, der im Juli das Glockenspiel spielte, nannte es noch etwas anderes: \"Ein Kulturschatz\" und \"ein unersetzliches historisches Instrument\"."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 9,
+        "_item": 93,
+        "itemID": 14,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Mitglieder des walisischen Parlaments schlagen offenbar alternative Optionen vor, aber der Kampf zu einem Konsens zu gelangen, k\u00f6nnte der Vorsitzenden Elin JONES Kopfschmerzen bereiten. Von ihr wird erwartet, dass sie einen Gesetzesentwurf f\u00fcr diese \u00c4nderungen in den n\u00e4chsten Wochen vorlegt.",
+        "targets": [
+          {
+            "_itemAll": 133,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "AMs schlagen anscheinend alternative Optionen vor, aber das Ringen um einen Konsens k\u00f6nnte dem Vorsitzenden Elin Jones Kopfzerbrechen bereiten, der innerhalb von Wochen Gesetzesentw\u00fcrfe zu den \u00c4nderungen vorlegen soll."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 9,
+        "_item": 94,
+        "itemID": 47,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Chad Hammel sagte KSWB-TV in San Diego, er habe mit Freunden f\u00fcr eine halbe Stunde am Samstagmorgen getaucht, als er den Jungen um Hilfe schreien h\u00f6rte. Er sei dann mit den anderen r\u00fcbergepaddelt, um ihn aus dem Wasser zu retten.",
+        "targets": [
+          {
+            "_itemAll": 134,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Chad Hammel erz\u00e4hlte KSWB-TV in San Diego, dass er am Samstagmorgen etwa eine halbe Stunde lang mit Freunden getaucht war, als er den Jungen um Hilfe schreien h\u00f6rte und dann mit einer Gruppe hin\u00fcberpaddelte, um ihn aus dem Wasser zu ziehen."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 9,
+        "_item": 95,
+        "itemID": 64,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Die Supermarktkette belebt auch ihre hauseigene Makeup-Marke \u201eBoutique\u201c neu, die zahlreiche bei jungen K\u00e4ufern beliebte vegane Produkte im Angebot hat.",
+        "targets": [
+          {
+            "_itemAll": 135,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Zudem bringt der Supermarkt sein Boutique-Make-up-Sortiment neu auf den Markt, so dass die meisten Produkte vegan-freundlich sind \u2013 was zunehmend von j\u00fcngeren K\u00e4ufern nachgefragt wird."
+          }
+        ],
+        "targetsSize": 1
+      },
+      {
+        "_block": 9,
+        "_item": 96,
+        "itemID": 41,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Was sich in den letzten Monaten bei St. Martin abgespielt hat, war eine komplizierte Geschichte von Architekten und Bauunternehmern, einige wurden von den Laienf\u00fchrern der Kirche, andere von der Bischofsdi\u00f6zese eingebracht.",
+        "targets": [
+          {
+            "_itemAll": 136,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Was sich in den letzten Monaten in St. Martin's abgespielt hat, war eine komplizierte Geschichte von Architekten und Bauunternehmern, von denen einige von den Laienf\u00fchrern der Kirche, andere von der Bischofsdi\u00f6zese eingebracht wurden."
+          },
+          {
+            "_itemAll": 137,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Was sich in den letzten Monaten in St. Martin abgespielt hat, war eine komplizierte Geschichte von Architekten und Bauunternehmern, von denen einige von den Laienf\u00fchrern der Kirche, andere von der Bischofsdi\u00f6zese eingebracht wurden."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 9,
+        "_item": 97,
+        "itemID": 67,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Mike Coupe, der Chef von Sainsbury's, hat gesagt, dass die Verkaufsstellen in zunehmendem Ma\u00dfe wie Warenh\u00e4user aussehen werden, da die Supermarktkette versucht Discounter wie Aldi und Lidl mit mehr Dienstleistungen und Non-Food zu bek\u00e4mpfen.",
+        "targets": [
+          {
+            "_itemAll": 138,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Mike Coupe, der Vorstandsvorsitzende von Sainsbury's, sagte, dass die Verkaufsstellen zunehmend wie Kaufh\u00e4user aussehen werden, da die Supermarktkette versucht, sich gegen die Discounter Aldi und Lidl mit mehr Dienstleistungen und Non-Food zu wehren."
+          },
+          {
+            "_itemAll": 139,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Mike Coupe, der Vorstandsvorsitzende von Sainsbury's, hat gesagt, dass die Verkaufsstellen zunehmend wie Kaufh\u00e4user aussehen werden, da die Supermarktkette versucht, sich mit mehr Dienstleistungen und Non-Food gegen die Discounter Aldi und Lidl zu wehren."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 9,
+        "_item": 98,
+        "itemID": 65,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Dar\u00fcber hinaus testet der Parf\u00fcmh\u00e4ndler Fragrance Shop Konzessionen in zwei Sainsburys Gesch\u00e4ften, von denen das erste letzte Woche in Croydon, S\u00fcd-London, er\u00f6ffnet wurde, w\u00e4hrend ein zweites Ende dieses Jahres in Selly Oak, Birmingham, er\u00f6ffnet wird.",
+        "targets": [
+          {
+            "_itemAll": 140,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+            "targetText": "Dar\u00fcber hinaus wird der Parf\u00fcmh\u00e4ndler Fragrance Shop Konzessionen in zwei Sainsbury's-Gesch\u00e4ften testen, von denen das erste letzte Woche in Croydon, S\u00fcdlondon, er\u00f6ffnet wurde, w\u00e4hrend ein zweites Ende dieses Jahres in Selly Oak, Birmingham, er\u00f6ffnet wird."
+          },
+          {
+            "_itemAll": 141,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Dar\u00fcber hinaus wird der Parf\u00fcmh\u00e4ndler Fragrance Shop Konzessionen in zwei Sainsbury's Stores testen, von denen der erste letzte Woche in Croydon, S\u00fcd-London, er\u00f6ffnete, w\u00e4hrend ein zweiter in Selly Oak, Birmingham, sp\u00e4ter in diesem Jahr er\u00f6ffnet."
+          }
+        ],
+        "targetsSize": 2
+      },
+      {
+        "_block": 9,
+        "_item": 99,
+        "itemID": 2,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-ref.de",
+        "sourceText": "Es herrscht Best\u00fcrzung unter einigen Mitgliedern der Versammlung \u00fcber einen Vorschlag, der ihren Titel zu MWPs (Mitglied der walisischen Parlament) \u00e4ndern soll.",
+        "targets": [
+          {
+            "_itemAll": 142,
+            "_target": 0,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+            "targetText": "Es gibt Best\u00fcrzung unter einigen AMs \u00fcber einen Vorschlag, ihren Titel in MWPs (Mitglied des walisischen Parlaments) zu \u00e4ndern."
+          },
+          {
+            "_itemAll": 143,
+            "_target": 1,
+            "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+            "targetText": "Unter einigen AMs herrscht Best\u00fcrzung \u00fcber den Vorschlag, ihren Titel in MWPs (Mitglied des walisischen Parlaments) umzu\u00e4ndern."
+          }
+        ],
+        "targetsSize": 2
+      }
+    ],
+    "task": {
+      "batchNo": 1,
+      "batchSize": 10,
+      "contrastiveOutputs": 2,
+      "contrastiveSelectionMethod": "sampling (x10)",
+      "randomSeed": 123456,
+      "requiredAnnotations": 1,
+      "sourceLanguage": "eng",
+      "targetLanguage": "deu"
+    }
+  }
+]

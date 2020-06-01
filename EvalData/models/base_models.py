@@ -642,6 +642,7 @@ class TextPair(EvalItem):
 
         return super(TextPair, self).is_valid()
 
+
 class TextPairWithContext(TextPair):
     """
     Models a pair of two text segments and corresponding context.

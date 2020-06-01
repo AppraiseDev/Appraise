@@ -17,6 +17,8 @@ from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Dashboard.models import UserInviteToken, LANGUAGE_CODES_AND_NAMES
 from EvalData.models import (
+    PairwiseAssessmentTask,
+    PairwiseAssessmentResult,
     DirectAssessmentTask,
     DirectAssessmentResult,
     DirectAssessmentContextTask,
@@ -297,6 +299,7 @@ def dashboard(request):
         DirectAssessmentResult,
         DirectAssessmentContextResult,
         MultiModalAssessmentResult,
+        PairwiseAssessmentResult,
     )
     annotations = 0
     hits = 0
@@ -358,6 +361,27 @@ def dashboard(request):
             current_task.assignedTo.remove(request.user)
             current_task = None
 
+    if not current_task:
+        current_task = PairwiseAssessmentTask.get_task_for_user(
+            request.user
+        )
+        print(f'Queried for Pairwise DA task...')
+
+    print(f'  Current task: {current_task}')
+
+    # Check if marketTargetLanguage for current_task matches user languages.
+    if current_task:
+        code = current_task.marketTargetLanguageCode()
+        print(request.user.groups.all())
+        if code not in request.user.groups.values_list('name', flat=True):
+            _msg = (
+                'Language %s not specified for user %s. Giving up task %s'
+            )
+            LOGGER.info(_msg, code, request.user.username, current_task)
+
+            current_task.assignedTo.remove(request.user)
+            current_task = None
+
     _t2 = datetime.now()
 
     # If there is no current task, check if user is done with work agenda.
@@ -401,6 +425,7 @@ def dashboard(request):
     campaign_languages = {}
     context_languages = {}
     multimodal_languages = {}
+    pairwise_languages = {}
     languages = []
     if not current_task and not work_completed:
         for code in LANGUAGE_CODES_AND_NAMES:
@@ -416,6 +441,7 @@ def dashboard(request):
         from Campaign.models import Campaign
 
         for campaign in Campaign.objects.all():
+            print(f'Campaign: {campaign.campaignName}')
 
             direct = DirectAssessmentTask.objects.filter(
                 campaign__campaignName=campaign.campaignName
@@ -429,18 +455,25 @@ def dashboard(request):
                 campaign__campaignName=campaign.campaignName
             )
 
+            pairwise = PairwiseAssessmentTask.objects.filter(
+                campaign__campaignName=campaign.campaignName
+            )
+
             is_context_campaign = context.exists()
             is_multi_modal_campaign = multimodal.exists()
+            is_pairwise_campaign = pairwise.exists()
 
             if is_multi_modal_campaign:
                 multimodal_languages[campaign.campaignName] = []
-                multimodal_languages[campaign.campaignName].extend(
-                    languages
-                )
+                multimodal_languages[campaign.campaignName].extend(languages)
 
             elif is_context_campaign:
                 context_languages[campaign.campaignName] = []
                 context_languages[campaign.campaignName].extend(languages)
+
+            elif is_pairwise_campaign:
+                pairwise_languages[campaign.campaignName] = []
+                pairwise_languages[campaign.campaignName].extend(languages)
 
             else:
                 campaign_languages[campaign.campaignName] = []
@@ -453,6 +486,8 @@ def dashboard(request):
                     _cls = MultiModalAssessmentTask
                 elif is_context_campaign:
                     _cls = DirectAssessmentContextTask
+                elif is_pairwise_campaign:
+                    _cls = PairwiseAssessmentTask
                 else:
                     _cls = DirectAssessmentTask
 
@@ -469,6 +504,10 @@ def dashboard(request):
                         context_languages[campaign.campaignName].remove(
                             code
                         )
+                    elif is_pairwise_campaign:
+                        pairwise_languages[campaign.campaignName].remove(
+                            code
+                        )
                     else:
                         campaign_languages[campaign.campaignName].remove(
                             code
@@ -482,6 +521,9 @@ def dashboard(request):
             elif is_context_campaign:
                 _type = 'context'
                 _languages = context_languages
+            elif is_pairwise_campaign:
+                _type = 'pairwise'
+                _languages = pairwise_languages
 
             print(
                 "campaign = {0}, type = {1}, languages = {2}".format(
@@ -519,6 +561,14 @@ def dashboard(request):
     )
     seconds += int((duration.total_seconds() - (days * 86400)) % 60)
 
+    duration = PairwiseAssessmentResult.get_time_for_user(request.user)
+    days += duration.days
+    hours += int((duration.total_seconds() - (days * 86400)) / 3600)
+    minutes += int(
+        ((duration.total_seconds() - (days * 86400)) % 3600) / 60
+    )
+    seconds += int((duration.total_seconds() - (days * 86400)) % 60)
+
     _t4 = datetime.now()
 
     all_languages = []
@@ -528,7 +578,7 @@ def dashboard(request):
                 (value, LANGUAGE_CODES_AND_NAMES[value], key)
             )
 
-    print(str(all_languages).encode('utf-8'))
+    print('All languages:', str(all_languages).encode('utf-8'))
 
     ctx_languages = []
     for key, values in context_languages.items():
@@ -537,7 +587,7 @@ def dashboard(request):
                 (value, LANGUAGE_CODES_AND_NAMES[value], key)
             )
 
-    print(str(ctx_languages).encode('utf-8'))
+    print('  Context:', str(ctx_languages).encode('utf-8'))
 
     mmt_languages = []
     for key, values in multimodal_languages.items():
@@ -546,17 +596,31 @@ def dashboard(request):
                 (value, LANGUAGE_CODES_AND_NAMES[value], key)
             )
 
-    print(str(mmt_languages).encode('utf-8'))
+    print('  MultiModal:', str(mmt_languages).encode('utf-8'))
+
+    pair_languages = []
+    for key, values in pairwise_languages.items():
+        for value in values:
+            pair_languages.append(
+                (value, LANGUAGE_CODES_AND_NAMES[value], key)
+            )
+
+    print('  Pairwise:', str(pair_languages).encode('utf-8'))
 
     is_context_campaign = False
     is_multi_modal_campaign = False
+    is_pairwise_campaign = False
+
     if current_task:
+        print('  ...')
         is_context_campaign = (
-            current_task.__class__.__name__
-            == 'DirectAssessmentContextTask'
+            current_task.__class__.__name__ == 'DirectAssessmentContextTask'
         )
         is_multi_modal_campaign = (
             current_task.__class__.__name__ == 'MultiModalAssessmentTask'
+        )
+        is_pairwise_campaign = (
+            current_task.__class__.__name__ == 'PairwiseAssessmentTask'
         )
 
     current_type = 'direct'
@@ -564,6 +628,10 @@ def dashboard(request):
         current_type = 'context'
     elif is_multi_modal_campaign:
         current_type = 'multimodal'
+    elif is_pairwise_campaign:
+        current_type = 'pairwise'
+
+    print(f'  Final task type: {current_type}')
 
     template_context.update(
         {
