@@ -836,8 +836,6 @@ def pairwise_assessment(request, code=None, campaign_name=None):
     if request.method == "POST":
         score1 = request.POST.get('score', None)    # TODO: score -> score1
         score2 = request.POST.get('score2', None)
-        if int(score2) == -1:  # TODO: fix
-            score2 = None
         item_id = request.POST.get('item_id', None)
         task_id = request.POST.get('task_id', None)
         start_timestamp = request.POST.get('start_timestamp', None)
