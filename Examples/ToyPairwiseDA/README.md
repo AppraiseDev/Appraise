@@ -11,6 +11,6 @@ Generating an example campaign with pairwise assessment tasks:
     python manage.py init_campaign Examples/ToyPairwiseDA/manifest.json --csv-output Examples/ToyPairwiseDA/output2.csv
     # From the admin panel, assign user(s) to the created Pairwise assessment task
     # Login with an annotator account and update the profile to have English and German as supported languages
-    # After some nnotations have been collected ...
+    # After some annotations have been collected ...
     python manage.py ExportSystemScoresToCSV campaign5pair
 
