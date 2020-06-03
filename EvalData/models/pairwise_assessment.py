@@ -5,13 +5,11 @@ See LICENSE for usage details
 """
 # pylint: disable=C0103,C0330,no-member
 from collections import defaultdict
-from datetime import datetime, timedelta
-from inspect import currentframe, getframeinfo
 from json import loads
-from re import compile as re_compile
 from traceback import format_exc
-from typing import Set
-from zipfile import ZipFile, is_zipfile
+from zipfile import is_zipfile
+from zipfile import ZipFile
+
 from django.db import models
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -25,10 +23,6 @@ from django.utils.translation import ugettext_lazy as _
 from Appraise.utils import _get_logger
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 from EvalData.models.base_models import *
-
-from deprecated import add_deprecated_method
-
-MAX_REQUIREDANNOTATIONS_VALUE = 50
 
 LOGGER = _get_logger(name=__name__)
 
