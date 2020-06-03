@@ -42,15 +42,16 @@ String.prototype.rot13 = function() {
 
 $(document).ready(function() {
   $('input[name="start_timestamp"]').val(Date.now()/1000.0);
+
   $('#slider').slider({orientation: "horizontal", range: "min", change: update_score});
   $('input[name="score"]').val(-1);
 
   $('#slider2').slider({orientation: "horizontal", range: "min", change: update_score2});
   $('input[name="score2"]').val(-1);
 
-  var $a = $('#id_candidate_text').attr('data-pseudo-content');
-  $('#id_candidate_text').attr('data-pseudo-content', $a.rot13());
-  alert($a);
+  //var $a = $('#id_candidate_text').attr('data-pseudo-content');
+  //$('#id_candidate_text').attr('data-pseudo-content', $a.rot13());
+  //alert($a);
 
   // Increment the idle time counter every second.
   //var idleInterval = setInterval(timerIncrement, 1000);
@@ -100,9 +101,9 @@ function reset_form()
 
 function validate_form()
 {
-  var score = $('input[name="score"]').val();
-  var score2 = $('input[name="score2"]').val();
-  if (score == -1) // || score2 == -1)  // TODO: fix!
+  var score1 = $('input[name="score"]');
+  var score2 = $('input[name="score2"]');
+  if (score1.val() == -1 || (score2.length && score2.val() == -1))
   {
     alert('Please score all candidate sentences. Thanks!');
     return false;
@@ -169,7 +170,9 @@ function update_score2()
 <input name="task_id" type="hidden" value="{{task_id}}" />
 <input name="start_timestamp" type="hidden" value="" />
 <input name="score" type="hidden" value="-1" />
+{% if candidate2_text %}
 <input name="score2" type="hidden" value="-1" />
+{% endif %}
 
 <div class="row quotelike">
     <div class="col-sm-12">
