@@ -84,6 +84,10 @@ class TextSegmentWithTwoTargets(TextSegment):
             if _len < 1 or _len > MAX_SEGMENTTEXT_LENGTH:
                 return False
 
+            # Texts must be different
+            if self.target1Text == self.target2Text:
+                return False
+
         return super(TextSegmentWithTwoTargets, self).is_valid()
 
 
