@@ -2,6 +2,7 @@
 
 Generating an example campaign with pairwise assessment tasks:
 
+    python manage.py init_campaign Examples/Pairwise/manifest.json
     # From the admin panel, create a campaign with the name 'example3pair'
     python manage.py init_campaign Examples/Pairwise/manifest.json
 
