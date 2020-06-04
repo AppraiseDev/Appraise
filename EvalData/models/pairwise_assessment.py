@@ -310,13 +310,11 @@ class PairwiseAssessmentTask(BaseMetadata):
 
         for active_task in active_tasks.order_by('id'):
             active_users = active_task.assignedTo.count()
-            print(f'    Active users: {active_users} required '
-                  f'annotations: {active_task.requiredAnnotations}')
             if active_users < active_task.requiredAnnotations:
                 if user and not user in active_task.assignedTo.all():
                     return active_task
 
-        print(f'      - return None')
+        print(f'    No next free task available')
         return None
 
         # It seems that assignedTo is converted to an integer count.
