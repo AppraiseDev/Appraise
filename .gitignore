@@ -1,6 +1,7 @@
 # Appraise
 Batches
 Packages
+development.db*
 
 # Python
 *.py[cod]
