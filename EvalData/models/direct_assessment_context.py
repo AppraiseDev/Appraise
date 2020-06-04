@@ -22,9 +22,61 @@ from EvalData.models.base_models import AnnotationTaskRegistry
 from EvalData.models.base_models import BaseMetadata
 from EvalData.models.base_models import MAX_REQUIREDANNOTATIONS_VALUE
 from EvalData.models.base_models import seconds_to_timedelta
-from EvalData.models.base_models import TextPairWithContext
+from EvalData.models.base_models import TextPair
+
+MAX_DOCUMENTID_LENGTH = 100
 
 LOGGER = _get_logger(name=__name__)
+
+
+class TextPairWithContext(TextPair):
+    """
+    Models a pair of two text segments and corresponding context.
+    """
+    documentID = models.CharField(
+      max_length=MAX_DOCUMENTID_LENGTH,
+      verbose_name=_('Document ID'),
+      help_text=_(f('(max. {value} characters)',
+        value=MAX_DOCUMENTID_LENGTH))
+    )
+
+    isCompleteDocument = models.BooleanField(
+      blank=True,
+      db_index=True,
+      default=False,
+      verbose_name=_('Complete document?')
+    )
+
+    sourceContextLeft = models.TextField(
+      blank=True,
+      null=True,
+      verbose_name=_('Source context (left)')
+    )
+
+    sourceContextRight = models.TextField(
+      blank=True,
+      null=True,
+      verbose_name=_('Source context (right)')
+    )
+
+    targetContextLeft = models.TextField(
+      blank=True,
+      null=True,
+      verbose_name=_('Target context (left)')
+    )
+
+    targetContextRight = models.TextField(
+      blank=True,
+      null=True,
+      verbose_name=_('Target context (right)')
+    )
+
+    # pylint: disable=E1101
+    def is_valid(self):
+        """
+        Validates the current TextPairWithContext instance, checking text.
+        """
+        return super(TextPairWithContext, self).is_valid()
 
 
 @AnnotationTaskRegistry.register
