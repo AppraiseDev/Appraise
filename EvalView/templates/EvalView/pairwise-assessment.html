@@ -13,8 +13,9 @@
   margin: 0 0 20px;
   padding: 10px 20px;
 }
-.quotelike div small { color: #777; font-size: 80%; line-height: 1.4; }
-.quotelike div > small:before { content: '\2014 \00A0'; }
+.quotelike-author { color: #777; font-size: 80%; line-height: 1.4; }
+.quotelike-author:before { content: '\2014 \00A0'; }
+.context-sentences p { color: #555; margin-bottom: 10px; line-height: 1.3; }
 
 small.padleft { padding-left: 20px; }
 small.padright { padding-right: 20px; }
@@ -84,6 +85,13 @@ function reset_timer()
 }
 */
 
+
+function toggle_context()
+{
+    $('.context-sentences').toggle(400);
+    $('#reference-label').toggle();
+}
+
 function add_end_timestamp()
 {
   $('input[name="end_timestamp"]').val(Date.now()/1000.0);
@@ -149,12 +157,30 @@ function update_score2()
   </table>
 </div>
 
-<div class="row">
+<div class="row quotelike">
 <div class="col-sm-12">
-<blockquote>
-<p><strong>{{reference_text|safe}}</strong></p>
-<small>{{reference_label}}</small>
-</blockquote>
+    <div class="context-sentences" style="display: none">
+    {% if context_left %}
+        <p>
+        {% for sentence in context_left %}
+            <small> {{sentence|safe}} </small>
+        {% endfor %}
+        </p>
+    {% endif %}
+    </div>
+
+    <p><strong>{{reference_text|safe}}</strong></p>
+    <p class="quotelike-author" id="reference-label">{{reference_label}}</p>
+
+    <div class="context-sentences" style="display: none">
+    {% if context_right %}
+        <p>
+        {% for sentence in context_right %}
+            <small> {{sentence|safe}} </small>
+        {% endfor %}
+        </p>
+    {% endif %}
+    </div>
 </div>
 </div>
 
@@ -224,6 +250,9 @@ function update_score2()
   <tr>
     <td style="width:50%;text-align:left;">
       <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn"><i class="icon-repeat"></i> Reset</button>
+      {% if context_left or context_right %}
+      <button onclick="javascript:toggle_context();" accesskey="3" type="reset" class="btn"><i class="icon-repeat"></i> Show/Hide context</button>
+      {% endif %}
 <!--
       &nbsp;
       <button name="submit_button" accesskey="3" type="submit" class="btn btn-danger" value="FLAG_ERROR"><i class="icon-white icon-exclamation-sign"></i> Skip Item</button>

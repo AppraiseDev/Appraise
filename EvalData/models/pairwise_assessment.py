@@ -57,6 +57,18 @@ class TextSegmentWithTwoTargets(TextSegment):
       verbose_name=_('Text (2)'),
     )
 
+    contextLeft = models.TextField(
+      blank=True,
+      null=True,
+      verbose_name=_('Context (left)')
+    )
+
+    contextRight = models.TextField(
+      blank=True,
+      null=True,
+      verbose_name=_('Context (right)')
+    )
+
     # pylint: disable=E1101
     def is_valid(self):
         """
@@ -421,6 +433,9 @@ class PairwiseAssessmentTask(BaseMetadata):
                     item_tgt2_idx = item_targets[1]['targetID']
                     item_tgt2_txt = item_targets[1]['targetText']
 
+                context_left = item.get('contextLeft', None)
+                context_right = item.get('contextRight', None)
+
                 new_item = TextSegmentWithTwoTargets(
                     segmentID=item['sourceID'],
                     segmentText=item['sourceText'],
@@ -431,6 +446,8 @@ class PairwiseAssessmentTask(BaseMetadata):
                     createdBy=batch_user,
                     itemID=item['itemID'],
                     itemType=item['itemType'],
+                    contextLeft=context_left,
+                    contextRight=context_right,
                 )
                 new_items.append(new_item)
 
