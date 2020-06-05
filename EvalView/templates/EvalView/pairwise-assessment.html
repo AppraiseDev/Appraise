@@ -16,6 +16,7 @@
 .quotelike-author { color: #777; font-size: 80%; line-height: 1.4; }
 .quotelike-author:before { content: '\2014 \00A0'; }
 .context-sentences p { color: #555; margin-bottom: 10px; line-height: 1.3; }
+.priming-question { font-size: 130%; margin-bottom: 20px; }
 
 small.padleft { padding-left: 20px; }
 small.padright { padding-right: 20px; }
@@ -30,6 +31,7 @@ small.padright { padding-right: 20px; }
 
 <link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}">
 <script src="{% static 'EvalView/js/jquery-ui.min.js' %}"></script>
+<script src="{% static 'EvalView/js/js.cookie-2.2.1.min.js' %}"></script>
 <script>
 <!--
 var idleTime = 0;
@@ -49,6 +51,11 @@ $(document).ready(function() {
 
   $('#slider2').slider({orientation: "horizontal", range: "min", change: update_score2});
   $('input[name="score2"]').val(-1);
+
+  if (Cookies.get('show-context') == 'yes') {
+    $('.context-sentences').show();
+    $('#reference-label').hide();
+  }
 
   //var $a = $('#id_candidate_text').attr('data-pseudo-content');
   //$('#id_candidate_text').attr('data-pseudo-content', $a.rot13());
@@ -88,8 +95,10 @@ function reset_timer()
 
 function toggle_context()
 {
+    var isHidden = $('.context-sentences').first().is(':hidden') ? 'yes' : 'no';
     $('.context-sentences').toggle(400);
     $('#reference-label').toggle();
+    Cookies.set('show-context', isHidden, { sameSite: 'strict' });
 }
 
 function add_end_timestamp()
@@ -186,8 +195,7 @@ function update_score2()
 
 <div class="row">
     <div class="col-sm-12">
-        <h4><emph>{{priming_question_text|safe}}</emph></h4>
-        <br>
+        <p class="priming-question">{{priming_question_text|safe}}</p>
     </div>
 </div>
 
@@ -251,7 +259,7 @@ function update_score2()
     <td style="width:50%;text-align:left;">
       <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn"><i class="icon-repeat"></i> Reset</button>
       {% if context_left or context_right %}
-      <button onclick="javascript:toggle_context();" accesskey="3" type="reset" class="btn"><i class="icon-repeat"></i> Show/Hide context</button>
+      <button onclick="javascript:toggle_context();" accesskey="3" type="button" class="btn">Show/Hide context</button>
       {% endif %}
 <!--
       &nbsp;
