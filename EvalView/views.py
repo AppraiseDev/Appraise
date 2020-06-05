@@ -911,15 +911,36 @@ def pairwise_assessment(request, code=None, campaign_name=None):
     candidate1_label = 'Candidate translation (1)'
     candidate2_label = 'Candidate translation (2)'
 
-    priming_question_text = (
-        'How accurately does each of the candidate text(s) below convey the original '
-        'semantics of the source text?'
+    context_left = (
+        current_item.contextLeft.split('\n')[-3:]
+        if current_item.contextLeft
+        else None
     )
+    context_right = (
+        current_item.contextRight.split('\n')[-3:]
+        if current_item.contextRight
+        else None
+    )
+
+    if context_left or context_right:
+        # Added 'bolded' to avoid confusion with context sentences that are
+        # displayed in a grey color.
+        priming_question_text = (
+            'How accurately does each of the candidate text(s) below convey '
+            'the original semantics of the bolded source text above?'
+        )
+    else:
+        priming_question_text = (
+            'How accurately does each of the candidate text(s) below convey '
+            'the original semantics of the source text above?'
+        )
 
     context = {
         'active_page': 'pairwise-assessment',
         'reference_label': reference_label,
         'reference_text': current_item.segmentText,
+        'context_left': context_left,
+        'context_right': context_right,
         'candidate_label': candidate1_label,
         'candidate_text': current_item.target1Text,
         'candidate2_label': candidate2_label,
@@ -928,8 +949,7 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         'item_id': current_item.itemID,
         'task_id': current_item.id,
         'completed_blocks': completed_blocks,
-        'items_left_in_block': 10
-        - (completed_items - completed_blocks * 10),
+        'items_left_in_block': 10 - (completed_items - completed_blocks * 10),
         'source_language': source_language,
         'target_language': target_language,
         'debug_times': (t2 - t1, t3 - t2, t4 - t3, t4 - t1),
