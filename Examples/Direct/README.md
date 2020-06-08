@@ -2,6 +2,7 @@
 
 Generating an example campaign with direct assessment tasks:
 
+    python manage.py init_campaign Examples/Direct/manifest.json
     # From the admin panel, create a campaign with the name 'example1'
     python manage.py init_campaign Examples/Direct/manifest.json
 
