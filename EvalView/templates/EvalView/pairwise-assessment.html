@@ -170,11 +170,7 @@ function update_score2()
 <div class="col-sm-12">
     <div class="context-sentences" style="display: none">
     {% if context_left %}
-        <p>
-        {% for sentence in context_left %}
-            <small> {{sentence|safe}} </small>
-        {% endfor %}
-        </p>
+        <p><small>{{context_left|safe}}</small></p>
     {% endif %}
     </div>
 
@@ -183,11 +179,7 @@ function update_score2()
 
     <div class="context-sentences" style="display: none">
     {% if context_right %}
-        <p>
-        {% for sentence in context_right %}
-            <small> {{sentence|safe}} </small>
-        {% endfor %}
-        </p>
+        <p><small>{{context_right|safe}}</small></p>
     {% endif %}
     </div>
 </div>

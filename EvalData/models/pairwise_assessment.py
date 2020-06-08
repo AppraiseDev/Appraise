@@ -69,6 +69,26 @@ class TextSegmentWithTwoTargets(TextSegment):
       verbose_name=_('Context (right)')
     )
 
+    def has_context(self):
+        """Checks if the current segment has context provided."""
+        return self.contextLeft or self.contextRight
+
+    def context_left(self, last=3):
+        """Returns formatted last 3 sentences from the left context."""
+        return (
+            ' '.join(self.contextLeft.split('\n')[-last:])
+            if self.contextLeft
+            else ''
+        )
+
+    def context_right(self, first=3):
+        """Returns formatted first 3 sentences from the right context."""
+        return (
+            ' '.join(self.contextRight.split('\n')[:first])
+            if self.contextRight
+            else ''
+        )
+
     # pylint: disable=E1101
     def is_valid(self):
         """
@@ -947,6 +967,7 @@ class PairwiseAssessmentResult(BaseMetadata):
                 key=lambda x: x[sort_index], reverse=True))
 
         return output_data
+
 
     @classmethod
     def completed_results_for_user_and_campaign(cls, user, campaign):
