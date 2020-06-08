@@ -3,6 +3,7 @@ Batches
 Packages
 Examples/**/*.csv
 Examples/**/*.log
+development.db*
 
 # Python
 *.py[cod]
