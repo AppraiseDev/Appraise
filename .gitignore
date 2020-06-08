@@ -2,6 +2,7 @@
 Batches
 Packages
 development.db*
+static
 
 # Python
 *.py[cod]
