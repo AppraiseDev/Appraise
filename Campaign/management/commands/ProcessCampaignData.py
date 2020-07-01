@@ -6,6 +6,7 @@ from Campaign.utils import _identify_super_users
 from EvalData.models import (
     DirectAssessmentTask,
     DirectAssessmentContextTask,
+    DirectAssessmentDocumentTask,
     MultiModalAssessmentTask,
     PairwiseAssessmentTask,
 )
@@ -13,6 +14,7 @@ from EvalData.models import (
 CAMPAIGN_TASK_TYPES = {
     'Direct': DirectAssessmentTask,
     'DocLevelDA': DirectAssessmentContextTask,
+    'Document': DirectAssessmentDocumentTask,
     'MultiModal': MultiModalAssessmentTask,
     'Pairwise': PairwiseAssessmentTask,
 }

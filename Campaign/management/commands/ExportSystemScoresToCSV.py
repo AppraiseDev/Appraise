@@ -7,6 +7,8 @@ from EvalData.models import (
     DirectAssessmentTask,
     DirectAssessmentContextResult,
     DirectAssessmentContextTask,
+    DirectAssessmentDocumentResult,
+    DirectAssessmentDocumentTask,
     MultiModalAssessmentResult,
     MultiModalAssessmentTask,
     PairwiseAssessmentResult,
@@ -16,6 +18,7 @@ from EvalData.models import (
 CAMPAIGN_TASK_TYPES = (
     (DirectAssessmentTask, DirectAssessmentResult),
     (DirectAssessmentContextTask, DirectAssessmentContextResult),
+    (DirectAssessmentDocumentTask, DirectAssessmentDocumentResult),
     (MultiModalAssessmentTask, MultiModalAssessmentResult),
     (PairwiseAssessmentTask, PairwiseAssessmentResult),
 )
