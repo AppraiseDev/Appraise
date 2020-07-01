@@ -13,6 +13,7 @@ from .models import Market, Metadata, TextSegment, TextPair, TextPairWithImage
 from .models import TextPairWithContext, TextSegmentWithTwoTargets
 from .models import DirectAssessmentTask, DirectAssessmentResult
 from .models import DirectAssessmentContextTask, DirectAssessmentContextResult
+from .models import DirectAssessmentDocumentTask, DirectAssessmentDocumentResult
 from .models import MultiModalAssessmentTask, MultiModalAssessmentResult
 from .models import PairwiseAssessmentTask, PairwiseAssessmentResult
 from .models import WorkAgenda, TaskAgenda
@@ -393,6 +394,18 @@ class DirectAssessmentContextResultAdmin(BaseMetadataAdmin):
       })
     ) + BaseMetadataAdmin.fieldsets
 
+class DirectAssessmentDocumentTaskAdmin(DirectAssessmentContextTaskAdmin):
+    """
+    Model admin for DirectAssessmentDocumentTask instances.
+    """
+    pass
+
+class DirectAssessmentDocumentResultAdmin(DirectAssessmentContextResultAdmin):
+    """
+    Model admin for DirectAssessmentDocumentResult instances.
+    """
+    pass
+
 class MultiModalAssessmentTaskAdmin(BaseMetadataAdmin):
     """
     Model admin for MultiModalAssessmentTask instances.
@@ -560,9 +573,11 @@ admin.site.register(TextSegmentWithTwoTargets, TextSegmentWithTwoTargetsAdmin)
 admin.site.register(DirectAssessmentTask, DirectAssessmentTaskAdmin)
 admin.site.register(DirectAssessmentResult, DirectAssessmentResultAdmin)
 admin.site.register(DirectAssessmentContextTask, DirectAssessmentContextTaskAdmin)
+admin.site.register(DirectAssessmentDocumentTask, DirectAssessmentDocumentTaskAdmin)
 admin.site.register(PairwiseAssessmentTask, PairwiseAssessmentTaskAdmin)
 admin.site.register(PairwiseAssessmentResult, PairwiseAssessmentResultAdmin)
 admin.site.register(DirectAssessmentContextResult, DirectAssessmentContextResultAdmin)
+admin.site.register(DirectAssessmentDocumentResult, DirectAssessmentDocumentResultAdmin)
 admin.site.register(MultiModalAssessmentTask, MultiModalAssessmentTaskAdmin)
 admin.site.register(MultiModalAssessmentResult, MultiModalAssessmentResultAdmin)
 admin.site.register(WorkAgenda, WorkAgendaAdmin)
