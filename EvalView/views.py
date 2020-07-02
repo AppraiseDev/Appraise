@@ -4,6 +4,7 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 from datetime import datetime
+from itertools import zip_longest
 
 # pylint: disable=import-error
 from django.contrib.auth.decorators import login_required
@@ -649,13 +650,18 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     t2 = datetime.now()
     if request.method == "POST":
+        print('DEBUG: POST=', request.POST)
+
         score = request.POST.get('score', None)
         item_id = request.POST.get('item_id', None)
         task_id = request.POST.get('task_id', None)
         document_id = request.POST.get('document_id', None)
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
+
         LOGGER.info('score=%s, item_id=%s', score, item_id)
+        print(f'score={score}, item_id={item_id}')
+
         if score and item_id and start_timestamp and end_timestamp:
             duration = float(end_timestamp) - float(start_timestamp)
             LOGGER.debug(float(start_timestamp))
@@ -675,6 +681,10 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             ):
                 _msg = 'Item ID %s does not match item %s, will not save!'
                 LOGGER.debug(_msg, item_id, current_item.itemID)
+                print(
+                    f'Item ID {item_id} does not match item '
+                    f'{current_item.itemID}, will not save!'
+                )
 
             else:
                 utc_now = datetime.utcnow().replace(tzinfo=utc)
@@ -694,16 +704,39 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     t3 = datetime.now()
 
-    current_item, completed_items = current_task.next_item_for_user(
-        request.user, return_completed_items=True
+    (
+        current_item,
+        completed_items,
+        completed_blocks,
+        completed_items_in_block,
+        block_items,
+        block_results,
+        total_blocks,
+    ) = current_task.next_document_for_user(request.user)
+
+    print(
+        f'DEBUG: completed_items= {completed_items} completed_in_block= '
+        f'{completed_items_in_block} complated_blocks= {completed_blocks}'
     )
+
     if not current_item:
         LOGGER.info('No current item detected, redirecting to dashboard')
         return redirect('dashboard')
 
+    # Get item scores from the latest corresponding results
+    block_scores = []
+    for item, result in zip_longest(block_items, block_results):
+        item_scores = {
+            'completed': bool(result and result.score),
+            'score': result.score if result else -1,
+            'current_item': bool(item.id == current_item.id),
+        }
+        block_scores.append(item_scores)
+
+    print(f'DEBUG:   {block_scores}')
+
     # completed_items_check = current_task.completed_items_for_user(
     #     request.user)
-    completed_blocks = int(completed_items / 10)
     _msg = 'completed_items=%s, completed_blocks=%s'
     LOGGER.info(_msg, completed_items, completed_blocks)
 
@@ -712,84 +745,38 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     t4 = datetime.now()
 
-    # Define priming question
-    #
-    # Default:
-    #   How accurately does the above candidate text convey the original
-    #   semantics of the source text? Slider ranges from
-    #   <em>Not at all</em> (left) to <em>Perfectly</em> (right).
-    #
-    # We currently allow specific overrides, based on campaign name.
     reference_label = 'Source text'
     candidate_label = 'Candidate translation'
+
+    top_question_text = (
+        f'Below you see a document with {len(block_items)} sentences in {source_language} '
+        f'and their corresponding candidate translations in {target_language}. '
+        'Score each candidate translation in the document context, answering the question: '
+    )
     priming_question_text = (
-        'How accurately does the above candidate text convey the original '
-        'semantics of the source text? Slider ranges from '
-        '<em>Not at all</em> (left) to <em>Perfectly</em> (right).'
+        'How accurately does the candidate text (bottom, in bold) convey '
+        'the original semantics of the source text (top) in the document context?'
+    )
+    document_question_text = (
+        f'How accurately does the entire above candidate document in {target_language} convey '
+        f'the original semantics of the source document in {source_language}?'
     )
 
-    if current_item.isCompleteDocument:
-        priming_question_text = (
-            'How accurately does the above candidate document convey the '
-            'original semantics of the source document? Slider ranges from '
-            '<em>Not at all</em> (left) to <em>Perfectly</em> (right).'
-        )
-
-    _reference_campaigns = ('HumanEvalFY19{0}'.format(x) for x in ('7B',))
-
-    _adequacy_campaigns = (
-        'HumanEvalFY19{0}'.format(x) for x in ('51', '57', '63')
-    )
-
-    _fluency_campaigns = (
-        'HumanEvalFY19{0}'.format(x) for x in ('52', '58', '64')
-    )
-
-    if campaign.campaignName in _reference_campaigns:
-        reference_label = 'Reference text'
-        candidate_label = 'Candidate translation'
-        priming_question_text = (
-            'How accurately does the above candidate text convey the original '
-            'semantics of the reference text? Slider ranges from '
-            '<em>Not at all</em> (left) to <em>Perfectly</em> (right).'
-        )
-
-    elif campaign.campaignName in _adequacy_campaigns:
-        reference_label = 'Candidate A'
-        candidate_label = 'Candidate B'
-        priming_question_text = (
-            'How accurately does candidate text B convey the original '
-            'semantics of candidate text A? Slider ranges from '
-            '<em>Not at all</em> (left) to <em>Perfectly</em> (right).'
-        )
-
-    elif campaign.campaignName in _fluency_campaigns:
-        reference_label = 'Candidate A'
-        candidate_label = 'Candidate B'
-        priming_question_text = (
-            'Which of the two candidate texts is more fluent? Slider marks '
-            'preference for <em>Candidate A</em> (left), no difference '
-            '(middle) or preference for <em>Candidate B</em> (right).'
-        )
-
+    # TODO: remove unused keys
     context = {
-        'active_page': 'direct-assessment',
+        'active_page': 'direct-assessment-document',
+        'items': zip(block_items, block_scores),
         'reference_label': reference_label,
-        'reference_text': current_item.sourceText,
-        'reference_context_left': None, #current_item.sourceContextLeft,
-        'reference_context_right': None, #current_item.sourceContextRight,
         'candidate_label': candidate_label,
-        'candidate_text': current_item.targetText,
-        'candidate_context_left': None, #current_item.targetContextLeft,
-        'candidate_context_right': None, #current_item.targetContextRight,
         'priming_question_text': priming_question_text,
+        'top_question_text': top_question_text,
+        'document_question_text': document_question_text,
         'item_id': current_item.itemID,
         'task_id': current_item.id,
         'document_id': current_item.documentID,
-        'isCompleteDocument': current_item.isCompleteDocument,
         'completed_blocks': completed_blocks,
-        'items_left_in_block': 10
-        - (completed_items - completed_blocks * 10),
+        'total_blocks': total_blocks,
+        'items_left_in_block': len(block_items) - completed_items_in_block,
         'source_language': source_language,
         'target_language': target_language,
         'debug_times': (t2 - t1, t3 - t2, t4 - t3, t4 - t1),
@@ -801,7 +788,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     context.update(BASE_CONTEXT)
 
     return render(
-        request, 'EvalView/direct-assessment-context.html', context
+        request, 'EvalView/direct-assessment-document.html', context
     )
 
 

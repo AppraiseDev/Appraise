@@ -145,9 +145,10 @@ class DirectAssessmentDocumentTask(BaseMetadata):
             )
 
             if not result.exists():
-                print('identified next item: {0}/{1} for trusted={2}'.format(
-                  item.id, item.itemType, trusted_user
-                ))
+                print(
+                    f'identified next item: {item.id}/{item.itemType} '
+                    f'(itemID={item.itemID}) for trusted={trusted_user}'
+                )
                 if not trusted_user or item.itemType == 'TGT':
                     next_item = item
                     break
@@ -187,6 +188,71 @@ class DirectAssessmentDocumentTask(BaseMetadata):
             return (next_item, completed_items)
 
         return next_item
+
+    def next_document_for_user(self, user):
+        """Returns the next item and all items from its document."""
+        trusted_user = self.is_trusted_user(user)
+
+        # Find the next not annotated item
+        (
+            next_item,
+            completed_items,
+        ) = self.next_item_for_user(user, return_completed_items=True)
+
+        # Retrieve all items from the document which next_item belongs to
+        _items = self.items.filter(
+            documentID=next_item.documentID,
+        ).order_by('id')
+
+        block_items = []
+        current_block = False
+        for item in _items:
+            block_items.append(item)
+            if item.id == next_item.id:
+                current_block = True
+            if item.isCompleteDocument:
+                if current_block:
+                    break
+                block_items.clear()
+
+        print('DEBUG: block_items', len(block_items))
+        for item in block_items:
+            print(
+                '  DEBUG: block_item:', item, item.id, item.itemID,
+                item.documentID, item.isCompleteDocument
+            )
+
+        # Get results for completed items in this block
+        block_results = DirectAssessmentDocumentResult.objects.filter(
+            item__id__in=[item.id for item in block_items],
+            completed=True,
+            createdBy=user
+        ).order_by('item__id')
+
+        # Sanity check for the order of results
+        for item, result in zip(block_items, block_results):
+            print('    DEBUG: result', result)
+            if item.id != result.item.id:
+                print('Error: incorrect order of items and results')
+
+        # Collect statistics
+        completed_blocks = DirectAssessmentDocumentResult.objects.filter(
+            item__isCompleteDocument=True,
+            completed=True,
+            createdBy=user
+        ).count()
+        completed_items_in_block = len(block_results)
+        total_blocks = self.items.filter(isCompleteDocument=True).count()
+
+        return (
+            next_item,
+            completed_items,
+            completed_blocks,
+            completed_items_in_block,
+            block_items,
+            block_results,
+            total_blocks,
+        )
 
     @classmethod
     def get_task_for_user(cls, user):
