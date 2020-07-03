@@ -21,10 +21,12 @@
 .item-box { margin-bottom: 20px; }
 .item-odd { }
 .item-even { background-color:#f8f8f8; }
+.item-box:last-of-type { background-color:inherit; }
+
 .source-box { margin-bottom:10px; }
 /*.source-box:hover { background: #f5f5f5; cursor: pointer; }*/
 .source-btn-toggle { float: right; display:none; }
-.source-btn-done { float: right; color: green; display: none; }
+.source-btn-done { float: right; display: none; }
 .score-box { color: green; display: none; font-size:95%; float: right; margin-right:2px; }
 /*.source-box .row { margin-bottom:0; }*/
 .preview-box .row { padding-top:0; font-size:95%; /*font-weight:bold;*/ }
@@ -49,6 +51,7 @@
 <script>
     <!--
 var idleTime = 0;
+var ENABLE_AJAX = true;
 
 String.prototype.rot13 = function() {
     return this.replace(/[a-zA-Z]/g, function(c) {
@@ -68,17 +71,23 @@ $(document).ready(function() {
     // Bind click events
     $('.slider').slider({orientation: "horizontal", range: "min", change: update_score });
     $('.button-reset').click(reset_form);
-    $('.button-next').click(next_form);
+    // All except the document-level item send Ajax POST request
+    $('.button-next').not(':last').click(next_form);
+    // The last item doesn't send Ajax request
+    $('.button-next').last().click(last_form);
+
 
     // First unannotated item-box, i.e. with data-item-completed=False
     var next_item;
     // Update slider bars for annotated items
-    // TODO: this will not work with 2 sliders
     $('input[name^="score"]').each(function() {
-        var score = $(this).val();
         var item_box = $(this).closest('.item-box');
         var is_completed = item_box.data('item-completed');
         if(is_completed == "True") {
+            // Show a tick icon
+            item_box.find('.source-btn-done').show();
+            // TODO: not needed w/o toggleable scored items?
+            var score = $(this).val();
             item_box.find('.slider').slider('value', score);
         } else if(next_item === undefined) {
             next_item = item_box;
@@ -93,15 +102,17 @@ $(document).ready(function() {
     }
 });
 
-function show_target_box() {
+function _show_target_box() {
     var item_box = $(this);
     item_box.find('.toggleable:not(.inactive)').animate({height: 'toggle'}, 0);
     item_box.addClass('active');
+    // Reset start timestamp
+    item_box.find('input[name="start_timestamp"]').val(Date.now()/1000.0);
     // Enable buttons and slider for document evaluation if they were disabled
     item_box.find('button').attr('disabled', false);
     item_box.find('.slider').slider('enable');
 }
-function hide_target_box() {
+function _hide_target_box() {
     var item_box = $(this);
     item_box.find('.toggleable:not(.inactive)').animate({height: 'toggle'}, 0);
     item_box.removeClass('active');
@@ -112,9 +123,7 @@ function update_score() {
     var new_score = $(this).slider('value');
     var new_input = $('#' + this.id.replace('slider', 'score'));
     new_input.val(new_score);
-    // Show a tick icon
     var item_box = $(this).closest('.item-box');
-    item_box.find('.source-btn-done').show();
     item_box.find('.preview-box').removeClass('inactive');
     // item_box.find('.score-box').show().html(new_score);
 }
@@ -132,8 +141,21 @@ function reset_form() {
     // item_box.find('.score-box').show().html('');
 }
 
-function next_form() {
+function _change_item_status_icon(item_box, icon_name) {
+    var icon_box = item_box.find('.source-btn-done').removeClass('glyphicon-refresh glyphicon-ok');
+    if ('refresh' == icon_name) {
+        icon_box.addClass('glyphicon-refresh').show();
+    } else if ('ok' == icon_name) {
+        icon_box.addClass('glyphicon-ok').show();
+    } else {
+        icon_box.hide().addClass('glyphicon-ok');
+    }
+}
+
+function next_form(e) {
     var item_box = $(this).closest('.item-box');
+    var button_type = $(this).attr('type');
+
     // Validate form
     var score = item_box.find('input[name="score"]').val();
     var index = item_box.data('item-id');
@@ -142,19 +164,80 @@ function next_form() {
             'Please score all candidate sentences. Thanks!');
         return false;
     }
+
     // Add end timestamp
     item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
-    // Hide current item and show the next item if not shown yet
-    hide_target_box.call(item_box);
-    if(item_box.next().find('.target-box').is(':hidden')) {
-        show_target_box.call(item_box.next());
+
+    // Ajax request
+    // Checking if the button type is submit is for debugging purposes
+    if (ENABLE_AJAX && button_type == 'submit') {
+        e.preventDefault();
+
+        // Say server that the client expect JSON response
+        item_box.find('input[name="ajax"]').val('True');
+
+        $.ajax({
+            data: item_box.find('form').serialize(),
+            type: 'POST',
+            url: '{% url active_page %}',
+            dataType: 'json',
+            beforeSend: function() {
+                console.log('Sending Ajax request, item-id=', item_box.data('item-id'));
+                _change_item_status_icon(item_box, 'refresh');
+                // Move to the next item
+                _hide_target_box.call(item_box);
+                _show_target_box.call(item_box.next());
+            },
+            success: function(data) {
+                console.log('Success, saved=', data.saved, 'next_item=', data.item_id);
+                if (data.saved) {
+                    _change_item_status_icon(item_box, 'ok');
+                    // Update counters
+                    $('#items-left-counter').text(data.items_left_in_block);
+                    $('#current-item-id').text(data.item_id);
+                } else {
+                    _change_item_status_icon(item_box, 'none');
+                    // TODO: Show an error message?
+                    // Undo moving to the next item
+                    _hide_target_box.call(item_box.next());
+                    _show_target_box.call(item_box);
+                }
+            },
+            error: function(x,s,t) {
+                console.log('Error:', x, s, t);
+                _change_item_status_icon(item_box, 'none');
+                // TODO: Show an error message?
+                // Undo moving to the next item
+                _hide_target_box.call(item_box.next());
+                _show_target_box.call(item_box);
+            },
+        });
+
+    } else {
+        _change_item_status_icon(item_box, 'ok');
+        // Move to the next item for smoother reloading
+        _hide_target_box.call(item_box);
+        _show_target_box.call(item_box.next());
+        // Update counters
+        var count_box = $('#items-left-counter');
+        count_box.text( parseInt(count_box.text()) - 1 );
+        var citem_idx = $('#current-item-id');
+        citem_idx.text( parseInt(citem_idx.text()) + 1 );
     }
-    // Decrement items left in document
-    $('.item-counter').each( function() {
-        var count = parseInt($(this).text());
-        $(this).text(count - 1);
-    });
     return true;
+}
+
+function last_form() {
+    var item_box = $(this).closest('.item-box');
+    // Validate form
+    var score = item_box.find('input[name="score"]').val();
+    var index = item_box.data('item-id');
+    if (score == -1) {
+        alert('Please score the document translation. Thanks!');
+        return false;
+    }
+// Add end timestamp
+    item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
 }
 -->
 </script>
@@ -172,12 +255,12 @@ function next_form() {
                     <span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span>
                     {% endif %}
                     {{completed_blocks}}/{{total_blocks}} documents,
-                    <span class="item-counter">{{items_left_in_block}}</span>
+                    <span id="items-left-counter">{{items_left_in_block}}</span>
                     items left in document
                 </strong>
             </td>
             <td style="width:33%;text-align:center;">
-                <strong>{{campaign}} #{{datask_id}}:Document #{{document_id}}-{{item_id}}</strong>
+                <strong>{{campaign}} #{{datask_id}}:Document #{{document_id}}-<span id="current-item-id">{{item_id}}</span></strong>
             </td>
             <td style="width:33%;text-align:right;">
                 <strong>{% if source_language %}{{source_language}} &rarr; {% endif %}{{target_language}}</strong>
@@ -199,8 +282,8 @@ function next_form() {
 
 <div id="item-{{ item.itemID }}"
      class="item-box item-{% cycle 'odd' 'even' %}
-           {% if not item.isCompleteDocument %} quotelike{% endif %}
-           {% if scores.current_item %} active{% endif %}"
+            {% if not item.isCompleteDocument %} quotelike{% endif %}
+            {% if scores.current_item %} active{% endif %}"
      data-item-id="{{ item.itemID }}"
      data-item-completed="{{ scores.completed }}">
 
@@ -213,7 +296,7 @@ function next_form() {
         <input name="task_id" type="hidden" value="{{ item.id }}" />
         <input name="document_id" type="hidden" value="{{ item.documentID }}" />
         <input name="score" type="hidden" value="{{ scores.score }}" id="score{{ item.itemID }}" />
-        <input name="completed" type="hidden" value="{{ scores.completed }}" />
+        <input name="ajax" type="hidden" value="False" />
 
         {% if not item.isCompleteDocument %}
 

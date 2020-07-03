@@ -10,6 +10,7 @@ from itertools import zip_longest
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.timezone import utc
+from django.http import JsonResponse
 
 from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
@@ -649,18 +650,19 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             campaign = current_task.campaign
 
     t2 = datetime.now()
+    ajax = False
+    item_saved = False
     if request.method == "POST":
-        print('DEBUG: POST=', request.POST)
-
         score = request.POST.get('score', None)
         item_id = request.POST.get('item_id', None)
         task_id = request.POST.get('task_id', None)
         document_id = request.POST.get('document_id', None)
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
+        ajax = bool(request.POST.get('ajax', None) == 'True')
 
         LOGGER.info('score=%s, item_id=%s', score, item_id)
-        print(f'score={score}, item_id={item_id}')
+        print(f'Got request score={score}, item_id={item_id}, ajax={ajax}')
 
         if score and item_id and start_timestamp and end_timestamp:
             duration = float(end_timestamp) - float(start_timestamp)
@@ -702,6 +704,9 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                     dateCompleted=utc_now,
                 )
 
+                print(f'Item {task_id} (itemID={item_id}) saved')
+                item_saved = True
+
     t3 = datetime.now()
 
     (
@@ -714,11 +719,6 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         total_blocks,
     ) = current_task.next_document_for_user(request.user)
 
-    print(
-        f'DEBUG: completed_items= {completed_items} completed_in_block= '
-        f'{completed_items_in_block} complated_blocks= {completed_blocks}'
-    )
-
     if not current_item:
         LOGGER.info('No current item detected, redirecting to dashboard')
         return redirect('dashboard')
@@ -727,13 +727,11 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     block_scores = []
     for item, result in zip_longest(block_items, block_results):
         item_scores = {
-            'completed': bool(result and result.score),
-            'score': result.score if result else -1,
+            'completed': bool(result and result.score > -1),
             'current_item': bool(item.id == current_item.id),
+            'score': result.score if result else -1,
         }
         block_scores.append(item_scores)
-
-    print(f'DEBUG:   {block_scores}')
 
     # completed_items_check = current_task.completed_items_for_user(
     #     request.user)
@@ -762,15 +760,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         f'the original semantics of the source document in {source_language}?'
     )
 
-    # TODO: remove unused keys
     context = {
         'active_page': 'direct-assessment-document',
-        'items': zip(block_items, block_scores),
-        'reference_label': reference_label,
-        'candidate_label': candidate_label,
-        'priming_question_text': priming_question_text,
-        'top_question_text': top_question_text,
-        'document_question_text': document_question_text,
         'item_id': current_item.itemID,
         'task_id': current_item.id,
         'document_id': current_item.documentID,
@@ -785,6 +776,22 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
     }
+
+    if ajax:
+        ajax_context = { 'saved': item_saved }
+        context.update(ajax_context)
+        context.update(BASE_CONTEXT)
+        return JsonResponse(context)
+
+    page_context = {
+        'items': zip(block_items, block_scores),
+        'reference_label': reference_label,
+        'candidate_label': candidate_label,
+        'priming_question_text': priming_question_text,
+        'top_question_text': top_question_text,
+        'document_question_text': document_question_text,
+    }
+    context.update(page_context)
     context.update(BASE_CONTEXT)
 
     return render(

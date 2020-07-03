@@ -146,7 +146,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
 
             if not result.exists():
                 print(
-                    f'identified next item: {item.id}/{item.itemType} '
+                    f'Identified next item: {item.id}/{item.itemType} '
                     f'(itemID={item.itemID}) for trusted={trusted_user}'
                 )
                 if not trusted_user or item.itemType == 'TGT':
@@ -215,13 +215,6 @@ class DirectAssessmentDocumentTask(BaseMetadata):
                     break
                 block_items.clear()
 
-        print('DEBUG: block_items', len(block_items))
-        for item in block_items:
-            print(
-                '  DEBUG: block_item:', item, item.id, item.itemID,
-                item.documentID, item.isCompleteDocument
-            )
-
         # Get results for completed items in this block
         block_results = DirectAssessmentDocumentResult.objects.filter(
             item__id__in=[item.id for item in block_items],
@@ -231,9 +224,8 @@ class DirectAssessmentDocumentTask(BaseMetadata):
 
         # Sanity check for the order of results
         for item, result in zip(block_items, block_results):
-            print('    DEBUG: result', result)
             if item.id != result.item.id:
-                print('Error: incorrect order of items and results')
+                print('Error: incorrect order of items and results?')
 
         # Collect statistics
         completed_blocks = DirectAssessmentDocumentResult.objects.filter(
@@ -243,6 +235,12 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         ).count()
         completed_items_in_block = len(block_results)
         total_blocks = self.items.filter(isCompleteDocument=True).count()
+
+        print(
+            f'Completed {completed_blocks}/{total_blocks} documents, '
+            f'{completed_items_in_block}/{len(block_items)} items in the '
+            f'current document, completed {completed_items} items in total'
+        )
 
         return (
             next_item,
