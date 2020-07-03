@@ -199,6 +199,9 @@ class DirectAssessmentDocumentTask(BaseMetadata):
             completed_items,
         ) = self.next_item_for_user(user, return_completed_items=True)
 
+        if not next_item:
+            return (next_item, completed_items, 0, 0, [], [], 0)
+
         # Retrieve all items from the document which next_item belongs to
         _items = self.items.filter(
             documentID=next_item.documentID,
@@ -228,12 +231,13 @@ class DirectAssessmentDocumentTask(BaseMetadata):
                 print('Error: incorrect order of items and results?')
 
         # Collect statistics
+        completed_items_in_block = len(block_results)
         completed_blocks = DirectAssessmentDocumentResult.objects.filter(
+            task=self,
             item__isCompleteDocument=True,
             completed=True,
             createdBy=user
         ).count()
-        completed_items_in_block = len(block_results)
         total_blocks = self.items.filter(isCompleteDocument=True).count()
 
         print(
