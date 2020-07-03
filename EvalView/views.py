@@ -756,9 +756,20 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'the original semantics of the source text (top) in the document context?'
     )
     document_question_text = (
-        f'How accurately does the entire above candidate document in {target_language} convey '
+        f'How accurately does the entire candidate document above in {target_language} convey '
         f'the original semantics of the source document in {source_language}?'
     )
+
+    vsplit = 'vsplit' in request.GET
+    if vsplit:
+        priming_question_text = (
+            'How accurately does the candidate text (right column, in bold) convey '
+            'the original semantics of the source text (left column) in the document context?'
+        )
+        document_question_text = (
+            f'How accurately does the entire candidate document in {target_language} (right column) convey '
+            f'the original semantics of the source document in {source_language} (left column)?'
+        )
 
     context = {
         'active_page': 'direct-assessment-document',
@@ -794,8 +805,9 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     context.update(page_context)
     context.update(BASE_CONTEXT)
 
+    suffix = '-vsplit' if vsplit else ''
     return render(
-        request, 'EvalView/direct-assessment-document.html', context
+        request, f'EvalView/direct-assessment-document{suffix}.html', context
     )
 
 

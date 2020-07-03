@@ -1,0 +1,394 @@
+{% extends "Dashboard/base.html" %}
+{% load static %}
+
+{% block head %}
+<style>
+.slider .ui-slider-range { background: #729fcf; }
+.slider .ui-slider-handle { border-color: #729fcf; }
+.slider { margin-top: 30px; }
+.slider small { font-size:80%; }
+.slider-box { width:100%; }
+.slider-box .slider-grid { width:100%; color:#777; }
+
+.quotelike { border-left: 5px solid #eee; }
+.quotelike .row { font-size: 16px; margin: 0; padding: 10px 20px; }
+.quotelike .row p { margin: 0; }
+.quotelike.active { background-color: #f7f7f7; }
+
+.question-box { margin-bottom:10px; }
+.question-box p { font-size: 120%; margin: 10px 0 20px; font-style: italic; color: #31708f; }
+
+.item-box { margin-bottom: 20px; }
+.item-odd { }
+.item-even { background-color:#f8f8f8; }
+.item-box:last-of-type { background-color:inherit; }
+
+.source-box { margin-bottom:10px; }
+/*.source-box:hover { background: #f5f5f5; cursor: pointer; }*/
+.source-btn-toggle { float: right; display:none; }
+.source-btn-done { float: right; display: none; }
+.score-box { color: green; display: none; font-size:95%; float: right; margin-right:2px; }
+/*.source-box .row { margin-bottom:0; }*/
+.preview-box .row { padding-top:0; font-size:95%; /*font-weight:bold;*/ }
+
+.toggleable { display:none; }
+.toggleable.active { display:block; }
+
+.target-box .row { padding-top:0; }
+.target-box.active { display:block; }
+
+.system-label { display:none; }
+
+.action-box  { width: 100%; }
+.action-box td { padding-bottom:10px; }
+.quotelike .action-box .btn { margin: 0 40px; }
+.button-reset { background-color: #ddd; }
+</style>
+
+<link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}">
+<script src="{% static 'EvalView/js/jquery-ui.min.js' %}"></script>
+<script src="{% static 'EvalView/js/js.cookie-2.2.1.min.js' %}"></script>
+<script>
+    <!--
+var idleTime = 0;
+var ENABLE_AJAX = true;
+
+String.prototype.rot13 = function() {
+    return this.replace(/[a-zA-Z]/g, function(c) {
+        return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
+    });
+};
+
+// https://stackoverflow.com/a/21520499
+jQuery.fn.clickToggle = function(a, b) {
+    return this.on("click", function(ev) { [b, a][this.$_io ^= 1].call(this, ev) })
+};
+
+$(document).ready(function() {
+    // TODO: properly set timestamps for all items
+    $('input[name="start_timestamp"]').val(Date.now()/1000.0);
+
+    // Bind click events
+    $('.slider').slider({orientation: "horizontal", range: "min", change: update_score });
+    $('.button-reset').click(reset_form);
+    // All except the document-level item send Ajax POST request
+    $('.button-next').not(':last').click(next_form);
+    // The last item doesn't send Ajax request
+    $('.button-next').last().click(last_form);
+
+
+    // First unannotated item-box, i.e. with data-item-completed=False
+    var next_item;
+    // Update slider bars for annotated items
+    $('input[name^="score"]').each(function() {
+        var item_box = $(this).closest('.item-box');
+        var is_completed = item_box.data('item-completed');
+        if(is_completed == "True") {
+            // Show a tick icon
+            item_box.find('.source-btn-done').show();
+            // TODO: not needed w/o toggleable scored items?
+            var score = $(this).val();
+            item_box.find('.slider').slider('value', score);
+        } else if(next_item === undefined) {
+            next_item = item_box;
+        }
+    });
+
+    // Disable last item if not current item
+    var last_item = $('.item-box').last();
+    if (last_item.data('item-id') != next_item.data('item-id')) {
+        last_item.find('button').attr('disabled', true);
+        last_item.find('.slider').slider('disable');
+    }
+});
+
+function _show_target_box() {
+    var item_box = $(this);
+    item_box.find('.toggleable:not(.inactive)').animate({height: 'toggle'}, 0);
+    item_box.addClass('active');
+    // Reset start timestamp
+    item_box.find('input[name="start_timestamp"]').val(Date.now()/1000.0);
+    // Enable buttons and slider for document evaluation if they were disabled
+    item_box.find('button').attr('disabled', false);
+    item_box.find('.slider').slider('enable');
+}
+function _hide_target_box() {
+    var item_box = $(this);
+    item_box.find('.toggleable:not(.inactive)').animate({height: 'toggle'}, 0);
+    item_box.removeClass('active');
+}
+
+function update_score() {
+    // Assign new score to the corresponding input
+    var new_score = $(this).slider('value');
+    var new_input = $('#' + this.id.replace('slider', 'score'));
+    new_input.val(new_score);
+    var item_box = $(this).closest('.item-box');
+    item_box.find('.preview-box').removeClass('inactive');
+    // item_box.find('.score-box').show().html(new_score);
+}
+
+function reset_form() {
+    var item_box = $(this).closest('.item-box');
+    // Reset timestamp
+    idleTime = 0;
+    item_box.find('input[name="start_timestamp"]').val(Date.now()/1000.0);
+    // Reset slider and OK tick
+    item_box.find('.slider').slider('option', 'value', 0);
+    item_box.find('input[name="score"]').val(-1);
+    item_box.find('.source-btn-done').hide();
+    item_box.find('.preview-box').addClass('inactive');
+    // item_box.find('.score-box').show().html('');
+}
+
+function _change_item_status_icon(item_box, icon_name) {
+    var icon_box = item_box.find('.source-btn-done').removeClass('glyphicon-refresh glyphicon-ok');
+    if ('refresh' == icon_name) {
+        icon_box.addClass('glyphicon-refresh').show();
+    } else if ('ok' == icon_name) {
+        icon_box.addClass('glyphicon-ok').show();
+    } else {
+        icon_box.hide().addClass('glyphicon-ok');
+    }
+}
+
+function next_form(e) {
+    var item_box = $(this).closest('.item-box');
+    var button_type = $(this).attr('type');
+
+    // Validate form
+    var score = item_box.find('input[name="score"]').val();
+    var index = item_box.data('item-id');
+    if (score == -1) {
+        alert('Sentence #' + (index + 1) + ' has no score. ' +
+            'Please score all candidate sentences. Thanks!');
+        return false;
+    }
+
+    // Add end timestamp
+    item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
+
+    // Ajax request
+    // Checking if the button type is submit is for debugging purposes
+    if (ENABLE_AJAX && button_type == 'submit') {
+        e.preventDefault();
+
+        // Say server that the client expect JSON response
+        item_box.find('input[name="ajax"]').val('True');
+
+        $.ajax({
+            data: item_box.find('form').serialize(),
+            type: 'POST',
+            url: '{% url active_page %}',
+            dataType: 'json',
+            beforeSend: function() {
+                console.log('Sending Ajax request, item-id=', item_box.data('item-id'));
+                _change_item_status_icon(item_box, 'refresh');
+                // Move to the next item
+                _hide_target_box.call(item_box);
+                _show_target_box.call(item_box.next());
+            },
+            success: function(data) {
+                console.log('Success, saved=', data.saved, 'next_item=', data.item_id);
+                if (data.saved) {
+                    _change_item_status_icon(item_box, 'ok');
+                    // Update counters
+                    $('#items-left-counter').text(data.items_left_in_block);
+                    $('#current-item-id').text(data.item_id);
+                } else {
+                    _change_item_status_icon(item_box, 'none');
+                    // TODO: Show an error message?
+                    // Undo moving to the next item
+                    _hide_target_box.call(item_box.next());
+                    _show_target_box.call(item_box);
+                }
+            },
+            error: function(x,s,t) {
+                console.log('Error:', x, s, t);
+                _change_item_status_icon(item_box, 'none');
+                // TODO: Show an error message?
+                // Undo moving to the next item
+                _hide_target_box.call(item_box.next());
+                _show_target_box.call(item_box);
+            },
+        });
+
+    } else {
+        _change_item_status_icon(item_box, 'ok');
+        // Move to the next item for smoother reloading
+        _hide_target_box.call(item_box);
+        _show_target_box.call(item_box.next());
+        // Update counters
+        var count_box = $('#items-left-counter');
+        count_box.text( parseInt(count_box.text()) - 1 );
+        var citem_idx = $('#current-item-id');
+        citem_idx.text( parseInt(citem_idx.text()) + 1 );
+    }
+    return true;
+}
+
+function last_form() {
+    var item_box = $(this).closest('.item-box');
+    // Validate form
+    var score = item_box.find('input[name="score"]').val();
+    var index = item_box.data('item-id');
+    if (score == -1) {
+        alert('Please score the document translation. Thanks!');
+        return false;
+    }
+// Add end timestamp
+    item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
+}
+-->
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="alert alert-info">
+    <table style="width:100%">
+        <tr>
+            <td style="width:33%;text-align:left;">
+                <strong id="task_progress">
+                    {% if trusted_user %}
+                    <span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span>
+                    {% endif %}
+                    {{completed_blocks}}/{{total_blocks}} documents,
+                    <span id="items-left-counter">{{items_left_in_block}}</span>
+                    items left in document
+                </strong>
+            </td>
+            <td style="width:33%;text-align:center;">
+                <strong>{{campaign}} #{{datask_id}}:Document #{{document_id}}-<span id="current-item-id">{{item_id}}</span></strong>
+            </td>
+            <td style="width:33%;text-align:right;">
+                <strong>{% if source_language %}{{source_language}} &rarr; {% endif %}{{target_language}}</strong>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="question-box">
+    <div class="row">
+        <div class="col-sm-12">
+            <p>{{top_question_text|safe}}</p>
+            <p>{{priming_question_text|safe}}</p>
+        </div>
+    </div>
+</div>
+
+{% for item,scores in items %}
+
+<div id="item-{{ item.itemID }}"
+     class="item-box item-{% cycle 'odd' 'even' %}
+            {% if not item.isCompleteDocument %} quotelike{% endif %}
+            {% if scores.current_item %} active{% endif %}"
+     data-item-id="{{ item.itemID }}"
+     data-item-completed="{{ scores.completed }}">
+
+    <form action="{{action_url}}" method="post">
+        {% csrf_token %}
+
+        <input name="start_timestamp" type="hidden" value="" />
+        <input name="end_timestamp" type="hidden" value="" />
+        <input name="item_id" type="hidden" value="{{ item.itemID }}" />
+        <input name="task_id" type="hidden" value="{{ item.id }}" />
+        <input name="document_id" type="hidden" value="{{ item.documentID }}" />
+        <input name="score" type="hidden" value="{{ scores.score }}" id="score{{ item.itemID }}" />
+        <input name="ajax" type="hidden" value="False" />
+
+        {% if not item.isCompleteDocument %}
+
+        <div class="source-box">
+            <div class="row">
+                <div class="col-sm-6">
+                    <span title="Source sentence #{{ item.itemID|add:"1" }}">
+                        <p>{{ item.sourceText }}</p>
+                        <!--
+                            <small class="">- {{ reference_label }}</small>
+                        -->
+                    </span>
+                </div>
+                    <div class="col-sm-5">
+                        <span title="Candidate translation of source sentence #{{ item.itemID|add:"1" }}">
+                            <p><strong>{{item.targetText|safe}}</strong></p>
+                        </span>
+                    </div>
+                <div class="col-sm-1">
+                    <span class="source-btn-toggle glyphicon glyphicon-chevron-down"></span>
+                    <span class="source-btn-done glyphicon glyphicon-ok"></span>
+                    <span class="score-box"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="target-box toggleable{% if scores.current_item %} active{% endif %}" >
+            <div class="row">
+                {% with sliderid=item.itemID %}
+                {% include 'EvalView/_slider.html' %}
+                {% endwith %}
+            </div>
+
+            <table class="row action-box">
+                <tr>
+                    <td style="width:70%;text-align:left;">
+                        <button class="btn button-reset"
+                                accesskey="2"
+                                type="reset">
+                            <i class="icon-repeat"></i> Reset</button>
+                    </td>
+                    <td style="width:30%;text-align:right;">
+                        <button class="btn button-next btn-primary"
+                                name="next_button"
+                                accesskey="1"
+                                type="submit"
+                                value="{{ item.itemID }}">
+                            <i class="icon-ok-sign icon-white"></i> Submit</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        {% else %}
+
+        <div class="target-box" >
+            <div class="question-box">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <p>{{document_question_text|safe}}</p>
+                    </div>
+                    {% with sliderid=item.itemID %}
+                    {% include 'EvalView/_slider.html' %}
+                    {% endwith %}
+                </div>
+            </div>
+
+            <table class="action-box">
+                <tr>
+                    <td style="width:70%;text-align:left;">
+                        <button id="reset{{ item.itemID }}"
+                                class="btn button-reset"
+                                accesskey="2"
+                                type="reset">
+                            <i class="icon-repeat"></i> Reset</button>
+                    </td>
+                    <td style="width:30%;text-align:right;">
+                        <button class="btn button-next btn-primary"
+                                name="next_button"
+                                accesskey="1"
+                                type="submit"
+                                value="{{ item.itemID }}">
+                            <i class="icon-ok-sign icon-white"></i> Submit</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        {% endif %}
+    </form>
+</div>
+
+{% endfor %}
+
+{% endblock %}
