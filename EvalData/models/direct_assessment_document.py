@@ -189,10 +189,8 @@ class DirectAssessmentDocumentTask(BaseMetadata):
 
         return next_item
 
-    def next_document_for_user(self, user):
+    def next_document_for_user(self, user, return_statistics=True):
         """Returns the next item and all items from its document."""
-        trusted_user = self.is_trusted_user(user)
-
         # Find the next not annotated item
         (
             next_item,
@@ -200,6 +198,8 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         ) = self.next_item_for_user(user, return_completed_items=True)
 
         if not next_item:
+            if not return_statistics:
+                return (next_item, [], [])
             return (next_item, completed_items, 0, 0, [], [], 0)
 
         # Retrieve all items from the document which next_item belongs to
@@ -219,19 +219,13 @@ class DirectAssessmentDocumentTask(BaseMetadata):
                 block_items.clear()
 
         # Get results for completed items in this block
-        block_results = DirectAssessmentDocumentResult.objects.filter(
-            item__id__in=[item.id for item in block_items],
-            completed=True,
-            createdBy=user
-        ).order_by('item__id')
+        block_results = self.get_results_for_each_item(block_items, user)
 
-        # Sanity check for the order of results
-        for item, result in zip(block_items, block_results):
-            if item.id != result.item.id:
-                print('Error: incorrect order of items and results?')
+        if not return_statistics:
+            return (next_item, block_items, block_results)
 
         # Collect statistics
-        completed_items_in_block = len(block_results)
+        completed_items_in_block = len([res for res in block_results if res is not None])
         completed_blocks = DirectAssessmentDocumentResult.objects.filter(
             task=self,
             item__isCompleteDocument=True,
@@ -255,6 +249,31 @@ class DirectAssessmentDocumentTask(BaseMetadata):
             block_results,
             total_blocks,
         )
+
+    def get_results_for_each_item(self, block_items, user):
+        """Returns the latest result object for each item or none."""
+        # TODO: optimize, this possibly makes too many individual queries
+        block_results = []
+
+        for item in block_items:
+            result = DirectAssessmentDocumentResult.objects.filter(
+                item__id=item.id,
+                completed=True,
+                createdBy=user, # TODO: is passing user as an argument needed?
+                task=self
+            ).order_by('item__id', 'dateModified').first()
+            block_results.append(result)
+
+        # Sanity checks for items and results
+        if len(block_items) != len(block_results):
+            print('Warning: incorrect number of retrieved results!')
+        for item, result in zip(block_items, block_results):
+            print(f'  >> item={item} result={result}')
+            if result and item.id != result.item.id:
+                print('Warning: incorrect order of items and results!')
+
+        return block_results
+
 
     @classmethod
     def get_task_for_user(cls, user):

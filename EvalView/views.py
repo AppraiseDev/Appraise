@@ -4,7 +4,6 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 from datetime import datetime
-from itertools import zip_longest
 
 # pylint: disable=import-error
 from django.contrib.auth.decorators import login_required
@@ -675,37 +674,101 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                 duration,
             )
 
-            current_item = current_task.next_item_for_user(request.user)
-            if (
-                current_item.itemID != int(item_id)
-                or current_item.id != int(task_id)
-                or current_item.documentID != document_id
-            ):
-                _msg = 'Item ID %s does not match item %s, will not save!'
-                LOGGER.debug(_msg, item_id, current_item.itemID)
-                print(
-                    f'Item ID {item_id} does not match item '
-                    f'{current_item.itemID}, will not save!'
-                )
+            current_item, block_items, block_results = current_task.next_document_for_user(
+                request.user, return_statistics=False)
+
+            if current_item.documentID == document_id:
+                # No score for the current item, so create new score
+                if current_item.itemID == int(item_id) and current_item.id == int(task_id):
+
+                    utc_now = datetime.utcnow().replace(tzinfo=utc)
+                    # pylint: disable=E1101
+                    DirectAssessmentDocumentResult.objects.create(
+                        score=score,
+                        start_time=float(start_timestamp),
+                        end_time=float(end_timestamp),
+                        item=current_item,
+                        task=current_task,
+                        createdBy=request.user,
+                        activated=False,
+                        completed=True,
+                        dateCompleted=utc_now,
+                    )
+                    print(f'Item {task_id} (itemID={item_id}) saved')
+                    item_saved = True
+
+                # It is not the current item, so check if result exists
+                else:
+                    # Check if there is a score result for the submitted item
+                    # TODO: this could be a single query, would it be better or more effective?
+                    current_result = None
+                    for result in block_results:
+                        if not result:
+                            print(f'  :: result: none')
+                            continue
+                        print(f'  :: result: {result} :: {result.item} :: {result.item.itemID}/{result.item.id}')
+                        if result.item.itemID == int(item_id) and result.item.id == int(task_id):
+                            print(f'    :: got it!')
+                            current_result = result
+                            break
+
+                    # If already scored, update the result
+                    if current_result:
+                        prev_score = current_result.score
+                        current_result.score = score
+                        current_result.start_time=float(start_timestamp)
+                        current_result.end_time=float(end_timestamp)
+                        utc_now = datetime.utcnow().replace(tzinfo=utc)
+                        current_result.dateCompleted=utc_now
+                        current_result.save()  # TODO: save() or update() ?
+                        print(f'Item {task_id} (itemID={item_id}) updated {prev_score}->{score}')
+                        item_saved = True
+
+                    # If not yet scored, check if the submitted item is from
+                    # this document. Document ID is not sufficient, because
+                    # there can be multiple documents with the same ID in the
+                    # task.
+                    else:
+
+                        found_item = False
+                        for item in block_items:
+                            print(f'  :: item: {item} :: {item.itemID}/{item.id}')
+                            if item.itemID == int(item_id) and item.id == int(task_id):
+                                print(f'    :: got it!')
+                                found_item = item
+                                break
+
+                        if found_item:
+                            utc_now = datetime.utcnow().replace(tzinfo=utc)
+                            # pylint: disable=E1101
+                            DirectAssessmentDocumentResult.objects.create(
+                                score=score,
+                                start_time=float(start_timestamp),
+                                end_time=float(end_timestamp),
+                                item=found_item,
+                                task=current_task,
+                                createdBy=request.user,
+                                activated=False,
+                                completed=True,
+                                dateCompleted=utc_now,
+                            )
+                            print(f'Item {task_id} (itemID={item_id}) saved, but was not the next item')
+                            item_saved = True
+
+                        else:
+
+                            _msg = 'Item ID %s does not match item %s, will not save!'
+                            LOGGER.debug(_msg, item_id, current_item.itemID)
+                            print(
+                                f'Item ID {item_id} does not match item '
+                                f'{current_item.itemID}, will not save!'
+                            )
 
             else:
-                utc_now = datetime.utcnow().replace(tzinfo=utc)
-
-                # pylint: disable=E1101
-                DirectAssessmentDocumentResult.objects.create(
-                    score=score,
-                    start_time=float(start_timestamp),
-                    end_time=float(end_timestamp),
-                    item=current_item,
-                    task=current_task,
-                    createdBy=request.user,
-                    activated=False,
-                    completed=True,
-                    dateCompleted=utc_now,
+                print(
+                    f'Different document IDs: {currnt_item.documentID} != '
+                    f'{document_id}, will not save!'
                 )
-
-                print(f'Item {task_id} (itemID={item_id}) saved')
-                item_saved = True
 
     t3 = datetime.now()
 
@@ -725,7 +788,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     # Get item scores from the latest corresponding results
     block_scores = []
-    for item, result in zip_longest(block_items, block_results):
+    for item, result in zip(block_items, block_results):
         item_scores = {
             'completed': bool(result and result.score > -1),
             'current_item': bool(item.id == current_item.id),
@@ -746,29 +809,31 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     reference_label = 'Source text'
     candidate_label = 'Candidate translation'
 
-    top_question_text = (
+    priming_question_texts = [
         f'Below you see a document with {len(block_items)} sentences in {source_language} '
         f'and their corresponding candidate translations in {target_language}. '
-        'Score each candidate translation in the document context, answering the question: '
-    )
-    priming_question_text = (
-        'How accurately does the candidate text (bottom, in bold) convey '
-        'the original semantics of the source text (top) in the document context?'
-    )
-    document_question_text = (
-        f'How accurately does the entire candidate document above in {target_language} convey '
-        f'the original semantics of the source document in {source_language}?'
-    )
+        'Score each candidate translation in the document context, answering the question: ',
+        'How accurately does the candidate text (right column, in bold) convey '
+        'the original semantics of the source text (left column) in the document context? ',
+        'You may revisit already scored sentences and update their scores at any time '
+        'by clicking at a source text.'
+    ]
+    document_question_texts = [
+        'Please score the document translation above answering the question '
+        '(you can score the entire document only after scoring all previous sentences):',
+        f'How accurately does the entire candidate document in {target_language} (right column) convey '
+        f'the original semantics of the source document in {source_language} (left column)? ',
+    ]
 
-    vsplit = 'vsplit' in request.GET
-    if vsplit:
-        priming_question_text = (
-            'How accurately does the candidate text (right column, in bold) convey '
-            'the original semantics of the source text (left column) in the document context?'
+    hsplit = 'hsplit' in request.GET
+    if hsplit:
+        priming_question_texts[1] = (
+            'How accurately does the candidate text (bottom, in bold) convey '
+            'the original semantics of the source text (top) in the document context?'
         )
-        document_question_text = (
-            f'How accurately does the entire candidate document in {target_language} (right column) convey '
-            f'the original semantics of the source document in {source_language} (left column)?'
+        document_question_texts[0] = (
+            f'How accurately does the entire candidate document above in {target_language} convey '
+            f'the original semantics of the source document in {source_language}? '
         )
 
     context = {
@@ -798,14 +863,13 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'items': zip(block_items, block_scores),
         'reference_label': reference_label,
         'candidate_label': candidate_label,
-        'priming_question_text': priming_question_text,
-        'top_question_text': top_question_text,
-        'document_question_text': document_question_text,
+        'priming_question_texts': priming_question_texts,
+        'document_question_texts': document_question_texts,
     }
     context.update(page_context)
     context.update(BASE_CONTEXT)
 
-    suffix = '-vsplit' if vsplit else ''
+    suffix = '-hsplit' if hsplit else '-vsplit'
     return render(
         request, f'EvalView/direct-assessment-document{suffix}.html', context
     )

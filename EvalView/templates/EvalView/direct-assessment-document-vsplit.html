@@ -5,14 +5,14 @@
 <style>
 .slider .ui-slider-range { background: #729fcf; }
 .slider .ui-slider-handle { border-color: #729fcf; }
-.slider { margin-top: 30px; }
+.slider { margin-top: 10px; }
 .slider small { font-size:80%; }
 .slider-box { width:100%; }
 .slider-box .slider-grid { width:100%; color:#777; }
 
 .quotelike { border-left: 5px solid #eee; }
 .quotelike .row { font-size: 16px; margin: 0; padding: 10px 20px; }
-.quotelike .row p { margin: 0; }
+/*.quotelike .row p { margin: 0; }*/
 .quotelike.active { background-color: #f7f7f7; }
 
 .question-box { margin-bottom:10px; }
@@ -24,8 +24,8 @@
 .item-box:last-of-type { background-color:inherit; }
 
 .source-box { margin-bottom:10px; }
-/*.source-box:hover { background: #f5f5f5; cursor: pointer; }*/
-.source-btn-toggle { float: right; display:none; }
+.source-box:hover { background: #f5f5f5; cursor: pointer; }
+.source-btn-toggle { float: right; padding-left:10px; }
 .source-btn-done { float: right; display: none; }
 .score-box { color: green; display: none; font-size:95%; float: right; margin-right:2px; }
 /*.source-box .row { margin-bottom:0; }*/
@@ -71,11 +71,11 @@ $(document).ready(function() {
     // Bind click events
     $('.slider').slider({orientation: "horizontal", range: "min", change: update_score });
     $('.button-reset').click(reset_form);
+    $('.source-box').clickToggle(_show_target_box, _hide_target_box);
     // All except the document-level item send Ajax POST request
-    $('.button-next').not(':last').click(next_form);
+    $('.button-next').not(':last').click(submit_form);
     // The last item doesn't send Ajax request
     $('.button-next').last().click(last_form);
-
 
     // First unannotated item-box, i.e. with data-item-completed=False
     var next_item;
@@ -86,36 +86,62 @@ $(document).ready(function() {
         if(is_completed == "True") {
             // Show a tick icon
             item_box.find('.source-btn-done').show();
-            // TODO: not needed w/o toggleable scored items?
             var score = $(this).val();
             item_box.find('.slider').slider('value', score);
+            // Change submit button label to 'Update'
+            item_box.find('button[name="next_button"]').text('Update');
         } else if(next_item === undefined) {
             next_item = item_box;
         }
     });
 
-    // Disable last item if not current item
-    var last_item = $('.item-box').last();
-    if (last_item.data('item-id') != next_item.data('item-id')) {
-        last_item.find('button').attr('disabled', true);
-        last_item.find('.slider').slider('disable');
+    // Activate current item; this will have no effect for the document-level item
+    next_item.find('.source-box').click();
+
+    // Disable document-level item unless are sentences are scored
+    if (! _all_sentences_scored()) {
+        _disable_document_box();
     }
 });
 
+function _all_sentences_scored() {
+    var num = $('.item-box').filter(function() {
+        return $(this).data('item-completed') == "False";
+    }).length;
+    console.log('#unannotated:', num);
+    // 1 because the document-level score is also counted
+    return num <= 1;
+}
+
+function _enable_document_box() {
+    // Enable buttons and slider for document evaluation if they were disabled
+    $('.document-box').find('button').attr('disabled', false);
+    $('.document-box').find('.slider').slider('enable');
+}
+function _disable_document_box() {
+    $('.document-box').find('button').attr('disabled', true);
+    $('.document-box').find('.slider').slider('disable');
+}
+
 function _show_target_box() {
-    var item_box = $(this);
-    item_box.find('.toggleable:not(.inactive)').animate({height: 'toggle'}, 0);
-    item_box.addClass('active');
+    var item_box = $(this).closest('.item-box');
+    // Show only if not shown yet
+    if(item_box.find('.target-box').is(':hidden')) {
+        item_box.find('.toggleable:not(.inactive)').animate({height: 'toggle'}, 0);
+        item_box.addClass('active');
+        _change_item_toggle_icon(item_box, 'up');
+    }
     // Reset start timestamp
     item_box.find('input[name="start_timestamp"]').val(Date.now()/1000.0);
-    // Enable buttons and slider for document evaluation if they were disabled
-    item_box.find('button').attr('disabled', false);
-    item_box.find('.slider').slider('enable');
 }
 function _hide_target_box() {
-    var item_box = $(this);
-    item_box.find('.toggleable:not(.inactive)').animate({height: 'toggle'}, 0);
-    item_box.removeClass('active');
+    var item_box = $(this).closest('.item-box');
+    // Hide only if not hidden yet
+    if(item_box.find('.target-box').not(':hidden')) {
+        item_box.find('.toggleable:not(.inactive)').animate({height: 'toggle'}, 0);
+        item_box.removeClass('active');
+        _change_item_toggle_icon(item_box, 'down');
+    }
 }
 
 function update_score() {
@@ -134,10 +160,15 @@ function reset_form() {
     idleTime = 0;
     item_box.find('input[name="start_timestamp"]').val(Date.now()/1000.0);
     // Reset slider and OK tick
-    item_box.find('.slider').slider('option', 'value', 0);
-    item_box.find('input[name="score"]').val(-1);
-    item_box.find('.source-btn-done').hide();
-    item_box.find('.preview-box').addClass('inactive');
+    var lastScore = parseInt(item_box.data('item-score'));
+    if(lastScore == -1) {
+        item_box.find('.slider').slider('option', 'value', 0);
+        item_box.find('.source-btn-done').hide();
+        item_box.find('.preview-box').addClass('inactive');
+    } else {
+        item_box.find('.slider').slider('option', 'value', lastScore);
+    }
+    item_box.find('input[name="score"]').val(lastScore);
     // item_box.find('.score-box').show().html('');
 }
 
@@ -151,10 +182,19 @@ function _change_item_status_icon(item_box, icon_name) {
         icon_box.hide().addClass('glyphicon-ok');
     }
 }
+function _change_item_toggle_icon(item_box, icon_name) {
+    var icon_box = item_box.find('.source-btn-toggle').removeClass('glyphicon-chevron-down glyphicon-chevron-up');
+    if ('down' == icon_name) {
+        icon_box.addClass('glyphicon-chevron-down');
+    } else if ('up' == icon_name) {
+        icon_box.addClass('glyphicon-chevron-up');
+    }
+}
 
-function next_form(e) {
+function submit_form(e) {
     var item_box = $(this).closest('.item-box');
     var button_type = $(this).attr('type');
+    var button_text = $(this).text();
 
     // Validate form
     var score = item_box.find('input[name="score"]').val();
@@ -168,6 +208,16 @@ function next_form(e) {
     // Add end timestamp
     item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
 
+    // Check if score has not been changed. If so, just move to the next item.
+    var prev_score = item_box.data('item-score');
+    //console.log('score=', score, 'prevscore=', prev_score);
+    if (score == prev_score) {
+        e.preventDefault();
+        _hide_target_box.call(item_box);
+        _show_target_box.call(item_box.next());
+        return true;
+    }
+
     // Ajax request
     // Checking if the button type is submit is for debugging purposes
     if (ENABLE_AJAX && button_type == 'submit') {
@@ -176,6 +226,10 @@ function next_form(e) {
         // Say server that the client expect JSON response
         item_box.find('input[name="ajax"]').val('True');
 
+        // Workflow: Immediately after an Ajax request is sent, annotation
+        // moves to the next element opening the next slider; if Ajax request
+        // returns an error or the item was not saved, annotation moves back
+        // to the previous item.
         $.ajax({
             data: item_box.find('form').serialize(),
             type: 'POST',
@@ -184,7 +238,7 @@ function next_form(e) {
             beforeSend: function() {
                 console.log('Sending Ajax request, item-id=', item_box.data('item-id'));
                 _change_item_status_icon(item_box, 'refresh');
-                // Move to the next item
+                // Move to the next item immediately
                 _hide_target_box.call(item_box);
                 _show_target_box.call(item_box.next());
             },
@@ -195,6 +249,15 @@ function next_form(e) {
                     // Update counters
                     $('#items-left-counter').text(data.items_left_in_block);
                     $('#current-item-id').text(data.item_id);
+
+                    // Update data- attributes in the scored item
+                    item_box.data('item-completed', 'True');
+                    item_box.data('item-score', score);
+                    // Change submit button label to 'Update'
+                    item_box.find('button[name="next_button"]').text('Update');
+
+                    if (_all_sentences_scored())
+                        _enable_document_box();
                 } else {
                     _change_item_status_icon(item_box, 'none');
                     // TODO: Show an error message?
@@ -223,7 +286,11 @@ function next_form(e) {
         count_box.text( parseInt(count_box.text()) - 1 );
         var citem_idx = $('#current-item-id');
         citem_idx.text( parseInt(citem_idx.text()) + 1 );
+
+        if (_all_sentences_scored())
+            _enable_document_box();
     }
+
     return true;
 }
 
@@ -272,8 +339,9 @@ function last_form() {
 <div class="question-box">
     <div class="row">
         <div class="col-sm-12">
-            <p>{{top_question_text|safe}}</p>
-            <p>{{priming_question_text|safe}}</p>
+            {% for text in priming_question_texts %}
+            <p>{{text|safe}}</p>
+            {% endfor %}
         </div>
     </div>
 </div>
@@ -285,7 +353,8 @@ function last_form() {
             {% if not item.isCompleteDocument %} quotelike{% endif %}
             {% if scores.current_item %} active{% endif %}"
      data-item-id="{{ item.itemID }}"
-     data-item-completed="{{ scores.completed }}">
+     data-item-completed="{{ scores.completed }}"
+     data-item-score="{{ scores.score }}">
 
     <form action="{{action_url}}" method="post">
         {% csrf_token %}
@@ -323,7 +392,7 @@ function last_form() {
             </div>
         </div>
 
-        <div class="target-box toggleable{% if scores.current_item %} active{% endif %}" >
+        <div class="target-box toggleable{% if scores.current_item %}{% endif %}" >
             <div class="row">
                 {% with sliderid=item.itemID %}
                 {% include 'EvalView/_slider.html' %}
@@ -352,11 +421,13 @@ function last_form() {
 
         {% else %}
 
-        <div class="target-box" >
+        <div class="target-box document-box" >
             <div class="question-box">
                 <div class="row">
                     <div class="col-sm-12">
-                        <p>{{document_question_text|safe}}</p>
+                        {% for text in document_question_texts %}
+                        <p>{{text|safe}}</p>
+                        {% endfor %}
                     </div>
                     {% with sliderid=item.itemID %}
                     {% include 'EvalView/_slider.html' %}
@@ -374,7 +445,8 @@ function last_form() {
                             <i class="icon-repeat"></i> Reset</button>
                     </td>
                     <td style="width:30%;text-align:right;">
-                        <button class="btn button-next btn-primary"
+                        <button id="button-doc"
+                                class="btn button-next btn-primary"
                                 name="next_button"
                                 accesskey="1"
                                 type="submit"
