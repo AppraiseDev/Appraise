@@ -16,6 +16,7 @@
 
 .question-box { margin-bottom:10px; }
 .question-box p { font-size: 120%; margin: 10px 0 20px; font-style: italic; color: #31708f; }
+.document-box { padding-top: 10px; }
 .document-box p { font-size: 16px; }
 
 .item-box { margin-bottom: 20px; }
@@ -42,7 +43,7 @@
 .action-box  { width: 100%; }
 .action-box td { padding-bottom:10px; }
 .action-box .btn { margin: 0 40px; }
-.document-box .btn { margin: 10px 5px 0; }
+/*.document-box .btn { margin: 10px 5px 0; }*/
 .button-reset { background-color: #ddd; }
 .button-setting { background-color: #f5f5f5; font-style:normal; }
 </style>
@@ -516,7 +517,7 @@ function _show_error_box(item_box, msg) {
             </div>
         </div>
 
-        <div class="target-box document-box" >
+        <div class="target-box document-box quotelike">
             <div class="row">
                 {% with sliderid=item.itemID %}
                 {% include 'EvalView/_slider.html' %}
