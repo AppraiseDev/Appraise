@@ -766,7 +766,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
             else:
                 print(
-                    f'Different document IDs: {currnt_item.documentID} != '
+                    f'Different document IDs: {current_item.documentID} != '
                     f'{document_id}, will not save!'
                 )
 
@@ -821,7 +821,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     document_question_texts = [
         'Please score the document translation above answering the question '
         '(you can score the entire document only after scoring all previous sentences):',
-        f'How accurately does the entire candidate document in {target_language} (right column) convey '
+        'How accurately does the <strong>entire</strong> candidate document in '
+        f'{target_language} (right column) convey '
         f'the original semantics of the source document in {source_language} (left column)? ',
     ]
 
@@ -832,7 +833,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             'the original semantics of the source text (top) in the document context?'
         )
         document_question_texts[0] = (
-            f'How accurately does the entire candidate document above in {target_language} convey '
+            'How accurately does the <strong>entire</strong> candidate document above '
+            f'in {target_language} convey '
             f'the original semantics of the source document in {source_language}? '
         )
 
