@@ -651,6 +651,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     t2 = datetime.now()
     ajax = False
     item_saved = False
+    error_msg = ''
     if request.method == "POST":
         score = request.POST.get('score', None)
         item_id = request.POST.get('item_id', None)
@@ -752,10 +753,18 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                                 completed=True,
                                 dateCompleted=utc_now,
                             )
-                            print(f'Item {task_id} (itemID={item_id}) saved, but was not the next item')
+                            print(
+                                f'Item {task_id} (itemID={item_id}) saved, '
+                                'although it was not the next item'
+                            )
                             item_saved = True
 
                         else:
+                            error_msg = (
+                                'We did not expect this item to be submitted. '
+                                'If you used backward/forward buttons in your browser, '
+                                'please reload the page and try again.'
+                            )
 
                             _msg = 'Item ID %s does not match item %s, will not save!'
                             LOGGER.debug(_msg, item_id, current_item.itemID)
@@ -768,6 +777,12 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                 print(
                     f'Different document IDs: {current_item.documentID} != '
                     f'{document_id}, will not save!'
+                )
+
+                error_msg = (
+                    'We did not expect an item from this document to be submitted. '
+                    'If you used backward/forward buttons in your browser, '
+                    'please reload the page and try again.'
                 )
 
     t3 = datetime.now()
@@ -856,7 +871,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     }
 
     if ajax:
-        ajax_context = { 'saved': item_saved }
+        ajax_context = { 'saved': item_saved, 'error_msg': error_msg }
         context.update(ajax_context)
         context.update(BASE_CONTEXT)
         return JsonResponse(context)

@@ -267,19 +267,28 @@ function submit_form(e) {
                         _enable_document_box();
                 } else {
                     _change_item_status_icon(item_box, 'none');
-                    // TODO: Show an error message?
+
                     // Undo moving to the next item
                     _hide_target_box.call(item_box.next());
                     _show_target_box.call(item_box);
+
+                    _show_error_box(item_box, data.error_msg);
                 }
             },
             error: function(x,s,t) {
                 console.log('Error:', x, s, t);
+
                 _change_item_status_icon(item_box, 'none');
                 // TODO: Show an error message?
                 // Undo moving to the next item
                 _hide_target_box.call(item_box.next());
                 _show_target_box.call(item_box);
+
+                _show_error_box(item_box,
+                    'An unrecognized error has occured. ' +
+                    'Please reload the page or try again in a moment.' +
+                    'Also, make sure you use a relatively modern browser.'
+                );
             },
         });
 
@@ -353,6 +362,15 @@ function close_all_items_except_current() {
             _hide_target_box.call(item_box);
         }
     });
+}
+
+function _show_error_box(item_box, msg) {
+    item_box.before(
+        '<div class="alert alert-danger alert-dismissible" role="alert">' +
+        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+        '<span aria-hidden="true">&times;</span>' +
+        '</button>Oops... ' + msg + '</div>'
+    );
 }
 
 -->
