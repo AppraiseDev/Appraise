@@ -25,7 +25,7 @@
 .item-box:last-of-type { background-color:inherit; }
 
 /*.source-box { margin-bottom:10px; }*/
-.source-box:hover { background: #f5f5f5; cursor: pointer; }
+.source-box-hoverable:hover { background: #f5f5f5; cursor: pointer; }
 .source-btn-toggle { float: right; padding-right:10px; }
 .source-btn-done { float: right; display: none; padding-bottom:5px; padding-left:5px; }
 .score-box { display:none; color:#31708f; float:right; border:1px solid #adadad; font-size:10px; }
@@ -54,7 +54,10 @@
 <script>
     <!--
 var idleTime = 0;
+
 var ENABLE_AJAX = true;
+var ENABLE_COLOR_LABELS = true;
+var ENABLE_UNRESTRICTED_ANNOTATION = true;
 
 String.prototype.rot13 = function() {
     return this.replace(/[a-zA-Z]/g, function(c) {
@@ -74,7 +77,13 @@ $(document).ready(function() {
     // Bind click events
     $('.slider').slider({orientation: "horizontal", range: "min", change: update_score });
     $('.button-reset').click(reset_form);
-    $('.source-box').clickToggle(_show_target_box, _hide_target_box);
+    if (ENABLE_UNRESTRICTED_ANNOTATION) {
+        $('.source-box').clickToggle(_show_target_box, _hide_target_box);
+    } else {
+        $('.source-box').removeClass('source-box-hoverable');
+        $('.source-btn-toggle').hide(0);
+        $('.control-box').hide(0);
+    }
     // All except the document-level item send Ajax POST request
     $('.button-next').not(':last').click(submit_form);
     // The last item doesn't send Ajax request
@@ -99,7 +108,8 @@ $(document).ready(function() {
     });
 
     // Activate current item; this will have no effect for the document-level item
-    next_item.find('.source-box').click();
+    // next_item.find('.source-box').click();
+    _show_target_box.call(next_item);
 
     // Disable document-level item unless all individual sentences are scored
     if (! _all_sentences_scored())
@@ -163,6 +173,8 @@ function update_score() {
 }
 
 function _color_score_box(item_box, new_score) {
+    if (!ENABLE_COLOR_LABELS)
+        return;
     // desaturate max red and green a bit, max is 255
     MAX_RED = 225;
     MAX_GREEN = 225;
@@ -431,7 +443,7 @@ function _show_error_box(item_box, msg) {
     </div>
     <div class="row">
         <div class="col-sm-12">
-            <p class="pull-right">
+            <p class="pull-right control-box">
                 <button id="button-open-all"
                         class="btn button-setting btn-default btn-sm">
                     Expand all items
@@ -472,7 +484,7 @@ function _show_error_box(item_box, msg) {
 
         {% if not item.isCompleteDocument %}
 
-        <div class="source-box">
+        <div class="source-box source-box-hoverable">
             <div class="row">
                 <div class="col-sm-6">
                     <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
