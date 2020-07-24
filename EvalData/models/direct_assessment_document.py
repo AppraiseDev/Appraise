@@ -268,7 +268,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         if len(block_items) != len(block_results):
             print('Warning: incorrect number of retrieved results!')
         for item, result in zip(block_items, block_results):
-            print(f'  >> item={item} result={result}')
+            # print(f'  >> item={item} result={result}')
             if result and item.id != result.item.id:
                 print('Warning: incorrect order of items and results!')
 
