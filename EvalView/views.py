@@ -841,18 +841,6 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         f'the original semantics of the source document in {source_language} (left column)? ',
     ]
 
-    hsplit = 'hsplit' in request.GET
-    if hsplit:
-        priming_question_texts[1] = (
-            'How accurately does the candidate text (bottom, in bold) convey '
-            'the original semantics of the source text (top) in the document context?'
-        )
-        document_question_texts[0] = (
-            'How accurately does the <strong>entire</strong> candidate document above '
-            f'in {target_language} convey '
-            f'the original semantics of the source document in {source_language}? '
-        )
-
     context = {
         'active_page': 'direct-assessment-document',
         'item_id': current_item.itemID,
@@ -886,9 +874,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     context.update(page_context)
     context.update(BASE_CONTEXT)
 
-    suffix = '-hsplit' if hsplit else '-vsplit'
     return render(
-        request, f'EvalView/direct-assessment-document{suffix}.html', context
+        request, f'EvalView/direct-assessment-document-vsplit.html', context
     )
 
 
