@@ -31,6 +31,12 @@ LOGGER = _get_logger(name=__name__)
 class DirectAssessmentDocumentTask(BaseMetadata):
     """
     Models a direct assessment document evaluation task.
+
+    Note: this task is, similarily to other models, a shameless copy of
+    DirectAssessmentContextTask, with one additional method for retrieving all
+    items belonging to the same document in the task called
+    `next_document_for_user`. The underlying model is the same as for
+    DirectAssessmentContextTask.
     """
     campaign = models.ForeignKey(
       'Campaign.Campaign',
