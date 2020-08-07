@@ -46,6 +46,9 @@
 /*.document-box .btn { margin: 10px 5px 0; }*/
 .button-reset { background-color: #ddd; }
 .button-setting { background-color: #f5f5f5; font-style:normal; }
+
+/* Uncomment if ENABLE_UNRESTRICTED_ANNOTATION is set to false */
+/*.source-btn-toggle, .control-box { display:none; }*/
 </style>
 
 <link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}">
@@ -65,6 +68,10 @@ var ENABLE_COLOR_LABELS = true;
 // Allow unrestricted annotation of items in the document. If disabled,
 // expanding and hiding of sentences is disabled and the user must score items
 // following their order, one-by-one.
+// Note: If set to false, some HTML elements are disabled via javascript
+// after the page is loaded, which may result in a flashing effect. To prevent
+// this, add the CSS rule: .source-btn-toggle, .control-box {display:none;}
+// (see line 51). This is purely esthetics.
 var ENABLE_UNRESTRICTED_ANNOTATION = true;
 
 String.prototype.rot13 = function() {
@@ -204,13 +211,13 @@ function reset_form() {
     item_box.find('input[name="start_timestamp"]').val(Date.now()/1000.0);
     // Reset slider and OK tick
     var last_score = parseInt(item_box.data('item-score'));
-    if(last_score == -1) {
+    if(last_score == -1) { // i.e. not scored yet
         item_box.find('.slider').slider('option', 'value', 0);
         item_box.find('.source-btn-done').hide();
         item_box.find('.preview-box').addClass('inactive');
         item_box.find('.score-box').hide();
         //item_box.find('.score-box').html('');
-    } else {
+    } else { // i.e. updating the score
         item_box.find('.slider').slider('option', 'value', last_score);
         _color_score_box(item_box, last_score);
         //item_box.find('.score-box').show().html(last_score);

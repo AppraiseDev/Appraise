@@ -898,7 +898,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     context.update(BASE_CONTEXT)
 
     return render(
-        request, f'EvalView/direct-assessment-document-vsplit.html', context
+        request, f'EvalView/direct-assessment-document.html', context
     )
 
 

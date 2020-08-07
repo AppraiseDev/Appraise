@@ -35,7 +35,8 @@ class DirectAssessmentDocumentTask(BaseMetadata):
     Note: this task is, similarily to other models, a shameless copy of
     DirectAssessmentContextTask, with one additional method for retrieving all
     items belonging to the same document in the task called
-    `next_document_for_user`. The underlying model is the same as for
+    `next_document_for_user`, and a helper method `get_results_for_each_item`.
+    The underlying model is the same as for
     DirectAssessmentContextTask.
     """
     campaign = models.ForeignKey(
@@ -247,13 +248,13 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         )
 
         return (
-            next_item,
-            completed_items,
-            completed_blocks,
-            completed_items_in_block,
-            block_items,
-            block_results,
-            total_blocks,
+            next_item,                # the first unannotated item for the user
+            completed_items,          # the number of completed items in the task
+            completed_blocks,         # the number of completed documents in the task
+            completed_items_in_block, # the number of completed items in the current document
+            block_items,              # all items from the current document
+            block_results,            # all score results from the current document
+            total_blocks,             # the total number of documents in the task
         )
 
     def get_results_for_each_item(self, block_items, user):
@@ -279,7 +280,6 @@ class DirectAssessmentDocumentTask(BaseMetadata):
                 print('Warning: incorrect order of items and results!')
 
         return block_results
-
 
     @classmethod
     def get_task_for_user(cls, user):
