@@ -55,8 +55,16 @@
     <!--
 var idleTime = 0;
 
+// Enable submitting scores for individual items using Ajax POST. If disabled,
+// the page will be reloaded each time an item is annotated. Note that the
+// document-level score is always submitted without Ajax.
 var ENABLE_AJAX = true;
+// Hint scores of already annotated items with small red-to-green color
+// circles.
 var ENABLE_COLOR_LABELS = true;
+// Allow unrestricted annotation of items in the document. If disabled,
+// expanding and hiding of sentences is disabled and the user must score items
+// following their order, one-by-one.
 var ENABLE_UNRESTRICTED_ANNOTATION = true;
 
 String.prototype.rot13 = function() {
@@ -71,7 +79,8 @@ jQuery.fn.clickToggle = function(a, b) {
 };
 
 $(document).ready(function() {
-    // TODO: properly set timestamps for all items
+    // This sets the same starting time for all items, but it is set again when
+    // an item is expanded by clicking on it.
     $('input[name="start_timestamp"]').val(Date.now()/1000.0);
 
     // Bind click events
@@ -309,7 +318,6 @@ function submit_form(e) {
                 console.log('Error:', x, s, t);
 
                 _change_item_status_icon(item_box, 'none');
-                // TODO: Show an error message?
                 // Undo moving to the next item
                 _hide_target_box.call(item_box.next());
                 _show_target_box.call(item_box);
@@ -395,6 +403,7 @@ function close_all_items_except_current() {
 }
 
 function _show_error_box(item_box, msg) {
+    // A hideable error box with a custom message displayed right above the item box
     item_box.before(
         '<div class="alert alert-danger alert-dismissible" role="alert">' +
         '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
@@ -444,18 +453,18 @@ function _show_error_box(item_box, msg) {
     <div class="row">
         <div class="col-sm-12">
             <p class="pull-right control-box">
-                <button id="button-open-all"
-                        class="btn button-setting btn-default btn-sm">
-                    Expand all items
-                </button>
-                <button id="button-open-unannotated"
-                        class="btn button-setting btn-default btn-sm">
-                    Expand unannotated
-                </button>
-                <button id="button-close-all"
-                        class="btn button-setting btn-default btn-sm">
-                    Collaps all items
-                </button>
+            <button id="button-open-all"
+                    class="btn button-setting btn-default btn-sm">
+                Expand all items
+            </button>
+            <button id="button-open-unannotated"
+                    class="btn button-setting btn-default btn-sm">
+                Expand unannotated
+            </button>
+            <button id="button-close-all"
+                    class="btn button-setting btn-default btn-sm">
+                Collaps all items
+            </button>
             </p>
         </div>
     </div>
@@ -465,8 +474,8 @@ function _show_error_box(item_box, msg) {
 
 <div id="item-{{ item.itemID }}"
      class="item-box item-{% cycle 'odd' 'even' %}
-            {% if not item.isCompleteDocument %} quotelike{% endif %}
-            {% if scores.current_item %} active{% endif %}"
+             {% if not item.isCompleteDocument %} quotelike{% endif %}
+             {% if scores.current_item %} active{% endif %}"
      data-item-id="{{ item.itemID }}"
      data-item-completed="{{ scores.completed }}"
      data-item-score="{{ scores.score }}">
@@ -495,11 +504,11 @@ function _show_error_box(item_box, msg) {
                         -->
                     </span>
                 </div>
-                    <div class="col-sm-5">
-                        <span title="Candidate translation of source sentence #{{ item.itemID|add:"1" }}">
-                            <p><strong>{{item.targetText|safe}}</strong></p>
-                        </span>
-                    </div>
+                <div class="col-sm-5">
+                    <span title="Candidate translation of source sentence #{{ item.itemID|add:"1" }}">
+                        <p><strong>{{item.targetText|safe}}</strong></p>
+                    </span>
+                </div>
                 <div class="col-sm-1">
                     <span class="source-btn-done glyphicon glyphicon-ok"></span>
                     <span class="score-box badge">&nbsp;</span>

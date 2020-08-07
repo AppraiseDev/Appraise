@@ -648,6 +648,9 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             LOGGER.info(_msg)
             campaign = current_task.campaign
 
+    # Handling POST requests differs from the original direct_assessment/
+    # direct_assessment_context view, but the input is the same: a score for the
+    # single submitted item
     t2 = datetime.now()
     ajax = False
     item_saved = False
@@ -664,6 +667,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         LOGGER.info('score=%s, item_id=%s', score, item_id)
         print(f'Got request score={score}, item_id={item_id}, ajax={ajax}')
 
+        # If all required information was provided in the POST request
         if score and item_id and start_timestamp and end_timestamp:
             duration = float(end_timestamp) - float(start_timestamp)
             LOGGER.debug(float(start_timestamp))
@@ -675,12 +679,18 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                 duration,
             )
 
+            # Get all items from the document that the submitted item belongs
+            # to, and all already collected scores for this document
             current_item, block_items, block_results = current_task.next_document_for_user(
                 request.user, return_statistics=False)
 
+            # An item from the right document was submitted
             if current_item.documentID == document_id:
-                # No score for the current item, so create new score
-                if current_item.itemID == int(item_id) and current_item.id == int(task_id):
+                # This is the item that we expected to be annotated first,
+                # which means that there is no score for the current item, so
+                # create new score
+                if current_item.itemID == int(item_id) \
+                        and current_item.id == int(task_id):
 
                     utc_now = datetime.utcnow().replace(tzinfo=utc)
                     # pylint: disable=E1101
@@ -698,22 +708,29 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                     print(f'Item {task_id} (itemID={item_id}) saved')
                     item_saved = True
 
-                # It is not the current item, so check if result exists
+                # It is not the current item, so check if the result for it
+                # exists
                 else:
                     # Check if there is a score result for the submitted item
-                    # TODO: this could be a single query, would it be better or more effective?
+                    # TODO: this could be a single query, would it be better or
+                    # more effective?
                     current_result = None
                     for result in block_results:
                         if not result:
                             print(f'  :: result: none')
                             continue
-                        print(f'  :: result: {result} :: {result.item} :: {result.item.itemID}/{result.item.id}')
+                        print(
+                            f'  :: result: {result} :: {result.item}'
+                            f' :: {result.item.itemID}/{result.item.id}'
+                        )
                         if result.item.itemID == int(item_id) and result.item.id == int(task_id):
                             print(f'    :: got it!')
                             current_result = result
                             break
 
                     # If already scored, update the result
+                    # TODO: consider adding new score, not updating the
+                    # previous one
                     if current_result:
                         prev_score = current_result.score
                         current_result.score = score
@@ -721,16 +738,15 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                         current_result.end_time=float(end_timestamp)
                         utc_now = datetime.utcnow().replace(tzinfo=utc)
                         current_result.dateCompleted=utc_now
-                        current_result.save()  # TODO: save() or update() ?
+                        current_result.save()
                         print(f'Item {task_id} (itemID={item_id}) updated {prev_score}->{score}')
                         item_saved = True
 
                     # If not yet scored, check if the submitted item is from
-                    # this document. Document ID is not sufficient, because
-                    # there can be multiple documents with the same ID in the
-                    # task.
+                    # the expected document. Note that document ID is **not**
+                    # sufficient, because there can be multiple documents with
+                    # the same ID in the task.
                     else:
-
                         found_item = False
                         for item in block_items:
                             print(f'  :: item: {item} :: {item.itemID}/{item.id}')
@@ -739,6 +755,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                                 found_item = item
                                 break
 
+                        # The submitted item is from the same document as the
+                        # first unannotated item. It is fine, so save it
                         if found_item:
                             utc_now = datetime.utcnow().replace(tzinfo=utc)
                             # pylint: disable=E1101
@@ -773,6 +791,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                                 f'{current_item.itemID}, will not save!'
                             )
 
+            # An item from a wrong document was submitted
             else:
                 print(
                     f'Different document IDs: {current_item.documentID} != '
@@ -787,6 +806,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     t3 = datetime.now()
 
+    # Get all items from the document that the first unannotated item in the
+    # task belongs to, and collect some additional statistics
     (
         current_item,
         completed_items,
@@ -841,6 +862,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         f'the original semantics of the source document in {source_language} (left column)? ',
     ]
 
+    # A part of context used in responses to both Ajax and standard POST
+    # requests
     context = {
         'active_page': 'direct-assessment-document',
         'item_id': current_item.itemID,
@@ -862,7 +885,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         ajax_context = { 'saved': item_saved, 'error_msg': error_msg }
         context.update(ajax_context)
         context.update(BASE_CONTEXT)
-        return JsonResponse(context)
+        return JsonResponse(context)  # Sent response to the Ajax POST request
 
     page_context = {
         'items': zip(block_items, block_scores),
