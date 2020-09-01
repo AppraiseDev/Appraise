@@ -4,6 +4,7 @@ Packages
 Examples/**/*.csv
 Examples/**/*.log
 development.db*
+static
 
 # Python
 *.py[cod]
