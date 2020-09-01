@@ -7,12 +7,14 @@ from EvalData.models import (
     DirectAssessmentTask,
     DirectAssessmentContextTask,
     MultiModalAssessmentTask,
+    PairwiseAssessmentTask,
 )
 
 CAMPAIGN_TASK_TYPES = {
     'Direct': DirectAssessmentTask,
     'DocLevelDA': DirectAssessmentContextTask,
     'MultiModal': MultiModalAssessmentTask,
+    'Pairwise': PairwiseAssessmentTask,
 }
 
 

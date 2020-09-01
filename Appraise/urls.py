@@ -122,6 +122,20 @@ urlpatterns = [
         name='multimodal-assessment'),
 
     url(
+        r'^pairwise-assessment/$',
+        evalview_views.pairwise_assessment,
+        name='pairwise-assessment'),
+    url(
+        r'^pairwise-assessment/(?P<code>[a-z]{3})/$',
+        evalview_views.pairwise_assessment,
+        name='pairwise-assessment'),
+    url(
+        r'^pairwise-assessment/(?P<code>[a-z]{3})/'
+        r'(?P<campaign_name>[a-zA-Z0-9]+)/$',
+        evalview_views.pairwise_assessment,
+        name='pairwise-assessment'),
+
+    url(
         r'^campaign-status/(?P<campaign_name>[a-zA-Z0-9]+)/'
         r'(?P<sort_key>[0123456])?/?$',
         campaign_views.campaign_status,
