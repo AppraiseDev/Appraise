@@ -2,8 +2,8 @@
 
 Generating an example campaign with direct assessment tasks:
 
-    # From the admin panel, create a campaign with the name 'example1'
     python manage.py init_campaign Examples/Direct/manifest.json
+    # From the admin panel, create a campaign with the name 'example1'
 
     # From the admin panel, add batches.json and add the batch to the campaign 'example1'
     python manage.py validatecampaigndata example1

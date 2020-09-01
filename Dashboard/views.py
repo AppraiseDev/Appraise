@@ -23,6 +23,8 @@ from EvalData.models import (
     DirectAssessmentResult,
     DirectAssessmentContextTask,
     DirectAssessmentContextResult,
+    DirectAssessmentDocumentTask,
+    DirectAssessmentDocumentResult,
     MultiModalAssessmentTask,
     MultiModalAssessmentResult,
     TaskAgenda,
@@ -298,6 +300,7 @@ def dashboard(request):
     result_types = (
         DirectAssessmentResult,
         DirectAssessmentContextResult,
+        DirectAssessmentDocumentResult,
         MultiModalAssessmentResult,
         PairwiseAssessmentResult,
     )
@@ -329,6 +332,25 @@ def dashboard(request):
         current_task = DirectAssessmentContextTask.get_task_for_user(
             request.user
         )
+
+    # Check if marketTargetLanguage for current_task matches user languages.
+    if current_task:
+        code = current_task.marketTargetLanguageCode()
+        print(request.user.groups.all())
+        if code not in request.user.groups.values_list('name', flat=True):
+            _msg = (
+                'Language %s not specified for user %s. Giving up task %s'
+            )
+            LOGGER.info(_msg, code, request.user.username, current_task)
+
+            current_task.assignedTo.remove(request.user)
+            current_task = None
+
+    if not current_task:
+        current_task = DirectAssessmentDocumentTask.get_task_for_user(
+            request.user
+        )
+        print(f'Queried for Document DA task...')
 
     # Check if marketTargetLanguage for current_task matches user languages.
     if current_task:
@@ -424,6 +446,7 @@ def dashboard(request):
     # Otherwise, compute set of language codes eligible for next task.
     campaign_languages = {}
     context_languages = {}
+    document_languages = {}
     multimodal_languages = {}
     pairwise_languages = {}
     languages = []
@@ -451,6 +474,10 @@ def dashboard(request):
                 campaign__campaignName=campaign.campaignName
             )
 
+            document = DirectAssessmentDocumentTask.objects.filter(
+                campaign__campaignName=campaign.campaignName
+            )
+
             multimodal = MultiModalAssessmentTask.objects.filter(
                 campaign__campaignName=campaign.campaignName
             )
@@ -460,6 +487,7 @@ def dashboard(request):
             )
 
             is_context_campaign = context.exists()
+            is_document_campaign = document.exists()
             is_multi_modal_campaign = multimodal.exists()
             is_pairwise_campaign = pairwise.exists()
 
@@ -470,6 +498,10 @@ def dashboard(request):
             elif is_context_campaign:
                 context_languages[campaign.campaignName] = []
                 context_languages[campaign.campaignName].extend(languages)
+
+            elif is_document_campaign:
+                document_languages[campaign.campaignName] = []
+                document_languages[campaign.campaignName].extend(languages)
 
             elif is_pairwise_campaign:
                 pairwise_languages[campaign.campaignName] = []
@@ -486,6 +518,8 @@ def dashboard(request):
                     _cls = MultiModalAssessmentTask
                 elif is_context_campaign:
                     _cls = DirectAssessmentContextTask
+                elif is_document_campaign:
+                    _cls = DirectAssessmentDocumentTask
                 elif is_pairwise_campaign:
                     _cls = PairwiseAssessmentTask
                 else:
@@ -502,6 +536,10 @@ def dashboard(request):
                         )
                     elif is_context_campaign:
                         context_languages[campaign.campaignName].remove(
+                            code
+                        )
+                    elif is_document_campaign:
+                        document_languages[campaign.campaignName].remove(
                             code
                         )
                     elif is_pairwise_campaign:
@@ -521,6 +559,9 @@ def dashboard(request):
             elif is_context_campaign:
                 _type = 'context'
                 _languages = context_languages
+            elif is_document_campaign:
+                _type = 'document'
+                _languages = document_languages
             elif is_pairwise_campaign:
                 _type = 'pairwise'
                 _languages = pairwise_languages
@@ -544,6 +585,16 @@ def dashboard(request):
     seconds = int((duration.total_seconds() - (days * 86400)) % 60)
 
     duration = DirectAssessmentContextResult.get_time_for_user(
+        request.user
+    )
+    days += duration.days
+    hours += int((duration.total_seconds() - (days * 86400)) / 3600)
+    minutes += int(
+        ((duration.total_seconds() - (days * 86400)) % 3600) / 60
+    )
+    seconds += int((duration.total_seconds() - (days * 86400)) % 60)
+
+    duration = DirectAssessmentDocumentResult.get_time_for_user(
         request.user
     )
     days += duration.days
@@ -589,6 +640,15 @@ def dashboard(request):
 
     print('  Context:', str(ctx_languages).encode('utf-8'))
 
+    doc_languages = []
+    for key, values in document_languages.items():
+        for value in values:
+            doc_languages.append(
+                (value, LANGUAGE_CODES_AND_NAMES[value], key)
+            )
+
+    print('  Document:', str(doc_languages).encode('utf-8'))
+
     mmt_languages = []
     for key, values in multimodal_languages.items():
         for value in values:
@@ -608,6 +668,7 @@ def dashboard(request):
     print('  Pairwise:', str(pair_languages).encode('utf-8'))
 
     is_context_campaign = False
+    is_document_campaign = False
     is_multi_modal_campaign = False
     is_pairwise_campaign = False
 
@@ -615,6 +676,9 @@ def dashboard(request):
         print('  ...')
         is_context_campaign = (
             current_task.__class__.__name__ == 'DirectAssessmentContextTask'
+        )
+        is_document_campaign = (
+            current_task.__class__.__name__ == 'DirectAssessmentDocumentTask'
         )
         is_multi_modal_campaign = (
             current_task.__class__.__name__ == 'MultiModalAssessmentTask'
@@ -626,6 +690,8 @@ def dashboard(request):
     current_type = 'direct'
     if is_context_campaign:
         current_type = 'context'
+    if is_document_campaign:
+        current_type = 'document'
     elif is_multi_modal_campaign:
         current_type = 'multimodal'
     elif is_pairwise_campaign:
@@ -646,6 +712,7 @@ def dashboard(request):
             'current_type': current_type,
             'languages': all_languages,
             'context': ctx_languages,
+            'document': doc_languages,
             'multimodal': mmt_languages,
             'debug_times': (_t2 - _t1, _t3 - _t2, _t4 - _t3, _t4 - _t1),
             'template_debug': 'debug' in request.GET,

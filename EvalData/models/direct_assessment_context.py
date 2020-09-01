@@ -899,4 +899,3 @@ class DirectAssessmentContextResult(BaseMetadata):
         ).values_list('item_id', flat=True)
 
         return len(set(results))
-
