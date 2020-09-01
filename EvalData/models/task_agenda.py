@@ -18,6 +18,7 @@ from EvalData.models.base_models import ObjectID
 from EvalData.models.direct_assessment import DirectAssessmentResult
 from EvalData.models.direct_assessment import DirectAssessmentTask
 from EvalData.models.direct_assessment_context import DirectAssessmentContextResult
+from EvalData.models.direct_assessment_document import DirectAssessmentDocumentResult
 from EvalData.models.multi_modal_assessment import MultiModalAssessmentResult
 from EvalData.models.pairwise_assessment import PairwiseAssessmentResult
 
@@ -158,6 +159,7 @@ class TaskAgenda(models.Model):
         type_to_result_class_mapping = {
             'DirectAssessmentTask': DirectAssessmentResult,
             'DirectAssessmentContextTask': DirectAssessmentContextResult,
+            'DirectAssessmentDocumentTask': DirectAssessmentDocumentResult,
             'MultiModalAssessmentTask': MultiModalAssessmentResult,
             'PairwiseAssessmentTask': PairwiseAssessmentResult,
         }

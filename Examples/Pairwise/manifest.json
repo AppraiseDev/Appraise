@@ -1,5 +1,5 @@
 {
-    "CAMPAIGN_URL": "http://127.0.0.1:8000/sso/",
+    "CAMPAIGN_URL": "http://127.0.0.1:8000/dashboard/sso/",
     "CAMPAIGN_NAME": "example3pair",
     "CAMPAIGN_KEY": "c3",
     "CAMPAIGN_NO": 3,

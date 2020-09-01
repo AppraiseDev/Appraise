@@ -9,8 +9,8 @@ Generating an example document-level evaluation WMT19 campaign:
         Examples/DocLevelDA/batches eng deu 2 false \
         | tee Examples/DocLevelDA/batches.log
 
-    # From the admin panel, create a campaign with the name 'example2doc'
     python manage.py init_campaign Examples/DocLevelDA/manifest.json
+    # From the admin panel, create a campaign with the name 'example2doc'
 
     # From the admin panel, add batches.json and add the batch to the campaign 'example2doc'
     python manage.py validatecampaigndata example2doc

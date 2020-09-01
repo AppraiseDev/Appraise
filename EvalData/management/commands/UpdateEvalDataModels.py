@@ -19,6 +19,8 @@ from EvalData.models import (
     TextPair,
     DirectAssessmentContextTask,
     DirectAssessmentContextResult,
+    DirectAssessmentDocumentTask,
+    DirectAssessmentDocumentResult,
     TextPairWithContext,
     MultiModalAssessmentTask,
     MultiModalAssessmentResult,
@@ -178,6 +180,7 @@ class Command(BaseCommand):
         t4 = datetime.now()
         print('Processed related DirectAssessmentTask instances', t4-t3)
 
+
         #################################################################
 
         t5 = datetime.now()
@@ -243,6 +246,73 @@ class Command(BaseCommand):
 
         t4 = datetime.now()
         print('Processed related DirectAssessmentContextTask instances', t4-t3)
+
+
+        #################################################################
+
+        t5 = datetime.now()
+        results = DirectAssessmentDocumentResult.objects.filter(completed=False)
+        results.update(activated=False, completed=True)
+        t6 = datetime.now()
+        print('Processed DirectAssessmentDocumentResult instances', t6-t5)
+
+        bad_results = DirectAssessmentDocumentResult.objects.filter(
+          Q(item=None) | Q(task=None)
+        )
+        print('Identified bad DirectAssessmentDocumentResult instances', bad_results.count())
+
+        #################################################################
+        # Check which DirectAssessmentDocumentTask instances can be activated.
+        #
+        # Iterate over all tasks
+        # If completed_items >= 100, complete task
+        # Otherwise, if campaign active, activate items and task
+        activated_items = 0
+        completed_tasks = 0
+
+        tasks_to_complete = []
+        tasks_to_activate = []
+        items_to_activate = []
+
+        t1 = datetime.now()
+        task_data = DirectAssessmentDocumentTask.objects.values(
+          'id', 'activated', 'completed', 'requiredAnnotations'
+        )
+        task_data = task_data.annotate(
+          results=Count('evaldata_directassessmentdocumentresults')
+        )
+        for task in task_data:
+            if task['results'] >= 100 * task['requiredAnnotations']:
+                if task['activated']:
+                    tasks_to_complete.append(task['id'])
+                    completed_tasks += 1
+
+            elif task['completed']:
+                tasks_to_activate.append(task['id'])
+
+        ttc = DirectAssessmentDocumentTask.objects.filter(id__in=tasks_to_complete)
+        ttc.update(activated=False, completed=True)
+
+        tta = DirectAssessmentDocumentTask.objects.filter(id__in=tasks_to_activate)
+        tta.update(activated=True, completed=False)
+
+        t2 = datetime.now()
+        print('Processed DirectAssessmentDocumentTask instances', t2-t1)
+
+        item_data = TextPairWithContext.objects.filter(
+          evaldata_directassessmentdocumenttasks__campaign__activated=True,
+          activated=False
+        )
+        item_data.update(activated=True)
+
+        t3 = datetime.now()
+        print('Processed TextPairWithContext instances', t3-t2)
+
+        task_ids = DirectAssessmentDocumentTask.objects.filter(campaign__activated=True)
+        task_ids.update(activated=True)
+
+        t4 = datetime.now()
+        print('Processed related DirectAssessmentDocumentTask instances', t4-t3)
 
 
         #################################################################
