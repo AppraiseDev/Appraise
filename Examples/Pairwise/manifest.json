@@ -1,0 +1,11 @@
+{
+    "CAMPAIGN_URL": "http://127.0.0.1:8000/sso/",
+    "CAMPAIGN_NAME": "example3pair",
+    "CAMPAIGN_KEY": "c3",
+    "CAMPAIGN_NO": 3,
+    "REDUNDANCY": 1,
+
+    "TASKS_TO_ANNOTATORS": [
+        ["eng", "deu", "uniform",  1, 2]
+    ]
+}

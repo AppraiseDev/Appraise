@@ -23,6 +23,8 @@
             <p>Continue annotation for <a href="{% url 'direct-assessment-context' %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
 {% elif current_type == 'direct' %}
             <p>Continue annotation for <a href="{% url 'direct-assessment' %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
+{% elif current_type == 'pairwise' %}
+            <p>Continue annotation for <a href="{% url 'pairwise-assessment' %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
 {% endif %}
 {% elif languages or context or multimodal %}
 {% if languages %}
@@ -48,6 +50,15 @@
             <p>Start annotation for:
 {% for code, language, campaign in multimodal %}
               <a href="{% url 'multimodal-assessment' code campaign %}">{{campaign}}:{{language}}</a>{% if not forloop.last %} &middot; {% endif %}
+{% endfor %}
+            </p>
+{% endif %}
+
+{% if pairwise %}
+            <h3>Pairwise HIT</h3>
+            <p>Start annotation for:
+{% for code, language, campaign in pairwise %}
+              <a href="{% url 'pairwise-assessment' code campaign %}">{{campaign}}:{{language}}</a>{% if not forloop.last %} &middot; {% endif %}
 {% endfor %}
             </p>
 {% endif %}
