@@ -28,6 +28,7 @@ from EvalData.models import (
 LOGGER = _get_logger(name=__name__)
 
 
+
 # pylint: disable=C0103,C0330
 @login_required
 def direct_assessment(request, code=None, campaign_name=None):
@@ -912,14 +913,24 @@ def pairwise_assessment(request, code=None, campaign_name=None):
     candidate2_label = 'Candidate translation (2)'
 
     priming_question_text = (
-        'How accurately does each of the candidate text(s) below convey the original '
-        'semantics of the source text?'
+        'How accurately does each of the candidate text(s) below convey '
+        'the original semantics of the source text above?'
     )
+
+    if current_item.has_context():
+        # Added 'bolded' to avoid confusion with context sentences that are
+        # displayed in a grey color.
+        priming_question_text = (
+            'How accurately does each of the candidate text(s) below convey '
+            'the original semantics of the bolded source text above?'
+        )
 
     context = {
         'active_page': 'pairwise-assessment',
         'reference_label': reference_label,
         'reference_text': current_item.segmentText,
+        'context_left': current_item.context_left(),
+        'context_right': current_item.context_right(),
         'candidate_label': candidate1_label,
         'candidate_text': current_item.target1Text,
         'candidate2_label': candidate2_label,

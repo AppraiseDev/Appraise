@@ -13,8 +13,10 @@
   margin: 0 0 20px;
   padding: 10px 20px;
 }
-.quotelike div small { color: #777; font-size: 80%; line-height: 1.4; }
-.quotelike div > small:before { content: '\2014 \00A0'; }
+.quotelike-author { color: #777; font-size: 80%; line-height: 1.4; }
+.quotelike-author:before { content: '\2014 \00A0'; }
+.context-sentences p { color: #555; margin-bottom: 10px; line-height: 1.3; }
+.priming-question { font-size: 130%; margin-bottom: 20px; }
 
 small.padleft { padding-left: 20px; }
 small.padright { padding-right: 20px; }
@@ -29,6 +31,7 @@ small.padright { padding-right: 20px; }
 
 <link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}">
 <script src="{% static 'EvalView/js/jquery-ui.min.js' %}"></script>
+<script src="{% static 'EvalView/js/js.cookie-2.2.1.min.js' %}"></script>
 <script>
 <!--
 var idleTime = 0;
@@ -48,6 +51,11 @@ $(document).ready(function() {
 
   $('#slider2').slider({orientation: "horizontal", range: "min", change: update_score2});
   $('input[name="score2"]').val(-1);
+
+  if (Cookies.get('show-context') == 'yes') {
+    $('.context-sentences').show();
+    $('#reference-label').hide();
+  }
 
   //var $a = $('#id_candidate_text').attr('data-pseudo-content');
   //$('#id_candidate_text').attr('data-pseudo-content', $a.rot13());
@@ -83,6 +91,14 @@ function reset_timer()
   $('input[name="start_timestamp"]').val(Date.now()/1000.0);
 }
 */
+
+function toggle_context()
+{
+    var isHidden = $('.context-sentences').first().is(':hidden') ? 'yes' : 'no';
+    $('.context-sentences').toggle(400);
+    $('#reference-label').toggle();
+    Cookies.set('show-context', isHidden, { sameSite: 'strict' });
+}
 
 function add_end_timestamp()
 {
@@ -149,19 +165,28 @@ function update_score2()
   </table>
 </div>
 
-<div class="row">
+<div class="row quotelike">
 <div class="col-sm-12">
-<blockquote>
-<p><strong>{{reference_text|safe}}</strong></p>
-<small>{{reference_label}}</small>
-</blockquote>
+    <div class="context-sentences" style="display: none">
+    {% if context_left %}
+        <p><small>{{context_left|safe}}</small></p>
+    {% endif %}
+    </div>
+
+    <p><strong>{{reference_text|safe}}</strong></p>
+    <p class="quotelike-author" id="reference-label">{{reference_label}}</p>
+
+    <div class="context-sentences" style="display: none">
+    {% if context_right %}
+        <p><small>{{context_right|safe}}</small></p>
+    {% endif %}
+    </div>
 </div>
 </div>
 
 <div class="row">
     <div class="col-sm-12">
-        <h4><emph>{{priming_question_text|safe}}</emph></h4>
-        <br>
+        <p class="priming-question">{{priming_question_text|safe}}</p>
     </div>
 </div>
 
@@ -222,14 +247,17 @@ function update_score2()
 <div class="actions">
   <table style="width:100%">
   <tr>
-    <td style="width:50%;text-align:left;">
+    <td style="width:70%;text-align:left;">
       <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn"><i class="icon-repeat"></i> Reset</button>
+      {% if context_left or context_right %}
+      <button onclick="javascript:toggle_context();" accesskey="3" type="button" class="btn">Show/Hide context</button>
+      {% endif %}
 <!--
       &nbsp;
       <button name="submit_button" accesskey="3" type="submit" class="btn btn-danger" value="FLAG_ERROR"><i class="icon-white icon-exclamation-sign"></i> Skip Item</button>
 -->
     </td>
-    <td style="width:50%;text-align:right;">
+    <td style="width:30%;text-align:right;">
       <button class="btn btn-primary" name="submit_button" accesskey="1" type="submit" value="SUBMIT" onclick="javascript:return validate_form();"><i class="icon-ok-sign icon-white"></i> Submit</button>
     </td>
   </tr>

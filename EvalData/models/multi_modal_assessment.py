@@ -20,11 +20,73 @@ from Appraise.utils import _get_logger
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 from EvalData.models.base_models import AnnotationTaskRegistry
 from EvalData.models.base_models import BaseMetadata
+from EvalData.models.base_models import EvalItem
 from EvalData.models.base_models import MAX_REQUIREDANNOTATIONS_VALUE
+from EvalData.models.base_models import MAX_SEGMENTID_LENGTH
+from EvalData.models.base_models import MAX_SEGMENTTEXT_LENGTH
 from EvalData.models.base_models import seconds_to_timedelta
-from EvalData.models.base_models import TextPairWithImage
 
 LOGGER = _get_logger(name=__name__)
+
+
+class TextPairWithImage(EvalItem):
+    """
+    Models a pair of two text segments and an image.
+    """
+    sourceID = models.CharField(
+      max_length=MAX_SEGMENTID_LENGTH,
+      verbose_name=_('Source ID'),
+      help_text=_(f('(max. {value} characters)',
+        value=MAX_SEGMENTID_LENGTH))
+    )
+
+    sourceText = models.CharField(
+      max_length=MAX_SEGMENTTEXT_LENGTH,
+      verbose_name=_('Source text'),
+      help_text=_(f('(max. {value} characters)',
+        value=MAX_SEGMENTTEXT_LENGTH))
+    )
+
+    targetID = models.CharField(
+      max_length=MAX_SEGMENTID_LENGTH,
+      verbose_name=_('Target ID'),
+      help_text=_(f('(max. {value} characters)',
+        value=MAX_SEGMENTID_LENGTH))
+    )
+
+    targetText = models.CharField(
+      max_length=MAX_SEGMENTTEXT_LENGTH,
+      verbose_name=_('Target text'),
+      help_text=_(f('(max. {value} characters)',
+        value=MAX_SEGMENTTEXT_LENGTH))
+    )
+
+    imageURL = models.URLField(
+      verbose_name=_('image URL')
+    )
+
+    # pylint: disable=E1101
+    def is_valid(self):
+        """
+        Validates the current TextPair instance, checking text.
+        """
+        if isinstance(self.sourceText, type('This is a test sentence.')):
+            return False
+
+        _len = len(self.sourceText)
+        if _len < 1 or _len > MAX_SEGMENTTEXT_LENGTH:
+            return False
+
+        if isinstance(self.targetText, type('This is a test sentence.')):
+            return False
+
+        _len = len(self.targetText)
+        if _len < 1 or _len > MAX_SEGMENTTEXT_LENGTH:
+            return False
+
+        # This does not implement validation for image URLs yet.
+
+        return super(TextPairWithImage, self).is_valid()
 
 
 @AnnotationTaskRegistry.register
