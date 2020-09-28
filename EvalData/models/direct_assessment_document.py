@@ -242,8 +242,8 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         total_blocks = self.items.filter(isCompleteDocument=True).count()
 
         print(
-            'Completed {}/{} documents, {}/{} items in the current document, completed {completed_items} items in total' \
-            .format(completed_blocks, total_blocks, completed_items_in_block, len(block_items))
+            'Completed {}/{} documents, {}/{} items in the current document, completed {} items in total' \
+            .format(completed_blocks, total_blocks, completed_items_in_block, len(block_items), completed_items)
         )
 
         return (
