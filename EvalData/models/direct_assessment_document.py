@@ -153,8 +153,8 @@ class DirectAssessmentDocumentTask(BaseMetadata):
 
             if not result.exists():
                 print(
-                    f'Identified next item: {item.id}/{item.itemType} '
-                    f'(itemID={item.itemID}) for trusted={trusted_user}'
+                    'Identified next item: {}/{} (itemID={}) for trusted={}' \
+                    .format(item.id, item.itemType, item.itemID, trusted_user)
                 )
                 if not trusted_user or item.itemType == 'TGT':
                     next_item = item
@@ -242,9 +242,8 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         total_blocks = self.items.filter(isCompleteDocument=True).count()
 
         print(
-            f'Completed {completed_blocks}/{total_blocks} documents, '
-            f'{completed_items_in_block}/{len(block_items)} items in the '
-            f'current document, completed {completed_items} items in total'
+            'Completed {}/{} documents, {}/{} items in the current document, completed {completed_items} items in total' \
+            .format(completed_blocks, total_blocks, completed_items_in_block, len(block_items))
         )
 
         return (

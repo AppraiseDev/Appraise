@@ -350,7 +350,6 @@ def dashboard(request):
         current_task = DirectAssessmentDocumentTask.get_task_for_user(
             request.user
         )
-        print(f'Queried for Document DA task...')
 
     # Check if marketTargetLanguage for current_task matches user languages.
     if current_task:
@@ -387,9 +386,8 @@ def dashboard(request):
         current_task = PairwiseAssessmentTask.get_task_for_user(
             request.user
         )
-        print(f'Queried for Pairwise DA task...')
 
-    print(f'  Current task: {current_task}')
+    print('  Current task: {0}'.format(current_task))
 
     # Check if marketTargetLanguage for current_task matches user languages.
     if current_task:
@@ -464,7 +462,7 @@ def dashboard(request):
         from Campaign.models import Campaign
 
         for campaign in Campaign.objects.all():
-            print(f'Campaign: {campaign.campaignName}')
+            print('Campaign: {0}'.format(campaign.campaignName))
 
             direct = DirectAssessmentTask.objects.filter(
                 campaign__campaignName=campaign.campaignName
@@ -697,7 +695,7 @@ def dashboard(request):
     elif is_pairwise_campaign:
         current_type = 'pairwise'
 
-    print(f'  Final task type: {current_type}')
+    print('  Final task type: {0}'.format(current_type))
 
     template_context.update(
         {

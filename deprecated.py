@@ -13,7 +13,7 @@ Use get_deprecated_methods() to retrieve set of deprecated methods.
 from typing import Set
 
 
-_DEPRECATED_METHOD_REGISTRY: Set[str] = set()
+_DEPRECATED_METHOD_REGISTRY = set()  # Set[str]
 
 
 def add_deprecated_method(func):
