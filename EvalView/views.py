@@ -665,7 +665,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         ajax = bool(request.POST.get('ajax', None) == 'True')
 
         LOGGER.info('score=%s, item_id=%s', score, item_id)
-        print(f'Got request score={score}, item_id={item_id}, ajax={ajax}')
+        print('Got request score={0}, item_id={1}, ajax={2}'.format(score, item_id, ajax))
 
         # If all required information was provided in the POST request
         if score and item_id and start_timestamp and end_timestamp:
@@ -705,7 +705,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                         completed=True,
                         dateCompleted=utc_now,
                     )
-                    print(f'Item {task_id} (itemID={item_id}) saved')
+                    print('Item {} (itemID={}) saved'.format(task_id, item_id))
                     item_saved = True
 
                 # It is not the current item, so check if the result for it
@@ -717,14 +717,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                     current_result = None
                     for result in block_results:
                         if not result:
-                            print(f'  :: result: none')
                             continue
-                        print(
-                            f'  :: result: {result} :: {result.item}'
-                            f' :: {result.item.itemID}/{result.item.id}'
-                        )
                         if result.item.itemID == int(item_id) and result.item.id == int(task_id):
-                            print(f'    :: got it!')
                             current_result = result
                             break
 
@@ -739,7 +733,10 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                         utc_now = datetime.utcnow().replace(tzinfo=utc)
                         current_result.dateCompleted=utc_now
                         current_result.save()
-                        print(f'Item {task_id} (itemID={item_id}) updated {prev_score}->{score}')
+                        _msg = 'Item {} (itemID={}) updated {}->{}' \
+                            .format(task_id, item_id, prev_score, score)
+                        LOGGER.debug(_msg)
+                        print(_msg)
                         item_saved = True
 
                     # If not yet scored, check if the submitted item is from
@@ -749,9 +746,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                     else:
                         found_item = False
                         for item in block_items:
-                            print(f'  :: item: {item} :: {item.itemID}/{item.id}')
                             if item.itemID == int(item_id) and item.id == int(task_id):
-                                print(f'    :: got it!')
                                 found_item = item
                                 break
 
@@ -771,10 +766,10 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                                 completed=True,
                                 dateCompleted=utc_now,
                             )
-                            print(
-                                f'Item {task_id} (itemID={item_id}) saved, '
-                                'although it was not the next item'
-                            )
+                            _msg = 'Item {} (itemID={}) saved, although it was not the next item' \
+                                .format(task_id, item_id)
+                            LOGGER.debug(_msg)
+                            print(_msg)
                             item_saved = True
 
                         else:
@@ -784,18 +779,16 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                                 'please reload the page and try again.'
                             )
 
-                            _msg = 'Item ID %s does not match item %s, will not save!'
-                            LOGGER.debug(_msg, item_id, current_item.itemID)
-                            print(
-                                f'Item ID {item_id} does not match item '
-                                f'{current_item.itemID}, will not save!'
-                            )
+                            _msg = 'Item ID {} does not match item {}, will not save!' \
+                                .format(item_id, current_item.itemID)
+                            LOGGER.debug(_msg)
+                            print(_msg)
 
             # An item from a wrong document was submitted
             else:
                 print(
-                    f'Different document IDs: {current_item.documentID} != '
-                    f'{document_id}, will not save!'
+                    'Different document IDs: {} != {}, will not save!' \
+                    .format(current_item.documentID, document_id)
                 )
 
                 error_msg = (
@@ -846,20 +839,24 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     candidate_label = 'Candidate translation'
 
     priming_question_texts = [
-        f'Below you see a document with {len(block_items)} sentences in {source_language} '
-        f'and their corresponding candidate translations in {target_language}. '
-        'Score each candidate translation in the document context, answering the question: ',
+        'Below you see a document with {0} sentences in {1} '
+        'and their corresponding candidate translations in {2}. '
+        'Score each candidate translation in the document context, answering the question: ' \
+            .format(len(block_items), source_language, target_language),
+
         'How accurately does the candidate text (right column, in bold) convey '
         'the original semantics of the source text (left column) in the document context? ',
+
         'You may revisit already scored sentences and update their scores at any time '
         'by clicking at a source text.'
     ]
     document_question_texts = [
         'Please score the document translation above answering the question '
         '(you can score the entire document only after scoring all previous sentences):',
+
         'How accurately does the <strong>entire</strong> candidate document in '
-        f'{target_language} (right column) convey '
-        f'the original semantics of the source document in {source_language} (left column)? ',
+        '{0} (right column) convey '
+        'the original semantics of the source document in {1} (left column)? '.format(target_language, source_language)
     ]
 
     # A part of context used in responses to both Ajax and standard POST
@@ -898,7 +895,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     context.update(BASE_CONTEXT)
 
     return render(
-        request, f'EvalView/direct-assessment-document.html', context
+        request, 'EvalView/direct-assessment-document.html', context
     )
 
 
@@ -1205,7 +1202,7 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
 
-        print(f'score1={score1}, score2={score2}, item_id={item_id}')
+        print('score1={0}, score2={1}, item_id={2}'.format(score1, score2, item_id))
         LOGGER.info('score1=%s, score2=%s, item_id=%s', score1, score2, item_id)
 
         if score1 and item_id and start_timestamp and end_timestamp:
