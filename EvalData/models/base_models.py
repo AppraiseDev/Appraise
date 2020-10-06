@@ -561,7 +561,7 @@ class TextSegment(EvalItem):
         value=MAX_SEGMENTID_LENGTH))
     )
 
-    segmentText = models.CharField(
+    segmentText = models.TextField(
       max_length=MAX_SEGMENTTEXT_LENGTH,
       verbose_name=_('Segment text'),
       help_text=_(f('(max. {value} characters)',
