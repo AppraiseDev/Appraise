@@ -10,7 +10,7 @@ from inspect import currentframe, getframeinfo
 # pylint: disable=import-error,C0330
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect, render_to_response
 
 from Appraise.settings import BASE_CONTEXT
@@ -70,12 +70,16 @@ def _server_error(request, template_name='500.html'):
 
 def sso_login(request, username, password):
     """
-    Attempts SSO login for the given username:password credentials.
+    Forces SSO login for the given username:password credentials.
+    If another user is already logged in, it will be logged out.
     """
     # Login user and redirect to dashboard page.
-    if not request.user.username:
-        user = authenticate(username=username, password=password)
-        login(request, user)
+    if request.user.username:
+        LOGGER.info('Logging out user "%s"', request.user.username)
+        logout(request)
+
+    user = authenticate(username=username, password=password)
+    login(request, user)
 
     LOGGER.info(
         'Rendering SSO login view for user "%s".',
