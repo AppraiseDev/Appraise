@@ -472,49 +472,16 @@ def dashboard(request):
     _t3 = datetime.now()
 
 
-    duration = DirectAssessmentResult.get_time_for_user(request.user)
-    days = duration.days
-    hours = int((duration.total_seconds() - (days * 86400)) / 3600)
-    minutes = int(
-        ((duration.total_seconds() - (days * 86400)) % 3600) / 60
-    )
-    seconds = int((duration.total_seconds() - (days * 86400)) % 60)
-
-    duration = DirectAssessmentContextResult.get_time_for_user(
-        request.user
-    )
-    days += duration.days
-    hours += int((duration.total_seconds() - (days * 86400)) / 3600)
-    minutes += int(
-        ((duration.total_seconds() - (days * 86400)) % 3600) / 60
-    )
-    seconds += int((duration.total_seconds() - (days * 86400)) % 60)
-
-    duration = DirectAssessmentDocumentResult.get_time_for_user(
-        request.user
-    )
-    days += duration.days
-    hours += int((duration.total_seconds() - (days * 86400)) / 3600)
-    minutes += int(
-        ((duration.total_seconds() - (days * 86400)) % 3600) / 60
-    )
-    seconds += int((duration.total_seconds() - (days * 86400)) % 60)
-
-    duration = MultiModalAssessmentResult.get_time_for_user(request.user)
-    days += duration.days
-    hours += int((duration.total_seconds() - (days * 86400)) / 3600)
-    minutes += int(
-        ((duration.total_seconds() - (days * 86400)) % 3600) / 60
-    )
-    seconds += int((duration.total_seconds() - (days * 86400)) % 60)
-
-    duration = PairwiseAssessmentResult.get_time_for_user(request.user)
-    days += duration.days
-    hours += int((duration.total_seconds() - (days * 86400)) / 3600)
-    minutes += int(
-        ((duration.total_seconds() - (days * 86400)) % 3600) / 60
-    )
-    seconds += int((duration.total_seconds() - (days * 86400)) % 60)
+    # Collect total annotation time
+    times = { 'days': 0, 'hours': 0, 'minutes': 0, 'seconds': 0 }
+    for task_cls in TASK_RESULTS:
+        duration = task_cls.get_time_for_user(request.user)
+        secs = duration.total_seconds()
+        days = duration.days
+        times['days'] += days
+        times['hours'] += int((secs - (days * 86400)) / 3600)
+        times['minutes'] += int(((secs - (days * 86400)) % 3600) / 60)
+        times['seconds'] += int((secs - (days * 86400)) % 60)
 
     _t4 = datetime.now()
 
@@ -534,15 +501,12 @@ def dashboard(request):
     current_type = TASK_NAMES[current_task.__class__]
     print('  Final task type: {0}'.format(current_type))
 
+    template_context.update(times)
     template_context.update(
         {
             'annotations': annotations,
             'hits': hits,
             'total_hits': total_hits,
-            'days': days,
-            'hours': hours,
-            'minutes': minutes,
-            'seconds': seconds,
             'current_task': current_task,
             'current_type': current_type,
             'languages': all_languages[DirectAssessmentTask],
