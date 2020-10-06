@@ -17,8 +17,6 @@ from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Dashboard.models import UserInviteToken, LANGUAGE_CODES_AND_NAMES
 from EvalData.models import (
-    PairwiseAssessmentTask,
-    PairwiseAssessmentResult,
     DirectAssessmentTask,
     DirectAssessmentResult,
     DirectAssessmentContextTask,
@@ -27,8 +25,27 @@ from EvalData.models import (
     DirectAssessmentDocumentResult,
     MultiModalAssessmentTask,
     MultiModalAssessmentResult,
+    PairwiseAssessmentTask,
+    PairwiseAssessmentResult,
     TaskAgenda,
 )
+
+TASK_TYPES = [
+    DirectAssessmentTask,
+    DirectAssessmentContextTask,
+    DirectAssessmentDocumentTask,
+    MultiModalAssessmentTask,
+    PairwiseAssessmentTask
+]
+
+TASK_RESULTS = [
+    DirectAssessmentResult,
+    DirectAssessmentContextResult,
+    DirectAssessmentDocumentResult,
+    MultiModalAssessmentResult,
+    PairwiseAssessmentResult
+]
+
 
 from deprecated import add_deprecated_method
 
@@ -308,6 +325,7 @@ def dashboard(request):
         MultiModalAssessmentResult,
         PairwiseAssessmentResult,
     )
+
     annotations = 0
     hits = 0
     total_hits = 0
@@ -317,94 +335,25 @@ def dashboard(request):
         hits, total_hits = hits + _hits, total_hits + _total
 
     # If user still has an assigned task, only offer link to this task.
-    current_task = DirectAssessmentTask.get_task_for_user(request.user)
+    current_task = None
+    for task_cls in TASK_TYPES:
+        if not current_task:
+            current_task = task_cls.get_task_for_user(request.user)
 
-    # Check if marketTargetLanguage for current_task matches user languages.
-    if current_task:
-        code = current_task.marketTargetLanguageCode()
-        print(request.user.groups.all())
-        if code not in request.user.groups.values_list('name', flat=True):
-            _msg = (
-                'Language %s not specified for user %s. Giving up task %s'
-            )
-            LOGGER.info(_msg, code, request.user.username, current_task)
+        # Check if marketTargetLanguage for current_task matches user languages.
+        if current_task:
+            code = current_task.marketTargetLanguageCode()
+            print('User groups:', request.user.groups.all())
+            if code not in request.user.groups.values_list('name', flat=True):
+                _msg = (
+                    'Language %s not specified for user %s. Giving up task %s'
+                )
+                LOGGER.info(_msg, code, request.user.username, current_task)
 
-            current_task.assignedTo.remove(request.user)
-            current_task = None
-
-    if not current_task:
-        current_task = DirectAssessmentContextTask.get_task_for_user(
-            request.user
-        )
-
-    # Check if marketTargetLanguage for current_task matches user languages.
-    if current_task:
-        code = current_task.marketTargetLanguageCode()
-        print(request.user.groups.all())
-        if code not in request.user.groups.values_list('name', flat=True):
-            _msg = (
-                'Language %s not specified for user %s. Giving up task %s'
-            )
-            LOGGER.info(_msg, code, request.user.username, current_task)
-
-            current_task.assignedTo.remove(request.user)
-            current_task = None
-
-    if not current_task:
-        current_task = DirectAssessmentDocumentTask.get_task_for_user(
-            request.user
-        )
-
-    # Check if marketTargetLanguage for current_task matches user languages.
-    if current_task:
-        code = current_task.marketTargetLanguageCode()
-        print(request.user.groups.all())
-        if code not in request.user.groups.values_list('name', flat=True):
-            _msg = (
-                'Language %s not specified for user %s. Giving up task %s'
-            )
-            LOGGER.info(_msg, code, request.user.username, current_task)
-
-            current_task.assignedTo.remove(request.user)
-            current_task = None
-
-    if not current_task:
-        current_task = MultiModalAssessmentTask.get_task_for_user(
-            request.user
-        )
-
-    # Check if marketTargetLanguage for current_task matches user languages.
-    if current_task:
-        code = current_task.marketTargetLanguageCode()
-        print(request.user.groups.all())
-        if code not in request.user.groups.values_list('name', flat=True):
-            _msg = (
-                'Language %s not specified for user %s. Giving up task %s'
-            )
-            LOGGER.info(_msg, code, request.user.username, current_task)
-
-            current_task.assignedTo.remove(request.user)
-            current_task = None
-
-    if not current_task:
-        current_task = PairwiseAssessmentTask.get_task_for_user(
-            request.user
-        )
+                current_task.assignedTo.remove(request.user)
+                current_task = None
 
     print('  Current task: {0}'.format(current_task))
-
-    # Check if marketTargetLanguage for current_task matches user languages.
-    if current_task:
-        code = current_task.marketTargetLanguageCode()
-        print(request.user.groups.all())
-        if code not in request.user.groups.values_list('name', flat=True):
-            _msg = (
-                'Language %s not specified for user %s. Giving up task %s'
-            )
-            LOGGER.info(_msg, code, request.user.username, current_task)
-
-            current_task.assignedTo.remove(request.user)
-            current_task = None
 
     _t2 = datetime.now()
 
@@ -452,7 +401,10 @@ def dashboard(request):
     multimodal_languages = {}
     pairwise_languages = {}
     languages = []
+
     if not current_task and not work_completed:
+        print('>> DEBUG: not current task and not work completed')
+
         for code in LANGUAGE_CODES_AND_NAMES:
             if request.user.groups.filter(name=code).exists():
                 if not code in languages:
@@ -513,6 +465,8 @@ def dashboard(request):
                 campaign_languages[campaign.campaignName] = []
                 campaign_languages[campaign.campaignName].extend(languages)
 
+            print('>> DEBUG: {} '.format(str(DirectAssessmentDocumentTask)))
+
             for code in languages:
                 next_task_available = None
 
@@ -533,25 +487,15 @@ def dashboard(request):
 
                 if not next_task_available:
                     if is_multi_modal_campaign:
-                        multimodal_languages[campaign.campaignName].remove(
-                            code
-                        )
+                        multimodal_languages[campaign.campaignName].remove(code)
                     elif is_context_campaign:
-                        context_languages[campaign.campaignName].remove(
-                            code
-                        )
+                        context_languages[campaign.campaignName].remove(code)
                     elif is_document_campaign:
-                        document_languages[campaign.campaignName].remove(
-                            code
-                        )
+                        document_languages[campaign.campaignName].remove(code)
                     elif is_pairwise_campaign:
-                        pairwise_languages[campaign.campaignName].remove(
-                            code
-                        )
+                        pairwise_languages[campaign.campaignName].remove(code)
                     else:
-                        campaign_languages[campaign.campaignName].remove(
-                            code
-                        )
+                        campaign_languages[campaign.campaignName].remove(code)
 
             _type = 'direct'
             _languages = campaign_languages
@@ -577,6 +521,7 @@ def dashboard(request):
             )
 
     _t3 = datetime.now()
+
 
     duration = DirectAssessmentResult.get_time_for_user(request.user)
     days = duration.days
