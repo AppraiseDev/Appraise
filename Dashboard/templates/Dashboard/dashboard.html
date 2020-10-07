@@ -17,62 +17,18 @@
           <div class="panel-body">
 {% if current_task %}
             <h3>Current HIT</h3>
-    {% if current_type == 'multimodal' %}
-            <p>Continue annotation for <a href="{% url 'multimodal-assessment' %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
-    {% elif current_type == 'context' %}
-            <p>Continue annotation for <a href="{% url 'direct-assessment-context' %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
-    {% elif current_type == 'document' %}
-            <p>Continue annotation for <a href="{% url 'direct-assessment-document' %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
-    {% elif current_type == 'direct' %}
-            <p>Continue annotation for <a href="{% url 'direct-assessment' %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
-    {% elif current_type == 'pairwise' %}
-            <p>Continue annotation for <a href="{% url 'pairwise-assessment' %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
-    {% endif %}
-{% elif languages or context or document or multimodal or pairwise %}
+            <p>Continue annotation for <a href="{% url current_url %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
+{% elif all_languages %}
+    {% for _, languages in all_languages.items %}
     {% if languages %}
             <h3>Next HIT</h3>
             <p>Start annotation for:
-        {% for code, language, campaign in languages %}
-              <a href="{% url 'direct-assessment' code campaign %}">{{campaign}}:{{language}}</a>{% if not forloop.last %} &middot; {% endif %}
+        {% for code, language, campaign, task_url in languages %}
+            <a href="{% url task_url code campaign %}">{{campaign}}:{{language}}</a>{% if not forloop.last %} &middot; {% endif %}
         {% endfor %}
             </p>
     {% endif %}
-
-    {% if context %}
-            <h3>Next HIT</h3>
-            <p>Start annotation for:
-        {% for code, language, campaign in context %}
-              <a href="{% url 'direct-assessment-context' code campaign %}">{{campaign}}:{{language}}</a>{% if not forloop.last %} &middot; {% endif %}
-        {% endfor %}
-            </p>
-    {% endif %}
-
-    {% if document %}
-            <h3>Next HIT</h3>
-            <p>Start annotation for:
-        {% for code, language, campaign in document %}
-              <a href="{% url 'direct-assessment-document' code campaign %}">{{campaign}}:{{language}}</a>{% if not forloop.last %} &middot; {% endif %}
-        {% endfor %}
-            </p>
-    {% endif %}
-
-    {% if multimodal %}
-            <h3>Multimodal HIT</h3>
-            <p>Start annotation for:
-        {% for code, language, campaign in multimodal %}
-              <a href="{% url 'multimodal-assessment' code campaign %}">{{campaign}}:{{language}}</a>{% if not forloop.last %} &middot; {% endif %}
-        {% endfor %}
-            </p>
-    {% endif %}
-
-    {% if pairwise %}
-            <h3>Pairwise HIT</h3>
-            <p>Start annotation for:
-        {% for code, language, campaign in pairwise %}
-              <a href="{% url 'pairwise-assessment' code campaign %}">{{campaign}}:{{language}}</a>{% if not forloop.last %} &middot; {% endif %}
-        {% endfor %}
-            </p>
-    {% endif %}
+    {% endfor %}
             <p><small>You will be assigned a free annotation task for the selected target language.</small></p>
 
 {% elif work_completed %}
