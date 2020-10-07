@@ -967,7 +967,7 @@ def multimodal_assessment(request, code=None, campaign_name=None):
 
     # If language code has been given, find a free task and assign to user.
     if not current_task:
-        current_task = DirectAssessmentTask.get_task_for_user(
+        current_task = MultiModalAssessmentTask.get_task_for_user(
             user=request.user
         )
 
