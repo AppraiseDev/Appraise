@@ -28,7 +28,7 @@
 {% elif current_type == 'pairwise' %}
             <p>Continue annotation for <a href="{% url 'pairwise-assessment' %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
 {% endif %}
-{% elif languages or context or document or multimodal %}
+{% elif languages or context or document or multimodal or pairwise %}
 {% if languages %}
             <h3>Next HIT</h3>
             <p>Start annotation for:
