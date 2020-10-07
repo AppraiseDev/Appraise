@@ -38,26 +38,31 @@ TASK_DEFINITIONS = (
         'direct',
         DirectAssessmentTask,
         DirectAssessmentResult,
+        'direct-assessment',
     ),
     (
         'context',
         DirectAssessmentContextTask,
         DirectAssessmentContextResult,
+        'direct-assessment-context',
     ),
     (
         'document',
         DirectAssessmentDocumentTask,
         DirectAssessmentDocumentResult,
+        'direct-assessment-document',
     ),
     (
         'multimodal',
         MultiModalAssessmentTask,
         MultiModalAssessmentResult,
+        'multimodal-assessment',
     ),
     (
         'pairwise',
         PairwiseAssessmentTask,
         PairwiseAssessmentResult,
+        'pairwise-assessment',
     ),
 )
 
@@ -65,6 +70,7 @@ TASK_TYPES   = tuple([tup[1] for tup in TASK_DEFINITIONS])
 TASK_RESULTS = tuple([tup[2] for tup in TASK_DEFINITIONS])
 # TODO: task names should be stored in task classes as an attribute
 TASK_NAMES   = {tup[1]:tup[0] for tup in TASK_DEFINITIONS}
+TASK_URLS    = {tup[0]:tup[3] for tup in TASK_DEFINITIONS}
 
 
 from deprecated import add_deprecated_method
@@ -491,23 +497,32 @@ def dashboard(request):
     _t4 = datetime.now()
 
 
-    all_languages = {}  # All languages per task type
+    # All languages per task type
+    # Mapping: task name => list of (code, language, campaign, task_url)
+    all_languages = {}
     for task_cls, campaign_languages in languages_map.items():
-        all_languages[task_cls] = []
-        for key, values in campaign_languages.items():
-            for value in values:
-                all_languages[task_cls].append(
-                    (value, LANGUAGE_CODES_AND_NAMES[value], key)
+        task_name = TASK_NAMES[task_cls]
+        task_url = TASK_URLS[task_name]
+
+        all_languages[task_name] = []
+        for camp_name, lang_codes in campaign_languages.items():
+            for lang_code in lang_codes:
+                lang_name = LANGUAGE_CODES_AND_NAMES[lang_code]
+                all_languages[task_name].append(
+                    (lang_code, lang_name, camp_name, task_url)
                 )
 
         print('    Languages "{}": {}'.format(
-            TASK_NAMES[task_cls],
-            str(all_languages[task_cls]).encode('utf-8'))
+            task_name,
+            str(all_languages[task_name]).encode('utf-8'))
         )
 
     # Note that the default task type is 'direct'
     current_type = TASK_NAMES.get(current_task.__class__, 'direct')
     print('  Final task type: {0}'.format(current_type))
+
+    current_url = TASK_URLS[current_type]
+    print('  URL: {0}'.format(current_url))
 
     template_context.update(times)
     template_context.update(
@@ -517,11 +532,8 @@ def dashboard(request):
             'total_hits': total_hits,
             'current_task': current_task,
             'current_type': current_type,
-            'languages': all_languages[DirectAssessmentTask],
-            'context': all_languages[DirectAssessmentContextTask],
-            'document': all_languages[DirectAssessmentDocumentTask],
-            'multimodal': all_languages[MultiModalAssessmentTask],
-            'pairwise': all_languages[PairwiseAssessmentTask],
+            'current_url': current_url,
+            'all_languages': all_languages,
             'debug_times': (_t2 - _t1, _t3 - _t2, _t4 - _t3, _t4 - _t1),
             'template_debug': 'debug' in request.GET,
             'work_completed': work_completed,
