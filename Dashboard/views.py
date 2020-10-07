@@ -30,30 +30,41 @@ from EvalData.models import (
     TaskAgenda,
 )
 
-TASK_TYPES = [
-    DirectAssessmentTask,
-    DirectAssessmentContextTask,
-    DirectAssessmentDocumentTask,
-    MultiModalAssessmentTask,
-    PairwiseAssessmentTask
-]
+# TODO: move task definition to models so that they can be used
+# elsewhere in the codebase
 
-# TODO: this should be stored in task classes as an attribute!
-TASK_NAMES = {
-    DirectAssessmentTask: 'direct',
-    DirectAssessmentContextTask: 'context',
-    DirectAssessmentDocumentTask: 'document',
-    MultiModalAssessmentTask: 'multimodal',
-    PairwiseAssessmentTask: 'pairwise',
-}
+TASK_DEFINITIONS = (
+    (
+        'direct',
+        DirectAssessmentTask,
+        DirectAssessmentResult,
+    ),
+    (
+        'context',
+        DirectAssessmentContextTask,
+        DirectAssessmentContextResult,
+    ),
+    (
+        'document',
+        DirectAssessmentDocumentTask,
+        DirectAssessmentDocumentResult,
+    ),
+    (
+        'multimodal',
+        MultiModalAssessmentTask,
+        MultiModalAssessmentResult,
+    ),
+    (
+        'pairwise',
+        PairwiseAssessmentTask,
+        PairwiseAssessmentResult,
+    ),
+)
 
-TASK_RESULTS = [
-    DirectAssessmentResult,
-    DirectAssessmentContextResult,
-    DirectAssessmentDocumentResult,
-    MultiModalAssessmentResult,
-    PairwiseAssessmentResult
-]
+TASK_TYPES   = tuple([tup[1] for tup in TASK_DEFINITIONS])
+TASK_RESULTS = tuple([tup[2] for tup in TASK_DEFINITIONS])
+# TODO: task names should be stored in task classes as an attribute
+TASK_NAMES   = {tup[1]:tup[0] for tup in TASK_DEFINITIONS}
 
 
 from deprecated import add_deprecated_method
@@ -327,18 +338,10 @@ def dashboard(request):
     template_context = {'active_page': 'dashboard'}
     template_context.update(BASE_CONTEXT)
 
-    result_types = (
-        DirectAssessmentResult,
-        DirectAssessmentContextResult,
-        DirectAssessmentDocumentResult,
-        MultiModalAssessmentResult,
-        PairwiseAssessmentResult,
-    )
-
     annotations = 0
     hits = 0
     total_hits = 0
-    for result_cls in result_types:
+    for result_cls in TASK_RESULTS:
         annotations += result_cls.get_completed_for_user(request.user)
         _hits, _total = result_cls.get_hit_status_for_user(request.user)
         hits, total_hits = hits + _hits, total_hits + _total
@@ -352,7 +355,7 @@ def dashboard(request):
         # Check if marketTargetLanguage for current_task matches user languages.
         if current_task:
             code = current_task.marketTargetLanguageCode()
-            print('User groups:', request.user.groups.all())
+            print('  User groups:', request.user.groups.all())
             if code not in request.user.groups.values_list('name', flat=True):
                 _msg = (
                     'Language %s not specified for user %s. Giving up task %s'
@@ -404,12 +407,12 @@ def dashboard(request):
             work_completed = True
 
     # Otherwise, compute set of language codes eligible for next task.
+
+    # Mapping: task type => campaign name => list of languages
     languages_map = { task_cls: {} for task_cls in TASK_TYPES }
-    languages = []
 
     if not current_task and not work_completed:
-        print('>> DEBUG: not current task and not work completed')
-
+        languages = []
         for code in LANGUAGE_CODES_AND_NAMES:
             if request.user.groups.filter(name=code).exists():
                 if not code in languages:
@@ -422,13 +425,14 @@ def dashboard(request):
         # Remove any language for which no free task is available.
         from Campaign.models import Campaign
 
-        campaign_map = { task_cls: {} for task_cls in TASK_RESULTS }
+        # Mapping: task type => campaigns as QuerySet
+        campaign_map = { task_cls: None for task_cls in TASK_TYPES }
 
         for campaign in Campaign.objects.all():
             print('Campaign: {0}'.format(campaign.campaignName))
 
             for task_cls in campaign_map:
-                campaign_map[task_cls] = DirectAssessmentTask.objects.filter(
+                campaign_map[task_cls] = task_cls.objects.filter(
                     campaign__campaignName=campaign.campaignName
                 )
 
@@ -444,6 +448,7 @@ def dashboard(request):
                 for task_cls in campaign_map:
                     if campaign_map[task_cls].exists():
                         _cls = task_cls
+                        break
 
                 next_task_available = _cls.get_next_free_task_for_language(
                     code, campaign, request.user
@@ -454,7 +459,7 @@ def dashboard(request):
                         if campaign_map[task_cls].exists():
                             languages_map[task_cls][campaign.campaignName].remove(code)
 
-            # TODO: _type and _languages is only for debug?
+            # _type and _languages variables are only for debug
             for task_cls in campaign_map:
                 if campaign_map[task_cls].exists():
                     _type = TASK_NAMES[task_cls]
@@ -486,7 +491,7 @@ def dashboard(request):
     _t4 = datetime.now()
 
 
-    all_languages = {}
+    all_languages = {}  # All languages per task type
     for task_cls, campaign_languages in languages_map.items():
         all_languages[task_cls] = []
         for key, values in campaign_languages.items():
@@ -495,10 +500,13 @@ def dashboard(request):
                     (value, LANGUAGE_CODES_AND_NAMES[value], key)
                 )
 
-        print('Languages "{}": {}'.format(TASK_NAMES[task_cls], str(all_languages[task_cls]).encode('utf-8')))
+        print('    Languages "{}": {}'.format(
+            TASK_NAMES[task_cls],
+            str(all_languages[task_cls]).encode('utf-8'))
+        )
 
-
-    current_type = TASK_NAMES[current_task.__class__]
+    # Note that the default task type is 'direct'
+    current_type = TASK_NAMES.get(current_task.__class__, 'direct')
     print('  Final task type: {0}'.format(current_type))
 
     template_context.update(times)
