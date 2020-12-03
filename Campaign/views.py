@@ -20,6 +20,7 @@ from EvalData.models import (
     DirectAssessmentContextResult,
     DirectAssessmentDocumentResult,
     MultiModalAssessmentResult,
+    PairwiseAssessmentResult,
     seconds_to_timedelta,
 )
 
@@ -27,7 +28,8 @@ RESULT_TYPE_BY_CLASS_NAME = {
     'DirectAssessmentTask': DirectAssessmentResult,
     'DirectAssessmentContextTask': DirectAssessmentContextResult,
     'DirectAssessmentDocumentTask': DirectAssessmentDocumentResult,
-    'MultiModalAssessmentTasl': MultiModalAssessmentResult,
+    'MultiModalAssessmentTask': MultiModalAssessmentResult,
+    'PairwiseAssessmentTask': PairwiseAssessmentResult,
 }
 
 LOGGER = _get_logger(name=__name__)

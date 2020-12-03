@@ -712,6 +712,7 @@ def dashboard(request):
             'context': ctx_languages,
             'document': doc_languages,
             'multimodal': mmt_languages,
+            'pairwise': pair_languages,
             'debug_times': (_t2 - _t1, _t3 - _t2, _t4 - _t3, _t4 - _t1),
             'template_debug': 'debug' in request.GET,
             'work_completed': work_completed,
