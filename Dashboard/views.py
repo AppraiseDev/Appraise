@@ -476,7 +476,7 @@ def dashboard(request):
                 "campaign = {0}, type = {1}, languages = {2}".format(
                     campaign.campaignName,
                     _type,
-                    _languages[campaign.campaignName],
+                    _languages.get(campaign.campaignName, 'none'),
                 )
             )
 
@@ -504,17 +504,18 @@ def dashboard(request):
         task_name = TASK_NAMES[task_cls]
         task_url = TASK_URLS[task_name]
 
-        all_languages[task_name] = []
         for camp_name, lang_codes in campaign_languages.items():
             for lang_code in lang_codes:
                 lang_name = LANGUAGE_CODES_AND_NAMES[lang_code]
+                if task_name not in all_languages:
+                    all_languages[task_name] = []
                 all_languages[task_name].append(
                     (lang_code, lang_name, camp_name, task_url)
                 )
 
         print('    Languages "{}": {}'.format(
             task_name,
-            str(all_languages[task_name]).encode('utf-8'))
+            str(all_languages.get(task_name, 'none')).encode('utf-8'))
         )
 
     # Note that the default task type is 'direct'
