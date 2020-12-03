@@ -17,8 +17,6 @@ from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Dashboard.models import UserInviteToken, LANGUAGE_CODES_AND_NAMES
 from EvalData.models import (
-    PairwiseAssessmentTask,
-    PairwiseAssessmentResult,
     DirectAssessmentTask,
     DirectAssessmentResult,
     DirectAssessmentContextTask,
@@ -27,8 +25,53 @@ from EvalData.models import (
     DirectAssessmentDocumentResult,
     MultiModalAssessmentTask,
     MultiModalAssessmentResult,
+    PairwiseAssessmentTask,
+    PairwiseAssessmentResult,
     TaskAgenda,
 )
+
+# TODO: move task definition to models so that they can be used
+# elsewhere in the codebase
+
+TASK_DEFINITIONS = (
+    (
+        'direct',
+        DirectAssessmentTask,
+        DirectAssessmentResult,
+        'direct-assessment',
+    ),
+    (
+        'context',
+        DirectAssessmentContextTask,
+        DirectAssessmentContextResult,
+        'direct-assessment-context',
+    ),
+    (
+        'document',
+        DirectAssessmentDocumentTask,
+        DirectAssessmentDocumentResult,
+        'direct-assessment-document',
+    ),
+    (
+        'multimodal',
+        MultiModalAssessmentTask,
+        MultiModalAssessmentResult,
+        'multimodal-assessment',
+    ),
+    (
+        'pairwise',
+        PairwiseAssessmentTask,
+        PairwiseAssessmentResult,
+        'pairwise-assessment',
+    ),
+)
+
+TASK_TYPES   = tuple([tup[1] for tup in TASK_DEFINITIONS])
+TASK_RESULTS = tuple([tup[2] for tup in TASK_DEFINITIONS])
+# TODO: task names should be stored in task classes as an attribute
+TASK_NAMES   = {tup[1]:tup[0] for tup in TASK_DEFINITIONS}
+TASK_URLS    = {tup[0]:tup[3] for tup in TASK_DEFINITIONS}
+
 
 from deprecated import add_deprecated_method
 
@@ -301,110 +344,34 @@ def dashboard(request):
     template_context = {'active_page': 'dashboard'}
     template_context.update(BASE_CONTEXT)
 
-    result_types = (
-        DirectAssessmentResult,
-        DirectAssessmentContextResult,
-        DirectAssessmentDocumentResult,
-        MultiModalAssessmentResult,
-        PairwiseAssessmentResult,
-    )
     annotations = 0
     hits = 0
     total_hits = 0
-    for result_cls in result_types:
+    for result_cls in TASK_RESULTS:
         annotations += result_cls.get_completed_for_user(request.user)
         _hits, _total = result_cls.get_hit_status_for_user(request.user)
         hits, total_hits = hits + _hits, total_hits + _total
 
     # If user still has an assigned task, only offer link to this task.
-    current_task = DirectAssessmentTask.get_task_for_user(request.user)
+    current_task = None
+    for task_cls in TASK_TYPES:
+        if not current_task:
+            current_task = task_cls.get_task_for_user(request.user)
 
-    # Check if marketTargetLanguage for current_task matches user languages.
-    if current_task:
-        code = current_task.marketTargetLanguageCode()
-        print(request.user.groups.all())
-        if code not in request.user.groups.values_list('name', flat=True):
-            _msg = (
-                'Language %s not specified for user %s. Giving up task %s'
-            )
-            LOGGER.info(_msg, code, request.user.username, current_task)
+        # Check if marketTargetLanguage for current_task matches user languages.
+        if current_task:
+            code = current_task.marketTargetLanguageCode()
+            print('  User groups:', request.user.groups.all())
+            if code not in request.user.groups.values_list('name', flat=True):
+                _msg = (
+                    'Language %s not specified for user %s. Giving up task %s'
+                )
+                LOGGER.info(_msg, code, request.user.username, current_task)
 
-            current_task.assignedTo.remove(request.user)
-            current_task = None
-
-    if not current_task:
-        current_task = DirectAssessmentContextTask.get_task_for_user(
-            request.user
-        )
-
-    # Check if marketTargetLanguage for current_task matches user languages.
-    if current_task:
-        code = current_task.marketTargetLanguageCode()
-        print(request.user.groups.all())
-        if code not in request.user.groups.values_list('name', flat=True):
-            _msg = (
-                'Language %s not specified for user %s. Giving up task %s'
-            )
-            LOGGER.info(_msg, code, request.user.username, current_task)
-
-            current_task.assignedTo.remove(request.user)
-            current_task = None
-
-    if not current_task:
-        current_task = DirectAssessmentDocumentTask.get_task_for_user(
-            request.user
-        )
-
-    # Check if marketTargetLanguage for current_task matches user languages.
-    if current_task:
-        code = current_task.marketTargetLanguageCode()
-        print(request.user.groups.all())
-        if code not in request.user.groups.values_list('name', flat=True):
-            _msg = (
-                'Language %s not specified for user %s. Giving up task %s'
-            )
-            LOGGER.info(_msg, code, request.user.username, current_task)
-
-            current_task.assignedTo.remove(request.user)
-            current_task = None
-
-    if not current_task:
-        current_task = MultiModalAssessmentTask.get_task_for_user(
-            request.user
-        )
-
-    # Check if marketTargetLanguage for current_task matches user languages.
-    if current_task:
-        code = current_task.marketTargetLanguageCode()
-        print(request.user.groups.all())
-        if code not in request.user.groups.values_list('name', flat=True):
-            _msg = (
-                'Language %s not specified for user %s. Giving up task %s'
-            )
-            LOGGER.info(_msg, code, request.user.username, current_task)
-
-            current_task.assignedTo.remove(request.user)
-            current_task = None
-
-    if not current_task:
-        current_task = PairwiseAssessmentTask.get_task_for_user(
-            request.user
-        )
+                current_task.assignedTo.remove(request.user)
+                current_task = None
 
     print('  Current task: {0}'.format(current_task))
-
-    # Check if marketTargetLanguage for current_task matches user languages.
-    if current_task:
-        code = current_task.marketTargetLanguageCode()
-        print(request.user.groups.all())
-        if code not in request.user.groups.values_list('name', flat=True):
-            _msg = (
-                'Language %s not specified for user %s. Giving up task %s'
-            )
-            LOGGER.info(_msg, code, request.user.username, current_task)
-
-            current_task.assignedTo.remove(request.user)
-            current_task = None
 
     _t2 = datetime.now()
 
@@ -446,13 +413,12 @@ def dashboard(request):
             work_completed = True
 
     # Otherwise, compute set of language codes eligible for next task.
-    campaign_languages = {}
-    context_languages = {}
-    document_languages = {}
-    multimodal_languages = {}
-    pairwise_languages = {}
-    languages = []
+
+    # Mapping: task type => campaign name => list of languages
+    languages_map = { task_cls: {} for task_cls in TASK_TYPES }
+
     if not current_task and not work_completed:
+        languages = []
         for code in LANGUAGE_CODES_AND_NAMES:
             if request.user.groups.filter(name=code).exists():
                 if not code in languages:
@@ -465,258 +431,110 @@ def dashboard(request):
         # Remove any language for which no free task is available.
         from Campaign.models import Campaign
 
+        # Mapping: task type => campaigns as QuerySet
+        campaign_map = { task_cls: None for task_cls in TASK_TYPES }
+
         for campaign in Campaign.objects.all():
             print('Campaign: {0}'.format(campaign.campaignName))
 
-            direct = DirectAssessmentTask.objects.filter(
-                campaign__campaignName=campaign.campaignName
-            )
+            for task_cls in campaign_map:
+                campaign_map[task_cls] = task_cls.objects.filter(
+                    campaign__campaignName=campaign.campaignName
+                )
 
-            context = DirectAssessmentContextTask.objects.filter(
-                campaign__campaignName=campaign.campaignName
-            )
-
-            document = DirectAssessmentDocumentTask.objects.filter(
-                campaign__campaignName=campaign.campaignName
-            )
-
-            multimodal = MultiModalAssessmentTask.objects.filter(
-                campaign__campaignName=campaign.campaignName
-            )
-
-            pairwise = PairwiseAssessmentTask.objects.filter(
-                campaign__campaignName=campaign.campaignName
-            )
-
-            is_context_campaign = context.exists()
-            is_document_campaign = document.exists()
-            is_multi_modal_campaign = multimodal.exists()
-            is_pairwise_campaign = pairwise.exists()
-
-            if is_multi_modal_campaign:
-                multimodal_languages[campaign.campaignName] = []
-                multimodal_languages[campaign.campaignName].extend(languages)
-
-            elif is_context_campaign:
-                context_languages[campaign.campaignName] = []
-                context_languages[campaign.campaignName].extend(languages)
-
-            elif is_document_campaign:
-                document_languages[campaign.campaignName] = []
-                document_languages[campaign.campaignName].extend(languages)
-
-            elif is_pairwise_campaign:
-                pairwise_languages[campaign.campaignName] = []
-                pairwise_languages[campaign.campaignName].extend(languages)
-
-            else:
-                campaign_languages[campaign.campaignName] = []
-                campaign_languages[campaign.campaignName].extend(languages)
+            for task_cls in campaign_map:
+                if campaign_map[task_cls].exists():
+                    languages_map[task_cls][campaign.campaignName] = []
+                    languages_map[task_cls][campaign.campaignName].extend(languages)
 
             for code in languages:
                 next_task_available = None
 
-                if is_multi_modal_campaign:
-                    _cls = MultiModalAssessmentTask
-                elif is_context_campaign:
-                    _cls = DirectAssessmentContextTask
-                elif is_document_campaign:
-                    _cls = DirectAssessmentDocumentTask
-                elif is_pairwise_campaign:
-                    _cls = PairwiseAssessmentTask
-                else:
-                    _cls = DirectAssessmentTask
+                _cls = DirectAssessmentTask
+                for task_cls in campaign_map:
+                    if campaign_map[task_cls].exists():
+                        _cls = task_cls
+                        break
 
                 next_task_available = _cls.get_next_free_task_for_language(
                     code, campaign, request.user
                 )
 
                 if not next_task_available:
-                    if is_multi_modal_campaign:
-                        multimodal_languages[campaign.campaignName].remove(
-                            code
-                        )
-                    elif is_context_campaign:
-                        context_languages[campaign.campaignName].remove(
-                            code
-                        )
-                    elif is_document_campaign:
-                        document_languages[campaign.campaignName].remove(
-                            code
-                        )
-                    elif is_pairwise_campaign:
-                        pairwise_languages[campaign.campaignName].remove(
-                            code
-                        )
-                    else:
-                        campaign_languages[campaign.campaignName].remove(
-                            code
-                        )
+                    for task_cls in campaign_map:
+                        if campaign_map[task_cls].exists():
+                            languages_map[task_cls][campaign.campaignName].remove(code)
 
-            _type = 'direct'
-            _languages = campaign_languages
-            if is_multi_modal_campaign:
-                _type = 'multimodal'
-                _languages = multimodal_languages
-            elif is_context_campaign:
-                _type = 'context'
-                _languages = context_languages
-            elif is_document_campaign:
-                _type = 'document'
-                _languages = document_languages
-            elif is_pairwise_campaign:
-                _type = 'pairwise'
-                _languages = pairwise_languages
+            # _type and _languages variables are only for debug
+            for task_cls in campaign_map:
+                if campaign_map[task_cls].exists():
+                    _type = TASK_NAMES[task_cls]
+                    _languages = languages_map[task_cls]
+                    break
 
             print(
                 "campaign = {0}, type = {1}, languages = {2}".format(
                     campaign.campaignName,
                     _type,
-                    _languages[campaign.campaignName],
+                    _languages.get(campaign.campaignName, 'none'),
                 )
             )
 
     _t3 = datetime.now()
 
-    duration = DirectAssessmentResult.get_time_for_user(request.user)
-    days = duration.days
-    hours = int((duration.total_seconds() - (days * 86400)) / 3600)
-    minutes = int(
-        ((duration.total_seconds() - (days * 86400)) % 3600) / 60
-    )
-    seconds = int((duration.total_seconds() - (days * 86400)) % 60)
 
-    duration = DirectAssessmentContextResult.get_time_for_user(
-        request.user
-    )
-    days += duration.days
-    hours += int((duration.total_seconds() - (days * 86400)) / 3600)
-    minutes += int(
-        ((duration.total_seconds() - (days * 86400)) % 3600) / 60
-    )
-    seconds += int((duration.total_seconds() - (days * 86400)) % 60)
-
-    duration = DirectAssessmentDocumentResult.get_time_for_user(
-        request.user
-    )
-    days += duration.days
-    hours += int((duration.total_seconds() - (days * 86400)) / 3600)
-    minutes += int(
-        ((duration.total_seconds() - (days * 86400)) % 3600) / 60
-    )
-    seconds += int((duration.total_seconds() - (days * 86400)) % 60)
-
-    duration = MultiModalAssessmentResult.get_time_for_user(request.user)
-    days += duration.days
-    hours += int((duration.total_seconds() - (days * 86400)) / 3600)
-    minutes += int(
-        ((duration.total_seconds() - (days * 86400)) % 3600) / 60
-    )
-    seconds += int((duration.total_seconds() - (days * 86400)) % 60)
-
-    duration = PairwiseAssessmentResult.get_time_for_user(request.user)
-    days += duration.days
-    hours += int((duration.total_seconds() - (days * 86400)) / 3600)
-    minutes += int(
-        ((duration.total_seconds() - (days * 86400)) % 3600) / 60
-    )
-    seconds += int((duration.total_seconds() - (days * 86400)) % 60)
+    # Collect total annotation time
+    times = { 'days': 0, 'hours': 0, 'minutes': 0, 'seconds': 0 }
+    for task_cls in TASK_RESULTS:
+        duration = task_cls.get_time_for_user(request.user)
+        secs = duration.total_seconds()
+        days = duration.days
+        times['days'] += days
+        times['hours'] += int((secs - (days * 86400)) / 3600)
+        times['minutes'] += int(((secs - (days * 86400)) % 3600) / 60)
+        times['seconds'] += int((secs - (days * 86400)) % 60)
 
     _t4 = datetime.now()
 
-    all_languages = []
-    for key, values in campaign_languages.items():
-        for value in values:
-            all_languages.append(
-                (value, LANGUAGE_CODES_AND_NAMES[value], key)
-            )
 
-    print('All languages:', str(all_languages).encode('utf-8'))
+    # All languages per task type
+    # Mapping: task name => list of (code, language, campaign, task_url)
+    all_languages = {}
+    for task_cls, campaign_languages in languages_map.items():
+        task_name = TASK_NAMES[task_cls]
+        task_url = TASK_URLS[task_name]
 
-    ctx_languages = []
-    for key, values in context_languages.items():
-        for value in values:
-            ctx_languages.append(
-                (value, LANGUAGE_CODES_AND_NAMES[value], key)
-            )
+        for camp_name, lang_codes in campaign_languages.items():
+            for lang_code in lang_codes:
+                lang_name = LANGUAGE_CODES_AND_NAMES[lang_code]
+                if task_name not in all_languages:
+                    all_languages[task_name] = []
+                all_languages[task_name].append(
+                    (lang_code, lang_name, camp_name, task_url)
+                )
 
-    print('  Context:', str(ctx_languages).encode('utf-8'))
-
-    doc_languages = []
-    for key, values in document_languages.items():
-        for value in values:
-            doc_languages.append(
-                (value, LANGUAGE_CODES_AND_NAMES[value], key)
-            )
-
-    print('  Document:', str(doc_languages).encode('utf-8'))
-
-    mmt_languages = []
-    for key, values in multimodal_languages.items():
-        for value in values:
-            mmt_languages.append(
-                (value, LANGUAGE_CODES_AND_NAMES[value], key)
-            )
-
-    print('  MultiModal:', str(mmt_languages).encode('utf-8'))
-
-    pair_languages = []
-    for key, values in pairwise_languages.items():
-        for value in values:
-            pair_languages.append(
-                (value, LANGUAGE_CODES_AND_NAMES[value], key)
-            )
-
-    print('  Pairwise:', str(pair_languages).encode('utf-8'))
-
-    is_context_campaign = False
-    is_document_campaign = False
-    is_multi_modal_campaign = False
-    is_pairwise_campaign = False
-
-    if current_task:
-        print('  ...')
-        is_context_campaign = (
-            current_task.__class__.__name__ == 'DirectAssessmentContextTask'
-        )
-        is_document_campaign = (
-            current_task.__class__.__name__ == 'DirectAssessmentDocumentTask'
-        )
-        is_multi_modal_campaign = (
-            current_task.__class__.__name__ == 'MultiModalAssessmentTask'
-        )
-        is_pairwise_campaign = (
-            current_task.__class__.__name__ == 'PairwiseAssessmentTask'
+        print('    Languages "{}": {}'.format(
+            task_name,
+            str(all_languages.get(task_name, 'none')).encode('utf-8'))
         )
 
-    current_type = 'direct'
-    if is_context_campaign:
-        current_type = 'context'
-    if is_document_campaign:
-        current_type = 'document'
-    elif is_multi_modal_campaign:
-        current_type = 'multimodal'
-    elif is_pairwise_campaign:
-        current_type = 'pairwise'
-
+    # Note that the default task type is 'direct'
+    current_type = TASK_NAMES.get(current_task.__class__, 'direct')
     print('  Final task type: {0}'.format(current_type))
 
+    current_url = TASK_URLS[current_type]
+    print('  URL: {0}'.format(current_url))
+
+    template_context.update(times)
     template_context.update(
         {
             'annotations': annotations,
             'hits': hits,
             'total_hits': total_hits,
-            'days': days,
-            'hours': hours,
-            'minutes': minutes,
-            'seconds': seconds,
             'current_task': current_task,
             'current_type': current_type,
-            'languages': all_languages,
-            'context': ctx_languages,
-            'document': doc_languages,
-            'multimodal': mmt_languages,
-            'pairwise': pair_languages,
+            'current_url': current_url,
+            'all_languages': all_languages,
             'debug_times': (_t2 - _t1, _t3 - _t2, _t4 - _t3, _t4 - _t1),
             'template_debug': 'debug' in request.GET,
             'work_completed': work_completed,

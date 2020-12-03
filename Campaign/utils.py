@@ -3,7 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from hashlib import md5
 from json import JSONDecodeError, load
 
@@ -492,7 +492,8 @@ def _process_users(language_pairs, context):
     required_keys = ('CAMPAIGN_KEY', 'CAMPAIGN_NO')
     _validate_required_keys(context, required_keys)
 
-    _credentials = {}
+    # Ordered dictionary is used to ensure stability in unit tests
+    _credentials = OrderedDict()
     for _src, _tgt in language_pairs:
         _tasks_map = _get_tasks_map_for_language_pair(_src, _tgt, context)
         _annotators = len(_tasks_map)
