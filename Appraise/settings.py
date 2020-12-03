@@ -174,7 +174,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Base context for all views.
 BASE_CONTEXT = {
-  'commit_tag': '#wmt19dev',
+  'commit_tag': '#wmt20dev',
   'title': 'Appraise evaluation system',
   'static_url': STATIC_URL,
 }
