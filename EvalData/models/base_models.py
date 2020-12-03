@@ -87,6 +87,16 @@ class ObjectID(models.Model):
             _code = '{0}.objects.get(id={1})'.format(
               self.typeName, self.primaryID
             )
+
+            # Hack for Python 3.5.2
+            from EvalData.models import (
+                DirectAssessmentTask,
+                DirectAssessmentContextTask,
+                DirectAssessmentDocumentTask,
+                MultiModalAssessmentTask,
+                PairwiseAssessmentTask,
+            )
+
             instance = eval(_code)
 
         except:
@@ -109,7 +119,7 @@ class AnnotationTaskRegistry():
 
     Use @AnnotationTaskRegistry.register decorator to register class.
     """
-    _ANNOTATION_TASK_REGISTRY: Set[str] = set()
+    _ANNOTATION_TASK_REGISTRY = set()  # Set[str]
 
     @staticmethod
     def register(obj):
@@ -561,7 +571,7 @@ class TextSegment(EvalItem):
         value=MAX_SEGMENTID_LENGTH))
     )
 
-    segmentText = models.CharField(
+    segmentText = models.TextField(
       max_length=MAX_SEGMENTTEXT_LENGTH,
       verbose_name=_('Segment text'),
       help_text=_(f('(max. {value} characters)',

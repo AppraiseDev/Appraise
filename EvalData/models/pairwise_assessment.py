@@ -294,9 +294,9 @@ class PairwiseAssessmentTask(BaseMetadata):
 
     @classmethod
     def get_next_free_task_for_language(cls, code, campaign=None, user=None):
-        print(f'  Looking for next free task for language: {code}')
-        print(f'  Campaign: {campaign}')
-        print(f'  User: {user}')
+        print('  Looking for next free task for language: {0}'.format(code))
+        print('  Campaign: {0}'.format(campaign))
+        print('  User: {0}'.format(user))
 
         active_tasks = cls.objects.filter(
           activated=True,
@@ -304,7 +304,7 @@ class PairwiseAssessmentTask(BaseMetadata):
           items__metadata__market__targetLanguageCode=code
         )
 
-        print(f'    Number of active tasks: ({len(active_tasks)})')
+        print('    Number of active tasks: ({0})'.format(len(active_tasks)))
 
         if campaign:
             active_tasks = active_tasks.filter(
@@ -346,7 +346,7 @@ class PairwiseAssessmentTask(BaseMetadata):
                 if user and not user in active_task.assignedTo.all():
                     return active_task
 
-        print(f'    No next free task available')
+        print('    No next free task available')
         return None
 
         # It seems that assignedTo is converted to an integer count.
@@ -888,7 +888,7 @@ class PairwiseAssessmentResult(BaseMetadata):
             item_types += ('BAD', 'REF')
 
         qs = cls.objects.filter(completed=True, item__itemType__in=item_types)
-        print(f'Found completed items: {len(qs)}')
+        print('Found completed items: {0}'.format(len(qs)))
 
         # If campaign ID is given, only return results for this campaign.
         if campaign_id:
