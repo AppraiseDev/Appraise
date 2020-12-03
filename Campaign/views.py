@@ -18,6 +18,7 @@ from Campaign.utils import _get_campaign_instance
 from EvalData.models import (
     DirectAssessmentResult,
     DirectAssessmentContextResult,
+    DirectAssessmentDocumentResult,
     MultiModalAssessmentResult,
     seconds_to_timedelta,
 )
@@ -25,6 +26,7 @@ from EvalData.models import (
 RESULT_TYPE_BY_CLASS_NAME = {
     'DirectAssessmentTask': DirectAssessmentResult,
     'DirectAssessmentContextTask': DirectAssessmentContextResult,
+    'DirectAssessmentDocumentTask': DirectAssessmentDocumentResult,
     'MultiModalAssessmentTasl': MultiModalAssessmentResult,
 }
 
@@ -64,7 +66,7 @@ def campaign_status(request, campaign_name, sort_key=2):
                 LOGGER.debug(
                     'Invalid campaign type %s for campaign %s',
                     campaign.get_campaign_type(),
-                    campaign.campaign_name,
+                    campaign.campaignName,
                 )
                 LOGGER.error(exc)
                 continue
