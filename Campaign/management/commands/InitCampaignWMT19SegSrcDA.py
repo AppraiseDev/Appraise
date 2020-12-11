@@ -142,14 +142,14 @@ class Command(BaseCommand):
             _ex_market = Market.objects.filter(
               sourceLanguageCode='eng',
               targetLanguageCode=code,
-              domainName='AppenFY19'              
+              domainName='WMT19'              
             )
 
             if not _ex_market.exists():
                 _ex_market = Market.objects.get_or_create(
                   sourceLanguageCode='eng',
                   targetLanguageCode=code,
-                  domainName='AppenFY19',
+                  domainName='WMT19',
                   createdBy=superusers[0]
                 )
                 _ex_market = _ex_market[0]
@@ -159,7 +159,7 @@ class Command(BaseCommand):
 
             _ex_meta = Metadata.objects.filter(
               market=_ex_market,
-              corpusName='AppenFY19',
+              corpusName='WMT19',
               versionInfo='1.0',
               source='official'             
             )
@@ -167,7 +167,7 @@ class Command(BaseCommand):
             if not _ex_meta.exists():
                 _ex_meta = Metadata.objects.get_or_create(
                   market=_ex_market,
-                  corpusName='AppenFY19',
+                  corpusName='WMT19',
                   versionInfo='1.0',
                   source='official',
                   createdBy=superusers[0]
@@ -182,14 +182,14 @@ class Command(BaseCommand):
             _xe_market = Market.objects.filter(
               sourceLanguageCode=code,
               targetLanguageCode='eng',
-              domainName='AppenFY19'              
+              domainName='WMT19'              
             )
 
             if not _xe_market.exists():
                 _xe_market = Market.objects.get_or_create(
                   sourceLanguageCode=code,
                   targetLanguageCode='eng',
-                  domainName='AppenFY19',
+                  domainName='WMT19',
                   createdBy=superusers[0]
                 )
                 _xe_market = _xe_market[0]
@@ -199,7 +199,7 @@ class Command(BaseCommand):
 
             _xe_meta = Metadata.objects.filter(
               market=_xe_market,
-              corpusName='AppenFY19',
+              corpusName='WMT19',
               versionInfo='1.0',
               source='official'             
             )
@@ -207,7 +207,7 @@ class Command(BaseCommand):
             if not _xe_meta.exists():
                 _xe_meta = Metadata.objects.get_or_create(
                   market=_xe_market,
-                  corpusName='AppenFY19',
+                  corpusName='WMT19',
                   versionInfo='1.0',
                   source='official',
                   createdBy=superusers[0]
@@ -222,14 +222,14 @@ class Command(BaseCommand):
             _xy_market = Market.objects.filter(
               sourceLanguageCode=source,
               targetLanguageCode=target,
-              domainName='AppenFY19'              
+              domainName='WMT19'              
             )
 
             if not _xy_market.exists():
                 _xy_market = Market.objects.get_or_create(
                   sourceLanguageCode=source,
                   targetLanguageCode=target,
-                  domainName='AppenFY19',
+                  domainName='WMT19',
                   createdBy=superusers[0]
                 )
                 _xy_market = _xy_market[0]
@@ -239,7 +239,7 @@ class Command(BaseCommand):
 
             _xy_meta = Metadata.objects.filter(
               market=_xy_market,
-              corpusName='AppenFY19',
+              corpusName='WMT19',
               versionInfo='1.0',
               source='official'             
             )
@@ -247,7 +247,7 @@ class Command(BaseCommand):
             if not _xy_meta.exists():
                 _xy_meta = Metadata.objects.get_or_create(
                   market=_xy_market,
-                  corpusName='AppenFY19',
+                  corpusName='WMT19',
                   versionInfo='1.0',
                   source='official',
                   createdBy=superusers[0]
