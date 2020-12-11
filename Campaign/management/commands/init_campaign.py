@@ -144,8 +144,8 @@ class Command(BaseCommand):
         _process_market_and_metadata(
             ALL_LANGUAGES,
             superusers[0],
-            domain_name='AppenFY21',
-            corpus_name='AppenFY21',
+            domain_name=manifest_data['CAMPAIGN_NAME'],
+            corpus_name=manifest_data['CAMPAIGN_NAME'],
         )
         self.stdout.write('Processed Market/Metadata instances')
 
