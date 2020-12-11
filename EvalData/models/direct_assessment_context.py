@@ -262,8 +262,6 @@ class DirectAssessmentContextTask(BaseMetadata):
               campaign=campaign
             )
 
-            # Appen crowd users may only contribute three HITs per campaign.
-            if user.groups.filter(name='Appen').exists():
                 completed_items = DirectAssessmentContextResult.objects.filter(
                   activated=False,
                   completed=True,
