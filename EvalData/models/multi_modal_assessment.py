@@ -183,10 +183,6 @@ class MultiModalAssessmentTask(BaseMetadata):
         return len(set(results))
 
     def is_trusted_user(self, user):
-        # Appen crowd users are never trusted!
-        if user.groups.filter(name='Appen').exists():
-            return False
-
         from Campaign.models import TrustedUser
         trusted_user = TrustedUser.objects.filter(\
           user=user, campaign=self.campaign
