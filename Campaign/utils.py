@@ -467,13 +467,13 @@ def _process_market_and_metadata(language_pairs, owner, **kwargs):
         _market = _get_or_create_market(
             source_code=_src,
             target_code=_tgt,
-            domain_name=_context.get('domain_name', 'AppenFY19'),
+            domain_name=_context.get('domain_name', 'UNDEFINED'),
             owner=owner,
         )
 
         _meta = _get_or_create_meta(
             market=_market,
-            corpus_name=_context.get('corpus_name', 'AppenFY19'),
+            corpus_name=_context.get('corpus_name', 'UNDEFINED'),
             version_info=_context.get('version_info', '1.0'),
             source=_context.get('source', 'official'),
             owner=owner,
