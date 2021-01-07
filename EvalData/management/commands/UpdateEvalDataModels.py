@@ -80,9 +80,7 @@ class Command(BaseCommand):
         self.stdout.write('\n[INIT]\n\n')
 
         # News Task language pairs
-        news_task_languages = (
-          'ces', 'deu', 'fin', 'lav', 'rus', 'trk', 'zho'
-        )
+        news_task_languages = ()
         news_task_pairs = [(x, 'eng') for x in news_task_languages] \
           + [('eng', x) for x in news_task_languages]
 
@@ -224,9 +222,7 @@ class Command(BaseCommand):
 
         #################################################################
         # Metrics Task language pairs
-        metrics_task_languages = (
-          'ces', 'deu', 'fin', 'lav', 'trk', 'zho'
-        )
+        metrics_task_languages = ()
         metrics_task_pairs = [('eng', x) for x in metrics_task_languages]
 
         # Ensure that all Market and Metadata instances exist.
@@ -279,9 +275,7 @@ class Command(BaseCommand):
 
         #################################################################
         # MultiModal Task language pairs
-        multimodal_task_languages = (
-          'deu', 'fra'
-        )
+        multimodal_task_languages = ()
         multimodal_task_pairs = [('eng', x) for x in multimodal_task_languages]
 
         # Ensure that all Market and Metadata instances exist.
