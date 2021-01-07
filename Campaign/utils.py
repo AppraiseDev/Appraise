@@ -17,11 +17,24 @@ from Dashboard.models import (
 )
 from EvalData.models import (
     DirectAssessmentTask,
+    DirectAssessmentContextTask,
+    DirectAssessmentDocumentTask,
+    MultiModalAssessmentTask,
+    PairwiseAssessmentTask,
     Market,
     Metadata,
     ObjectID,
     TaskAgenda,
 )
+
+# Map convinient task type names into their corresponding task classes
+CAMPAIGN_TASK_TYPES = {
+    'Direct': DirectAssessmentTask,
+    'DocLevelDA': DirectAssessmentContextTask,
+    'Document': DirectAssessmentDocumentTask,
+    'MultiModal': MultiModalAssessmentTask,
+    'Pairwise': PairwiseAssessmentTask,
+}
 
 
 def _create_uniform_task_map(annotators, tasks, redudancy):
@@ -331,13 +344,14 @@ def _process_campaign_agendas(usernames, context, only_activated=True):
 
     Parameters:
     - usernames:list specifies user names for campaign;
-    - context:dict specifices CAMPAIGN_NO, REDUNDANCY and TASKS_TO_ANNOTATORS;
+    - context:dict specifices CAMPAIGN_NO, REDUNDANCY, TASKS_TO_ANNOTATORS and
+      TASK_TYPE;
     - only_activated:bool only include activated tasks for agenda creation.
 
     Raises:
     - CommandError in case of missing required key.
     """
-    required_keys = ('CAMPAIGN_NO', 'REDUNDANCY', 'TASKS_TO_ANNOTATORS')
+    required_keys = ('CAMPAIGN_NO', 'REDUNDANCY', 'TASKS_TO_ANNOTATORS', 'TASK_TYPE')
     _validate_required_keys(context, required_keys)
 
     # Get Campaign instance for campaign name
@@ -345,7 +359,8 @@ def _process_campaign_agendas(usernames, context, only_activated=True):
     print('Identified Campaign {0!r}'.format(context.get('CAMPAIGN_NAME')))
 
     # Get all tasks for this campaign
-    tasks = DirectAssessmentTask.objects.filter(campaign=_campaign)
+    _task_type = CAMPAIGN_TASK_TYPES[context['TASK_TYPE']]
+    tasks = _task_type.objects.filter(campaign=_campaign)
 
     # Constrain to only activated, if requested
     if only_activated:
@@ -373,7 +388,7 @@ def _process_campaign_agendas(usernames, context, only_activated=True):
                 agenda = agenda[0]
 
             serialized_t = ObjectID.objects.get_or_create(
-                typeName='DirectAssessmentTask', primaryID=task.id
+                typeName=_task_type.__name__, primaryID=task.id
             )
 
             # Only process current task if it is new

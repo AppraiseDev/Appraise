@@ -3,6 +3,7 @@ from django.core.management.base import BaseCommand, CommandError
 
 from Campaign.models import Campaign
 from Campaign.utils import _identify_super_users
+from Campaign.utils import CAMPAIGN_TASK_TYPES
 from EvalData.models import (
     DirectAssessmentTask,
     DirectAssessmentContextTask,
@@ -10,15 +11,6 @@ from EvalData.models import (
     MultiModalAssessmentTask,
     PairwiseAssessmentTask,
 )
-
-CAMPAIGN_TASK_TYPES = {
-    'Direct': DirectAssessmentTask,
-    'DocLevelDA': DirectAssessmentContextTask,
-    'Document': DirectAssessmentDocumentTask,
-    'MultiModal': MultiModalAssessmentTask,
-    'Pairwise': PairwiseAssessmentTask,
-}
-
 
 class Command(BaseCommand):
     help = 'Validates campaign data batches'
