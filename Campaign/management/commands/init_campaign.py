@@ -18,6 +18,7 @@ from Campaign.utils import (
     _process_market_and_metadata,
     _process_users,
     _validate_language_codes,
+    CAMPAIGN_TASK_TYPES,
 )
 
 # pylint: disable=C0111,C0330,E1101
@@ -108,7 +109,7 @@ class Command(BaseCommand):
         ALL_LANGUAGE_CODES = set()
         TASKS_TO_ANNOTATORS = {}
         for pair_data in manifest_data['TASKS_TO_ANNOTATORS']:
-            source_code, target_code, mode, annotators, tasks = pair_data
+            source_code, target_code, mode, num_annotators, num_tasks = pair_data
 
             # Validation needs access to full language codes,
             # including any script specification
@@ -119,10 +120,18 @@ class Command(BaseCommand):
 
             generator = GENERATORS[mode]
             TASKS_TO_ANNOTATORS[(source_code, target_code)] = generator(
-                annotators, tasks, manifest_data['REDUNDANCY']
+                num_annotators, num_tasks, manifest_data['REDUNDANCY'],
             )
 
         _validate_language_codes(ALL_LANGUAGE_CODES)
+
+        # DirectAssessmentTask is the default task for backward compatibility
+        TASK_TYPE = manifest_data.get('TASK_TYPE', 'Direct')
+        # Raise an exception if an unrecognized task type is provided
+        if TASK_TYPE not in CAMPAIGN_TASK_TYPES:
+            _msg = 'Unrecognized TASK_TYPE \'{0}\'. Supported tasks are: {1}' \
+                    .format(TASK_TYPE, ', '.join(CAMPAIGN_TASK_TYPES.keys()))
+            raise ValueError(_msg)
 
         CONTEXT = {
             'CAMPAIGN_KEY': manifest_data['CAMPAIGN_KEY'],
@@ -131,6 +140,7 @@ class Command(BaseCommand):
             'CAMPAIGN_URL': manifest_data['CAMPAIGN_URL'],
             'REDUNDANCY': manifest_data['REDUNDANCY'],
             'TASKS_TO_ANNOTATORS': TASKS_TO_ANNOTATORS,
+            'TASK_TYPE': TASK_TYPE,
         }
         # END refactor
 
