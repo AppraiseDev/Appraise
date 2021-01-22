@@ -5,6 +5,7 @@ See LICENSE for usage details
 """
 # pylint: disable=C0103,C0330,no-member
 from collections import defaultdict
+from difflib import SequenceMatcher
 from json import loads
 from traceback import format_exc
 from zipfile import is_zipfile
@@ -94,6 +95,33 @@ class TextSegmentWithTwoTargets(TextSegment):
             if self.contextRight
             else ''
         )
+
+    def target_texts_with_diffs(self):
+        """
+        Returns the pair of texts with HTML tags highlighting token differences.
+        For example,
+            'a b c d e' and 'a B c e f'
+        will become:
+            'a <span class="diff diff-sub">b</span> c <span class="diff diff-del">d</span> e',
+            'a <span class="diff diff-sub">B</span> c e <span class="diff diff-ins">f</span>'
+        """
+        toks1 = self.target1Text.split()
+        toks2 = self.target2Text.split()
+        matcher = SequenceMatcher(None, toks1, toks2)
+        text1 = ''
+        text2 = ''
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag == 'equal':
+                text1 += ' ' + ' '.join(toks1[i1:i2])
+                text2 += ' ' + ' '.join(toks2[j1:j2])
+            elif tag == 'replace':
+                text1 += ' <span class="diff diff-sub">' + ' '.join(toks1[i1:i2]) + '</span>'
+                text2 += ' <span class="diff diff-sub">' + ' '.join(toks2[j1:j2]) + '</span>'
+            elif tag == 'insert':
+                text2 += ' <span class="diff diff-ins">' + ' '.join(toks2[j1:j2]) + '</span>'
+            elif tag == 'delete':
+                text1 += ' <span class="diff diff-del">' + ' '.join(toks1[i1:i2]) + '</span>'
+        return (text1.strip(), text2.strip())
 
     # pylint: disable=E1101
     def is_valid(self):
