@@ -1285,6 +1285,8 @@ def pairwise_assessment(request, code=None, campaign_name=None):
             'the original semantics of the bolded source text above?'
         )
 
+    candidate1_text, candidate2_text = current_item.target_texts_with_diffs()
+
     context = {
         'active_page': 'pairwise-assessment',
         'reference_label': reference_label,
@@ -1292,9 +1294,9 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         'context_left': current_item.context_left(),
         'context_right': current_item.context_right(),
         'candidate_label': candidate1_label,
-        'candidate_text': current_item.target1Text,
+        'candidate_text': candidate1_text,
         'candidate2_label': candidate2_label,
-        'candidate2_text': current_item.target2Text,
+        'candidate2_text': candidate2_text,
         'priming_question_text': priming_question_text,
         'item_id': current_item.itemID,
         'task_id': current_item.id,

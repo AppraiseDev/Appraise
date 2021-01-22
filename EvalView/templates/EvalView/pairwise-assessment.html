@@ -17,6 +17,7 @@
 .quotelike-author:before { content: '\2014 \00A0'; }
 .context-sentences p { color: #555; margin-bottom: 10px; line-height: 1.3; }
 .priming-question { font-size: 130%; margin-bottom: 20px; }
+.candidate-text.active .diff { background: #ff06; }
 
 small.padleft { padding-left: 20px; }
 small.padright { padding-right: 20px; }
@@ -55,6 +56,10 @@ $(document).ready(function() {
   if (Cookies.get('show-context') == 'yes') {
     $('.context-sentences').show();
     $('#reference-label').hide();
+  }
+
+  if (Cookies.get('show-diff') == 'yes') {
+    $('.candidate-text').addClass('active');
   }
 
   //var $a = $('#id_candidate_text').attr('data-pseudo-content');
@@ -96,9 +101,20 @@ function reset_timer()
 function toggle_context()
 {
     var isHidden = $('.context-sentences').first().is(':hidden') ? 'yes' : 'no';
-    $('.context-sentences').toggle(400);
+    $('.context-sentences').toggle(200);
     $('#reference-label').toggle();
     Cookies.set('show-context', isHidden, { sameSite: 'strict' });
+}
+
+function toggle_diff()
+{
+    var isActive = $('.candidate-text').first().hasClass('active');
+    if (isActive) {
+        $('.candidate-text').removeClass('active');
+    } else {
+        $('.candidate-text').addClass('active');
+    }
+    Cookies.set('show-diff', isActive ? 'no' : 'yes', { sameSite: 'strict' });
 }
 
 function add_end_timestamp()
@@ -202,7 +218,7 @@ function update_score2()
 
 <div class="row quotelike">
     <div class="col-sm-12">
-        <p><strong>{{candidate_text|safe}}</strong></p>
+        <p class="candidate-text"><strong>{{candidate_text|safe}}</strong></p>
     </div>
     <div class="col-sm-12">
         <div id="slider" class="slider"></div>
@@ -225,7 +241,7 @@ function update_score2()
 
 <div class="row quotelike">
     <div class="col-sm-12">
-        <p><strong>{{candidate2_text|safe}}</strong></p>
+        <p class="candidate-text"><strong>{{candidate2_text|safe}}</strong></p>
     </div>
     <div class="col-sm-12">
         <div id="slider2" class="slider"></div>
@@ -252,6 +268,9 @@ function update_score2()
       <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn"><i class="icon-repeat"></i> Reset</button>
       {% if context_left or context_right %}
       <button onclick="javascript:toggle_context();" accesskey="3" type="button" class="btn">Show/Hide context</button>
+      {% endif %}
+      {% if candidate2_text %}
+      <button onclick="javascript:toggle_diff();" accesskey="3" type="button" class="btn">Show/Hide diff.</button>
       {% endif %}
 <!--
       &nbsp;
