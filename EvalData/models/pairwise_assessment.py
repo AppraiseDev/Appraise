@@ -73,18 +73,24 @@ class TextSegmentWithTwoTargets(TextSegment):
         """Checks if the current segment has context provided."""
         return self.contextLeft or self.contextRight
 
-    def context_left(self, last=3):
-        """Returns formatted last 3 sentences from the left context."""
+    def context_left(self, last=5, separator=' '):
+        """
+        Returns formatted last 5 sentences from the left context.
+        Use separator='<br>' to show one sentence per line.
+        """
         return (
-            ' '.join(self.contextLeft.split('\n')[-last:])
+            separator.join(self.contextLeft.split('\n')[-last:])
             if self.contextLeft
             else ''
         )
 
-    def context_right(self, first=3):
-        """Returns formatted first 3 sentences from the right context."""
+    def context_right(self, first=5, separator=' '):
+        """
+        Returns formatted first 5 sentences from the right context.
+        Use separator='<br>' to show one sentence per line.
+        """
         return (
-            ' '.join(self.contextRight.split('\n')[:first])
+            separator.join(self.contextRight.split('\n')[:first])
             if self.contextRight
             else ''
         )
