@@ -99,15 +99,21 @@ class TextSegmentWithTwoTargets(TextSegment):
     def target_texts_with_diffs(self):
         """
         Returns the pair of texts with HTML tags highlighting token differences.
+        Both texts must be non empty.
+
         For example,
             'a b c d e' and 'a B c e f'
         will become:
             'a <span class="diff diff-sub">b</span> c <span class="diff diff-del">d</span> e',
             'a <span class="diff diff-sub">B</span> c e <span class="diff diff-ins">f</span>'
         """
+        if not self.target1Text or not self.target2Text:
+            return (self.target1Text, self.target2Text)
+
         toks1 = self.target1Text.split()
         toks2 = self.target2Text.split()
         matcher = SequenceMatcher(None, toks1, toks2)
+
         text1 = ''
         text2 = ''
         for tag, i1, i2, j1, j2 in matcher.get_opcodes():
