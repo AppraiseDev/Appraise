@@ -16,6 +16,7 @@ from django.http import HttpResponse
 from Appraise.utils import _get_logger
 from Campaign.utils import _get_campaign_instance
 from EvalData.models import (
+    DataAssessmentResult,
     DirectAssessmentResult,
     DirectAssessmentContextResult,
     DirectAssessmentDocumentResult,
@@ -25,6 +26,7 @@ from EvalData.models import (
 )
 
 RESULT_TYPE_BY_CLASS_NAME = {
+    'DataAssessmentTask': DataAssessmentResult,
     'DirectAssessmentTask': DirectAssessmentResult,
     'DirectAssessmentContextTask': DirectAssessmentContextResult,
     'DirectAssessmentDocumentTask': DirectAssessmentDocumentResult,
