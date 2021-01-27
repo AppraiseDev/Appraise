@@ -169,8 +169,9 @@ function update_score() {
                 <div class="debug-box pull-left">
                     <p>
                     <small>
-                        Domain: {{ document_domain|safe }} /
-                        <a href="{{ document_url }}" target="_blank">{{ document_url }}</a>
+                        URLs: {{ document_domain|safe }} /
+                        <a href="{{ source_url }}" target="_blank">{{ source_url }}</a> /
+                        <a href="{{ target_url }}" target="_blank">{{ target_url }}</a>
                     </small>
                     </p>
                 </div>

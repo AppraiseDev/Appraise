@@ -42,9 +42,14 @@ class TextPairWithDomain(TextPair):
         value=MAX_SEGMENTID_LENGTH))
     )
 
-    documentURL = models.TextField(
+    sourceURL = models.TextField(
       blank=True,
-      verbose_name=_('URL'),
+      verbose_name=_('Source URL'),
+    )
+
+    targetURL = models.TextField(
+      blank=True,
+      verbose_name=_('Target URL'),
     )
 
     def get_sentence_pairs(self):
@@ -80,10 +85,11 @@ class TextPairWithDomain(TextPair):
         if len(_src_segs) != len(_tgt_segs):
             return False
 
-        if isinstance(self.documentURL, type('This is a test sentence.')):
+        _len = len(self.sourceURL)
+        if _len < 1 or _len > MAX_SEGMENTTEXT_LENGTH:
             return False
 
-        _len = len(self.documentURL)
+        _len = len(self.targetURL)
         if _len < 1 or _len > MAX_SEGMENTTEXT_LENGTH:
             return False
 
@@ -411,7 +417,8 @@ class DataAssessmentTask(BaseMetadata):
                     itemID=item['itemID'],
                     itemType=item['itemType'],
                     documentDomain=item['documentDomain'],
-                    documentURL=item['documentURL']
+                    sourceURL=item['sourceURL'],
+                    targetURL=item['targetURL']
                 )
                 new_items.append(new_item)
 
@@ -831,8 +838,8 @@ class DataAssessmentResult(BaseMetadata):
         attributes_to_extract = (
           'createdBy__username',            # User ID
           'item__documentDomain',           # Document domain
-          'item__documentURL',              # Document URL
-          'item__sourceID',                 # System ID
+          'item__targetURL',                # Document URL
+          'item__targetID',                 # System ID
           'item__itemID',                   # Segment ID
           'item__itemType',                 # Item type
           'item__metadata__market__sourceLanguageCode', # Source language
