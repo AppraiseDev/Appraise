@@ -3,6 +3,8 @@ from django.core.management.base import BaseCommand, CommandError
 
 from Campaign.models import Campaign
 from EvalData.models import (
+    DataAssessmentResult,
+    DataAssessmentTask,
     DirectAssessmentResult,
     DirectAssessmentTask,
     DirectAssessmentContextResult,
@@ -16,6 +18,7 @@ from EvalData.models import (
 )
 
 CAMPAIGN_TASK_TYPES = (
+    (DataAssessmentTask, DataAssessmentResult),
     (DirectAssessmentTask, DirectAssessmentResult),
     (DirectAssessmentContextTask, DirectAssessmentContextResult),
     (DirectAssessmentDocumentTask, DirectAssessmentDocumentResult),

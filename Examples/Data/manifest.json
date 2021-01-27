@@ -1,0 +1,13 @@
+{
+    "CAMPAIGN_URL": "http://127.0.0.1:8000/dashboard/sso/",
+    "CAMPAIGN_NAME": "example5data",
+    "CAMPAIGN_KEY": "c5",
+    "CAMPAIGN_NO": 5,
+    "REDUNDANCY": 1,
+
+    "TASKS_TO_ANNOTATORS": [
+        ["eng", "deu", "uniform",  2, 2]
+    ],
+
+    "TASK_TYPE": "Data"
+}
