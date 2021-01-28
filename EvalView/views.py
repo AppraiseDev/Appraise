@@ -1499,19 +1499,22 @@ def data_assessment(request, code=None, campaign_name=None):
         'You are presented a fragment of a document in {} and {}. ' \
             .format(source_language, target_language),
 
-        'How accurately does the translated text (right column) convey '
-        'the original semantics of the source text (left column)? '
-        'Slider ranges from <em>Not at all</em> (left) to <em>Perfectly</em> (right).',
+        'Please judge the quality of the translations (taking in to '
+        'account aspects like adequacy, fluency, writing ability, '
+        'orthography, style, misalignments, etc.) on a scale from '
+        'poor (left) to perfect (right).'
     ]
     score_question_text = [
         'Question #1: '
-        'How accurately does the translated text (right column) convey '
-        'the original semantics of the source text (left column)? '
+        'What is the quality of the translations, taking in to '
+        'account aspects like adequacy, fluency, writing ability, '
+        'orthography, style, misalignments, etc.?'
     ]
     rank_question_text = [
         'Question #2: '
-        'Do you think the translated text (right column) has been '
-        'created by machine translation or written by a human?'
+        'Do you think any part of the translated text (left or right) '
+        'has been created by machine translation rather than written '
+        'by a human?'
     ]
 
     # There should be exactly 4 ranks, otherwise change 'col-sm-3' in the HTML view.
