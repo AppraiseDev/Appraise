@@ -199,6 +199,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'tlh': 'Klingon (tlhIngan Hol)',
     'yua': 'Yucatec Maya (mayaʼ tʼàan)',
     'pus': 'Pashto (پښتو)',
+    'lzh': 'Classical Chinese (文言文)',
 }
 
 # Ensure that all languages have a corresponding group.
