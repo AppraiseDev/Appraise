@@ -6,7 +6,7 @@ Generating an example document-level evaluation WMT19 campaign:
         Examples/DocLevelDA/sources/newstest2019-ende-src.en.sgm \
         Examples/DocLevelDA/references/newstest2019-ende-ref.de.sgm \
         Examples/DocLevelDA/system-outputs/ '*.sgm' \
-        Examples/DocLevelDA/batches eng deu 2 false \
+        Examples/DocLevelDA/batches eng deu 2 true \
         | tee Examples/DocLevelDA/batches.log
 
     python manage.py init_campaign Examples/DocLevelDA/manifest.json
