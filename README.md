@@ -9,9 +9,9 @@ the yearly human evaluation campaigns for shared tasks at the [WMT Conference on
 Machine Translation](http://www.statmt.org/wmt21/) and other events.
 
 Annotation tasks currently supported in Appraise:
-* Segment-level direct assessment
-* Document-level direct assessments
-* Pairwise direct assessment (a.k.a RankME)
+* Segment-level direct assessment ([DA](https://www.aclweb.org/anthology/W13-2305/))
+* Document-level direct assessment
+* Pairwise direct assessment (similar to [EASL](https://www.aclweb.org/anthology/P18-1020/) and [RankME](https://www.aclweb.org/anthology/N18-2012/))
 * Multimodal MT assessment
 
 ## Getting Started
