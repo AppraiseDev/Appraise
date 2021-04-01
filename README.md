@@ -29,7 +29,7 @@ in Appraise.
 
 ## License
 
-This project is licensed under the [https://github.com/AppraiseDev/Appraise/blob/master/LICENSE](BSD-3-Clause License).
+This project is licensed under the [BSD-3-Clause License](LICENSE).
 
 ## Citation
 
