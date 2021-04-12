@@ -230,12 +230,13 @@ if __name__ == "__main__":
     SRC_LANG = sys.argv[6]        # Code for source language, e.g. eng
     TGT_LANG = sys.argv[7]        # Code for target language, e.g. deu
     TASK_MAX = int(sys.argv[8])   # Maximum number of tasks
-    CONTROLS = bool(sys.argv[9])
+    CONTROLS = sys.argv[9].lower() not in ['', '0', 'false', 'off']
     ENC = 'utf-8'
 
     RND_SEED = 123456
     seed(RND_SEED)
 
+    print(f'Quality control={CONTROLS}')
     if CONTROLS:
         REQUIRED_SEGS = 80
     else:
@@ -345,7 +346,7 @@ if __name__ == "__main__":
     shuffle(sampled_tasks)
 
     padded_tasks: List[Tuple[Tuple[int, str, str], ...]] = []
-    for task in sampled_tasks:
+    for tid, task in enumerate(sampled_tasks):
         task_docs = len(task)
         task_len = sum([x[0] for x in task])
         print(f'task_len: {task_len}')
@@ -378,7 +379,8 @@ if __name__ == "__main__":
             print(padded_tasks[-1])
 
         else:
-            raise NotImplementedError('Needs isControl=True update!')
+            print(f'WARNING: no control items in task no. {tid}')
+            # raise NotImplementedError('Needs isControl=True update!')
             padded_tasks.append(tuple(task))  # TODO: does this ever occur?
 
     csv_data = []
@@ -467,7 +469,7 @@ if __name__ == "__main__":
 
                 target_text = item_tgt
                 target_type = 'TGT'
-                if isControl:
+                if CONTROLS and isControl:  # Do not generate any BAD items if QC is disabled
                     randomCoinFlip = choice(
                         [False, False, True, True, True]  # 60:40 chance
                     )
