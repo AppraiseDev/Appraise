@@ -26,6 +26,9 @@ CAMPAIGN_TASK_TYPES = (
     (PairwiseAssessmentTask, PairwiseAssessmentResult),
 )
 
+import csv
+import sys
+
 
 class Command(BaseCommand):
     help = 'Exports system scores over all results to CSV format'
@@ -53,6 +56,7 @@ class Command(BaseCommand):
         except LookupError as error:
             raise CommandError(error)
 
+        csv_writer = csv.writer(sys.stdout, quoting=csv.QUOTE_MINIMAL)
         system_scores = []
         for task_cls, result_cls in CAMPAIGN_TASK_TYPES:
             qs_name = task_cls.__name__.lower()
@@ -70,4 +74,4 @@ class Command(BaseCommand):
                 system_scores.extend(_scores)
 
         for system_score in system_scores:
-            print(','.join([str(x) for x in system_score]))
+            csv_writer.writerow([str(x) for x in system_score])
