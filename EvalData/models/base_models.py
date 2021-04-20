@@ -90,6 +90,7 @@ class ObjectID(models.Model):
 
             # Hack for Python 3.5.2
             from EvalData.models import (
+                DataAssessmentTask,
                 DirectAssessmentTask,
                 DirectAssessmentContextTask,
                 DirectAssessmentDocumentTask,

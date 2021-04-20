@@ -14,6 +14,9 @@ from django.db.utils import OperationalError, ProgrammingError
 from EvalData.models import (
     Market,
     Metadata,
+    DataAssessmentTask,
+    DataAssessmentResult,
+    TextPairWithDomain,
     DirectAssessmentTask,
     DirectAssessmentResult,
     TextPair,
@@ -31,6 +34,13 @@ from EvalData.models import (
 )
 
 MODEL_DEFINITIONS = (
+    (
+        DataAssessmentTask,
+        DataAssessmentResult,
+        TextPairWithDomain,
+        'evaldata_dataassessmenttasks',
+        'evaldata_dataassessmentresults',
+    ),
     (
         DirectAssessmentTask,
         DirectAssessmentResult,

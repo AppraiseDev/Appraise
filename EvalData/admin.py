@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.utils.timezone import utc
 from .models import Market, Metadata, TextSegment, TextPair, TextPairWithImage
 from .models import TextPairWithContext, TextSegmentWithTwoTargets
+from .models import DataAssessmentTask, DataAssessmentResult
 from .models import DirectAssessmentTask, DirectAssessmentResult
 from .models import DirectAssessmentContextTask, DirectAssessmentContextResult
 from .models import DirectAssessmentDocumentTask, DirectAssessmentDocumentResult
@@ -563,6 +564,55 @@ class PairwiseAssessmentResultAdmin(BaseMetadataAdmin):
     ) + BaseMetadataAdmin.fieldsets
 
 
+class DataAssessmentTaskAdmin(BaseMetadataAdmin):
+    """
+    Model admin for DataAssessmentTask instances.
+    """
+    list_display = [
+      'dataName', 'batchNo', 'campaign', 'requiredAnnotations'
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      'campaign__campaignName',
+      'campaign__batches__market__targetLanguageCode',
+      'campaign__batches__market__sourceLanguageCode', 'batchData'
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      'campaign__campaignName', 'assignedTo'
+    ] + BaseMetadataAdmin.search_fields
+
+    fieldsets = (
+      (None, {
+        'fields': (['batchData', 'batchNo', 'campaign', 'items',
+        'requiredAnnotations', 'assignedTo'])
+      }),
+    ) + BaseMetadataAdmin.fieldsets
+
+class DataAssessmentResultAdmin(BaseMetadataAdmin):
+    """
+    Model admin for DataAssessmentResult instances.
+    """
+    list_display = [
+      '__str__', 'score', 'start_time', 'end_time', 'duration', 'item_type'
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+      'item__itemType', 'task__completed'
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+      # nothing model specific
+    ] + BaseMetadataAdmin.search_fields
+
+    readonly_fields = ('item', 'task')
+
+    fieldsets = (
+      (None, {
+        'fields': (['score', 'start_time', 'end_time'])
+      }),
+      ('Related', {
+        'fields': (['item', 'task'])
+      })
+    ) + BaseMetadataAdmin.fieldsets
+
+
 admin.site.register(Market, MarketAdmin)
 admin.site.register(Metadata, MetadataAdmin)
 admin.site.register(TextSegment, TextSegmentAdmin)
@@ -570,15 +620,17 @@ admin.site.register(TextPair, TextPairAdmin)
 admin.site.register(TextPairWithContext, TextPairWithContextAdmin)
 admin.site.register(TextPairWithImage, TextPairWithImageAdmin)
 admin.site.register(TextSegmentWithTwoTargets, TextSegmentWithTwoTargetsAdmin)
+admin.site.register(DataAssessmentTask, DataAssessmentTaskAdmin)
+admin.site.register(DataAssessmentResult, DataAssessmentResultAdmin)
 admin.site.register(DirectAssessmentTask, DirectAssessmentTaskAdmin)
 admin.site.register(DirectAssessmentResult, DirectAssessmentResultAdmin)
 admin.site.register(DirectAssessmentContextTask, DirectAssessmentContextTaskAdmin)
-admin.site.register(DirectAssessmentDocumentTask, DirectAssessmentDocumentTaskAdmin)
-admin.site.register(PairwiseAssessmentTask, PairwiseAssessmentTaskAdmin)
-admin.site.register(PairwiseAssessmentResult, PairwiseAssessmentResultAdmin)
 admin.site.register(DirectAssessmentContextResult, DirectAssessmentContextResultAdmin)
+admin.site.register(DirectAssessmentDocumentTask, DirectAssessmentDocumentTaskAdmin)
 admin.site.register(DirectAssessmentDocumentResult, DirectAssessmentDocumentResultAdmin)
 admin.site.register(MultiModalAssessmentTask, MultiModalAssessmentTaskAdmin)
 admin.site.register(MultiModalAssessmentResult, MultiModalAssessmentResultAdmin)
+admin.site.register(PairwiseAssessmentTask, PairwiseAssessmentTaskAdmin)
+admin.site.register(PairwiseAssessmentResult, PairwiseAssessmentResultAdmin)
 admin.site.register(WorkAgenda, WorkAgendaAdmin)
 admin.site.register(TaskAgenda, TaskAgendaAdmin)

@@ -16,6 +16,7 @@ from Dashboard.models import (
     validate_language_code,
 )
 from EvalData.models import (
+    DataAssessmentTask,
     DirectAssessmentTask,
     DirectAssessmentContextTask,
     DirectAssessmentDocumentTask,
@@ -29,6 +30,7 @@ from EvalData.models import (
 
 # Map convinient task type names into their corresponding task classes
 CAMPAIGN_TASK_TYPES = {
+    'Data': DataAssessmentTask,
     'Direct': DirectAssessmentTask,
     'DocLevelDA': DirectAssessmentContextTask,
     'Document': DirectAssessmentDocumentTask,

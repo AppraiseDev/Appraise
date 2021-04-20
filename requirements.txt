@@ -1,4 +1,4 @@
 bs4
-django<3
+django>=2.2.20,<3
 lxml
 tablib
