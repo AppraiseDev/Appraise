@@ -79,15 +79,27 @@ def campaign_status(request, campaign_name, sort_key=2):
                 createdBy=user, completed=True, task__campaign=campaign.id
             )
 
-            _data = _data.values_list(
-                'start_time',
-                'end_time',
-                'score',
-                'item__itemID',
-                'item__targetID',
-                'item__itemType',
-                'item__id',
-            )
+            if result_type is PairwiseAssessmentResult:
+                _data = _data.values_list(
+                    'start_time',
+                    'end_time',
+                    'score1',
+                    'item__itemID',
+                    'item__target1ID',
+                    'item__itemType',
+                    'item__id',
+                )
+
+            else:
+                _data = _data.values_list(
+                    'start_time',
+                    'end_time',
+                    'score',
+                    'item__itemID',
+                    'item__targetID',
+                    'item__itemType',
+                    'item__id',
+                )
 
             _annotations = len(set([x[6] for x in _data]))
             _start_times = [x[0] for x in _data]
