@@ -13,6 +13,7 @@ from EvalData.models import (
     PairwiseAssessmentTask,
 )
 
+
 class Command(BaseCommand):
     help = 'Validates campaign data batches'
 
