@@ -5,162 +5,101 @@ See LICENSE for usage details
 """
 # pylint: disable=C0103,C0330,no-member
 from collections import defaultdict
-from difflib import SequenceMatcher
 from json import loads
-from traceback import format_exc
 from zipfile import is_zipfile
 from zipfile import ZipFile
 
 from django.db import models
-from django.contrib import messages
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
 from django.utils.text import format_lazy as f
-from django.utils.timezone import utc
 from django.utils.translation import ugettext_lazy as _
 
 # TODO: Unclear if these are needed?
 # from Appraise.settings import STATIC_URL, BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
-from EvalData.models.base_models import *
+from EvalData.models.base_models import AnnotationTaskRegistry
+from EvalData.models.base_models import BaseMetadata
+from EvalData.models.base_models import MAX_REQUIREDANNOTATIONS_VALUE
+from EvalData.models.base_models import MAX_SEGMENTID_LENGTH
+from EvalData.models.base_models import MAX_SEGMENTTEXT_LENGTH
+from EvalData.models.base_models import seconds_to_timedelta
+from EvalData.models.base_models import TextPair
 
 LOGGER = _get_logger(name=__name__)
 
 
-class TextSegmentWithTwoTargets(TextSegment):
+class TextPairWithDomain(TextPair):
     """
-    Models a text segment with one or two sub-segments.
+    Models a pair of two multi-line text segments with domain and URL.
     """
-    target1ID = models.CharField(
+    SENTENCE_DELIMITER = '\n'
+
+    documentDomain = models.CharField(
       max_length=MAX_SEGMENTID_LENGTH,
-      verbose_name=_('Item ID (1)'),
+      verbose_name=_('Domain'),
       help_text=_(f('(max. {value} characters)',
         value=MAX_SEGMENTID_LENGTH))
     )
 
-    target1Text = models.TextField(
+    sourceURL = models.TextField(
       blank=True,
-      verbose_name=_('Text (1)'),
+      verbose_name=_('Source URL'),
     )
 
-    target2ID = models.CharField(
-      null=True,
-      max_length=MAX_SEGMENTID_LENGTH,
-      verbose_name=_('Item ID (2)'),
-      help_text=_(f('(max. {value} characters)',
-        value=MAX_SEGMENTID_LENGTH))
-    )
-
-    target2Text = models.TextField(
+    targetURL = models.TextField(
       blank=True,
-      null=True,
-      verbose_name=_('Text (2)'),
+      verbose_name=_('Target URL'),
     )
 
-    contextLeft = models.TextField(
-      blank=True,
-      null=True,
-      verbose_name=_('Context (left)')
-    )
-
-    contextRight = models.TextField(
-      blank=True,
-      null=True,
-      verbose_name=_('Context (right)')
-    )
-
-    def has_context(self):
-        """Checks if the current segment has context provided."""
-        return self.contextLeft or self.contextRight
-
-    def context_left(self, last=5, separator=' '):
+    def get_sentence_pairs(self):
         """
-        Returns formatted last 5 sentences from the left context.
-        Use separator='<br>' to show one sentence per line.
+        Returns pairs of source and target sentences created from source
+        and target segments.
         """
-        return (
-            separator.join(self.contextLeft.split('\n')[-last:])
-            if self.contextLeft
-            else ''
-        )
-
-    def context_right(self, first=5, separator=' '):
-        """
-        Returns formatted first 5 sentences from the right context.
-        Use separator='<br>' to show one sentence per line.
-        """
-        return (
-            separator.join(self.contextRight.split('\n')[:first])
-            if self.contextRight
-            else ''
-        )
-
-    def target_texts_with_diffs(self):
-        """
-        Returns the pair of texts with HTML tags highlighting token differences.
-        Both texts must be non empty.
-
-        For example,
-            'a b c d e' and 'a B c e f'
-        will become:
-            'a <span class="diff diff-sub">b</span> c <span class="diff diff-del">d</span> e',
-            'a <span class="diff diff-sub">B</span> c e <span class="diff diff-ins">f</span>'
-        """
-        if not self.target1Text or not self.target2Text:
-            return (self.target1Text, self.target2Text)
-
-        toks1 = self.target1Text.split()
-        toks2 = self.target2Text.split()
-        matcher = SequenceMatcher(None, toks1, toks2)
-
-        text1 = ''
-        text2 = ''
-        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
-            if tag == 'equal':
-                text1 += ' ' + ' '.join(toks1[i1:i2])
-                text2 += ' ' + ' '.join(toks2[j1:j2])
-            elif tag == 'replace':
-                text1 += ' <span class="diff diff-sub">' + ' '.join(toks1[i1:i2]) + '</span>'
-                text2 += ' <span class="diff diff-sub">' + ' '.join(toks2[j1:j2]) + '</span>'
-            elif tag == 'insert':
-                text2 += ' <span class="diff diff-ins">' + ' '.join(toks2[j1:j2]) + '</span>'
-            elif tag == 'delete':
-                text1 += ' <span class="diff diff-del">' + ' '.join(toks1[i1:i2]) + '</span>'
-        return (text1.strip(), text2.strip())
+        return zip(self.sourceText.split(self.SENTENCE_DELIMITER),
+                   self.targetText.split(self.SENTENCE_DELIMITER))
 
     # pylint: disable=E1101
     def is_valid(self):
         """
-        Validates the current TextSegmentWithTwoTargets instance, checking
-        text.
+        Validates the current TextPairWithDomain instance, checking text.
         """
-        if isinstance(self.target1Text, type('This is a test sentence.')):
+        if isinstance(self.sourceText, type('This is a test sentence.')):
             return False
 
-        _len = len(self.target1Text)
+        _len = len(self.sourceText)
         if _len < 1 or _len > MAX_SEGMENTTEXT_LENGTH:
             return False
 
-        if target2Text and len(target2Text) > 0:
-            if isinstance(self.target2Text, type('This is a test sentence.')):
-                return False
+        if isinstance(self.targetText, type('This is a test sentence.')):
+            return False
 
-            _len = len(self.target2Text)
-            if _len < 1 or _len > MAX_SEGMENTTEXT_LENGTH:
-                return False
+        _len = len(self.targetText)
+        if _len < 1 or _len > MAX_SEGMENTTEXT_LENGTH:
+            return False
 
-            # Texts must be different
-            if self.target1Text == self.target2Text:
-                return False
+        # Check if multi-line segments are of the same length
+        _src_segs = self.sourceText.strip().split(self.SENTENCE_DELIMITER)
+        _tgt_segs = self.targetText.strip().split(self.SENTENCE_DELIMITER)
+        if len(_src_segs) != len(_tgt_segs):
+            return False
 
-        return super(TextSegmentWithTwoTargets, self).is_valid()
+        _len = len(self.sourceURL)
+        if _len < 1 or _len > MAX_SEGMENTTEXT_LENGTH:
+            return False
+
+        _len = len(self.targetURL)
+        if _len < 1 or _len > MAX_SEGMENTTEXT_LENGTH:
+            return False
+
+        return super(TextPairWithDomain, self).is_valid()
 
 
 @AnnotationTaskRegistry.register
-class PairwiseAssessmentTask(BaseMetadata):
+class DataAssessmentTask(BaseMetadata):
     """
-    Models a direct assessment evaluation task.
+    Models a direct data assessment evaluation task.
     """
     campaign = models.ForeignKey(
       'Campaign.Campaign',
@@ -172,7 +111,7 @@ class PairwiseAssessmentTask(BaseMetadata):
     )
 
     items = models.ManyToManyField(
-      TextSegmentWithTwoTargets,
+      TextPairWithDomain,
       related_name='%(app_label)s_%(class)s_items',
       related_query_name="%(app_label)s_%(class)ss",
       verbose_name=_('Items')
@@ -241,7 +180,7 @@ class PairwiseAssessmentTask(BaseMetadata):
         return None
 
     def completed_items_for_user(self, user):
-        results = PairwiseAssessmentResult.objects.filter(
+        results = DataAssessmentResult.objects.filter(
           task=self,
           activated=False,
           completed=True,
@@ -251,6 +190,10 @@ class PairwiseAssessmentTask(BaseMetadata):
         return len(set(results))
 
     def is_trusted_user(self, user):
+        # Appen crowd users are never trusted!
+        if user.groups.filter(name='Appen').exists():
+            return False
+
         from Campaign.models import TrustedUser
         trusted_user = TrustedUser.objects.filter(\
           user=user, campaign=self.campaign
@@ -263,7 +206,7 @@ class PairwiseAssessmentTask(BaseMetadata):
         next_item = None
         completed_items = 0
         for item in self.items.all().order_by('id'):
-            result = PairwiseAssessmentResult.objects.filter(
+            result = DataAssessmentResult.objects.filter(
               item=item,
               activated=False,
               completed=True,
@@ -274,16 +217,15 @@ class PairwiseAssessmentTask(BaseMetadata):
                 print('identified next item: {0}/{1} for trusted={2}'.format(
                   item.id, item.itemType, trusted_user
                 ))
-                if not trusted_user or item.itemType.startswith('TGT'):
+                if not trusted_user or item.itemType == 'TGT':
                     next_item = item
-                    print('  - got it')
                     break
 
             completed_items += 1
 
         if not next_item:
             LOGGER.info('No next item found for task {0}'.format(self.id))
-            annotations = PairwiseAssessmentResult.objects.filter(
+            annotations = DataAssessmentResult.objects.filter(
               task=self,
               activated=False,
               completed=True
@@ -330,22 +272,45 @@ class PairwiseAssessmentTask(BaseMetadata):
 
     @classmethod
     def get_next_free_task_for_language(cls, code, campaign=None, user=None):
-        print('  Looking for next free task for language: {0}'.format(code))
-        print('  Campaign: {0}'.format(campaign))
-        print('  User: {0}'.format(user))
-
         active_tasks = cls.objects.filter(
           activated=True,
           completed=False,
           items__metadata__market__targetLanguageCode=code
         )
 
-        print('    Number of active tasks: ({0})'.format(len(active_tasks)))
-
         if campaign:
             active_tasks = active_tasks.filter(
               campaign=campaign
             )
+
+            # Appen crowd users may only contribute three HITs per campaign.
+            if user.groups.filter(name='Appen').exists():
+                completed_items = DataAssessmentResult.objects.filter(
+                  activated=False,
+                  completed=True,
+                  createdBy=user,
+                  task__campaign=campaign,
+                ).values_list('item_id', 'task_id')
+
+                completed_tasks = defaultdict(list)
+                for item in completed_items:
+                    completed_tasks[item[1]].append(item[0])
+
+                validated_tasks = 0
+                for task_id in completed_tasks:
+                    if len(completed_tasks[task_id]) >= 100:
+                        validated_tasks += 1
+
+                if validated_tasks >= 3:
+                    _msg = 'User {0} has already completed {1} tasks and ' \
+                      'created {2} results for campaign {3}'.format(
+                      user.username,
+                      validated_tasks,
+                      len(completed_items),
+                      campaign.campaignName
+                    )
+                    LOGGER.info(_msg)
+                    return None
 
         for active_task in active_tasks.order_by('id'):
             active_users = active_task.assignedTo.count()
@@ -353,7 +318,6 @@ class PairwiseAssessmentTask(BaseMetadata):
                 if user and not user in active_task.assignedTo.all():
                     return active_task
 
-        print('    No next free task available')
         return None
 
         # It seems that assignedTo is converted to an integer count.
@@ -387,7 +351,7 @@ class PairwiseAssessmentTask(BaseMetadata):
     @classmethod
     def import_from_json(cls, campaign, batch_user, batch_data, max_count):
         """
-        Creates new PairwiseAssessmentTask instances based on JSON input.
+        Creates new DataAssessmentTask instances based on JSON input.
         """
         batch_meta = batch_data.metadata
         batch_name = batch_data.dataFile.name
@@ -423,66 +387,47 @@ class PairwiseAssessmentTask(BaseMetadata):
                   max_count
                 )
                 LOGGER.info(_msg)
+                print(_msg)
 
                 t2 = datetime.now()
                 print(t2-t1)
                 return
 
-            print('Loading batch:', batch_name, batch_task['task']['batchNo'])
+            print('Batch name/no:', batch_name, batch_task['task']['batchNo'])
 
             new_items = []
-            count_items = 0
             for item in batch_task['items']:
-                count_items += 1
-
-                # TODO: check if target1 + target2 should be used here
-                current_length_id = len(item['sourceID'])
-                current_length_text = len(item['sourceText'])
+                current_length_id = len(item['targetID'])
+                current_length_text = len(item['targetText'])
 
                 if current_length_id > max_length_id:
-                    print(current_length_id, item['sourceID'])
+                    print('Longest target ID', current_length_id, item['targetID'])
                     max_length_id = current_length_id
 
                 if current_length_text > max_length_text:
-                    print(current_length_text, item['sourceText'].encode('utf-8'))
+                    print('Longest targetText', current_length_text, item['targetText'].encode('utf-8'))
                     max_length_text = current_length_text
 
-                item_targets = item['targets']
-
-                # TODO: check if 'targets' is empty or has more elements
-                # than 2
-                item_tgt1_idx = item_targets[0]['targetID']
-                item_tgt1_txt = item_targets[0]['targetText']
-
-                item_tgt2_idx = None
-                item_tgt2_txt = None
-                if len(item_targets) > 1:
-                    item_tgt2_idx = item_targets[1]['targetID']
-                    item_tgt2_txt = item_targets[1]['targetText']
-
-                context_left = item.get('contextLeft', None)
-                context_right = item.get('contextRight', None)
-
-                new_item = TextSegmentWithTwoTargets(
-                    segmentID=item['sourceID'],
-                    segmentText=item['sourceText'],
-                    target1ID=item_tgt1_idx,
-                    target1Text=item_tgt1_txt,
-                    target2ID=item_tgt2_idx,
-                    target2Text=item_tgt2_txt,
+                new_item = TextPairWithDomain(
+                    sourceID=item['sourceID'],
+                    sourceText=item['sourceText'],
+                    targetID=item['targetID'],
+                    targetText=item['targetText'],
                     createdBy=batch_user,
                     itemID=item['itemID'],
                     itemType=item['itemType'],
-                    contextLeft=context_left,
-                    contextRight=context_right,
+                    documentDomain=item['documentDomain'],
+                    sourceURL=item['sourceURL'],
+                    targetURL=item['targetURL']
                 )
                 new_items.append(new_item)
 
             if not len(new_items) == 100:
                 _msg = 'Expected 100 items for task but found {0}'.format(
-                    count_items
+                    len(new_items)
                 )
                 LOGGER.warn(_msg)
+                print(_msg)
                 continue
 
             current_count += 1
@@ -491,10 +436,10 @@ class PairwiseAssessmentTask(BaseMetadata):
             #for new_item in new_items:
             #    new_item.metadata = batch_meta
             #    new_item.save()
-            batch_meta.textsegment_set.add(*new_items, bulk=False)
+            batch_meta.textpair_set.add(*new_items, bulk=False)
             batch_meta.save()
 
-            new_task = PairwiseAssessmentTask(
+            new_task = DataAssessmentTask(
                 campaign=campaign,
                 requiredAnnotations=batch_task['task']['requiredAnnotations'],
                 batchNo=batch_task['task']['batchNo'],
@@ -512,11 +457,13 @@ class PairwiseAssessmentTask(BaseMetadata):
                 str(batch_data), batch_task['task']['batchNo']
             )
             LOGGER.info(_msg)
+            print(_msg)
 
         _msg = 'Max length ID={0}, text={1}'.format(
           max_length_id, max_length_text
         )
         LOGGER.info(_msg)
+        print(_msg)
 
         t2 = datetime.now()
         print(t2-t1)
@@ -546,19 +493,19 @@ class PairwiseAssessmentTask(BaseMetadata):
         )
 
 
-class PairwiseAssessmentResult(BaseMetadata):
+class DataAssessmentResult(BaseMetadata):
     """
-    Models a contrastive direct assessment evaluation result.
+    Models a direct data assessment evaluation result.
     """
-    score1 = models.PositiveSmallIntegerField(
-      verbose_name=_('Score (1)'),
+    score = models.PositiveSmallIntegerField(
+      verbose_name=_('Score'),
       help_text=_('(value in range=[1,100])')
     )
 
-    score2 = models.PositiveSmallIntegerField(
+    rank = models.PositiveSmallIntegerField(
       blank=True,
       null=True,
-      verbose_name=_('Score (2)'),
+      verbose_name=_('Score'),
       help_text=_('(value in range=[1,100])')
     )
 
@@ -573,7 +520,7 @@ class PairwiseAssessmentResult(BaseMetadata):
     )
 
     item = models.ForeignKey(
-      TextSegmentWithTwoTargets,
+      TextPairWithDomain,
       db_index=True,
       on_delete=models.PROTECT,
       related_name='%(app_label)s_%(class)s_item',
@@ -582,7 +529,7 @@ class PairwiseAssessmentResult(BaseMetadata):
     )
 
     task = models.ForeignKey(
-      PairwiseAssessmentTask,
+      DataAssessmentTask,
       blank=True,
       db_index=True,
       null=True,
@@ -594,11 +541,10 @@ class PairwiseAssessmentResult(BaseMetadata):
 
     # pylint: disable=E1136
     def _generate_str_name(self):
-        return '{0}.{1}={2}+{3}'.format(
+        return '{0}.{1}={2}'.format(
           self.__class__.__name__,
           self.item,
-          self.score1,
-          self.score2,
+          self.score
         )
 
     def duration(self):
@@ -662,20 +608,20 @@ class PairwiseAssessmentResult(BaseMetadata):
             completed=True, item__itemType__in=value_types)
 
         value_names = (
-            'item__target1ID', 'score1', 'target2ID', 'score2',
-            'createdBy', 'item__itemID',
+            'item__targetID', 'score', 'rank', 'createdBy',
+            'item__itemID',
             'item__metadata__market__sourceLanguageCode',
             'item__metadata__market__targetLanguageCode'
         )
         for result in qs.values_list(*value_names):
             systemID = result[0]
-            score1 = result[1]
-            score2 = result[2]
+            score = result[1]
+            rank = result[2]
             annotatorID = result[3]
             segmentID = result[4]
             marketID = '{0}-{1}'.format(result[5], result[6])
             system_scores[marketID].append(
-                (systemID, annotatorID, segmentID, score1, score2))
+                (systemID, annotatorID, segmentID, score))
 
         return system_scores
 
@@ -726,32 +672,27 @@ class PairwiseAssessmentResult(BaseMetadata):
         qs = cls.objects.filter(completed=True)
 
         value_names = (
-            'item__target1ID', 'score1', 'item__target2ID', 'score2',
-            'start_time', 'end_time',
-            'createdBy',
-            'item__itemID',
-            'item__metadata__market__sourceLanguageCode',
+            'item__targetID', 'score', 'rank',
+            'start_time', 'end_time', 'createdBy',
+            'item__itemID', 'item__metadata__market__sourceLanguageCode',
             'item__metadata__market__targetLanguageCode',
-            'item__metadata__market__domainName',
-            'item__itemType',
+            'item__metadata__market__domainName', 'item__itemType',
             'task__id', 'task__campaign__campaignName'
         )
         for result in qs.values_list(*value_names):
-
-            system1ID = result[0]
-            score1 = result[1]
-            system2ID = result[2]
-            score2 = result[3]
-            start_time = result[4]
-            end_time = result[5]
+            systemID = result[0]
+            score = result[1]
+            rank = result[2]
+            start_time = result[3]
+            end_time = result[4]
             duration = round(float(end_time)-float(start_time), 1)
-            annotatorID = result[6]
-            segmentID = result[7]
-            marketID = '{0}-{1}'.format(result[8], result[9])
-            domainName = result[10]
-            itemType = result[11]
-            taskID = result[12]
-            campaignName = result[13]
+            annotatorID = result[5]
+            segmentID = result[6]
+            marketID = '{0}-{1}'.format(result[7], result[8])
+            domainName = result[9]
+            itemType = result[10]
+            taskID = result[11]
+            campaignName = result[12]
 
             if annotatorID in user_data:
                 username = user_data[annotatorID][0]
@@ -771,13 +712,13 @@ class PairwiseAssessmentResult(BaseMetadata):
                 )
 
             system_scores[marketID+'-'+domainName].append(
-                (taskID, segmentID, username, useremail, usergroups,
-                system1ID, score1, system2ID, score2, start_time, end_time, duration,
+                (taskID, systemID, username, useremail, usergroups,
+                segmentID, score, rank, start_time, end_time, duration,
                 itemType, campaignName))
 
         # TODO: this is very intransparent... and needs to be fixed!
         x = system_scores
-        s = ['taskID,segmentID,username,email,groups,system1ID,score1,system2ID,score2,startTime,endTime,durationInSeconds,itemType,campaignName']
+        s = ['taskID,systemID,username,email,groups,segmentID,score,rank,startTime,endTime,durationInSeconds,itemType,campaignName']
         for l in x:
             for i in x[l]:
                 s.append(','.join([str(a) for a in i]))
@@ -796,47 +737,42 @@ class PairwiseAssessmentResult(BaseMetadata):
         qs = cls.objects.filter(completed=True)
 
         value_names = (
-            'item__target1ID', 'score1', 'item__target2ID', 'score2',
-            'start_time', 'end_time',
-            'createdBy',
-            'item__itemID',
-            'item__metadata__market__sourceLanguageCode',
+            'item__targetID', 'score', 'rank',
+            'start_time', 'end_time', 'createdBy',
+            'item__itemID', 'item__metadata__market__sourceLanguageCode',
             'item__metadata__market__targetLanguageCode',
             'item__metadata__market__domainName', 'item__itemType'
         )
-
         for result in qs.values_list(*value_names):
-            if not domain == result[10] \
-            or not srcCode == result[8] \
-            or not tgtCode == result[9]:
+            if not domain == result[9] \
+            or not srcCode == result[7] \
+            or not tgtCode == result[8]:
                 continue
 
-            system1ID = result[0]
-            score1 = result[1]
-            system2ID = result[2]
-            score2 = result[3]
-            start_time = result[4]
-            end_time = result[5]
+            systemID = result[0]
+            score = result[1]
+            rank = result[2]
+            start_time = result[3]
+            end_time = result[4]
             duration = round(float(end_time)-float(start_time), 1)
-            annotatorID = result[6]
-            segmentID = result[7]
-            marketID = '{0}-{1}'.format(result[8], result[9])
-            domainName = result[10]
-            itemType = result[11]
+            annotatorID = result[5]
+            segmentID = result[6]
+            marketID = '{0}-{1}'.format(result[7], result[8])
+            domainName = result[9]
+            itemType = result[10]
             user = User.objects.get(pk=annotatorID)
             username = user.username
             useremail = user.email
             system_scores[marketID+'-'+domainName].append(
-                (segmentID, username, useremail, system1ID, score1,
-                system2ID, score2,
-                duration, itemType))
+                (systemID, username, useremail, segmentID, score,
+                rank, duration, itemType))
 
         return system_scores
 
     @classmethod
     def write_csv(cls, srcCode, tgtCode, domain, csvFile, allData=False):
         x = cls.get_csv(srcCode, tgtCode, domain)
-        s = ['username,email,segmentID,score1,score2,durationInSeconds,itemType']
+        s = ['username,email,segmentID,score,rank,durationInSeconds,itemType']
         if allData:
             s[0] = 'systemID,' + s[0]
 
@@ -866,22 +802,18 @@ class PairwiseAssessmentResult(BaseMetadata):
             qs = qs.filter(task__campaign__id=campaign_id)
 
         value_names = (
-            'item__target1ID', 'item__target2ID', 'item__itemID', 'score1', 'score2'
+            'item__targetID', 'item__itemID', 'score'
         )
         for result in qs.values_list(*value_names):
             #if not result.completed or result.item.itemType not in ('TGT', 'CHK'):
             #    continue
 
-            system1_ids = result[0].split('+') #result.item.targetID.split('+')
-            system2_ids = result[1].split('+') #result.item.targetID.split('+')
-            segment_id = result[2]
-            score1 = result[3] #.score
-            score2 = result[4] #.score
+            system_ids = result[0].split('+') #result.item.targetID.split('+')
+            segment_id = result[1]
+            score = result[2] #.score
 
-            for system_id in system1_ids:
-                system_scores[system_id].append((segment_id, score1))
-            for system_id in system2_ids:
-                system_scores[system_id].append((segment_id, score2))
+            for system_id in system_ids:
+                system_scores[system_id].append((segment_id, score))
 
         return system_scores
 
@@ -895,7 +827,6 @@ class PairwiseAssessmentResult(BaseMetadata):
             item_types += ('BAD', 'REF')
 
         qs = cls.objects.filter(completed=True, item__itemType__in=item_types)
-        print('Found completed items: {0}'.format(len(qs)))
 
         # If campaign ID is given, only return results for this campaign.
         if campaign_id:
@@ -906,14 +837,15 @@ class PairwiseAssessmentResult(BaseMetadata):
 
         attributes_to_extract = (
           'createdBy__username',            # User ID
-          'item__target1ID',                # System ID
-          'item__target2ID',                # System ID
+          'item__documentDomain',           # Document domain
+          'item__targetURL',                # Document URL
+          'item__targetID',                 # System ID
           'item__itemID',                   # Segment ID
           'item__itemType',                 # Item type
           'item__metadata__market__sourceLanguageCode', # Source language
           'item__metadata__market__targetLanguageCode', # Target language
-          'score1',                         # Score
-          'score2'                          # Score
+          'score',                          # Score
+          'rank'                            # Rank
         )
 
         if extended_csv:
@@ -974,7 +906,6 @@ class PairwiseAssessmentResult(BaseMetadata):
                 key=lambda x: x[sort_index], reverse=True))
 
         return output_data
-
 
     @classmethod
     def completed_results_for_user_and_campaign(cls, user, campaign):

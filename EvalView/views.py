@@ -15,6 +15,8 @@ from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Campaign.models import Campaign
 from EvalData.models import (
+    DataAssessmentTask,
+    DataAssessmentResult,
     DirectAssessmentTask,
     DirectAssessmentResult,
     DirectAssessmentContextTask,
@@ -195,6 +197,147 @@ def direct_assessment(request, code=None, campaign_name=None):
     _msg = 'completed_items=%s, completed_blocks=%s'
     LOGGER.info(_msg, completed_items, completed_blocks)
 
+    current_task = None
+
+    # Try to identify TaskAgenda for current user.
+    agendas = TaskAgenda.objects.filter(user=request.user)
+
+    if campaign:
+        agendas = agendas.filter(campaign=campaign)
+
+    for agenda in agendas:
+        LOGGER.info('Identified work agenda %s', agenda)
+
+        tasks_to_complete = []
+        for serialized_open_task in agenda.serialized_open_tasks():
+            open_task = serialized_open_task.get_object_instance()
+
+            # Skip tasks which are not available anymore
+            if open_task is None:
+                continue
+
+            if open_task.next_item_for_user(request.user) is not None:
+                current_task = open_task
+                if not campaign:
+                    campaign = agenda.campaign
+            else:
+                tasks_to_complete.append(serialized_open_task)
+
+        modified = False
+        for task in tasks_to_complete:
+            modified = agenda.complete_open_task(task) or modified
+
+        if modified:
+            agenda.save()
+
+    if not current_task and agendas.count() > 0:
+        LOGGER.info('Work agendas completed, redirecting to dashboard')
+        LOGGER.info('- code=%s, campaign=%s', code, campaign)
+        return redirect('dashboard')
+
+    # If language code has been given, find a free task and assign to user.
+    if not current_task:
+        current_task = DirectAssessmentContextTask.get_task_for_user(
+            user=request.user
+        )
+
+    if not current_task:
+        if code is None or campaign is None:
+            LOGGER.info(
+                'No current task detected, redirecting to dashboard'
+            )
+            LOGGER.info('- code=%s, campaign=%s', code, campaign)
+            return redirect('dashboard')
+
+        LOGGER.info(
+            'Identifying next task for code "%s", campaign="%s"',
+            code,
+            campaign,
+        )
+        next_task = DirectAssessmentContextTask.get_next_free_task_for_language(
+            code, campaign, request.user
+        )
+
+        if next_task is None:
+            LOGGER.info('No next task detected, redirecting to dashboard')
+            return redirect('dashboard')
+
+        next_task.assignedTo.add(request.user)
+        next_task.save()
+
+        current_task = next_task
+
+    if current_task:
+        if not campaign:
+            campaign = current_task.campaign
+
+        elif campaign.campaignName != current_task.campaign.campaignName:
+            _msg = (
+                'Incompatible campaign given, using item campaign instead!'
+            )
+            LOGGER.info(_msg)
+            campaign = current_task.campaign
+
+    t2 = datetime.now()
+    if request.method == "POST":
+        score = request.POST.get('score', None)
+        item_id = request.POST.get('item_id', None)
+        task_id = request.POST.get('task_id', None)
+        document_id = request.POST.get('document_id', None)
+        start_timestamp = request.POST.get('start_timestamp', None)
+        end_timestamp = request.POST.get('end_timestamp', None)
+        LOGGER.info('score=%s, item_id=%s', score, item_id)
+        if score and item_id and start_timestamp and end_timestamp:
+            duration = float(end_timestamp) - float(start_timestamp)
+            LOGGER.debug(float(start_timestamp))
+            LOGGER.debug(float(end_timestamp))
+            LOGGER.info(
+                'start=%s, end=%s, duration=%s',
+                start_timestamp,
+                end_timestamp,
+                duration,
+            )
+
+            current_item = current_task.next_item_for_user(request.user)
+            if (
+                current_item.itemID != int(item_id)
+                or current_item.id != int(task_id)
+                or current_item.documentID != document_id
+            ):
+                _msg = 'Item ID %s does not match item %s, will not save!'
+                LOGGER.debug(_msg, item_id, current_item.itemID)
+
+            else:
+                utc_now = datetime.utcnow().replace(tzinfo=utc)
+
+                # pylint: disable=E1101
+                DirectAssessmentContextResult.objects.create(
+                    score=score,
+                    start_time=float(start_timestamp),
+                    end_time=float(end_timestamp),
+                    item=current_item,
+                    task=current_task,
+                    createdBy=request.user,
+                    activated=False,
+                    completed=True,
+                    dateCompleted=utc_now,
+                )
+
+    t3 = datetime.now()
+
+    current_item, completed_items = current_task.next_item_for_user(
+        request.user, return_completed_items=True
+    )
+    if not current_item:
+        LOGGER.info('No current item detected, redirecting to dashboard')
+        return redirect('dashboard')
+
+    # completed_items_check = current_task.completed_items_for_user(
+    #     request.user)
+    completed_blocks = int(completed_items / 10)
+    _msg = 'completed_items=%s, completed_blocks=%s'
+    LOGGER.info(_msg, completed_items, completed_blocks)
+
     source_language = current_task.marketSourceLanguage()
     target_language = current_task.marketTargetLanguage()
 
@@ -275,7 +418,366 @@ def direct_assessment(request, code=None, campaign_name=None):
     }
     context.update(BASE_CONTEXT)
 
-    return render(request, 'EvalView/direct-assessment.html', context)
+    return render(
+        request, 'EvalView/direct-assessment-context.html', context
+    )
+
+
+# pylint: disable=C0103,C0330
+@login_required
+def direct_assessment_document(request, code=None, campaign_name=None):
+    """
+    Direct assessment document annotation view.
+    """
+    t1 = datetime.now()
+
+    campaign = None
+    if campaign_name:
+        campaign = Campaign.objects.filter(campaignName=campaign_name)
+        if not campaign.exists():
+            _msg = (
+                'No campaign named "%s" exists, redirecting to dashboard'
+            )
+            LOGGER.info(_msg, campaign_name)
+            return redirect('dashboard')
+
+        campaign = campaign[0]
+
+    LOGGER.info(
+        'Rendering direct assessment document view for user "%s".',
+        request.user.username or "Anonymous",
+    )
+
+    current_task = None
+
+    # Try to identify TaskAgenda for current user.
+    agendas = TaskAgenda.objects.filter(user=request.user)
+
+    if campaign:
+        agendas = agendas.filter(campaign=campaign)
+
+    for agenda in agendas:
+        LOGGER.info('Identified work agenda %s', agenda)
+
+        tasks_to_complete = []
+        for serialized_open_task in agenda.serialized_open_tasks():
+            open_task = serialized_open_task.get_object_instance()
+
+            # Skip tasks which are not available anymore
+            if open_task is None:
+                continue
+
+            if open_task.next_item_for_user(request.user) is not None:
+                current_task = open_task
+                if not campaign:
+                    campaign = agenda.campaign
+            else:
+                tasks_to_complete.append(serialized_open_task)
+
+        modified = False
+        for task in tasks_to_complete:
+            modified = agenda.complete_open_task(task) or modified
+
+        if modified:
+            agenda.save()
+
+    if not current_task and agendas.count() > 0:
+        LOGGER.info('Work agendas completed, redirecting to dashboard')
+        LOGGER.info('- code=%s, campaign=%s', code, campaign)
+        return redirect('dashboard')
+
+    # If language code has been given, find a free task and assign to user.
+    if not current_task:
+        current_task = DirectAssessmentDocumentTask.get_task_for_user(
+            user=request.user
+        )
+
+    if not current_task:
+        if code is None or campaign is None:
+            LOGGER.info(
+                'No current task detected, redirecting to dashboard'
+            )
+            LOGGER.info('- code=%s, campaign=%s', code, campaign)
+            return redirect('dashboard')
+
+        LOGGER.info(
+            'Identifying next task for code "%s", campaign="%s"',
+            code,
+            campaign,
+        )
+        next_task = DirectAssessmentDocumentTask.get_next_free_task_for_language(
+            code, campaign, request.user
+        )
+
+        if next_task is None:
+            LOGGER.info('No next task detected, redirecting to dashboard')
+            return redirect('dashboard')
+
+        next_task.assignedTo.add(request.user)
+        next_task.save()
+
+        current_task = next_task
+
+    if current_task:
+        if not campaign:
+            campaign = current_task.campaign
+
+        elif campaign.campaignName != current_task.campaign.campaignName:
+            _msg = (
+                'Incompatible campaign given, using item campaign instead!'
+            )
+            LOGGER.info(_msg)
+            campaign = current_task.campaign
+
+    # Handling POST requests differs from the original direct_assessment/
+    # direct_assessment_context view, but the input is the same: a score for the
+    # single submitted item
+    t2 = datetime.now()
+    ajax = False
+    item_saved = False
+    error_msg = ''
+    if request.method == "POST":
+        score = request.POST.get('score', None)
+        item_id = request.POST.get('item_id', None)
+        task_id = request.POST.get('task_id', None)
+        document_id = request.POST.get('document_id', None)
+        start_timestamp = request.POST.get('start_timestamp', None)
+        end_timestamp = request.POST.get('end_timestamp', None)
+        ajax = bool(request.POST.get('ajax', None) == 'True')
+
+        LOGGER.info('score=%s, item_id=%s', score, item_id)
+        print('Got request score={0}, item_id={1}, ajax={2}'.format(score, item_id, ajax))
+
+        # If all required information was provided in the POST request
+        if score and item_id and start_timestamp and end_timestamp:
+            duration = float(end_timestamp) - float(start_timestamp)
+            LOGGER.debug(float(start_timestamp))
+            LOGGER.debug(float(end_timestamp))
+            LOGGER.info(
+                'start=%s, end=%s, duration=%s',
+                start_timestamp,
+                end_timestamp,
+                duration,
+            )
+
+            # Get all items from the document that the submitted item belongs
+            # to, and all already collected scores for this document
+            current_item, block_items, block_results = current_task.next_document_for_user(
+                request.user, return_statistics=False)
+
+            # An item from the right document was submitted
+            if current_item.documentID == document_id:
+                # This is the item that we expected to be annotated first,
+                # which means that there is no score for the current item, so
+                # create new score
+                if current_item.itemID == int(item_id) \
+                        and current_item.id == int(task_id):
+
+                    utc_now = datetime.utcnow().replace(tzinfo=utc)
+                    # pylint: disable=E1101
+                    DirectAssessmentDocumentResult.objects.create(
+                        score=score,
+                        start_time=float(start_timestamp),
+                        end_time=float(end_timestamp),
+                        item=current_item,
+                        task=current_task,
+                        createdBy=request.user,
+                        activated=False,
+                        completed=True,
+                        dateCompleted=utc_now,
+                    )
+                    print('Item {} (itemID={}) saved'.format(task_id, item_id))
+                    item_saved = True
+
+                # It is not the current item, so check if the result for it
+                # exists
+                else:
+                    # Check if there is a score result for the submitted item
+                    # TODO: this could be a single query, would it be better or
+                    # more effective?
+                    current_result = None
+                    for result in block_results:
+                        if not result:
+                            continue
+                        if result.item.itemID == int(item_id) and result.item.id == int(task_id):
+                            current_result = result
+                            break
+
+                    # If already scored, update the result
+                    # TODO: consider adding new score, not updating the
+                    # previous one
+                    if current_result:
+                        prev_score = current_result.score
+                        current_result.score = score
+                        current_result.start_time=float(start_timestamp)
+                        current_result.end_time=float(end_timestamp)
+                        utc_now = datetime.utcnow().replace(tzinfo=utc)
+                        current_result.dateCompleted=utc_now
+                        current_result.save()
+                        _msg = 'Item {} (itemID={}) updated {}->{}' \
+                            .format(task_id, item_id, prev_score, score)
+                        LOGGER.debug(_msg)
+                        print(_msg)
+                        item_saved = True
+
+                    # If not yet scored, check if the submitted item is from
+                    # the expected document. Note that document ID is **not**
+                    # sufficient, because there can be multiple documents with
+                    # the same ID in the task.
+                    else:
+                        found_item = False
+                        for item in block_items:
+                            if item.itemID == int(item_id) and item.id == int(task_id):
+                                found_item = item
+                                break
+
+                        # The submitted item is from the same document as the
+                        # first unannotated item. It is fine, so save it
+                        if found_item:
+                            utc_now = datetime.utcnow().replace(tzinfo=utc)
+                            # pylint: disable=E1101
+                            DirectAssessmentDocumentResult.objects.create(
+                                score=score,
+                                start_time=float(start_timestamp),
+                                end_time=float(end_timestamp),
+                                item=found_item,
+                                task=current_task,
+                                createdBy=request.user,
+                                activated=False,
+                                completed=True,
+                                dateCompleted=utc_now,
+                            )
+                            _msg = 'Item {} (itemID={}) saved, although it was not the next item' \
+                                .format(task_id, item_id)
+                            LOGGER.debug(_msg)
+                            print(_msg)
+                            item_saved = True
+
+                        else:
+                            error_msg = (
+                                'We did not expect this item to be submitted. '
+                                'If you used backward/forward buttons in your browser, '
+                                'please reload the page and try again.'
+                            )
+
+                            _msg = 'Item ID {} does not match item {}, will not save!' \
+                                .format(item_id, current_item.itemID)
+                            LOGGER.debug(_msg)
+                            print(_msg)
+
+            # An item from a wrong document was submitted
+            else:
+                print(
+                    'Different document IDs: {} != {}, will not save!' \
+                    .format(current_item.documentID, document_id)
+                )
+
+                error_msg = (
+                    'We did not expect an item from this document to be submitted. '
+                    'If you used backward/forward buttons in your browser, '
+                    'please reload the page and try again.'
+                )
+
+    t3 = datetime.now()
+
+    # Get all items from the document that the first unannotated item in the
+    # task belongs to, and collect some additional statistics
+    (
+        current_item,
+        completed_items,
+        completed_blocks,
+        completed_items_in_block,
+        block_items,
+        block_results,
+        total_blocks,
+    ) = current_task.next_document_for_user(request.user)
+
+    if not current_item:
+        LOGGER.info('No current item detected, redirecting to dashboard')
+        return redirect('dashboard')
+
+    # Get item scores from the latest corresponding results
+    block_scores = []
+    for item, result in zip(block_items, block_results):
+        item_scores = {
+            'completed': bool(result and result.score > -1),
+            'current_item': bool(item.id == current_item.id),
+            'score': result.score if result else -1,
+        }
+        block_scores.append(item_scores)
+
+    # completed_items_check = current_task.completed_items_for_user(
+    #     request.user)
+    _msg = 'completed_items=%s, completed_blocks=%s'
+    LOGGER.info(_msg, completed_items, completed_blocks)
+
+    source_language = current_task.marketSourceLanguage()
+    target_language = current_task.marketTargetLanguage()
+
+    t4 = datetime.now()
+
+    reference_label = 'Source text'
+    candidate_label = 'Candidate translation'
+
+    priming_question_texts = [
+        'Below you see a document with {0} sentences in {1} '
+        'and their corresponding candidate translations in {2}. '
+        'Score each candidate translation in the document context, answering the question: ' \
+            .format(len(block_items), source_language, target_language),
+
+        'How accurately does the candidate text (right column, in bold) convey '
+        'the original semantics of the source text (left column) in the document context? ',
+
+        'You may revisit already scored sentences and update their scores at any time '
+        'by clicking at a source text.'
+    ]
+    document_question_texts = [
+        'Please score the document translation above answering the question '
+        '(you can score the entire document only after scoring all previous sentences):',
+
+        'How accurately does the <strong>entire</strong> candidate document in '
+        '{0} (right column) convey '
+        'the original semantics of the source document in {1} (left column)? '.format(target_language, source_language)
+    ]
+
+    # A part of context used in responses to both Ajax and standard POST
+    # requests
+    context = {
+        'active_page': 'direct-assessment-document',
+        'item_id': current_item.itemID,
+        'task_id': current_item.id,
+        'document_id': current_item.documentID,
+        'completed_blocks': completed_blocks,
+        'total_blocks': total_blocks,
+        'items_left_in_block': len(block_items) - completed_items_in_block,
+        'source_language': source_language,
+        'target_language': target_language,
+        'debug_times': (t2 - t1, t3 - t2, t4 - t3, t4 - t1),
+        'template_debug': 'debug' in request.GET,
+        'campaign': campaign.campaignName,
+        'datask_id': current_task.id,
+        'trusted_user': current_task.is_trusted_user(request.user),
+    }
+
+    if ajax:
+        ajax_context = { 'saved': item_saved, 'error_msg': error_msg }
+        context.update(ajax_context)
+        context.update(BASE_CONTEXT)
+        return JsonResponse(context)  # Sent response to the Ajax POST request
+
+    page_context = {
+        'items': zip(block_items, block_scores),
+        'reference_label': reference_label,
+        'candidate_label': candidate_label,
+        'priming_question_texts': priming_question_texts,
+        'document_question_texts': document_question_texts,
+    }
+    context.update(page_context)
+    context.update(BASE_CONTEXT)
+
+    return render(
+        request, 'EvalView/direct-assessment-document.html', context
+    )
 
 
 # pylint: disable=C0103,C0330
@@ -566,6 +1068,15 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'Rendering direct assessment document view for user "%s".',
         request.user.username or "Anonymous",
     )
+    if not current_item:
+        LOGGER.info('No current item detected, redirecting to dashboard')
+        return redirect('dashboard')
+
+    # completed_items_check = current_task.completed_items_for_user(
+    #     request.user)
+    completed_blocks = int(completed_items / 10)
+    _msg = 'completed_items=%s, completed_blocks=%s'
+    LOGGER.info(_msg, completed_items, completed_blocks)
 
     current_task = None
 
@@ -1285,6 +1796,8 @@ def pairwise_assessment(request, code=None, campaign_name=None):
             'the original semantics of the bolded source text above?'
         )
 
+    candidate1_text, candidate2_text = current_item.target_texts_with_diffs()
+
     context = {
         'active_page': 'pairwise-assessment',
         'reference_label': reference_label,
@@ -1292,9 +1805,9 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         'context_left': current_item.context_left(),
         'context_right': current_item.context_right(),
         'candidate_label': candidate1_label,
-        'candidate_text': current_item.target1Text,
+        'candidate_text': candidate1_text,
         'candidate2_label': candidate2_label,
-        'candidate2_text': current_item.target2Text,
+        'candidate2_text': candidate2_text,
         'priming_question_text': priming_question_text,
         'item_id': current_item.itemID,
         'task_id': current_item.id,
@@ -1312,3 +1825,242 @@ def pairwise_assessment(request, code=None, campaign_name=None):
     context.update(BASE_CONTEXT)
 
     return render(request, 'EvalView/pairwise-assessment.html', context)
+
+
+# pylint: disable=C0103,C0330
+@login_required
+def data_assessment(request, code=None, campaign_name=None):
+    """
+    Direct data assessment annotation view.
+    """
+    t1 = datetime.now()
+
+    campaign = None
+    if campaign_name:
+        campaign = Campaign.objects.filter(campaignName=campaign_name)
+        if not campaign.exists():
+            _msg = (
+                'No campaign named "%s" exists, redirecting to dashboard'
+            )
+            LOGGER.info(_msg, campaign_name)
+            return redirect('dashboard')
+
+        campaign = campaign[0]
+
+    LOGGER.info(
+        'Rendering direct assessment view for user "%s".',
+        request.user.username or "Anonymous",
+    )
+
+    current_task = None
+
+    # Try to identify TaskAgenda for current user.
+    agendas = TaskAgenda.objects.filter(user=request.user)
+
+    if campaign:
+        agendas = agendas.filter(campaign=campaign)
+
+    for agenda in agendas:
+        LOGGER.info('Identified work agenda %s', agenda)
+
+        tasks_to_complete = []
+        for serialized_open_task in agenda.serialized_open_tasks():
+            open_task = serialized_open_task.get_object_instance()
+
+            # Skip tasks which are not available anymore
+            if open_task is None:
+                continue
+
+            if open_task.next_item_for_user(request.user) is not None:
+                current_task = open_task
+                if not campaign:
+                    campaign = agenda.campaign
+            else:
+                tasks_to_complete.append(serialized_open_task)
+
+        modified = False
+        for task in tasks_to_complete:
+            modified = agenda.complete_open_task(task) or modified
+
+        if modified:
+            agenda.save()
+
+    if not current_task and agendas.count() > 0:
+        LOGGER.info('Work agendas completed, redirecting to dashboard')
+        LOGGER.info('- code=%s, campaign=%s', code, campaign)
+        return redirect('dashboard')
+
+    # If language code has been given, find a free task and assign to user.
+    if not current_task:
+        current_task = DataAssessmentTask.get_task_for_user(
+            user=request.user
+        )
+
+    if not current_task:
+        if code is None or campaign is None:
+            LOGGER.info(
+                'No current task detected, redirecting to dashboard'
+            )
+            LOGGER.info('- code=%s, campaign=%s', code, campaign)
+            return redirect('dashboard')
+
+        LOGGER.info(
+            'Identifying next task for code "%s", campaign="%s"',
+            code,
+            campaign,
+        )
+        next_task = DataAssessmentTask.get_next_free_task_for_language(
+            code, campaign, request.user
+        )
+
+        if next_task is None:
+            LOGGER.info('No next task detected, redirecting to dashboard')
+            return redirect('dashboard')
+
+        next_task.assignedTo.add(request.user)
+        next_task.save()
+
+        current_task = next_task
+
+    if current_task:
+        if not campaign:
+            campaign = current_task.campaign
+
+        elif campaign.campaignName != current_task.campaign.campaignName:
+            _msg = (
+                'Incompatible campaign given, using item campaign instead!'
+            )
+            LOGGER.info(_msg)
+            campaign = current_task.campaign
+
+    t2 = datetime.now()
+    if request.method == "POST":
+        score = request.POST.get('score', None)
+        rank = request.POST.get('rank', None)          # TODO: add to the model
+        item_id = request.POST.get('item_id', None)
+        task_id = request.POST.get('task_id', None)
+        start_timestamp = request.POST.get('start_timestamp', None)
+        end_timestamp = request.POST.get('end_timestamp', None)
+
+        _msg='score={} rank={} item_id={}'.format(score, rank, item_id)
+        LOGGER.info(_msg)
+        print(_msg)
+
+        if score is None:
+            print('No score provided, will no save!')
+        elif rank is None:
+            print('No rank provided, will no save!')
+        elif item_id and start_timestamp and end_timestamp:
+            duration = float(end_timestamp) - float(start_timestamp)
+            LOGGER.debug(float(start_timestamp))
+            LOGGER.debug(float(end_timestamp))
+            LOGGER.info(
+                'start=%s, end=%s, duration=%s',
+                start_timestamp,
+                end_timestamp,
+                duration,
+            )
+
+            current_item = current_task.next_item_for_user(request.user)
+            if current_item.itemID != int(item_id) \
+                    or current_item.id != int(task_id):
+                _msg = 'Item ID %s does not match item %s, will not save!'
+                LOGGER.debug(_msg, item_id, current_item.itemID)
+
+            else:
+                utc_now = datetime.utcnow().replace(tzinfo=utc)
+
+                # pylint: disable=E1101
+                DataAssessmentResult.objects.create(
+                    score=score,
+                    rank=rank,
+                    start_time=float(start_timestamp),
+                    end_time=float(end_timestamp),
+                    item=current_item,
+                    task=current_task,
+                    createdBy=request.user,
+                    activated=False,
+                    completed=True,
+                    dateCompleted=utc_now,
+                )
+
+    t3 = datetime.now()
+
+    current_item, completed_items = current_task.next_item_for_user(
+        request.user, return_completed_items=True
+    )
+    if not current_item:
+        LOGGER.info('No current item detected, redirecting to dashboard')
+        return redirect('dashboard')
+
+    completed_blocks = int(completed_items / 10)
+    _msg = 'completed_items=%s, completed_blocks=%s'
+    LOGGER.info(_msg, completed_items, completed_blocks)
+
+    source_language = current_task.marketSourceLanguage()
+    target_language = current_task.marketTargetLanguage()
+
+    t4 = datetime.now()
+
+    source_label = 'Source text'
+    target_label = 'Translation'
+    top_question_text = [
+        'You are presented a fragment of a document in {} and {}. ' \
+            .format(source_language, target_language),
+
+        'Please judge the quality of the translations (taking in to '
+        'account aspects like adequacy, fluency, writing ability, '
+        'orthography, style, misalignments, etc.) on a scale from '
+        'poor (left) to perfect (right).'
+    ]
+    score_question_text = [
+        'Question #1: '
+        'What is the quality of the translations, taking in to '
+        'account aspects like adequacy, fluency, writing ability, '
+        'orthography, style, misalignments, etc.?'
+    ]
+    rank_question_text = [
+        'Question #2: '
+        'Do you think any part of the translated text (left or right) '
+        'has been created by machine translation rather than written '
+        'by a human?'
+    ]
+
+    # There should be exactly 4 ranks, otherwise change 'col-sm-3' in the HTML view.
+    # Each tuple includes radio label and radio value.
+    ranks = [
+        ('Definitely machine-translated', 1),
+        ('Possibly machine-translated', 2),
+        ('Possibly human-written', 3),
+        ('Definitely human-written', 4),
+    ]
+
+    parallel_data = list(current_item.get_sentence_pairs())
+
+    context = {
+        'active_page': 'data-assessment',
+        'source_label': source_label,
+        'target_label': target_label,
+        'parallel_data': parallel_data,
+        'top_question_text': top_question_text,
+        'score_question_text': score_question_text,
+        'rank_question_text': rank_question_text,
+        'ranks': ranks,
+        'item_id': current_item.itemID,
+        'task_id': current_item.id,
+        'document_domain': current_item.documentDomain,
+        'source_url': current_item.sourceURL,
+        'target_url': current_item.targetURL,
+        'completed_blocks': completed_blocks,
+        'items_left_in_block': 10 - (completed_items - completed_blocks * 10),
+        'source_language': source_language,
+        'target_language': target_language,
+        'debug_times': (t2 - t1, t3 - t2, t4 - t3, t4 - t1),
+        'show_debug': 'debug' in request.GET,
+        'campaign': campaign.campaignName,
+        'datask_id': current_task.id,
+        'trusted_user': current_task.is_trusted_user(request.user),
+    }
+    context.update(BASE_CONTEXT)
+
+    return render(request, 'EvalView/data-assessment.html', context)

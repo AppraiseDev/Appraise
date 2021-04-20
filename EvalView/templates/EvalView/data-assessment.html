@@ -1,0 +1,280 @@
+{% extends "Dashboard/base.html" %}
+{% load static %}
+
+{% block head %}
+<style>
+#slider .ui-slider-range { background: #729fcf; }
+#slider .ui-slider-handle { border-color: #729fcf; }
+.slider-box { font-size:16px; }
+.slider-box .slider-grid { font-size:14px; width:100%; color:#777; }
+#slider:hover { cursor:pointer; }
+
+.radio-box { width:100%; font-size:110%; color:#777; }
+.radio-label { }
+
+.quotelike { border-left: 5px solid #eee; }
+.quotelike .row { font-size: 16px; margin: 0; padding: 5px 20px; }
+
+.question-box { margin:20px 0 10px 0; }
+.question-box p { font-size: 120%; margin: 10px 0; font-style: italic; color: #31708f; }
+
+.item-box { margin-bottom: 10px; }
+.item-box:hover { background: #f0f0f0; }
+.item-box p { margin:0; }
+.item-odd { }
+.item-even { background-color:#f8f8f8; }
+
+.debug-box p { color:#333; }
+
+.action-box  { width:100%; margin-top: 20px; }
+.action-box td { padding-bottom:10px; }
+.button-reset { background-color: #ddd; }
+.button-option { background-color: #f5f5f5; font-style:normal; }
+</style>
+
+<link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}">
+<script src="{% static 'EvalView/js/jquery-ui.min.js' %}"></script>
+<script src="{% static 'EvalView/js/js.cookie-2.2.1.min.js' %}"></script>
+<script>
+    <!--
+
+String.prototype.rot13 = function() {
+    return this.replace(/[a-zA-Z]/g, function(c) {
+        return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
+    });
+};
+
+$(document).ready(function() {
+    $('input[name="start_timestamp"]').val(Date.now()/1000.0);
+    $('#slider').slider({orientation: "horizontal", range: "min", change: update_score});
+    $('input[name="score"]').val(-1);
+
+    if (Cookies.get('font-size') == 'small') {
+        $('.item-box p').addClass('small');
+    }
+
+    $('#button-fontsize').click(toggle_font_size);
+    //$('#button-horizontal').click(do_nothing);
+    //$('#button-vertical').click(do_nothing);
+});
+
+function toggle_font_size(e) {
+    e.preventDefault();
+    if (Cookies.get('font-size') == 'small') {
+        $('.item-box p').removeClass('small');
+        Cookies.set('font-size', 'default');
+    } else {
+        $('.item-box p').addClass('small');
+        Cookies.set('font-size', 'small');
+    }
+}
+
+function add_end_timestamp() {
+    $('input[name="end_timestamp"]').val(Date.now()/1000.0);
+}
+
+function reset_form() {
+    // reset time
+    $('input[name="start_timestamp"]').val(Date.now()/1000.0);
+    // reset score
+    $('#slider').slider('option', 'value', 0);
+    $('input[name="score"]').val(-1);
+    // reset rank
+    $('input[name="rank"]').attr('checked',false);
+}
+
+function validate_form() {
+    var score = $('input[name="score"]').val();
+    var radio = $('input[name="rank"]:checked');
+    if (score == -1 || radio.length == 0) {
+        alert('Please score the given document translation and decide if it is human or machine translated. Thanks!');
+        return false;
+    }
+    return true;
+}
+
+function update_score() {
+    var new_score = $('#slider').slider('value');
+    $('input[name="score"]').val(new_score);
+}
+-->
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+<form action="{{action_url}}" method="post" onsubmit="javascript:add_end_timestamp();">
+    {% csrf_token %}
+
+    <div class="alert alert-info">
+        <table style="width:100%">
+            <tr>
+                <td style="width:33%;text-align:left;">
+                    <strong id="task_progress">
+                        {% if trusted_user %}
+                        <span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span>
+                        {% endif %}
+                        {{completed_blocks}}/10 blocks, {{items_left_in_block}} items left in block
+                    </strong>
+                </td>
+                <td style="width:33%;text-align:center;">
+                    <strong>{{campaign}} #{{datask_id}}:Segment #{{item_id}}</strong>
+                </td>
+                <td style="width:33%;text-align:right;">
+                    <strong>{% if source_language %}{{source_language}} &rarr; {% endif %}{{target_language}}</strong>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <input name="end_timestamp" type="hidden" value="" />
+    <input name="item_id" type="hidden" value="{{item_id}}" />
+    <input name="task_id" type="hidden" value="{{task_id}}" />
+    <input name="start_timestamp" type="hidden" value="" />
+    <input name="score" type="hidden" value="-1" />
+    <!--
+        <input name="rank" type="hidden" value="0" />
+    -->
+
+    <div class="question-box">
+        {% if top_question_text %}
+        <div class="row">
+            <div class="col-sm-12">
+                {% for text in top_question_text %}
+                <p>{{ text|safe }}</p>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="control-box pull-right">
+                    <button id="button-fontsize" class="btn button-option btn-default btn-sm">
+                        <span class="glyphicon glyphicon-text-size"></span>
+                        Change font size
+                    </button>
+                    <!--
+                        <button id="button-horizontal" class="btn button-option btn-default btn-sm">
+                        <span class="glyphicon glyphicon-resize-horizontal"></span>
+                        Horizontal view
+                        </button>
+                        <button id="button-vertical" class="btn button-option btn-default btn-sm">
+                        <span class="glyphicon glyphicon-resize-vertical"></span>
+                        Vertical view
+                        </button>
+                    -->
+                </div>
+                {% if show_debug %}
+                <div class="debug-box pull-left">
+                    <p>
+                    <small>
+                        URLs: {{ document_domain|safe }} /
+                        <a href="{{ source_url }}" target="_blank">{{ source_url }}</a> /
+                        <a href="{{ target_url }}" target="_blank">{{ target_url }}</a>
+                    </small>
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% for source_text, target_text in parallel_data %}
+    <div class="item-box item-{% cycle 'odd' 'even' %} quotelike">
+        <div class="row">
+            <div class="col-sm-6">
+                <span title="Source sentence #{{ loop.index|add:"1" }}">
+                    <p>{{ source_text|safe }}</p>
+                </span>
+            </div>
+            <div class="col-sm-6">
+                <span title="Target sentence #{{ loop.index|add:"1" }}">
+                    <p>{{ target_text|safe }}</p>
+                </span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% if score_question_text %}
+    <div class="question-box">
+        <div class="row">
+            <div class="col-sm-12">
+                {% for text in score_question_text %}
+                <p>{{ text|safe }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="slider-box">
+        <div class="row">
+            <div class="col-sm-12">
+                <div id="slider"></div>
+                <table class="slider-grid">
+                    <tr>
+                        <td style="width:20%;text-align: right;"><small>&larr; Not at all</small></td>
+                        <td style="width:5%;text-align: right;">|</td>
+                        <td style="width:25%;text-align: right;">|</td>
+                        <td style="width:25%;text-align: right;">|</td>
+                        <td style="width:5%;text-align: right;"></td>
+                        <td style="width:20%;text-align: left;"><small>Perfectly &rarr;</small></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% if rank_question_text %}
+    <div class="question-box">
+        <div class="row">
+            <div class="col-sm-12">
+                {% for text in rank_question_text %}
+                <p>{{ text|safe }}</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="radio-box">
+        <div class="row">
+            {% for rank_label, rank_value in ranks %}
+            <div class="col-sm-3">
+                <p>
+                <label class="radio-inline">
+                    <input type="radio" name="rank" id="radio-{{ loop.index }}" value="{{ rank_value }}">
+                    <span class="radio-label">{{ rank_label }}</span>
+                </label>
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <table class="action-box">
+        <tr>
+            <td style="width:70%;text-align:left;">
+                <button accesskey="2"
+                        class="btn button-reset"
+                        onclick="javascript:reset_form();"
+                        type="reset">
+                    <i class="icon-repeat"></i> Reset</button>
+            </td>
+            <td style="width:30%;text-align:right;">
+                <button accesskey="1"
+                        class="btn button-next btn-primary"
+                        name="submit_button"
+                        onclick="javascript:return validate_form();"
+                        type="submit"
+                        value="SUBMIT">
+                    <i class="icon-ok-sign icon-white"></i> Submit</button>
+            </td>
+        </tr>
+    </table>
+
+</form>
+
+{% endblock %}

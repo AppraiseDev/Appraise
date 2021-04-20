@@ -74,6 +74,22 @@ urlpatterns = [
         name='dashboard'),
 
     url(
+        r'^data-assessment/$',
+        evalview_views.data_assessment,
+        name='data-assessment'),
+
+    url(
+        r'^data-assessment/(?P<code>[a-z]{3})/$',
+        evalview_views.data_assessment,
+        name='data-assessment'),
+
+    url(
+        r'^data-assessment/(?P<code>[a-z]{3})/'
+        r'(?P<campaign_name>[a-zA-Z0-9]+)/$',
+        evalview_views.data_assessment,
+        name='data-assessment'),
+
+    url(
         r'^direct-assessment/$',
         evalview_views.direct_assessment,
         name='direct-assessment'),

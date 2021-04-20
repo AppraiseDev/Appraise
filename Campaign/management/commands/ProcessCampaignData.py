@@ -5,6 +5,7 @@ from Campaign.models import Campaign
 from Campaign.utils import _identify_super_users
 from Campaign.utils import CAMPAIGN_TASK_TYPES
 from EvalData.models import (
+    DataAssessmentTask,
     DirectAssessmentTask,
     DirectAssessmentContextTask,
     DirectAssessmentDocumentTask,

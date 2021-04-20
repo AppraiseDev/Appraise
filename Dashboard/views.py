@@ -17,6 +17,8 @@ from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Dashboard.models import UserInviteToken, LANGUAGE_CODES_AND_NAMES
 from EvalData.models import (
+    DataAssessmentTask,
+    DataAssessmentResult,
     DirectAssessmentTask,
     DirectAssessmentResult,
     DirectAssessmentContextTask,
@@ -63,6 +65,12 @@ TASK_DEFINITIONS = (
         PairwiseAssessmentTask,
         PairwiseAssessmentResult,
         'pairwise-assessment',
+    ),
+    (
+        'data',
+        DataAssessmentTask,
+        DataAssessmentResult,
+        'data-assessment',
     ),
 )
 
