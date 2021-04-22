@@ -895,7 +895,7 @@ class PairwiseAssessmentResult(BaseMetadata):
             item_types += ('BAD', 'REF')
 
         qs = cls.objects.filter(completed=True, item__itemType__in=item_types)
-        print('Found completed items: {0}'.format(len(qs)))
+#        print('Found completed items: {0}'.format(len(qs)))
 
         # If campaign ID is given, only return results for this campaign.
         if campaign_id:
@@ -922,27 +922,36 @@ class PairwiseAssessmentResult(BaseMetadata):
               'end_time'                    # End time
             )
 
-        for result in qs.values_list(*attributes_to_extract):
-            user_id = result[0]
+        for _result in qs.values_list(*attributes_to_extract):
+            results = [
+              (_result[0], _result[1], _result[3], _result[4], _result[5], _result[6], _result[7], *_result[9:]),
+              (_result[0], _result[2], _result[3], _result[4], _result[5], _result[6], _result[8], *_result[9:]),
+            ]
+            for result in results:
+                if result[1] is None:
+                    continue
 
-            _fixed_ids = result[1].replace(
-              'Transformer+R2L', 'Transformer_R2L'
-            )
-            _fixed_ids = _fixed_ids.replace(
-              'R2L+Back', 'R2L_Back'
-            )
+                user_id = result[0]
 
-            if expand_multi_sys:
-                system_ids = _fixed_ids.split('+')
+                _fixed_ids = result[1].replace(
+                  'Transformer+R2L', 'Transformer_R2L'
+                )
+                _fixed_ids = _fixed_ids.replace(
+                  'R2L+Back', 'R2L_Back'
+                )
 
-                for system_id in system_ids:
+
+                if expand_multi_sys:
+                    system_ids = _fixed_ids.split('+')
+
+                    for system_id in system_ids:
+                        data = (user_id,) + (system_id,) + result[2:]
+                        system_data.append(data)
+
+                else:
+                    system_id = _fixed_ids
                     data = (user_id,) + (system_id,) + result[2:]
                     system_data.append(data)
-
-            else:
-                system_id = _fixed_ids
-                data = (user_id,) + (system_id,) + result[2:]
-                system_data.append(data)
 
         return system_data
 
