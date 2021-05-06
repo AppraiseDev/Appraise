@@ -1,4 +1,7 @@
 # pylint: disable=C0103,C0111,C0330,E1101
+import csv
+import sys
+
 from django.core.management.base import BaseCommand, CommandError
 
 from Campaign.models import Campaign
@@ -25,9 +28,6 @@ CAMPAIGN_TASK_TYPES = (
     (MultiModalAssessmentTask, MultiModalAssessmentResult),
     (PairwiseAssessmentTask, PairwiseAssessmentResult),
 )
-
-import csv
-import sys
 
 
 class Command(BaseCommand):
