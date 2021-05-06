@@ -1,4 +1,7 @@
 # pylint: disable=C0103,C0111,C0330,E1101
+import csv
+import sys
+
 from django.core.management.base import BaseCommand, CommandError
 
 from Campaign.models import Campaign
@@ -58,6 +61,7 @@ class Command(BaseCommand):
         except LookupError as error:
             raise CommandError(error)
 
+        csv_writer = csv.writer(sys.stdout, quoting=csv.QUOTE_MINIMAL)
         system_scores = []
         for task_cls, result_cls in CAMPAIGN_TASK_TYPES:
             qs_name = task_cls.__name__.lower()
@@ -76,4 +80,4 @@ class Command(BaseCommand):
                 system_scores.extend(_scores)
 
         for system_score in system_scores:
-            print(','.join([str(x) for x in system_score]))
+            csv_writer.writerow([str(x) for x in system_score])
