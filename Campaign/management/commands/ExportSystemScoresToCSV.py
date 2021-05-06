@@ -41,6 +41,11 @@ class Command(BaseCommand):
             action='store_true',
             help='Include completed tasks only in the computation',
         )
+        parser.add_argument(
+            '--batch-info',
+            action='store_true',
+            help='Export batch and item IDs to help matching the scores to items in the JSON batches',
+        )
         # TODO: add argument to specify batch user
 
     def handle(self, *args, **options):
@@ -65,7 +70,8 @@ class Command(BaseCommand):
 
             if qs_obj and qs_obj.exists():
                 _scores = result_cls.get_system_data(
-                    campaign.id, extended_csv=True
+                    campaign.id, extended_csv=True,
+                    add_batch_info=options['batch_info']
                 )
                 system_scores.extend(_scores)
 

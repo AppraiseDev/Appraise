@@ -887,7 +887,14 @@ class PairwiseAssessmentResult(BaseMetadata):
 
 
     @classmethod
-    def get_system_data(cls, campaign_id, extended_csv=False, expand_multi_sys=True, include_inactive=False):
+    def get_system_data(
+        cls,
+        campaign_id,
+        extended_csv=False,
+        expand_multi_sys=True,
+        include_inactive=False,
+        add_batch_info=False,
+    ):
         system_data = []
 
         item_types = ('TGT', 'CHK')
@@ -918,8 +925,14 @@ class PairwiseAssessmentResult(BaseMetadata):
 
         if extended_csv:
             attributes_to_extract = attributes_to_extract + (
-              'start_time',                 # Start time
-              'end_time'                    # End time
+              'start_time',     # Start time
+              'end_time'        # End time
+            )
+
+        if add_batch_info:
+            attributes_to_extract = attributes_to_extract + (
+              'task__batchNo',  # Batch number
+              'item_id'         # Real item ID
             )
 
         for _result in qs.values_list(*attributes_to_extract):
@@ -927,29 +940,27 @@ class PairwiseAssessmentResult(BaseMetadata):
               (_result[0], _result[1], _result[3], _result[4], _result[5], _result[6], _result[7], *_result[9:]),
               (_result[0], _result[2], _result[3], _result[4], _result[5], _result[6], _result[8], *_result[9:]),
             ]
+
+            if add_batch_info:  # Add index of the target segment
+                results[0] = (*results[0], 0)
+                results[1] = (*results[1], 1)
+
             for result in results:
-                if result[1] is None:
+                if result[1] is None:   # Ignore if this was an item with only one target segment
                     continue
 
                 user_id = result[0]
-
-                _fixed_ids = result[1].replace(
-                  'Transformer+R2L', 'Transformer_R2L'
-                )
-                _fixed_ids = _fixed_ids.replace(
-                  'R2L+Back', 'R2L_Back'
-                )
-
+                sys_ids = result[1]
 
                 if expand_multi_sys:
-                    system_ids = _fixed_ids.split('+')
+                    system_ids = sys_ids.split('+')
 
                     for system_id in system_ids:
                         data = (user_id,) + (system_id,) + result[2:]
                         system_data.append(data)
 
                 else:
-                    system_id = _fixed_ids
+                    system_id = sys_ids
                     data = (user_id,) + (system_id,) + result[2:]
                     system_data.append(data)
 

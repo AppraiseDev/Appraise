@@ -769,7 +769,14 @@ class DirectAssessmentContextResult(BaseMetadata):
 
 
     @classmethod
-    def get_system_data(cls, campaign_id, extended_csv=False, expand_multi_sys=True, include_inactive=False):
+    def get_system_data(
+        cls,
+        campaign_id,
+        extended_csv=False,
+        expand_multi_sys=True,
+        include_inactive=False,
+        add_batch_info=False,
+    ):
         system_data = []
 
         item_types = ('TGT', 'CHK')
@@ -801,6 +808,12 @@ class DirectAssessmentContextResult(BaseMetadata):
             attributes_to_extract = attributes_to_extract + (
               'start_time',                 # Start time
               'end_time'                    # End time
+            )
+
+        if add_batch_info:
+            attributes_to_extract = attributes_to_extract + (
+              'task__batchNo',  # Batch number
+              'item_id'         # Real item ID
             )
 
         for result in qs.values_list(*attributes_to_extract):
