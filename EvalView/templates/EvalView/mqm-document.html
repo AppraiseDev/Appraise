@@ -632,9 +632,17 @@ function _show_error_box(item_box, msg) {
                 <div class="divider"></div>
                 <div class="header">
                     <i class="tags icon"></i>
-                    Tag Label
+                    Error category
                 </div>
                 <div class="scrolling menu">
+                    {% for category_id, category in mqm_error_categories.items %}
+                    <div name="{{ category_id }}" class="item">
+                        <div class="ui {{ category.color }} empty circular label"></div>
+                        {{ category.name }}
+                    </div>
+                    {% endfor %}
+
+                    <!--
                     <div name="Requirement" class="item">
                         <div class="ui orange empty circular label"></div>
                         Requirement
@@ -647,6 +655,7 @@ function _show_error_box(item_box, msg) {
                         <div class="ui blue empty circular label"></div>
                         Internal
                     </div>
+                    -->
                 </div>
             </div>
         </div>

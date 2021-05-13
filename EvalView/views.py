@@ -1004,6 +1004,53 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'the original semantics of the source document in {1} (left column)? '.format(target_language, source_language)
     ]
 
+    MQM_ERROR_CATEGORIES = {
+        "accuracy": {
+            "name": "Accuracy",
+            "color": "orange",
+        },
+        "fluency": {
+            "name": "Fluency",
+            "color": "teal",
+        },
+        "terminology": {
+            "name": "Terminology",
+            "color": "blue",
+        },
+        "style": {
+            "name": "Style",
+            "color": "yellow",
+        },
+        "locale": {
+            "name": "Locale convention",
+            "color": "green",
+        },
+        "other": {
+            "name": "Other",
+            "color": "grey",
+        },
+        "source": {
+            "name": "Source error",
+            "color": "pink",
+        },
+        "nontranslation": {
+            "name": "Non-translation",
+            "color": "red",
+        },
+    }
+
+    MQM_ERROR_SEVERITIES = {
+        "major": {
+            "name": "Major",
+        },
+        "minor": {
+            "name": "Minor",
+        },
+        "neutral": {
+            "name": "Neutral",
+        },
+    }
+
     # A part of context used in responses to both Ajax and standard POST
     # requests
     context = {
@@ -1021,6 +1068,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'campaign': campaign.campaignName,
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
+        'mqm_error_categories': MQM_ERROR_CATEGORIES,
+        'mqm_error_severities': MQM_ERROR_SEVERITIES,
     }
 
     if ajax:

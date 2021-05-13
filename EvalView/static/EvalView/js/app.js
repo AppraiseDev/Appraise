@@ -78,12 +78,25 @@ var App = {
         renderSavedAnnotations: function(annotations) {
             var html = $.templates("#annotations_tmpl").render({
                 annotations: annotations.map((item) => {
-                    if (item.type === "Requirement") {
+                    // TODO: make this configurable!
+                    if (item.type === "accuracy") {
                         item.color = "orange";
-                    } else if (item.type === "Backlog") {
+                    } else if (item.type === "fluency") {
                         item.color = "teal";
-                    } else {
+                    } else if (item.type === "terminology") {
                         item.color = "blue";
+                    } else if (item.type === "style") {
+                        item.color = "yellow";
+                    } else if (item.type === "locale") {
+                        item.color = "green";
+                    } else if (item.type === "other") {
+                        item.color = "grey";
+                    } else if (item.type === "source") {
+                        item.color = "pink";
+                    } else if (item.type === "nontranslation") {
+                        item.color = "red";
+                    } else {
+                        item.color = "olive";
                     }
 
                     return item;
