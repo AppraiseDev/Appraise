@@ -1068,15 +1068,6 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'Rendering direct assessment document view for user "%s".',
         request.user.username or "Anonymous",
     )
-    if not current_item:
-        LOGGER.info('No current item detected, redirecting to dashboard')
-        return redirect('dashboard')
-
-    # completed_items_check = current_task.completed_items_for_user(
-    #     request.user)
-    completed_blocks = int(completed_items / 10)
-    _msg = 'completed_items=%s, completed_blocks=%s'
-    LOGGER.info(_msg, completed_items, completed_blocks)
 
     current_task = None
 
