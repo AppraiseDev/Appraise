@@ -1,4 +1,4 @@
-var App = {
+var MQM = {
     elements: {
         tags: null
     },
@@ -19,15 +19,15 @@ var App = {
     },
     helpers: {
         resetControls: function() {
-            App.elements.tags.dropdown("clear").dropdown("set text", "Select Tag");
+            MQM.elements.tags.dropdown("clear").dropdown("set text", "Select Tag");
             $("#mqm-text").text("");
         },
         showBackdrop: function(isShown) {
             $(".backdrop")[isShown ? "show" : "hide"]();
         },
         showError: function(error) {
-            if (!App.variables.messageDisplayed) {
-                App.variables.messageDisplayed = true;
+            if (!MQM.variables.messageDisplayed) {
+                MQM.variables.messageDisplayed = true;
 
                 $("#error_message").find(".header").html(error.heading);
                 $("#error_message").find(".message").html(error.message);
@@ -36,7 +36,7 @@ var App = {
 
                 window.setTimeout(
                     function() {
-                        App.variables.messageDisplayed = false;
+                        MQM.variables.messageDisplayed = false;
 
                         $("#error_message").transition("fly up");
                     },
@@ -60,8 +60,8 @@ var App = {
             $.Annotator.api.tagActiveAnnotation(tagName);
         },
         cancelAnnotation: function() {
-            App.helpers.resetControls();
-            App.helpers.showBackdrop(false);
+            MQM.helpers.resetControls();
+            MQM.helpers.showBackdrop(false);
 
             $.Annotator.api.destroyActiveAnnotation();
         },
@@ -69,10 +69,10 @@ var App = {
             var result = $.Annotator.api.saveActiveAnnotation();
 
             if (!result.isSaved) {
-                App.helpers.showError(App.constants.errors[result.errorCode]);
+                MQM.helpers.showError(MQM.constants.errors[result.errorCode]);
             } else {
-                App.helpers.resetControls();
-                App.helpers.showBackdrop(false);
+                MQM.helpers.resetControls();
+                MQM.helpers.showBackdrop(false);
             }
         },
         renderSavedAnnotations: function(annotations) {
@@ -109,7 +109,7 @@ var App = {
             var remainingAnnotations =
                 $.Annotator.api.deleteAnnotation(annotationId);
 
-            App.handlers.renderSavedAnnotations(remainingAnnotations);
+            MQM.handlers.renderSavedAnnotations(remainingAnnotations);
         }
     },
     init: function() {
@@ -118,27 +118,27 @@ var App = {
             minimumCharacters: 1,
             makeTextEditable: true,
             onannotationsaved: function() {
-                App.handlers.renderSavedAnnotations(this.annotations);
+                MQM.handlers.renderSavedAnnotations(this.annotations);
             },
             onselectioncomplete: function() {
-                App.handlers.fillNotes(this.innerText);
-                App.helpers.showBackdrop(true);
+                MQM.handlers.fillNotes(this.innerText);
+                MQM.helpers.showBackdrop(true);
             },
             onerror: function() {
-                App.helpers.showError(App.constants.errors[this]);
+                MQM.helpers.showError(MQM.constants.errors[this]);
             }
         });
 
-        App.elements.tags = $(".ui.dropdown")
+        MQM.elements.tags = $(".ui.dropdown")
             .dropdown({
                 clearable: true,
                 direction: "upward",
                 onChange: function(value, text, $choice) {
                     if ($choice)
-                        App.handlers.applyTag($choice.attr("name"));
+                        MQM.handlers.applyTag($choice.attr("name"));
                 }
             });
     }
 };
 
-App.init();
+MQM.init();

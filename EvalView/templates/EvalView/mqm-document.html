@@ -617,7 +617,7 @@ function _show_error_box(item_box, msg) {
     <!--Notes-->
     <div class="">
         <label class="text-muted">Choose an error category and severity</label>
-        <p id="mqm-text" onchange="App.handlers.captureNotes( this )"></p>
+        <p id="mqm-text" onchange="MQM.handlers.captureNotes( this )"></p>
     </div>
     <!--Tags-->
     <div class="mqm-errors m-bottom_medium">
@@ -641,29 +641,14 @@ function _show_error_box(item_box, msg) {
                         {{ category.name }}
                     </div>
                     {% endfor %}
-
-                    <!--
-                    <div name="Requirement" class="item">
-                        <div class="ui orange empty circular label"></div>
-                        Requirement
-                    </div>
-                    <div name="Backlog" class="item">
-                        <div class="ui teal empty circular label"></div>
-                        Backlog
-                    </div>
-                    <div name="Internal" class="item">
-                        <div class="ui blue empty circular label"></div>
-                        Internal
-                    </div>
-                    -->
                 </div>
             </div>
         </div>
     </div>
     <!--Action Buttons-->
     <div class="field p-around_small m-bottom_medium">
-        <button class="ui right floated olive button" onclick="App.handlers.saveAnnotation();">Save</button>
-        <button class="ui left floated button" onclick="App.handlers.cancelAnnotation();">Cancel</button>
+        <button class="ui right floated olive button" onclick="MQM.handlers.saveAnnotation();">Save</button>
+        <button class="ui left floated button" onclick="MQM.handlers.cancelAnnotation();">Cancel</button>
     </div>
     <!--Placeholder-->
     <div class="field p-around_small m-bottom_medium">
@@ -682,7 +667,7 @@ function _show_error_box(item_box, msg) {
             <div class="mqm-label p-1">
                 <span class="ui {{:color}} tag label">{{:type}}</span>
                 {{:notes}}
-                <span class="float-right glyphicon glyphicon-remove" onclick="App.handlers.deleteAnnotation( '{{:id}}' )" />
+                <span class="float-right glyphicon glyphicon-remove" onclick="MQM.handlers.deleteAnnotation( '{{:id}}' )" />
             </div>
         </div>
     {{/for}}
@@ -696,7 +681,7 @@ function _show_error_box(item_box, msg) {
 <!--Optional (used for Semantic UI)-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
 <script src="{% static 'EvalView/js/annotator.js' %}"></script>
-<script src="{% static 'EvalView/js/app.js' %}"></script>
+<script src="{% static 'EvalView/js/mqm_app.js' %}"></script>
 <!--
 -->
 {% endblock %}
