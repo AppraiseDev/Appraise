@@ -47,6 +47,9 @@
 .button-reset { background-color: #ddd; }
 .button-setting { background-color: #f5f5f5; font-style:normal; }
 
+#mqm-text { font-size:100%; }
+.mqm-errors { padding: 5px 0; }
+
 /* Uncomment if ENABLE_UNRESTRICTED_ANNOTATION is set to false */
 /*.source-btn-toggle, .control-box { display:none; }*/
 </style>
@@ -427,7 +430,17 @@ function _show_error_box(item_box, msg) {
 
 {% endblock %}
 
+{% block prebody %}
+{% endblock %}
+
+
 {% block content %}
+
+<!--Error-->
+<div id="error_message" class="ui floating negative message" style="display: none">
+    <div class="header"></div>
+    <p class="message"></p>
+</div>
 
 <div class="alert alert-info">
     <table style="width:100%">
@@ -602,12 +615,12 @@ function _show_error_box(item_box, msg) {
 <!--Annotator Popover Contents-->
 <div id="annotate_settings" class="ui form raised segments" style="display: none">
     <!--Notes-->
-    <div class="required field p-around_small">
-        <label>Type some notes</label>
-        <textarea rows="5" onchange="App.handlers.captureNotes( this )"></textarea>
+    <div class="">
+        <label class="text-muted">Choose an error category and severity</label>
+        <p id="mqm-text" onchange="App.handlers.captureNotes( this )"></p>
     </div>
     <!--Tags-->
-    <div class="p-around_small m-bottom_medium">
+    <div class="mqm-errors m-bottom_medium">
         <div class="ui dropdown labeled icon fluid button">
             <i class="tag icon"></i>
             <span class="text">Select a Tag</span>
@@ -651,7 +664,7 @@ function _show_error_box(item_box, msg) {
 </div>
 
 <!--Backdrop-->
-<div class="ui dimmer page active backdrop" style="display: none"></div>
+<!--<div class="ui dimmer page active backdrop" style="display: none"></div>-->
 <!--Template-->
 <script id="annotations_tmpl" type="text/x-jsrender">
     {% verbatim %}

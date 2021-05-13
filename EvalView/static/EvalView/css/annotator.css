@@ -25,11 +25,10 @@ annotation[type=internal] {
 #annotate_settings {
     background: #FFF;
     border-radius: 4px;
-    color: white;
-    font-size: 13px;
     font-weight: bold;
     padding: 4px 8px;
     z-index: 2000;
+    max-width: 400px;
 }
 
 #annotate_settings[data-show] {

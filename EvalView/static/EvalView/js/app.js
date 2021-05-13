@@ -20,7 +20,7 @@ var App = {
     helpers: {
         resetControls: function() {
             App.elements.tags.dropdown("clear").dropdown("set text", "Select Tag");
-            $("textarea").val("");
+            $("#mqm-text").text("");
         },
         showBackdrop: function(isShown) {
             $(".backdrop")[isShown ? "show" : "hide"]();
@@ -47,10 +47,14 @@ var App = {
     },
     handlers: {
         fillNotes: function(selection) {
-            $("textarea").val(selection).trigger("change");
+            console.log("filling notes");
+            console.log(selection);
+            $("#mqm-text").text(selection).trigger("change");
         },
         captureNotes: function(text) {
-            $.Annotator.api.captureActiveAnnotationNotes(text.value);
+            console.log("capturing notes");
+            console.log(text);
+            $.Annotator.api.captureActiveAnnotationNotes(text.innerText);
         },
         applyTag: function(tagName) {
             $.Annotator.api.tagActiveAnnotation(tagName);
@@ -104,7 +108,7 @@ var App = {
                 App.handlers.renderSavedAnnotations(this.annotations);
             },
             onselectioncomplete: function() {
-                App.handlers.fillNotes(this.outerText);
+                App.handlers.fillNotes(this.innerText);
                 App.helpers.showBackdrop(true);
             },
             onerror: function() {
