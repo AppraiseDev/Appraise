@@ -48,7 +48,10 @@
 .button-setting { background-color: #f5f5f5; font-style:normal; }
 
 #mqm-text { font-size:100%; }
-.mqm-errors { padding: 5px 0; }
+.mqm-errors { padding:5px 0; }
+.mqm-label-delete { padding-left: 5px;  }
+.mqm-label-delete:hover { cursor: pointer; }
+.mqm-label { font-size:80%; }
 
 /* Uncomment if ENABLE_UNRESTRICTED_ANNOTATION is set to false */
 /*.source-btn-toggle, .control-box { display:none; }*/
@@ -493,10 +496,6 @@ function _show_error_box(item_box, msg) {
     </div>
 </div>
 
-<div id="annotations_list" class="row">
-</div>
-
-
 {% for item,scores in items %}
 
 <div id="item-{{ item.itemID }}"
@@ -537,11 +536,14 @@ function _show_error_box(item_box, msg) {
                     <span class="source-btn-done glyphicon glyphicon-ok"></span>
                     <span class="score-box badge">&nbsp;</span>
                 </div>
+
             </div>
+            <div class="row mqm-annotation-list"> </div>
         </div>
 
         <div class="target-box toggleable" >
             <table class="row action-box">
+
                 <tr>
                     <td style="width:70%;text-align:left;">
                         <button class="btn button-reset"
@@ -664,10 +666,13 @@ function _show_error_box(item_box, msg) {
     {% verbatim %}
     {{for annotations}}
         <div class="col-sm-2">
-            <div class="mqm-label p-1">
-                <span class="ui {{:color}} tag label">{{:type}}</span>
+            <div class="mqm-label p-1" data-item-id="{{:item}}" data-annotation-id="{{:id}}">
+
+                <span class="ui {{:color}} tag label">{{:type}}
+                    <span class="mqm-label-delete float-right glyphicon glyphicon-remove"
+                          onclick="MQM.handlers.deleteAnnotation( '{{:id}}', '{{:item}}' )" />
+                </span>
                 {{:notes}}
-                <span class="float-right glyphicon glyphicon-remove" onclick="MQM.handlers.deleteAnnotation( '{{:id}}' )" />
             </div>
         </div>
     {{/for}}

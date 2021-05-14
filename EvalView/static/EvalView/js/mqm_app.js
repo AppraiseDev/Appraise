@@ -5,12 +5,12 @@ var MQM = {
     constants: {
         errors: {
             MISSING_FIELDS: {
-                heading: "Required Fields Missing",
-                message: "Please make sure you specify a Note and select a Tag"
+                heading: "Error Category is Missing",
+                message: "Please make sure you specify an error category"
             },
             INSUFFICIENT_CHARS: {
                 heading: "Insufficient Characters",
-                message: "Please select atleast 10 characters"
+                message: "Please select at least 10 characters"
             }
         }
     },
@@ -47,17 +47,17 @@ var MQM = {
     },
     handlers: {
         fillNotes: function(selection) {
-            console.log("filling notes");
-            console.log(selection);
+            // TODO: make #mqm-text configurable
             $("#mqm-text").text(selection).trigger("change");
         },
         captureNotes: function(text) {
-            console.log("capturing notes");
-            console.log(text);
             $.Annotator.api.captureActiveAnnotationNotes(text.innerText);
         },
         applyTag: function(tagName) {
             $.Annotator.api.tagActiveAnnotation(tagName);
+        },
+        identifyItem: function(itemId) {
+            $.Annotator.api.identifyActiveAnnotation(itemId);
         },
         cancelAnnotation: function() {
             MQM.helpers.resetControls();
@@ -75,7 +75,14 @@ var MQM = {
                 MQM.helpers.showBackdrop(false);
             }
         },
-        renderSavedAnnotations: function(annotations) {
+        renderSavedAnnotations: function(annotationsAll, itemId) {
+            console.log("Annotations (all+filtered)");
+            console.log(annotationsAll);
+
+            annotations = annotationsAll.filter(a => a.item === itemId);
+            console.log(annotations);
+
+            // TODO: select annotations for itemId and render only those
             var html = $.templates("#annotations_tmpl").render({
                 annotations: annotations.map((item) => {
                     // TODO: make this configurable!
@@ -103,13 +110,12 @@ var MQM = {
                 })
             });
 
-            $("#annotations_list").html(html);
+            $("#" + itemId).find(".mqm-annotation-list").html(html);
         },
-        deleteAnnotation: function(annotationId) {
-            var remainingAnnotations =
-                $.Annotator.api.deleteAnnotation(annotationId);
-
-            MQM.handlers.renderSavedAnnotations(remainingAnnotations);
+        deleteAnnotation: function(annotationId, itemId) {
+            var remainingAnnotations = $.Annotator.api.deleteAnnotation(annotationId);
+            console.log("Deleting " + annotationId);
+            MQM.handlers.renderSavedAnnotations(remainingAnnotations, itemId);
         }
     },
     init: function() {
@@ -118,10 +124,12 @@ var MQM = {
             minimumCharacters: 1,
             makeTextEditable: true,
             onannotationsaved: function() {
-                MQM.handlers.renderSavedAnnotations(this.annotations);
+                MQM.handlers.renderSavedAnnotations(this.annotations, this.activeItem);
             },
             onselectioncomplete: function() {
                 MQM.handlers.fillNotes(this.innerText);
+                var itemId = this.closest(".item-box").id;
+                MQM.handlers.identifyItem(itemId);
                 MQM.helpers.showBackdrop(true);
             },
             onerror: function() {
