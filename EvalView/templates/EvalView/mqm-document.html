@@ -47,11 +47,13 @@
 .button-reset { background-color: #ddd; }
 .button-setting { background-color: #f5f5f5; font-style:normal; }
 
-#mqm-text { font-size:100%; }
+#mqm-text { font-size:16px; }
 .mqm-errors { padding:5px 0; }
 .mqm-label-delete { padding-left: 5px;  }
 .mqm-label-delete:hover { cursor: pointer; }
 .mqm-label { font-size:80%; }
+/*.mqm-annotation { opacity:0.5; }*/
+/*.mqm-label-tag { opacity:0.5; }*/
 
 /* Uncomment if ENABLE_UNRESTRICTED_ANNOTATION is set to false */
 /*.source-btn-toggle, .control-box { display:none; }*/
@@ -258,7 +260,15 @@ function submit_form(e) {
     var button_type = $(this).attr('type');
     var button_text = $(this).text();
 
+    // Move to the next item immediately
+    e.preventDefault();
+    var curr_num = $('#items-left-counter').text();
+    $('#items-left-counter').text(parseInt(curr_num) - 1);
+    _hide_target_box.call(item_box);
+    _show_target_box.call(item_box.next());
+
     // Validate form
+    /*
     var score = item_box.find('input[name="score"]').val();
     var index = item_box.data('item-id');
     if (score == -1) {
@@ -360,6 +370,7 @@ function submit_form(e) {
         if (_all_sentences_scored())
             _enable_document_box();
     }
+    */
 
     return true;
 }
@@ -557,7 +568,7 @@ function _show_error_box(item_box, msg) {
                                 accesskey="1"
                                 type="submit"
                                 value="{{ item.itemID }}">
-                            <i class="icon-ok-sign icon-white"></i> Submit</button>
+                            <i class="icon-ok-sign icon-white"></i> Next</button>
                     </td>
                 </tr>
             </table>
@@ -649,7 +660,7 @@ function _show_error_box(item_box, msg) {
     </div>
     <!--Action Buttons-->
     <div class="field p-around_small m-bottom_medium">
-        <button class="ui right floated olive button" onclick="MQM.handlers.saveAnnotation();">Save</button>
+        <button class="ui right floated blue button" onclick="MQM.handlers.saveAnnotation();">Save</button>
         <button class="ui left floated button" onclick="MQM.handlers.cancelAnnotation();">Cancel</button>
     </div>
     <!--Placeholder-->
@@ -667,11 +678,11 @@ function _show_error_box(item_box, msg) {
     {{for annotations}}
         <div class="col-sm-2">
             <div class="mqm-label p-1" data-item-id="{{:item}}" data-annotation-id="{{:id}}">
-
-                <span class="ui {{:color}} tag label">{{:type}}
+                <span class="mqm-label-tag ui {{:color}} tag label">{{:type}}
                     <span class="mqm-label-delete float-right glyphicon glyphicon-remove"
                           onclick="MQM.handlers.deleteAnnotation( '{{:id}}', '{{:item}}' )" />
                 </span>
+                <br/>
                 {{:notes}}
             </div>
         </div>
