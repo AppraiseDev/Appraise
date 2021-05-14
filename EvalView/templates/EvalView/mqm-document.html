@@ -49,7 +49,7 @@
 
 #mqm-selection-text { font-size:16px; padding:10px 0; }
 .mqm-instructions { color:#31708f; font-style:italic; font-weight:normal; }
-.mqm-errors { padding:5px 0; }
+.mqm-errors .ui.dropdown { margin:5px 0; }
 .mqm-label-delete { padding-left: 5px;  }
 .mqm-label-delete:hover { cursor: pointer; }
 .mqm-label { font-size:80%; padding-right:10px; }
@@ -632,18 +632,18 @@ function _show_error_box(item_box, msg) {
 <div id="annotate_settings" class="ui form raised segments" style="display: none">
     <!--Notes-->
     <div class="">
-        <label class="mqm-instructions text-muted">Choose an error category and severity</label>
+        <label class="mqm-instructions text-muted">Select an error category and severity</label>
         <p id="mqm-selection-text" onchange="MQM.handlers.captureNotes( this )"></p>
     </div>
     <!--Tags-->
     <div class="mqm-errors m-bottom_medium">
-        <div class="ui dropdown labeled icon fluid button">
+        <div class="mqm-dropdown-category ui dropdown labeled icon fluid button">
             <i class="tag icon"></i>
             <span class="text">Select error category</span>
             <div class="menu">
                 <div class="ui icon search input">
                     <i class="search icon"></i>
-                    <input type="text" placeholder="Search tags...">
+                    <input type="text" placeholder="Search categories...">
                 </div>
                 <div class="divider"></div>
                 <div class="header">
@@ -655,6 +655,24 @@ function _show_error_box(item_box, msg) {
                     <div name="{{ category_id }}" class="item">
                         <div class="ui {{ category.color }} empty circular label"></div>
                         {{ category.name }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="mqm-dropdown-severity ui dropdown labeled icon fluid button">
+            <i class="exclamation triangle icon"></i>
+            <span class="text">Select error severity</span>
+            <div class="menu">
+                <div class="header">
+                    <i class="tags icon"></i>
+                    Error severity
+                </div>
+                <div class="scrolling menu">
+                    {% for severity_id, severity in mqm_error_severities.items %}
+                    <div name="{{ severity_id }}" class="item">
+                        <div class="ui {{ severity.color }} empty circular label"></div>
+                        {{ severity.name }}
                     </div>
                     {% endfor %}
                 </div>

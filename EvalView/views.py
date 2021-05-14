@@ -986,14 +986,17 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     priming_question_texts = [
         'Below you see a document with {0} sentences in {1} '
         'and their corresponding candidate translations in {2}. '
-        'Score each candidate translation in the document context, answering the question: ' \
+        'Identify up to 5 translation errors or imperfections for each sentence pair '
+        'and assign them an error category and severity. '
+        'To start making annotations, simply select a text span and a popup window '
+        'with dropdown lists with available options will appear.' \
             .format(len(block_items), source_language, target_language),
 
-        'How accurately does the candidate text (right column, in bold) convey '
-        'the original semantics of the source text (left column) in the document context? ',
+        'Please refere to the MQM Annotation Guidelines document for detailed instructions '
+        'and more information on error categories. ',
 
-        'You may revisit already scored sentences and update their scores at any time '
-        'by clicking at a source text.'
+        'Please pay particular attention to the document context when annotating. '
+        'You may revisit already annotated sentences and update their annotations at any time. '
     ]
     document_question_texts = [
         'Please score the document translation above answering the question '
@@ -1054,7 +1057,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             "color": "blue",
         },
         "style": {
-            "name": "Awkward style",
+            "name": "Style",
             "color": "yellow",
         },
         "locale-address": {
@@ -1098,12 +1101,18 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     MQM_ERROR_SEVERITIES = {
         "major": {
             "name": "Major",
+            "color": "red",
+            "icon": "!!!",
         },
         "minor": {
             "name": "Minor",
+            "color": "yellow",
+            "icon": "!",
         },
         "neutral": {
             "name": "Neutral",
+            "color": "green",
+            "icon": "",
         },
     }
 

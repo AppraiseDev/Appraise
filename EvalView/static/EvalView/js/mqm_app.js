@@ -1,6 +1,7 @@
 var MQM = {
     elements: {
-        tags: null
+        tags: null,
+        tags2: null,
     },
     constants: {
         errors: {
@@ -19,7 +20,7 @@ var MQM = {
     },
     helpers: {
         resetControls: function() {
-            MQM.elements.tags.dropdown("clear").dropdown("set text", "Select Tag");
+            MQM.elements.tags.dropdown("clear").dropdown("set text", "Select error category");
             $("#mqm-selection-text").text("");
         },
         showBackdrop: function(isShown) {
@@ -137,7 +138,7 @@ var MQM = {
             }
         });
 
-        MQM.elements.tags = $(".ui.dropdown")
+        MQM.elements.tags = $(".mqm-dropdown-category")
             .dropdown({
                 clearable: true,
                 direction: "upward",
@@ -145,6 +146,16 @@ var MQM = {
                     if ($choice)
                         MQM.handlers.applyTag($choice.attr("name"));
                 }
+            });
+
+        MQM.elements.tags2 = $(".mqm-dropdown-severity")
+            .dropdown({
+                clearable: true,
+                direction: "upward"
+                //onChange: function(value, text, $choice) {
+                    //if ($choice)
+                        //MQM.handlers.applyTag($choice.attr("name"));
+                //}
             });
     }
 };
