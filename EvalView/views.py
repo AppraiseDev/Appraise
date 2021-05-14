@@ -1005,24 +1005,80 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     ]
 
     MQM_ERROR_CATEGORIES = {
-        "accuracy": {
-            "name": "Accuracy",
+        "accuracy-addition": {
+            "name": "Accuracy - addition",
             "color": "orange",
         },
-        "fluency": {
-            "name": "Fluency",
+        "accuracy-omission": {
+            "name": "Accuracy - omission",
+            "color": "orange",
+        },
+        "accuracy-mistranslation": {
+            "name": "Accuracy - mistranslation",
+            "color": "orange",
+        },
+        "accuracy-untranslated": {
+            "name": "Accuracy - untranslated",
+            "color": "orange",
+        },
+        "fluency-punct": {
+            "name": "Fluency - punctuation",
             "color": "teal",
         },
-        "terminology": {
-            "name": "Terminology",
+        "fluency-spelling": {
+            "name": "Fluency - spelling",
+            "color": "teal",
+        },
+        "fluency-grammar": {
+            "name": "Fluency - grammar",
+            "color": "teal",
+        },
+        "fluency-register": {
+            "name": "Fluency - register",
+            "color": "teal",
+        },
+        "fluency-inconsistency": {
+            "name": "Fluency - inconsistency",
+            "color": "teal",
+        },
+        "fluency-encoding": {
+            "name": "Fluency - character encoding",
+            "color": "teal",
+        },
+        "terminology-context": {
+            "name": "Terminology - inappropriate for context",
+            "color": "blue",
+        },
+        "terminology-inconsistent": {
+            "name": "Terminology - inconsistent use",
             "color": "blue",
         },
         "style": {
-            "name": "Style",
+            "name": "Awkward style",
             "color": "yellow",
         },
-        "locale": {
-            "name": "Locale convention",
+        "locale-address": {
+            "name": "Locale convention - address format",
+            "color": "green",
+        },
+        "locale-currency": {
+            "name": "Locale convention - currency format",
+            "color": "green",
+        },
+        "locale-date": {
+            "name": "Locale convention - date format",
+            "color": "green",
+        },
+        "locale-name": {
+            "name": "Locale convention - name format",
+            "color": "green",
+        },
+        "locale-telephone": {
+            "name": "Locale convention - telephone format",
+            "color": "green",
+        },
+        "locale-time": {
+            "name": "Locale convention - time format",
             "color": "green",
         },
         "other": {
@@ -1033,7 +1089,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             "name": "Source error",
             "color": "pink",
         },
-        "nontranslation": {
+        "non-translation": {
             "name": "Non-translation",
             "color": "red",
         },

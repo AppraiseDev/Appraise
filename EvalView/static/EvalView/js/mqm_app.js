@@ -20,7 +20,7 @@ var MQM = {
     helpers: {
         resetControls: function() {
             MQM.elements.tags.dropdown("clear").dropdown("set text", "Select Tag");
-            $("#mqm-text").text("");
+            $("#mqm-selection-text").text("");
         },
         showBackdrop: function(isShown) {
             $(".backdrop")[isShown ? "show" : "hide"]();
@@ -47,8 +47,8 @@ var MQM = {
     },
     handlers: {
         fillNotes: function(selection) {
-            // TODO: make #mqm-text configurable
-            $("#mqm-text").text(selection).trigger("change");
+            // TODO: make #mqm-selection-text configurable
+            $("#mqm-selection-text").text(selection).trigger("change");
         },
         captureNotes: function(text) {
             $.Annotator.api.captureActiveAnnotationNotes(text.innerText);
@@ -86,21 +86,21 @@ var MQM = {
             var html = $.templates("#annotations_tmpl").render({
                 annotations: annotations.map((item) => {
                     // TODO: make this configurable!
-                    if (item.type === "accuracy") {
+                    if (item.type.startsWith("accuracy")) {
                         item.color = "orange";
-                    } else if (item.type === "fluency") {
+                    } else if (item.type.startsWith("fluency")) {
                         item.color = "teal";
-                    } else if (item.type === "terminology") {
+                    } else if (item.type.startsWith("terminology")) {
                         item.color = "blue";
-                    } else if (item.type === "style") {
+                    } else if (item.type.startsWith("style")) {
                         item.color = "yellow";
-                    } else if (item.type === "locale") {
+                    } else if (item.type.startsWith("locale")) {
                         item.color = "green";
-                    } else if (item.type === "other") {
+                    } else if (item.type.startsWith("other")) {
                         item.color = "grey";
-                    } else if (item.type === "source") {
+                    } else if (item.type.startsWith("source")) {
                         item.color = "pink";
-                    } else if (item.type === "nontranslation") {
+                    } else if (item.type.startsWith("non-translation")) {
                         item.color = "red";
                     } else {
                         item.color = "olive";

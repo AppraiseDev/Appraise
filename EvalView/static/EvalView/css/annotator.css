@@ -8,14 +8,14 @@ annotation[current=true] {
     position: relative;
 }
 
-annotation[type=accuracy]       { background-color: #f2711c !important; }
-annotation[type=fluency]        { background-color: #00b5ad !important; }
-annotation[type=terminology]    { background-color: #2185d0 !important; }
-annotation[type=style]          { background-color: #fbbd08 !important; }
-annotation[type=locale]         { background-color: #21ba45 !important; }
-annotation[type=other]          { background-color: #767676 !important; }
-annotation[type=source]         { background-color: #e03997 !important; }
-annotation[type=nontranslation] { background-color: #db2828 !important; }
+annotation[type^="accuracy"]       { background-color: #f2711c !important; }
+annotation[type^="fluency"]        { background-color: #00b5ad !important; }
+annotation[type^="terminology"]    { background-color: #2185d0 !important; }
+annotation[type^="style"]          { background-color: #fbbd08 !important; }
+annotation[type^="locale"]         { background-color: #21ba45 !important; }
+annotation[type^="other"]          { background-color: #767676 !important; }
+annotation[type^="source"]         { background-color: #e03997 !important; }
+annotation[type^="nontranslation"] { background-color: #db2828 !important; }
 
 /* Popover Styles */
 #annotate_settings {

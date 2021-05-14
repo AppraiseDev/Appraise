@@ -47,11 +47,14 @@
 .button-reset { background-color: #ddd; }
 .button-setting { background-color: #f5f5f5; font-style:normal; }
 
-#mqm-text { font-size:16px; }
+#mqm-selection-text { font-size:16px; padding:10px 0; }
+.mqm-instructions { color:#31708f; font-style:italic; font-weight:normal; }
 .mqm-errors { padding:5px 0; }
 .mqm-label-delete { padding-left: 5px;  }
 .mqm-label-delete:hover { cursor: pointer; }
-.mqm-label { font-size:80%; }
+.mqm-label { font-size:80%; padding-right:10px; }
+.mqm-label-box { float:left; }
+.mqm-text {  }
 /*.mqm-annotation { opacity:0.5; }*/
 /*.mqm-label-tag { opacity:0.5; }*/
 
@@ -629,14 +632,14 @@ function _show_error_box(item_box, msg) {
 <div id="annotate_settings" class="ui form raised segments" style="display: none">
     <!--Notes-->
     <div class="">
-        <label class="text-muted">Choose an error category and severity</label>
-        <p id="mqm-text" onchange="MQM.handlers.captureNotes( this )"></p>
+        <label class="mqm-instructions text-muted">Choose an error category and severity</label>
+        <p id="mqm-selection-text" onchange="MQM.handlers.captureNotes( this )"></p>
     </div>
     <!--Tags-->
     <div class="mqm-errors m-bottom_medium">
         <div class="ui dropdown labeled icon fluid button">
             <i class="tag icon"></i>
-            <span class="text">Select a Tag</span>
+            <span class="text">Select error category</span>
             <div class="menu">
                 <div class="ui icon search input">
                     <i class="search icon"></i>
@@ -663,9 +666,6 @@ function _show_error_box(item_box, msg) {
         <button class="ui right floated blue button" onclick="MQM.handlers.saveAnnotation();">Save</button>
         <button class="ui left floated button" onclick="MQM.handlers.cancelAnnotation();">Cancel</button>
     </div>
-    <!--Placeholder-->
-    <div class="field p-around_small m-bottom_medium">
-    </div>
     <!--Arrow-->
     <div id="arrow" data-popper-arrow></div>
 </div>
@@ -676,14 +676,14 @@ function _show_error_box(item_box, msg) {
 <script id="annotations_tmpl" type="text/x-jsrender">
     {% verbatim %}
     {{for annotations}}
-        <div class="col-sm-2">
+        <div class="mqm-label-box">
             <div class="mqm-label p-1" data-item-id="{{:item}}" data-annotation-id="{{:id}}">
                 <span class="mqm-label-tag ui {{:color}} tag label">{{:type}}
                     <span class="mqm-label-delete float-right glyphicon glyphicon-remove"
                           onclick="MQM.handlers.deleteAnnotation( '{{:id}}', '{{:item}}' )" />
                 </span>
                 <br/>
-                {{:notes}}
+                <p class="mqm-label-text">{{:notes}}</p>
             </div>
         </div>
     {{/for}}
