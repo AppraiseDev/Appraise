@@ -1001,13 +1001,44 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
         'How accurately does the <strong>entire</strong> candidate document in '
         '{0} (right column) convey '
-        'the original semantics of the source document in {1} (left column)? '.format(target_language, source_language)
+        'the original semantics of the source document in {1} (left column)? ' \
+            .format(target_language, source_language)
     ]
+
+    # An ugly hack to have a different HTML view without copying the entire method/model
+    task_subtype = 'direct-assessment-document'
+    if 'SQM' in campaign.campaignName:
+        task_subtype = 'single-quality-metric-document'
+
+        priming_question_texts = [
+            'Below you see a document with {0} sentences in {1} '
+            'and their corresponding candidate translations in {2}. '
+            'Score each candidate translation in the document context '
+            'using a 0-6 scale for translation quality assessment: ' \
+                .format(len(block_items), source_language, target_language),
+
+            '<ul><li>'
+            '6: Perfect meaning and grammar: The meaning of the translation is completely consistent with the source and the surrounding context (if applicable). The grammar is also correct.'
+            '</li><li>'
+            '4: Most meaning preserved and few grammar mistakes: The translation retains most of the meaning of the source. It may have some grammar mistakes or minor contextual inconsistencies'
+            '</li><li>'
+            '2: Some meaning preserved: The translation preserves some of the meaning of the source butmisses significant parts. The narrative is hard tofollow due to fundamental errors. Grammar maybe poor.'
+            '</li><li>'
+            '0: Nonsense/No meaning preserved: Nearly all information is lost between the translation andsource. Grammar is irrelevant.'
+            '</li></ul>',
+
+            'You may revisit already scored sentences and update their scores at any time '
+            'by clicking at a source text.'
+        ]
+        document_question_texts = [
+            'Please score the translation quality of the entire document above '
+            '(you can score the entire document only after scoring all previous sentences):',
+        ]
 
     # A part of context used in responses to both Ajax and standard POST
     # requests
     context = {
-        'active_page': 'direct-assessment-document',
+        'active_page': task_subtype,
         'item_id': current_item.itemID,
         'task_id': current_item.id,
         'document_id': current_item.documentID,
@@ -1039,9 +1070,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     context.update(page_context)
     context.update(BASE_CONTEXT)
 
-    return render(
-        request, 'EvalView/direct-assessment-document.html', context
-    )
+    html_file = 'EvalView/' + task_subtype + '.html'
+    return render(request, html_file, context)
 
 
 # pylint: disable=C0103,C0330

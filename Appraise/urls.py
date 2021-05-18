@@ -89,6 +89,7 @@ urlpatterns = [
         evalview_views.data_assessment,
         name='data-assessment'),
 
+    # DirectAssessment
     url(
         r'^direct-assessment/$',
         evalview_views.direct_assessment,
@@ -105,6 +106,24 @@ urlpatterns = [
         evalview_views.direct_assessment,
         name='direct-assessment'),
 
+    # SQMDocument
+    url(
+        r'^single-quality-metric-document/$',
+        evalview_views.direct_assessment_document,
+        name='single-quality-metric-document'),
+
+    url(
+        r'^single-quality-metric-document/(?P<code>[a-z]{3})/$',
+        evalview_views.direct_assessment_document,
+        name='single-quality-metric-document'),
+
+    url(
+        r'^single-quality-metric-document/(?P<code>[a-z]{3})/'
+        r'(?P<campaign_name>[a-zA-Z0-9]+)/$',
+        evalview_views.direct_assessment_document,
+        name='single-quality-metric-document'),
+
+    # DirectAssessmentContext
     url(
         r'^direct-assessment-context/$',
         evalview_views.direct_assessment_context,
