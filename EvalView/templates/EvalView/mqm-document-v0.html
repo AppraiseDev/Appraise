@@ -1,0 +1,703 @@
+{% extends "Dashboard/base.html" %}
+{% load static %}
+
+{% block head %}
+<style>
+.slider .ui-slider-range { background: #729fcf; }
+.slider .ui-slider-handle { border-color: #729fcf; }
+.slider { margin-top: 10px; }
+.slider small { font-size:80%; }
+.slider-box { font-size:16px; width:100%; }
+.slider-box .slider-grid { font-size:14px; width:100%; color:#777; }
+
+.quotelike { border-left: 5px solid #eee; }
+.quotelike .row { font-size: 16px; margin: 0; padding: 10px 20px; }
+.quotelike.active { background-color: #f7f7f7; }
+
+.question-box { margin-bottom:10px; }
+.question-box p { font-size: 120%; margin: 10px 0 20px; font-style: italic; color: #31708f; }
+.document-box { padding-top: 10px; }
+.document-box p { font-size: 16px; }
+
+.item-box { margin-bottom: 20px; }
+.item-odd { }
+.item-even { background-color:#f8f8f8; }
+.item-box:last-of-type { background-color:inherit; }
+
+/*.source-box { margin-bottom:10px; }*/
+.source-box-hoverable:hover { background: #f5f5f5; cursor: pointer; }
+.source-btn-toggle { float: right; padding-right:10px; }
+.source-btn-done { float: right; display: none; padding-bottom:5px; padding-left:5px; }
+.score-box { display:none; color:#31708f; float:right; border:1px solid #adadad; font-size:10px; }
+/*.source-box .row { margin-bottom:0; }*/
+.preview-box .row { padding-top:0; font-size:95%; /*font-weight:bold;*/ }
+
+.toggleable { display:none; }
+.toggleable.active { display:block; }
+
+.target-box .row { padding-top:0; }
+.target-box.active { display:block; }
+
+.system-label { display:none; }
+
+.action-box  { width: 100%; }
+.action-box td { padding-bottom:10px; }
+.action-box .btn { margin: 0 40px; }
+/*.document-box .btn { margin: 10px 5px 0; }*/
+.button-reset { background-color: #ddd; }
+.button-setting { background-color: #f5f5f5; font-style:normal; }
+
+#mqm-text { font-size:16px; }
+.mqm-errors { padding:5px 0; }
+.mqm-label-delete { padding-left: 5px;  }
+.mqm-label-delete:hover { cursor: pointer; }
+.mqm-label { font-size:80%; }
+/*.mqm-annotation { opacity:0.5; }*/
+/*.mqm-label-tag { opacity:0.5; }*/
+
+/* Uncomment if ENABLE_UNRESTRICTED_ANNOTATION is set to false */
+/*.source-btn-toggle, .control-box { display:none; }*/
+</style>
+
+<link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}" />
+<script src="{% static 'EvalView/js/jquery-ui.min.js' %}"></script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
+<link rel="stylesheet" href="{% static 'EvalView/css/annotator.css' %}" />
+
+<script>
+    <!--
+var idleTime = 0;
+
+// Enable submitting scores for individual items using Ajax POST. If disabled,
+// the page will be reloaded each time an item is annotated. Note that the
+// document-level score is always submitted without Ajax.
+var ENABLE_AJAX = true;
+// Hint scores of already annotated items with small red-to-green color
+// circles.
+var ENABLE_COLOR_LABELS = true;
+// Allow unrestricted annotation of items in the document. If disabled,
+// expanding and hiding of sentences is disabled and the user must score items
+// following their order, one-by-one.
+// Note: If set to false, some HTML elements are disabled via javascript
+// after the page is loaded, which may result in a flashing effect. To prevent
+// this, add the CSS rule: .source-btn-toggle, .control-box {display:none;}
+// (see line 51). This is purely esthetics.
+var ENABLE_UNRESTRICTED_ANNOTATION = true;
+
+String.prototype.rot13 = function() {
+    return this.replace(/[a-zA-Z]/g, function(c) {
+        return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
+    });
+};
+
+// https://stackoverflow.com/a/21520499
+jQuery.fn.clickToggle = function(a, b) {
+    return this.on("click", function(ev) { [b, a][this.$_io ^= 1].call(this, ev) })
+};
+
+$(document).ready(function() {
+    // This sets the same starting time for all items, but it is set again when
+    // an item is expanded by clicking on it.
+    $('input[name="start_timestamp"]').val(Date.now()/1000.0);
+
+    // Bind click events
+    //$('.slider').slider({orientation: "horizontal", range: "min", change: update_score });
+    $('.button-reset').click(reset_form);
+    //if (ENABLE_UNRESTRICTED_ANNOTATION) {
+    //    $('.source-box').clickToggle(_show_target_box, _hide_target_box);
+    //} else {
+        $('.source-box').removeClass('source-box-hoverable');
+        $('.source-btn-toggle').hide(0);
+        $('.control-box').hide(0);
+    //}
+    // All except the document-level item send Ajax POST request
+    $('.button-next').not(':last').click(submit_form);
+    // The last item doesn't send Ajax request
+    $('.button-next').last().click(last_form);
+
+    // First unannotated item-box, i.e. with data-item-completed=False
+    var next_item;
+    // Update slider bars for annotated items
+    $('input[name^="score"]').each(function() {
+        var item_box = $(this).closest('.item-box');
+        var is_completed = item_box.data('item-completed');
+        if(is_completed == "True") {
+            // Show a tick icon
+            item_box.find('.source-btn-done').show();
+            var score = $(this).val();
+            //item_box.find('.slider').slider('value', score);
+            // Change submit button label to 'Update'
+            item_box.find('button[name="next_button"]').text('Update');
+        } else if(next_item === undefined) {
+            next_item = item_box;
+        }
+    });
+
+    // Activate current item; this will have no effect for the document-level item
+    // next_item.find('.source-box').click();
+    _show_target_box.call(next_item);
+
+    // Disable document-level item unless all individual sentences are scored
+    if (! _all_sentences_scored())
+        _disable_document_box();
+
+    $('#button-open-all').click(open_all_items);
+    $('#button-open-unannotated').click(open_all_unannotated_items);
+    $('#button-close-all').click(close_all_items_except_current);
+});
+
+function _all_sentences_scored() {
+    var num = $('.item-box').filter(function() {
+        return $(this).data('item-completed') == "False";
+    }).length;
+    console.log('Items left:', num);
+    // 1 because the document-level score is also counted
+    return num <= 1;
+}
+
+function _enable_document_box() {
+    // Enable buttons and slider for document evaluation if they were disabled
+    $('.document-box').find('button').attr('disabled', false);
+    //$('.document-box').find('.slider').slider('enable');
+}
+function _disable_document_box() {
+    $('.document-box').find('button').attr('disabled', true);
+    //$('.document-box').find('.slider').slider('disable');
+}
+
+function _show_target_box() {
+    var item_box = $(this).closest('.item-box');
+    // Show only if not shown yet
+    if(item_box.find('.target-box').is(':hidden')) {
+        item_box.find('.toggleable').animate({height: 'toggle'}, 0);
+        item_box.addClass('active');
+        _change_item_toggle_icon(item_box, 'up');
+    }
+    // Reset start timestamp
+    item_box.find('input[name="start_timestamp"]').val(Date.now()/1000.0);
+}
+function _hide_target_box() {
+    var item_box = $(this).closest('.item-box');
+    // Hide only if not hidden yet
+    if(!item_box.find('.target-box.toggleable').is(':hidden')) {
+        item_box.find('.toggleable').animate({height: 'toggle'}, 0);
+        item_box.removeClass('active');
+        _change_item_toggle_icon(item_box, 'down');
+    }
+}
+
+function update_score() {
+    // Assign new score to the corresponding input
+    //var new_score = $(this).slider('value');
+    //var new_input = $('#' + this.id.replace('slider', 'score'));
+    //new_input.val(new_score);
+
+    //var item_box = $(this).closest('.item-box');
+    //_color_score_box(item_box, new_score);
+    // item_box.find('.score-box').show().html(new_score);
+    // item_box.find('.preview-box').removeClass('inactive');
+}
+
+function _color_score_box(item_box, new_score) {
+    if (!ENABLE_COLOR_LABELS)
+        return;
+    // desaturate max red and green a bit, max is 255
+    MAX_RED = 225;
+    MAX_GREEN = 225;
+    // Calculate RGB values
+    var pos =  new_score / 100.0;
+    r = Math.round(pos < 0.5 ? MAX_RED : ((1 - pos) * 2) * MAX_RED);
+    g = Math.round(pos < 0.5 ? (pos * 2) * MAX_GREEN : MAX_GREEN);
+    b = 0;
+    // Set background color and show the label
+    var score_box = item_box.find('.score-box');
+    score_box.show().css('background-color', 'rgb(' + r + ',' + g + ',' + b + ')');
+}
+
+function reset_form() {
+    var item_box = $(this).closest('.item-box');
+    // Reset timestamp
+    idleTime = 0;
+    item_box.find('input[name="start_timestamp"]').val(Date.now()/1000.0);
+    // Reset slider and OK tick
+    var last_score = parseInt(item_box.data('item-score'));
+    if(last_score == -1) { // i.e. not scored yet
+        item_box.find('.slider').slider('option', 'value', 0);
+        item_box.find('.source-btn-done').hide();
+        item_box.find('.preview-box').addClass('inactive');
+        item_box.find('.score-box').hide();
+        //item_box.find('.score-box').html('');
+    } else { // i.e. updating the score
+        item_box.find('.slider').slider('option', 'value', last_score);
+        _color_score_box(item_box, last_score);
+        //item_box.find('.score-box').show().html(last_score);
+    }
+    item_box.find('input[name="score"]').val(last_score);
+}
+
+function _change_item_status_icon(item_box, icon_name) {
+    var icon_box = item_box.find('.source-btn-done').removeClass('glyphicon-refresh glyphicon-ok');
+    if ('refresh' == icon_name) {
+        icon_box.addClass('glyphicon-refresh').show();
+    } else if ('ok' == icon_name) {
+        icon_box.addClass('glyphicon-ok').show();
+    } else {
+        icon_box.hide().addClass('glyphicon-ok');
+    }
+}
+function _change_item_toggle_icon(item_box, icon_name) {
+    var icon_box = item_box.find('.source-btn-toggle').removeClass('glyphicon-menu-down glyphicon-menu-up');
+    if ('down' == icon_name) {
+        icon_box.addClass('glyphicon-menu-down');
+    } else if ('up' == icon_name) {
+        icon_box.addClass('glyphicon-menu-up');
+    }
+}
+
+function submit_form(e) {
+    var item_box = $(this).closest('.item-box');
+    var button_type = $(this).attr('type');
+    var button_text = $(this).text();
+
+    // Move to the next item immediately
+    e.preventDefault();
+    var curr_num = $('#items-left-counter').text();
+    $('#items-left-counter').text(parseInt(curr_num) - 1);
+    _hide_target_box.call(item_box);
+    _show_target_box.call(item_box.next());
+
+    // Validate form
+    /*
+    var score = item_box.find('input[name="score"]').val();
+    var index = item_box.data('item-id');
+    if (score == -1) {
+        alert('Sentence #' + (index + 1) + ' has no score. ' +
+            'Please score all candidate sentences. Thanks!');
+        return false;
+    }
+
+    // Add end timestamp
+    item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
+
+    // Check if score has not been changed. If so, just move to the next item.
+    var prev_score = item_box.data('item-score');
+    //console.log('score=', score, 'prevscore=', prev_score);
+    if (score == prev_score) {
+        e.preventDefault();
+        _hide_target_box.call(item_box);
+        _show_target_box.call(item_box.next());
+        return true;
+    }
+
+    // Ajax request
+    // Checking if the button type is submit is for debugging purposes
+    if (ENABLE_AJAX && button_type == 'submit') {
+        e.preventDefault();
+
+        // Say server that the client expect JSON response
+        item_box.find('input[name="ajax"]').val('True');
+
+        // Workflow: Immediately after an Ajax request is sent, annotation
+        // moves to the next element opening the next slider; if Ajax request
+        // returns an error or the item was not saved, annotation moves back
+        // to the previous item.
+        $.ajax({
+            data: item_box.find('form').serialize(),
+            type: 'POST',
+            url: '{% url active_page %}',
+            dataType: 'json',
+            beforeSend: function() {
+                console.log('Sending Ajax request, item-id=', item_box.data('item-id'));
+                _change_item_status_icon(item_box, 'refresh');
+                // Move to the next item immediately
+                _hide_target_box.call(item_box);
+                _show_target_box.call(item_box.next());
+            },
+            success: function(data) {
+                console.log('Success, saved=', data.saved, 'next_item=', data.item_id);
+                if (data.saved) {
+                    _change_item_status_icon(item_box, 'ok');
+                    // Update counters
+                    $('#items-left-counter').text(data.items_left_in_block);
+                    $('#current-item-id').text(data.item_id);
+
+                    // Update data- attributes in the scored item
+                    item_box.data('item-completed', 'True');
+                    item_box.data('item-score', score);
+                    // Change submit button label to 'Update'
+                    item_box.find('button[name="next_button"]').text('Update');
+
+                    if (_all_sentences_scored())
+                        _enable_document_box();
+                } else {
+                    _change_item_status_icon(item_box, 'none');
+
+                    // Undo moving to the next item
+                    _hide_target_box.call(item_box.next());
+                    _show_target_box.call(item_box);
+
+                    _show_error_box(item_box, data.error_msg);
+                }
+            },
+            error: function(x,s,t) {
+                console.log('Error:', x, s, t);
+
+                _change_item_status_icon(item_box, 'none');
+                // Undo moving to the next item
+                _hide_target_box.call(item_box.next());
+                _show_target_box.call(item_box);
+
+                _show_error_box(item_box,
+                    'An unrecognized error has occured. ' +
+                    'Please reload the page or try again in a moment.' +
+                    'Also, make sure you use a relatively modern browser.'
+                );
+            },
+        });
+
+    } else {
+        _change_item_status_icon(item_box, 'ok');
+        // Move to the next item for smoother reloading
+        _hide_target_box.call(item_box);
+        _show_target_box.call(item_box.next());
+        // Update counters
+        var count_box = $('#items-left-counter');
+        count_box.text( parseInt(count_box.text()) - 1 );
+        var citem_idx = $('#current-item-id');
+        citem_idx.text( parseInt(citem_idx.text()) + 1 );
+
+        if (_all_sentences_scored())
+            _enable_document_box();
+    }
+    */
+
+    return true;
+}
+
+function last_form() {
+    var item_box = $(this).closest('.item-box');
+    // Validate form
+    var score = item_box.find('input[name="score"]').val();
+    var index = item_box.data('item-id');
+    //if (score == -1) {
+    //    alert('Please score the document translation. Thanks!');
+    //    return false;
+    //}
+    // It is a security check, but this should never occur, because the last
+    // item is disabled if there is at least one sentence that is not scored
+    if (!_all_sentences_scored()) {
+        alert('Please score all sentences from the document first. Thanks!');
+        return false;
+    }
+    // Add end timestamp
+    item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
+}
+
+function open_all_items() {
+    $('.item-box.quotelike').each(function() {
+        var item_box = $(this);
+        _show_target_box.call(item_box);
+    });
+}
+
+function open_all_unannotated_items() {
+    $('.item-box.quotelike').each(function() {
+        var item_box = $(this);
+        var is_completed = item_box.data('item-completed');
+        if (is_completed == 'True') {
+            _hide_target_box.call(item_box);
+        } else {
+            // TODO: anchor to the first unannotated?
+            _show_target_box.call(item_box);
+        }
+    });
+}
+
+function close_all_items_except_current() {
+    var first = true;
+    $('.item-box.quotelike').each(function() {
+        var item_box = $(this);
+        var is_completed = item_box.data('item-completed');
+        // Keep first unannotated item expanded
+        if (first && is_completed == 'False') {
+            _show_target_box.call(item_box);
+            first = false;
+        } else {
+            _hide_target_box.call(item_box);
+        }
+    });
+}
+
+function _show_error_box(item_box, msg) {
+    // A hideable error box with a custom message displayed right above the item box
+    item_box.before(
+        '<div class="alert alert-danger alert-dismissible" role="alert">' +
+        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+        '<span aria-hidden="true">&times;</span>' +
+        '</button>Oops... ' + msg + '</div>'
+    );
+}
+
+-->
+</script>
+
+{% endblock %}
+
+{% block prebody %}
+{% endblock %}
+
+
+{% block content %}
+
+<!--Error-->
+<div id="error_message" class="ui floating negative message" style="display: none">
+    <div class="header"></div>
+    <p class="message"></p>
+</div>
+
+<div class="alert alert-info">
+    <table style="width:100%">
+        <tr>
+            <td style="width:33%;text-align:left;">
+                <strong id="task_progress">
+                    {% if trusted_user %}
+                    <span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span>
+                    {% endif %}
+                    {{completed_blocks}}/{{total_blocks}} documents,
+                    <span id="items-left-counter">{{items_left_in_block}}</span>
+                    items left in document
+                </strong>
+            </td>
+            <td style="width:33%;text-align:center;">
+                <strong>{{campaign}} #{{datask_id}}:Document #{{document_id}}-<span id="current-item-id">{{item_id}}</span></strong>
+            </td>
+            <td style="width:33%;text-align:right;">
+                <strong>{% if source_language %}{{source_language}} &rarr; {% endif %}{{target_language}}</strong>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="question-box">
+    <div class="row">
+        <div class="col-sm-12">
+            {% for text in priming_question_texts %}
+            <p>{{text|safe}}</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <p class="pull-right control-box">
+            <button id="button-open-all"
+                    class="btn button-setting btn-default btn-sm">
+                Expand all items
+            </button>
+            <button id="button-open-unannotated"
+                    class="btn button-setting btn-default btn-sm">
+                Expand unannotated
+            </button>
+            <button id="button-close-all"
+                    class="btn button-setting btn-default btn-sm">
+                Collaps all items
+            </button>
+            </p>
+        </div>
+    </div>
+</div>
+
+{% for item,scores in items %}
+
+<div id="item-{{ item.itemID }}"
+     class="item-box item-{% cycle 'odd' 'even' %}
+              {% if not item.isCompleteDocument %} quotelike{% endif %}
+              {% if scores.current_item %} active{% endif %}"
+     data-item-id="{{ item.itemID }}"
+     data-item-completed="{{ scores.completed }}"
+     data-item-score="{{ scores.score }}">
+
+    <form action="{{action_url}}" method="post">
+        {% csrf_token %}
+
+        <input name="start_timestamp" type="hidden" value="" />
+        <input name="end_timestamp" type="hidden" value="" />
+        <input name="item_id" type="hidden" value="{{ item.itemID }}" />
+        <input name="task_id" type="hidden" value="{{ item.id }}" />
+        <input name="document_id" type="hidden" value="{{ item.documentID }}" />
+        <input name="score" type="hidden" value="{{ scores.score }}" id="score{{ item.itemID }}" />
+        <input name="ajax" type="hidden" value="False" />
+
+        {% if not item.isCompleteDocument %}
+
+        <div class="source-box source-box-hoverable">
+            <div class="row">
+                <div class="col-sm-6">
+                    <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
+                    <span title="Source sentence #{{ item.itemID|add:"1" }}">
+                        <p class="example">{{ item.sourceText }}</p>
+                    </span>
+                </div>
+                <div class="col-sm-5">
+                    <span title="Candidate translation of source sentence #{{ item.itemID|add:"1" }}">
+                        <p class="example"><strong>{{item.targetText|safe}}</strong></p>
+                    </span>
+                </div>
+                <div class="col-sm-1">
+                    <span class="source-btn-done glyphicon glyphicon-ok"></span>
+                    <span class="score-box badge">&nbsp;</span>
+                </div>
+
+            </div>
+            <div class="row mqm-annotation-list"> </div>
+        </div>
+
+        <div class="target-box toggleable" >
+            <table class="row action-box">
+
+                <tr>
+                    <td style="width:70%;text-align:left;">
+                        <button class="btn button-reset"
+                                accesskey="2"
+                                type="reset">
+                            <i class="icon-repeat"></i> Reset</button>
+                    </td>
+                    <td style="width:30%;text-align:right;">
+                        <button class="btn button-next btn-primary"
+                                name="next_button"
+                                accesskey="1"
+                                type="submit"
+                                value="{{ item.itemID }}">
+                            <i class="icon-ok-sign icon-white"></i> Next</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        {% else %}
+
+        <div class="question-box">
+            <div class="row">
+                <div class="col-sm-12 question-box">
+                    {% for text in document_question_texts %}
+                    <p>{{text|safe}}</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="target-box document-box quotelike">
+            <div class="row">
+                {% with sliderid=item.itemID %}
+                {% include 'EvalView/_slider.html' %}
+                {% endwith %}
+            </div>
+
+            <table class="action-box">
+                <tr>
+                    <td style="width:70%;text-align:left;">
+                        <button id="reset{{ item.itemID }}"
+                                class="btn button-reset"
+                                accesskey="2"
+                                type="reset">
+                            <i class="icon-repeat"></i> Reset</button>
+                    </td>
+                    <td style="width:30%;text-align:right;">
+                        <button id="button-doc"
+                                class="btn button-next btn-primary"
+                                name="next_button"
+                                accesskey="1"
+                                type="submit"
+                                value="{{ item.itemID }}">
+                            <i class="icon-ok-sign icon-white"></i> Submit</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        {% endif %}
+    </form>
+</div>
+
+{% endfor %}
+
+{% endblock %}
+
+
+{% block actions %}
+<!--Annotator Popover Contents-->
+<div id="annotate_settings" class="ui form raised segments" style="display: none">
+    <!--Notes-->
+    <div class="">
+        <label class="text-muted">Choose an error category and severity</label>
+        <p id="mqm-text" onchange="MQM.handlers.captureNotes( this )"></p>
+    </div>
+    <!--Tags-->
+    <div class="mqm-errors m-bottom_medium">
+        <div class="ui dropdown labeled icon fluid button">
+            <i class="tag icon"></i>
+            <span class="text">Select a Tag</span>
+            <div class="menu">
+                <div class="ui icon search input">
+                    <i class="search icon"></i>
+                    <input type="text" placeholder="Search tags...">
+                </div>
+                <div class="divider"></div>
+                <div class="header">
+                    <i class="tags icon"></i>
+                    Error category
+                </div>
+                <div class="scrolling menu">
+                    {% for category_id, category in mqm_error_categories.items %}
+                    <div name="{{ category_id }}" class="item">
+                        <div class="ui {{ category.color }} empty circular label"></div>
+                        {{ category.name }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--Action Buttons-->
+    <div class="field p-around_small m-bottom_medium">
+        <button class="ui right floated blue button" onclick="MQM.handlers.saveAnnotation();">Save</button>
+        <button class="ui left floated button" onclick="MQM.handlers.cancelAnnotation();">Cancel</button>
+    </div>
+    <!--Placeholder-->
+    <div class="field p-around_small m-bottom_medium">
+    </div>
+    <!--Arrow-->
+    <div id="arrow" data-popper-arrow></div>
+</div>
+
+<!--Backdrop-->
+<!--<div class="ui dimmer page active backdrop" style="display: none"></div>-->
+<!--Template-->
+<script id="annotations_tmpl" type="text/x-jsrender">
+    {% verbatim %}
+    {{for annotations}}
+        <div class="col-sm-2">
+            <div class="mqm-label p-1" data-item-id="{{:item}}" data-annotation-id="{{:id}}">
+                <span class="mqm-label-tag ui {{:color}} tag label">{{:type}}
+                    <span class="mqm-label-delete float-right glyphicon glyphicon-remove"
+                          onclick="MQM.handlers.deleteAnnotation( '{{:id}}', '{{:item}}' )" />
+                </span>
+                <br/>
+                {{:notes}}
+            </div>
+        </div>
+    {{/for}}
+    {% endverbatim %}
+</script>
+
+<!--Required for Annotator.js-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.4.2/umd/popper.min.js"></script>
+<!--Optional (used for Templating)-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsrender/1.0.9/jsrender.min.js"></script>
+<!--Optional (used for Semantic UI)-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+<script src="{% static 'EvalView/js/annotator.js' %}"></script>
+<script src="{% static 'EvalView/js/mqm_app.js' %}"></script>
+<!--
+-->
+{% endblock %}

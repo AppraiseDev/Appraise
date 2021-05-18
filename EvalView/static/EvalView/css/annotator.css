@@ -1,0 +1,63 @@
+annotation {
+    background-color: #2185d0 !important;
+    color: white;
+    z-index: 2000;
+}
+
+annotation[current=true] {
+    position: relative;
+}
+
+annotation[type^="accuracy"]       { background-color: #f2711c !important; }
+annotation[type^="fluency"]        { background-color: #00b5ad !important; }
+annotation[type^="terminology"]    { background-color: #2185d0 !important; }
+annotation[type^="style"]          { background-color: #fbbd08 !important; }
+annotation[type^="locale"]         { background-color: #21ba45 !important; }
+annotation[type^="other"]          { background-color: #767676 !important; }
+annotation[type^="source"]         { background-color: #e03997 !important; }
+annotation[type^="nontranslation"] { background-color: #db2828 !important; }
+
+/* Popover Styles */
+#annotate_settings {
+    background: #FFF;
+    border-radius: 4px;
+    font-weight: bold;
+    padding: 4px 8px;
+    z-index: 2000;
+    width: 380px;
+}
+
+#annotate_settings[data-show] {
+    display: block;
+}
+
+#arrow,
+#arrow::before {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    z-index: -1;
+}
+
+#arrow::before {
+    content: '';
+    transform: rotate(45deg);
+    background: #FFF;
+    box-shadow: -4px -4px 5px #00000012;
+}
+
+#annotate_settings[data-popper-placement^='top']>#arrow {
+    bottom: -4px;
+}
+
+#annotate_settings[data-popper-placement^='bottom']>#arrow {
+    top: -4px;
+}
+
+#annotate_settings[data-popper-placement^='left']>#arrow {
+    right: -4px;
+}
+
+#annotate_settings[data-popper-placement^='right']>#arrow {
+    left: -4px;
+}

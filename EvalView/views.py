@@ -986,14 +986,17 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     priming_question_texts = [
         'Below you see a document with {0} sentences in {1} '
         'and their corresponding candidate translations in {2}. '
-        'Score each candidate translation in the document context, answering the question: ' \
+        'Identify up to 5 translation errors or imperfections for each sentence pair '
+        'and assign them an error category and severity. '
+        'To start making annotations, simply select a text span and a popup window '
+        'with dropdown lists with available options will appear.' \
             .format(len(block_items), source_language, target_language),
 
-        'How accurately does the candidate text (right column, in bold) convey '
-        'the original semantics of the source text (left column) in the document context? ',
+        'Please refere to the MQM Annotation Guidelines document for detailed instructions '
+        'and more information on error categories. ',
 
-        'You may revisit already scored sentences and update their scores at any time '
-        'by clicking at a source text.'
+        'Please pay particular attention to the document context when annotating. '
+        'You may revisit already annotated sentences and update their annotations at any time. '
     ]
     document_question_texts = [
         'Please score the document translation above answering the question '
@@ -1035,6 +1038,115 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             '(you can score the entire document only after scoring all previous sentences):',
         ]
 
+    MQM_ERROR_CATEGORIES = {
+        "accuracy-addition": {
+            "name": "Accuracy - addition",
+            "color": "orange",
+        },
+        "accuracy-omission": {
+            "name": "Accuracy - omission",
+            "color": "orange",
+        },
+        "accuracy-mistranslation": {
+            "name": "Accuracy - mistranslation",
+            "color": "orange",
+        },
+        "accuracy-untranslated": {
+            "name": "Accuracy - untranslated",
+            "color": "orange",
+        },
+        "fluency-punct": {
+            "name": "Fluency - punctuation",
+            "color": "teal",
+        },
+        "fluency-spelling": {
+            "name": "Fluency - spelling",
+            "color": "teal",
+        },
+        "fluency-grammar": {
+            "name": "Fluency - grammar",
+            "color": "teal",
+        },
+        "fluency-register": {
+            "name": "Fluency - register",
+            "color": "teal",
+        },
+        "fluency-inconsistency": {
+            "name": "Fluency - inconsistency",
+            "color": "teal",
+        },
+        "fluency-encoding": {
+            "name": "Fluency - character encoding",
+            "color": "teal",
+        },
+        "terminology-context": {
+            "name": "Terminology - inappropriate for context",
+            "color": "blue",
+        },
+        "terminology-inconsistent": {
+            "name": "Terminology - inconsistent use",
+            "color": "blue",
+        },
+        "style": {
+            "name": "Style",
+            "color": "yellow",
+        },
+        "locale-address": {
+            "name": "Locale convention - address format",
+            "color": "green",
+        },
+        "locale-currency": {
+            "name": "Locale convention - currency format",
+            "color": "green",
+        },
+        "locale-date": {
+            "name": "Locale convention - date format",
+            "color": "green",
+        },
+        "locale-name": {
+            "name": "Locale convention - name format",
+            "color": "green",
+        },
+        "locale-telephone": {
+            "name": "Locale convention - telephone format",
+            "color": "green",
+        },
+        "locale-time": {
+            "name": "Locale convention - time format",
+            "color": "green",
+        },
+        "other": {
+            "name": "Other",
+            "color": "grey",
+        },
+        "source": {
+            "name": "Source error",
+            "color": "pink",
+        },
+        "non-translation": {
+            "name": "Non-translation",
+            "color": "red",
+        },
+    }
+
+    MQM_ERROR_SEVERITIES = {
+        "major": {
+            "name": "Major",
+            "color": "red",
+            "icon": "!!!",
+        },
+        "minor": {
+            "name": "Minor",
+            "color": "yellow",
+            "icon": "!",
+        },
+        "neutral": {
+            "name": "Neutral",
+            "color": "green",
+            "icon": "",
+        },
+    }
+
     # A part of context used in responses to both Ajax and standard POST
     # requests
     context = {
@@ -1052,6 +1164,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'campaign': campaign.campaignName,
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
+        'mqm_error_categories': MQM_ERROR_CATEGORIES,
+        'mqm_error_severities': MQM_ERROR_SEVERITIES,
     }
 
     if ajax:
