@@ -369,7 +369,7 @@ def direct_assessment(request, code=None, campaign_name=None):
         'HumanEvalFY19{0}'.format(x) for x in ('52', '58', '64')
     )
 
-    if campaign.campaignName in _reference_campaigns:
+    if campaign.campaignName in _reference_campaigns or 'REF' in campaign.campaignName:
         reference_label = 'Reference text'
         candidate_label = 'Candidate translation'
         priming_question_text = (
@@ -1010,6 +1010,29 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     # An ugly hack to have a different HTML view without copying the entire method/model
     task_subtype = 'direct-assessment-document'
+    if 'MQM' in campaign.campaignName:
+        task_subtype = 'mqm-document'
+
+        priming_question_texts = [
+            'Below you see a document with {0} sentences in {1} '
+            'and their corresponding candidate translations in {2}. '
+            'Identify up to 5 translation errors or imperfections for each sentence pair '
+            'and assign them an error category and severity. '
+            'To start making annotations, simply select a text span and a popup window '
+            'with dropdown lists with available options will appear.' \
+                .format(len(block_items), source_language, target_language),
+
+            'Please refere to the MQM Annotation Guidelines document for detailed instructions '
+            'and more information on error categories. ',
+
+            'Please pay particular attention to the document context when annotating. '
+            'You may revisit already annotated sentences and update their annotations at any time. '
+        ]
+        document_question_texts = [
+            'Please score the translation quality of the entire document above '
+            '(you can score the entire document only after scoring all previous sentences):',
+        ]
+
     if 'SQM' in campaign.campaignName:
         task_subtype = 'single-quality-metric-document'
 

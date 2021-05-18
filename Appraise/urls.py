@@ -123,6 +123,23 @@ urlpatterns = [
         evalview_views.direct_assessment_document,
         name='single-quality-metric-document'),
 
+    # MQMDocument
+    url(
+        r'^mqm-document/$',
+        evalview_views.direct_assessment_document,
+        name='mqm-document'),
+
+    url(
+        r'^mqm-document/(?P<code>[a-z]{3})/$',
+        evalview_views.direct_assessment_document,
+        name='mqm-document'),
+
+    url(
+        r'^mqm-document/(?P<code>[a-z]{3})/'
+        r'(?P<campaign_name>[a-zA-Z0-9]+)/$',
+        evalview_views.direct_assessment_document,
+        name='mqm-document'),
+
     # DirectAssessmentContext
     url(
         r'^direct-assessment-context/$',
