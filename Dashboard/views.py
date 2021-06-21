@@ -7,6 +7,7 @@ from datetime import datetime
 from hashlib import md5
 from inspect import currentframe, getframeinfo
 
+
 # pylint: disable=import-error,C0330
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
@@ -16,6 +17,7 @@ from django.shortcuts import render, redirect, render_to_response
 from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Dashboard.models import UserInviteToken, LANGUAGE_CODES_AND_NAMES
+from Dashboard.utils import generate_confirmation_token
 from EvalData.models import (
     DataAssessmentTask,
     DataAssessmentResult,
@@ -352,9 +354,9 @@ def dashboard(request):
     template_context = {'active_page': 'dashboard'}
     template_context.update(BASE_CONTEXT)
 
-    annotations = 0
-    hits = 0
-    total_hits = 0
+    annotations = 0  # Completed items
+    hits = 0         # Completed HITs
+    total_hits = 0   # Total number of HITs expected from the user
     for result_cls in TASK_RESULTS:
         annotations += result_cls.get_completed_for_user(request.user)
         _hits, _total = result_cls.get_hit_status_for_user(request.user)
@@ -532,6 +534,10 @@ def dashboard(request):
 
     current_url = TASK_URLS[current_type]
     print('  URL: {0}'.format(current_url))
+
+    # Provide UUID for the completed task
+    if work_completed:
+        work_completed = generate_confirmation_token(request.user.username, run_qc=True)
 
     template_context.update(times)
     template_context.update(
