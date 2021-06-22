@@ -38,12 +38,15 @@ MIN_ANNOTATION_TIME = 600  # i.e. 10 minutes
 
 def generate_confirmation_token(username, run_qc=True):
     """
-    Generates a token for completed work.
+    Generates a confirmation token for completed work.
 
-    Returns a success token if he quality control is not run.
+    Returns a valid token if the quality control (QC) is successful, otherwise
+    an invalid token if the user failed the QC or it cannot be run due to
+    unsufficient annotation data.
+    If performing QC is disabled, a valid token is always returned.
     """
     if run_qc == True:
-        status = 'SUCCESS' if quality_control(username) else 'FAILED'
+        status = 'SUCCESS' if run_quality_control(username) else 'FAILED'
         seed = SECRET_KEY + username + status
     else:
         seed = SECRET_KEY + username + 'SUCCESS'
@@ -54,14 +57,21 @@ def generate_confirmation_token(username, run_qc=True):
     return new_uuid
 
 
-def quality_control(username):
+def run_quality_control(username):
     """
     Runs quality control for the user.
+
+    It is passed if p-value of the Wilcoxon test on annotated (TGT, BAD) pairs,
+    and the total annotation times are in pre-defined thresholds.
+
+    Code extracted from Campaign/views.py:campaign_status()
     """
     _data = None
     result_type = None
     for _type in RESULT_TYPES:
-        _data = _type.objects.filter(createdBy__username=username, completed=True)
+        _data = _type.objects.filter(
+            createdBy__username=username, completed=True
+        )
         # Get the first result task type available: might not work in all scenarios
         if _data:
             result_type = _type
@@ -144,8 +154,15 @@ def quality_control(username):
     _durations = [x[1] - x[0] for x in _data]
     annotation_time = sum(_durations) if _durations else None
 
-    print("User '{}', items= {}, p-value= {}, time= {}".format(
-            username, len(_x), pvalue, annotation_time))
+    print(
+        "User '{}', items= {}, p-value= {}, time= {}".format(
+            username, len(_x), pvalue, annotation_time
+        )
+    )
 
-    return pvalue is not None and pvalue <= MAX_WILCOXON_PVALUE \
-        and annotation_time is not None and annotation_time >= MIN_ANNOTATION_TIME
+    return (
+        pvalue is not None
+        and pvalue <= MAX_WILCOXON_PVALUE
+        and annotation_time is not None
+        and annotation_time >= MIN_ANNOTATION_TIME
+    )

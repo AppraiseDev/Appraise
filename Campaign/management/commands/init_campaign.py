@@ -95,17 +95,17 @@ class Command(BaseCommand):
         # By default, we only include activated tasks into agenda creation.
         # Compute Boolean flag based on negation of --include-completed state.
         only_activated = not options['include_completed']
-        expected_tokens = options['task_confirmation_tokens']
+        confirmation_tokens = options['task_confirmation_tokens']
 
         # Initialise campaign based on manifest data
         self.init_campaign(
             manifest_data, csv_output, xlsx_output, only_activated,
-            expected_tokens
+            confirmation_tokens
         )
 
     def init_campaign(
         self, manifest_data, csv_output, xlsx_output, only_activated=True,
-        expected_tokens=False
+        confirmation_tokens=False
     ):
         """Initialises campaign based on manifest data.
 
@@ -113,7 +113,8 @@ class Command(BaseCommand):
         - manifest_data:dict[str]->any dictionary containing manifest data;
         - csv_output:str path to CSV output file, or None;
         - xlsx_output:str path to Excel output file, or None;
-        - only_activated:bool only include activated tasks for agenda creation.
+        - only_activated:bool only include activated tasks for agenda creation;
+        - confirmation_tokens:bool export valid task confirmation tokens.
         """
 
         # TODO: refactor into _create_context()
@@ -192,8 +193,8 @@ class Command(BaseCommand):
 
         # Generate Dataset with user credentials and SSO URLs
         export_data = Dataset()
-        if expected_tokens:
-            export_data.headers = ('Username', 'Password', 'URL', 'ExpectedToken')
+        if confirmation_tokens:
+            export_data.headers = ('Username', 'Password', 'URL', 'ConfirmationToken')
         else:
             export_data.headers = ('Username', 'Password', 'URL')
         export_data.title = datetime.strftime(datetime.now(), '%Y%m%d')
@@ -201,7 +202,7 @@ class Command(BaseCommand):
         base_url = manifest_data['CAMPAIGN_URL']
         for _user, _password in credentials.items():
             _url = '{0}{1}/{2}/'.format(base_url, _user, _password)
-            if expected_tokens:
+            if confirmation_tokens:
                 _token = generate_confirmation_token(username, run_qc=False)
                 export_data.append((_user, _password, _url, _token))
             else:
@@ -223,7 +224,8 @@ class Command(BaseCommand):
         """Export credentials to screen, CSV and Excel files.
 
         Parameters:
-        - export_data:Dataset contains triples (username, password, url);
+        - export_data:Dataset contains triples or 4-tuples (username,
+          password, url, [token]);
         - csv_output:str path to CSV output file, or None;
         - xlsx_output:str path to Excel output file, or None.
         """
