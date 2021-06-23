@@ -34,6 +34,12 @@
 {% elif work_completed %}
             <h3>Work completed</h3>
             <p>You have successfully completed all tasks assigned to you. Thank you very much!</p>
+            <p>This is your unique confirmation token, which you may need to certify that you have completed the work.</p>
+            <div class="row">
+              <div class="col-sm-6 col-sm-offset-3 text-center alert alert-info">
+                <p>{{ work_completed }}</p>
+              </div>
+            </div>
 {% else %}
             <h3>Next HIT</h3>
             <p>We are currently finalising the registration process for annotator accounts. Once this has been completed, direct assessment tasks will be become available from this page. Please check back in a little while.</p>

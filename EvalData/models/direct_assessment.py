@@ -465,6 +465,7 @@ class DirectAssessmentResult(BaseMetadata):
             user_data[user_item[0]] += 1
 
         total_hits = len(user_data.keys())
+        # TODO: What is this magic number 70?
         completed_hits = len([x for x in user_data.values() if x >= 70])
 
         return (completed_hits, total_hits)

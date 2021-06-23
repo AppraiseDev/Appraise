@@ -159,6 +159,7 @@ def campaign_status(request, campaign_name, sort_key=2):
                     _reliable = pvalue
 
                 except ImportError:
+                    print("scipy is not installed")
                     pass
 
                 # Possible for mannwhitneyu() to throw in some scenarios:

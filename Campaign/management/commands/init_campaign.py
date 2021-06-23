@@ -21,6 +21,8 @@ from Campaign.utils import (
     CAMPAIGN_TASK_TYPES,
 )
 
+from Dashboard.utils import generate_confirmation_token
+
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
     help = 'Initialises campaign based on manifest file'
@@ -48,11 +50,19 @@ class Command(BaseCommand):
             metavar='--xlsx',
             help='Path used to create Excel file containing credentials.',
         )
+
         parser.add_argument(
             '--include-completed',
             action='store_true',
             default=False,
-            help='Include completed tasks in task agenda re-assignment',
+            help='Include completed tasks in task agenda re-assignment.',
+        )
+
+        parser.add_argument(
+            '--task-confirmation-tokens',
+            action='store_true',
+            default=False,
+            help='Generate valid task confirmation tokens needed for integration with external crowd sourcing apps.',
         )
 
     def handle(self, *args, **options):
@@ -85,23 +95,27 @@ class Command(BaseCommand):
         # By default, we only include activated tasks into agenda creation.
         # Compute Boolean flag based on negation of --include-completed state.
         only_activated = not options['include_completed']
+        confirmation_tokens = options['task_confirmation_tokens']
 
         # Initialise campaign based on manifest data
         self.init_campaign(
-            manifest_data, csv_output, xlsx_output, only_activated
+            manifest_data, csv_output, xlsx_output, only_activated,
+            confirmation_tokens
         )
 
     def init_campaign(
-        self, manifest_data, csv_output, xlsx_output, only_activated=True
+        self, manifest_data, csv_output, xlsx_output, only_activated=True,
+        confirmation_tokens=False
     ):
-        '''Initialises campaign based on manifest data.
+        """Initialises campaign based on manifest data.
 
         Parameters:
         - manifest_data:dict[str]->any dictionary containing manifest data;
         - csv_output:str path to CSV output file, or None;
         - xlsx_output:str path to Excel output file, or None;
-        - only_activated:bool only include activated tasks for agenda creation.
-        '''
+        - only_activated:bool only include activated tasks for agenda creation;
+        - confirmation_tokens:bool export valid task confirmation tokens.
+        """
 
         # TODO: refactor into _create_context()
         GENERATORS = {'uniform': _create_uniform_task_map}
@@ -109,7 +123,13 @@ class Command(BaseCommand):
         ALL_LANGUAGE_CODES = set()
         TASKS_TO_ANNOTATORS = {}
         for pair_data in manifest_data['TASKS_TO_ANNOTATORS']:
-            source_code, target_code, mode, num_annotators, num_tasks = pair_data
+            (
+                source_code,
+                target_code,
+                mode,
+                num_annotators,
+                num_tasks,
+            ) = pair_data
 
             # Validation needs access to full language codes,
             # including any script specification
@@ -120,7 +140,9 @@ class Command(BaseCommand):
 
             generator = GENERATORS[mode]
             TASKS_TO_ANNOTATORS[(source_code, target_code)] = generator(
-                num_annotators, num_tasks, manifest_data['REDUNDANCY'],
+                num_annotators,
+                num_tasks,
+                manifest_data['REDUNDANCY'],
             )
 
         _validate_language_codes(ALL_LANGUAGE_CODES)
@@ -129,8 +151,9 @@ class Command(BaseCommand):
         TASK_TYPE = manifest_data.get('TASK_TYPE', 'Direct')
         # Raise an exception if an unrecognized task type is provided
         if TASK_TYPE not in CAMPAIGN_TASK_TYPES:
-            _msg = 'Unrecognized TASK_TYPE \'{0}\'. Supported tasks are: {1}' \
-                    .format(TASK_TYPE, ', '.join(CAMPAIGN_TASK_TYPES.keys()))
+            _msg = 'Unrecognized TASK_TYPE \'{0}\'. Supported tasks are: {1}'.format(
+                TASK_TYPE, ', '.join(CAMPAIGN_TASK_TYPES.keys())
+            )
             raise ValueError(_msg)
 
         CONTEXT = {
@@ -170,13 +193,20 @@ class Command(BaseCommand):
 
         # Generate Dataset with user credentials and SSO URLs
         export_data = Dataset()
-        export_data.headers = ('Username', 'Password', 'URL')
+        if confirmation_tokens:
+            export_data.headers = ('Username', 'Password', 'URL', 'ConfirmationToken')
+        else:
+            export_data.headers = ('Username', 'Password', 'URL')
         export_data.title = datetime.strftime(datetime.now(), '%Y%m%d')
 
         base_url = manifest_data['CAMPAIGN_URL']
         for _user, _password in credentials.items():
             _url = '{0}{1}/{2}/'.format(base_url, _user, _password)
-            export_data.append((_user, _password, _url))
+            if confirmation_tokens:
+                _token = generate_confirmation_token(username, run_qc=False)
+                export_data.append((_user, _password, _url, _token))
+            else:
+                export_data.append((_user, _password, _url))
 
         # Export credentials to CSV or Excel files, if specified
         self.export_credentials(export_data, csv_output, xlsx_output)
@@ -191,13 +221,14 @@ class Command(BaseCommand):
         )
 
     def export_credentials(self, export_data, csv_output, xlsx_output):
-        '''Export credentials to screen, CSV and Excel files.
+        """Export credentials to screen, CSV and Excel files.
 
         Parameters:
-        - export_data:Dataset contains triples (username, password, url);
+        - export_data:Dataset contains triples or 4-tuples (username,
+          password, url, [token]);
         - csv_output:str path to CSV output file, or None;
         - xlsx_output:str path to Excel output file, or None.
-        '''
+        """
 
         # Write credentials to CSV file if specified.
         if csv_output:
