@@ -35,9 +35,6 @@ small.padright { padding-right: 20px; }
 <script src="{% static 'EvalView/js/js.cookie-2.2.1.min.js' %}"></script>
 <script>
 <!--
-var idleTime = 0;
-//var idleTimeoutInSeconds = 5;
-
 String.prototype.rot13 = function() {
   return this.replace(/[a-zA-Z]/g, function(c) {
     return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
@@ -64,42 +61,7 @@ $(document).ready(function() {
 
   // make the first slider active, so that the score can be changed using left/right keys
   $('#slider .ui-slider-handle').focus();
-
-  //var $a = $('#id_candidate_text').attr('data-pseudo-content');
-  //$('#id_candidate_text').attr('data-pseudo-content', $a.rot13());
-  //alert($a);
-
-  // Increment the idle time counter every second.
-  //var idleInterval = setInterval(timerIncrement, 1000);
-
-  // Zero idle timer on mouse movement.
-  //$(this).mousemove(function (e) {
-  //  idleTime = 0;
-  //});
-
-  // Zero idle timer on key presses.
-  //$(this).keypress(function (e) {
-  //  idleTime = 0;
-  //});
 });
-
-// Uncomment this to activate timeout functionality
-/*
-function timerIncrement() {
-  idleTime = idleTime + 1;
-  if (idleTime > idleTimeoutInSeconds) {
-    alert('Annotation has been paused after ' + idleTimeoutInSeconds+ ' seconds of inactiviy.\nClick "OK" to continue annotation.');
-    reset_timer();
-  }
-}
-
-function reset_timer()
-{
-  idleTime = 0;
-  $('input[name="start_timestamp"]').val(Date.now()/1000.0);
-}
-*/
-
 
 function toggle_context()
 {
@@ -127,7 +89,6 @@ function add_end_timestamp()
 
 function reset_form()
 {
-  idleTime = 0;
   $('input[name="start_timestamp"]').val(Date.now()/1000.0);
   $('#slider').slider('option', 'value', 0);
   $('#slider2').slider('option', 'value', 0);
