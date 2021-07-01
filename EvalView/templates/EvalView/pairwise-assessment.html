@@ -62,6 +62,9 @@ $(document).ready(function() {
     $('.candidate-text').addClass('active');
   }
 
+  // make the first slider active, so that the score can be changed using left/right keys
+  $('#slider .ui-slider-handle').focus();
+
   //var $a = $('#id_candidate_text').attr('data-pseudo-content');
   //$('#id_candidate_text').attr('data-pseudo-content', $a.rot13());
   //alert($a);
