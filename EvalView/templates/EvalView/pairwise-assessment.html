@@ -156,6 +156,12 @@ function update_score2()
   var new_score = $('#slider2').slider('value');
   $('input[name="score2"]').val(new_score);
 }
+
+function match_sliders()
+{
+  var score1 = $('input[name="score"]').val();
+  $('#slider2').slider('option', 'value', score1);
+}
 -->
 </script>
 
@@ -264,21 +270,25 @@ function update_score2()
 <div class="actions">
   <table style="width:100%">
   <tr>
-    <td style="width:70%;text-align:left;">
-      <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn"><i class="icon-repeat"></i> Reset</button>
-      {% if context_left or context_right %}
-      <button onclick="javascript:toggle_context();" accesskey="3" type="button" class="btn">Show/Hide context</button>
-      {% endif %}
+    <td style="width:50%;text-align:left;">
+      <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn"
+              title="Reset the slider(s). Access key: '2'"><i class="icon-repeat"></i> Reset</button>
       {% if candidate2_text %}
-      <button onclick="javascript:toggle_diff();" accesskey="3" type="button" class="btn">Show/Hide diff.</button>
+      <button onclick="javascript:toggle_diff();" accesskey="4" type="button" class="btn"
+              title="Show or hide highlighting differences between two segments. Access key: '5'">Show/Hide diff.</button>
       {% endif %}
-<!--
-      &nbsp;
-      <button name="submit_button" accesskey="3" type="submit" class="btn btn-danger" value="FLAG_ERROR"><i class="icon-white icon-exclamation-sign"></i> Skip Item</button>
--->
+      {% if context_left or context_right %}
+      <button onclick="javascript:toggle_context();" accesskey="4" type="button" class="btn"
+              title="Show or hide the context. Access key: '5'">Show/Hide context</button>
+      {% endif %}
     </td>
-    <td style="width:30%;text-align:right;">
-      <button class="btn btn-primary" name="submit_button" accesskey="1" type="submit" value="SUBMIT" onclick="javascript:return validate_form();"><i class="icon-ok-sign icon-white"></i> Submit</button>
+    <td style="width:50%;text-align:right;">
+      {% if candidate2_text %}
+      <button onclick="javascript:match_sliders();" accesskey="3" type="button" class="btn"
+              title="Match the second slider with the first one. Access key: '3'">Match sliders</button>
+      {% endif %}
+      <button class="btn btn-primary" name="submit_button" accesskey="1" type="submit" value="SUBMIT" onclick="javascript:return validate_form();"
+              title="Submit score(s). Access key: '5'"><i class="icon-ok-sign icon-white"></i> Submit</button>
     </td>
   </tr>
   </table>
