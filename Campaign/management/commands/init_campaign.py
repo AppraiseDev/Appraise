@@ -203,7 +203,7 @@ class Command(BaseCommand):
         for _user, _password in credentials.items():
             _url = '{0}{1}/{2}/'.format(base_url, _user, _password)
             if confirmation_tokens:
-                _token = generate_confirmation_token(username, run_qc=False)
+                _token = generate_confirmation_token(_user, run_qc=False)
                 export_data.append((_user, _password, _url, _token))
             else:
                 export_data.append((_user, _password, _url))
