@@ -184,12 +184,12 @@ function update_score() {
     <div class="item-box item-{% cycle 'odd' 'even' %} quotelike">
         <div class="row">
             <div class="col-sm-6">
-                <span title="Source sentence #{{ loop.index|add:"1" }}">
+                <span title="Source sentence #{{ forloop.counter }}">
                     <p>{{ source_text|safe }}</p>
                 </span>
             </div>
             <div class="col-sm-6">
-                <span title="Target sentence #{{ loop.index|add:"1" }}">
+                <span title="Target sentence #{{ forloop.counter }}">
                     <p>{{ target_text|safe }}</p>
                 </span>
             </div>
