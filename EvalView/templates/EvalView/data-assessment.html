@@ -80,7 +80,7 @@ function reset_form() {
     $('#slider').slider('option', 'value', 0);
     $('input[name="score"]').val(-1);
     // reset rank
-    $('input[name="rank"]').attr('checked',false);
+    $('input[name="rank"]').prop('checked',false);
 }
 
 function validate_form() {
