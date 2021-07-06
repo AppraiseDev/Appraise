@@ -245,7 +245,7 @@ function update_score() {
             <div class="col-sm-3">
                 <p>
                 <label class="radio-inline">
-                    <input type="radio" name="rank" id="radio-{{ loop.index }}" value="{{ rank_value }}">
+                    <input type="radio" name="rank" id="radio-{{ forloop.counter }}" value="{{ rank_value }}">
                     <span class="radio-label">{{ rank_label }}</span>
                 </label>
                 </p>
