@@ -21,6 +21,9 @@ from Campaign.management.commands.validatecampaigndata import (
 from Campaign.management.commands.ProcessCampaignData import (
     _process_campaign_data,
 )
+from Campaign.management.commands.UpdateCampaignModels import (
+    _update_campaign_models,
+)
 from Campaign.models import (
     Campaign,
     CampaignData,
@@ -214,5 +217,14 @@ class Command(BaseCommand):
         max_count = options['max_count']
         _process_campaign_data(_campaign, owner, campaign_type, max_count)
 
+        self.stdout.write('### Running UpdateCampaignModels')
+        # TODO: Is this actually needed?
+        _update_campaign_models(self.stdout)
 
-
+        self.stdout.write('### Running init_campaign again')
+        _init_campaign(
+            manifest_data, csv_output, xlsx_output, only_activated,
+            confirmation_tokens,
+            skip_agendas=False,
+            stdout=self.stdout,
+        )
