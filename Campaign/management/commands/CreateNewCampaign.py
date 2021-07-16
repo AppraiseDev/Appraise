@@ -15,7 +15,16 @@ from Campaign.management.commands.init_campaign import (
     _init_campaign,
     _export_credentials,
 )
-from Campaign.models import Campaign, CampaignData, CampaignTeam, Market, Metadata
+from Campaign.management.commands.validatecampaigndata import (
+    _validate_campaign_data,
+)
+from Campaign.models import (
+    Campaign,
+    CampaignData,
+    CampaignTeam,
+    Market,
+    Metadata,
+)
 from Campaign.utils import (
     _create_uniform_task_map,
     _identify_super_users,
@@ -127,44 +136,59 @@ class Command(BaseCommand):
             stdout=self.stdout,
         )
 
+        owner = _identify_super_users()[0]
+
         self.stdout.write('### Uploading JSON with batches')
 
         batches_json = options['batches_json']
-        self.stdout.write('JSON batches path: {0!r}'.format(batches_json))
-        # TODO: check if this returns the most recent Market and Metadata
-        _market = Market.objects.last()
-        self.stdout.write('Market: {}'.format(_market))
-        _metadata = Metadata.objects.last()
-        self.stdout.write('Metadata: {}'.format(_metadata))
+        if batches_json is not None:
+            self.stdout.write('JSON batches path: {0!r}'.format(batches_json))
+            # TODO: check if this returns the most recent Market and Metadata
+            _market = Market.objects.last()
+            self.stdout.write('Market: {}'.format(_market))
+            _metadata = Metadata.objects.last()
+            self.stdout.write('Metadata: {}'.format(_metadata))
 
-        # TODO: do not create if the campaign already has a batch added?
-        owner = _identify_super_users()[0]
-        campaign_data = CampaignData(
-                # dataFile=batches_json,
-                market=_market,
-                metadata=_metadata,
-                createdBy=owner,
-            )
-        with open(batches_json, 'r') as _file:
-            _filename = path.basename(batches_json)
-            campaign_data.dataFile.save(_filename, File(_file), save=True)
-        campaign_data.save()
-        self.stdout.write('Uploaded file name: {}'.format(campaign_data.dataFile))
+            # TODO: do not create if the campaign already has a batch added?
+            campaign_data = CampaignData(
+                    # dataFile=batches_json,
+                    market=_market,
+                    metadata=_metadata,
+                    createdBy=owner,
+                )
+            with open(batches_json, 'r') as _file:
+                _filename = path.basename(batches_json)
+                campaign_data.dataFile.save(_filename, File(_file), save=True)
+            campaign_data.save()
+            self.stdout.write('Uploaded file name: {}'.format(campaign_data.dataFile))
 
-        self.stdout.write('### Create new campaign')
-        campaign_name = context['CAMPAIGN_NAME']
-        self.stdout.write('Campaign name: {}'.format(campaign_name))
-        # The team is already created in one of the previous steps
-        _team = CampaignTeam.objects.get(teamName=campaign_name)
-        _campaign = Campaign(
-                campaignName=campaign_name,
-                createdBy=owner
-            )
-        _campaign.save()
-        _campaign.teams.add(_team)
-        _campaign.batches.add(campaign_data)
-        _campaign.save()
+            self.stdout.write('### Create new campaign')
+            campaign_name = context['CAMPAIGN_NAME']
+            self.stdout.write('Campaign name: {}'.format(campaign_name))
+            # The team is already created in one of the previous steps
+            _team = CampaignTeam.objects.get(teamName=campaign_name)
+            _campaign = Campaign(
+                    campaignName=campaign_name,
+                    createdBy=owner
+                )
+            _campaign.save()
+            _campaign.teams.add(_team)
+            _campaign.batches.add(campaign_data)
+            _campaign.save()
+
+        else:  # i.e. batches_json is None
+            _campaign = Campaign.objects.filter(campaignName=campaign_name)
+            if _campaign.exists():
+                _campaign = _campaign[0]
+            else:
+                raise CommandError(
+                    'Campaign {0!r} does not exist and no JSON file '
+                    'with batches provided via --batches-json.'.format(campaign_name)
+                )
 
 
+        self.stdout.write('### Running validatecampaigndata')
+        self.stdout.write('Campaign name: {}'.format(_campaign.campaignName))
+        _validate_campaign_data(_campaign, self.stdout)
 
 
