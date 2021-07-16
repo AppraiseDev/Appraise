@@ -98,152 +98,155 @@ class Command(BaseCommand):
         confirmation_tokens = options['task_confirmation_tokens']
 
         # Initialise campaign based on manifest data
-        self.init_campaign(
+        _init_campaign(
+            self.stdout,
             manifest_data, csv_output, xlsx_output, only_activated,
             confirmation_tokens
         )
 
-    def init_campaign(
-        self, manifest_data, csv_output, xlsx_output, only_activated=True,
-        confirmation_tokens=False
-    ):
-        """Initialises campaign based on manifest data.
 
-        Parameters:
-        - manifest_data:dict[str]->any dictionary containing manifest data;
-        - csv_output:str path to CSV output file, or None;
-        - xlsx_output:str path to Excel output file, or None;
-        - only_activated:bool only include activated tasks for agenda creation;
-        - confirmation_tokens:bool export valid task confirmation tokens.
-        """
+def _init_campaign(
+    stdout, manifest_data, csv_output, xlsx_output, only_activated=True,
+    confirmation_tokens=False
+):
+    """Initialises campaign based on manifest data.
 
-        # TODO: refactor into _create_context()
-        GENERATORS = {'uniform': _create_uniform_task_map}
-        ALL_LANGUAGES = []
-        ALL_LANGUAGE_CODES = set()
-        TASKS_TO_ANNOTATORS = {}
-        for pair_data in manifest_data['TASKS_TO_ANNOTATORS']:
-            (
-                source_code,
-                target_code,
-                mode,
-                num_annotators,
-                num_tasks,
-            ) = pair_data
+    Parameters:
+    - manifest_data:dict[str]->any dictionary containing manifest data;
+    - csv_output:str path to CSV output file, or None;
+    - xlsx_output:str path to Excel output file, or None;
+    - only_activated:bool only include activated tasks for agenda creation;
+    - confirmation_tokens:bool export valid task confirmation tokens.
+    """
 
-            # Validation needs access to full language codes,
-            # including any script specification
-            ALL_LANGUAGE_CODES.add(source_code)
-            ALL_LANGUAGE_CODES.add(target_code)
+    # TODO: refactor into _create_context()
+    GENERATORS = {'uniform': _create_uniform_task_map}
+    ALL_LANGUAGES = []
+    ALL_LANGUAGE_CODES = set()
+    TASKS_TO_ANNOTATORS = {}
+    for pair_data in manifest_data['TASKS_TO_ANNOTATORS']:
+        (
+            source_code,
+            target_code,
+            mode,
+            num_annotators,
+            num_tasks,
+        ) = pair_data
 
-            ALL_LANGUAGES.append((source_code, target_code))
+        # Validation needs access to full language codes,
+        # including any script specification
+        ALL_LANGUAGE_CODES.add(source_code)
+        ALL_LANGUAGE_CODES.add(target_code)
 
-            generator = GENERATORS[mode]
-            TASKS_TO_ANNOTATORS[(source_code, target_code)] = generator(
-                num_annotators,
-                num_tasks,
-                manifest_data['REDUNDANCY'],
-            )
+        ALL_LANGUAGES.append((source_code, target_code))
 
-        _validate_language_codes(ALL_LANGUAGE_CODES)
-
-        # DirectAssessmentTask is the default task for backward compatibility
-        TASK_TYPE = manifest_data.get('TASK_TYPE', 'Direct')
-        # Raise an exception if an unrecognized task type is provided
-        if TASK_TYPE not in CAMPAIGN_TASK_TYPES:
-            _msg = 'Unrecognized TASK_TYPE \'{0}\'. Supported tasks are: {1}'.format(
-                TASK_TYPE, ', '.join(CAMPAIGN_TASK_TYPES.keys())
-            )
-            raise ValueError(_msg)
-
-        CONTEXT = {
-            'CAMPAIGN_KEY': manifest_data['CAMPAIGN_KEY'],
-            'CAMPAIGN_NAME': manifest_data['CAMPAIGN_NAME'],
-            'CAMPAIGN_NO': manifest_data['CAMPAIGN_NO'],
-            'CAMPAIGN_URL': manifest_data['CAMPAIGN_URL'],
-            'REDUNDANCY': manifest_data['REDUNDANCY'],
-            'TASKS_TO_ANNOTATORS': TASKS_TO_ANNOTATORS,
-            'TASK_TYPE': TASK_TYPE,
-        }
-        # END refactor
-
-        # Find super user
-        superusers = _identify_super_users()
-        self.stdout.write(
-            'Identified superuser: {0}'.format(superusers[0])
+        generator = GENERATORS[mode]
+        TASKS_TO_ANNOTATORS[(source_code, target_code)] = generator(
+            num_annotators,
+            num_tasks,
+            manifest_data['REDUNDANCY'],
         )
 
-        # Process Market and Metadata instances for all language pairs
-        _process_market_and_metadata(
-            ALL_LANGUAGES,
-            superusers[0],
-            domain_name=manifest_data['CAMPAIGN_NAME'],
-            corpus_name=manifest_data['CAMPAIGN_NAME'],
+    _validate_language_codes(ALL_LANGUAGE_CODES)
+
+    # DirectAssessmentTask is the default task for backward compatibility
+    TASK_TYPE = manifest_data.get('TASK_TYPE', 'Direct')
+    # Raise an exception if an unrecognized task type is provided
+    if TASK_TYPE not in CAMPAIGN_TASK_TYPES:
+        _msg = 'Unrecognized TASK_TYPE \'{0}\'. Supported tasks are: {1}'.format(
+            TASK_TYPE, ', '.join(CAMPAIGN_TASK_TYPES.keys())
         )
-        self.stdout.write('Processed Market/Metadata instances')
+        raise ValueError(_msg)
 
-        # Create User accounts for all language pairs. We collect the
-        # resulting user credentials for later print out/CSV export.
-        credentials = _process_users(ALL_LANGUAGES, CONTEXT)
-        self.stdout.write('Processed User instances')
+    CONTEXT = {
+        'CAMPAIGN_KEY': manifest_data['CAMPAIGN_KEY'],
+        'CAMPAIGN_NAME': manifest_data['CAMPAIGN_NAME'],
+        'CAMPAIGN_NO': manifest_data['CAMPAIGN_NO'],
+        'CAMPAIGN_URL': manifest_data['CAMPAIGN_URL'],
+        'REDUNDANCY': manifest_data['REDUNDANCY'],
+        'TASKS_TO_ANNOTATORS': TASKS_TO_ANNOTATORS,
+        'TASK_TYPE': TASK_TYPE,
+    }
+    # END refactor
 
-        # Print credentials to screen.
-        for username, secret in credentials.items():
-            print(username, secret)
+    # Find super user
+    superusers = _identify_super_users()
+    stdout.write(
+        'Identified superuser: {0}'.format(superusers[0])
+    )
 
-        # Generate Dataset with user credentials and SSO URLs
-        export_data = Dataset()
+    # Process Market and Metadata instances for all language pairs
+    _process_market_and_metadata(
+        ALL_LANGUAGES,
+        superusers[0],
+        domain_name=manifest_data['CAMPAIGN_NAME'],
+        corpus_name=manifest_data['CAMPAIGN_NAME'],
+    )
+    stdout.write('Processed Market/Metadata instances')
+
+    # Create User accounts for all language pairs. We collect the
+    # resulting user credentials for later print out/CSV export.
+    credentials = _process_users(ALL_LANGUAGES, CONTEXT)
+    stdout.write('Processed User instances')
+
+    # Print credentials to screen.
+    for username, secret in credentials.items():
+        print(username, secret)
+
+    # Generate Dataset with user credentials and SSO URLs
+    export_data = Dataset()
+    if confirmation_tokens:
+        export_data.headers = ('Username', 'Password', 'URL', 'ConfirmationToken')
+    else:
+        export_data.headers = ('Username', 'Password', 'URL')
+    export_data.title = datetime.strftime(datetime.now(), '%Y%m%d')
+
+    base_url = manifest_data['CAMPAIGN_URL']
+    for _user, _password in credentials.items():
+        _url = '{0}{1}/{2}/'.format(base_url, _user, _password)
         if confirmation_tokens:
-            export_data.headers = ('Username', 'Password', 'URL', 'ConfirmationToken')
+            _token = generate_confirmation_token(_user, run_qc=False)
+            export_data.append((_user, _password, _url, _token))
         else:
-            export_data.headers = ('Username', 'Password', 'URL')
-        export_data.title = datetime.strftime(datetime.now(), '%Y%m%d')
+            export_data.append((_user, _password, _url))
 
-        base_url = manifest_data['CAMPAIGN_URL']
-        for _user, _password in credentials.items():
-            _url = '{0}{1}/{2}/'.format(base_url, _user, _password)
-            if confirmation_tokens:
-                _token = generate_confirmation_token(_user, run_qc=False)
-                export_data.append((_user, _password, _url, _token))
-            else:
-                export_data.append((_user, _password, _url))
+    # Export credentials to CSV or Excel files, if specified
+    _export_credentials(stdout, export_data, csv_output, xlsx_output)
 
-        # Export credentials to CSV or Excel files, if specified
-        self.export_credentials(export_data, csv_output, xlsx_output)
+    # Add User instances as CampaignTeam members
+    _process_campaign_teams(ALL_LANGUAGES, superusers[0], CONTEXT)
+    stdout.write('Processed CampaignTeam members')
 
-        # Add User instances as CampaignTeam members
-        _process_campaign_teams(ALL_LANGUAGES, superusers[0], CONTEXT)
-        self.stdout.write('Processed CampaignTeam members')
+    # Process TaskAgenda instances for current campaign
+    _process_campaign_agendas(
+        credentials.keys(), CONTEXT, only_activated=only_activated
+    )
 
-        # Process TaskAgenda instances for current campaign
-        _process_campaign_agendas(
-            credentials.keys(), CONTEXT, only_activated=only_activated
+
+def _export_credentials(stdout, export_data, csv_output, xlsx_output):
+    """Export credentials to screen, CSV and Excel files.
+
+    Parameters:
+    - export_data:Dataset contains triples or 4-tuples (username,
+      password, url, [token]);
+    - csv_output:str path to CSV output file, or None;
+    - xlsx_output:str path to Excel output file, or None.
+    """
+
+    # Write credentials to CSV file if specified.
+    if csv_output:
+        with open(csv_output, mode='w', newline='') as out_file:
+            out_file.write(export_data.export('csv'))
+
+        stdout.write(
+            'Exported CSV file: {0!r}'.format(csv_output)
         )
 
-    def export_credentials(self, export_data, csv_output, xlsx_output):
-        """Export credentials to screen, CSV and Excel files.
+    # Write credentials to Excel file if specified.
+    if xlsx_output:
+        with open(xlsx_output, mode='wb') as out_file:
+            out_file.write(export_data.export('xlsx'))
 
-        Parameters:
-        - export_data:Dataset contains triples or 4-tuples (username,
-          password, url, [token]);
-        - csv_output:str path to CSV output file, or None;
-        - xlsx_output:str path to Excel output file, or None.
-        """
-
-        # Write credentials to CSV file if specified.
-        if csv_output:
-            with open(csv_output, mode='w', newline='') as out_file:
-                out_file.write(export_data.export('csv'))
-
-            self.stdout.write(
-                'Exported CSV file: {0!r}'.format(csv_output)
-            )
-
-        # Write credentials to Excel file if specified.
-        if xlsx_output:
-            with open(xlsx_output, mode='wb') as out_file:
-                out_file.write(export_data.export('xlsx'))
-
-            self.stdout.write(
-                'Exported Excel file: {0!r}'.format(xlsx_output)
-            )
+        stdout.write(
+            'Exported Excel file: {0!r}'.format(xlsx_output)
+        )
