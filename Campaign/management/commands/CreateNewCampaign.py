@@ -18,6 +18,9 @@ from Campaign.management.commands.init_campaign import (
 from Campaign.management.commands.validatecampaigndata import (
     _validate_campaign_data,
 )
+from Campaign.management.commands.ProcessCampaignData import (
+    _process_campaign_data,
+)
 from Campaign.models import (
     Campaign,
     CampaignData,
@@ -49,6 +52,13 @@ class Command(BaseCommand):
             metavar='manifest-json',
             type=str,
             help='Path to manifest file in JSON format.',
+        )
+
+        _valid_task_types = ', '.join(CAMPAIGN_TASK_TYPES.keys())
+        parser.add_argument(
+            'campaign_type',
+            type=str,
+            help='Campaign type: {0}'.format(_valid_task_types),
         )
 
         # TODO: support adding multiple batches
@@ -88,6 +98,13 @@ class Command(BaseCommand):
             action='store_true',
             default=False,
             help='Generate valid task confirmation tokens needed for integration with external crowd sourcing apps.',
+        )
+
+        parser.add_argument(
+            '--max-count',
+            type=int,
+            default=-1,
+            help='Defines maximum number of batches to be processed',
         )
 
     def handle(self, *args, **options):
@@ -190,5 +207,12 @@ class Command(BaseCommand):
         self.stdout.write('### Running validatecampaigndata')
         self.stdout.write('Campaign name: {}'.format(_campaign.campaignName))
         _validate_campaign_data(_campaign, self.stdout)
+
+
+        self.stdout.write('### Running ProcessCampaignData')
+        campaign_type = options['campaign_type']
+        max_count = options['max_count']
+        _process_campaign_data(_campaign, owner, campaign_type, max_count)
+
 
 
