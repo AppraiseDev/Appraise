@@ -363,10 +363,12 @@ def _process_campaign_agendas(usernames, context, only_activated=True):
     # Get all tasks for this campaign
     _task_type = CAMPAIGN_TASK_TYPES[context['TASK_TYPE']]
     tasks = _task_type.objects.filter(campaign=_campaign)
+    print('Identified {} task(s)'.format(len(tasks)))
 
     # Constrain to only activated, if requested
     if only_activated:
         tasks = tasks.filter(activated=True)
+        print('Identified {} activated task(s)'.format(len(tasks)))
 
     # Map tasks to users, by market, and considering TASKS_TO_ANNOTATORS
     tasks_to_users_map = _map_tasks_to_users_by_market(

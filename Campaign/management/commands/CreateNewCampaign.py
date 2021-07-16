@@ -21,9 +21,6 @@ from Campaign.management.commands.validatecampaigndata import (
 from Campaign.management.commands.ProcessCampaignData import (
     _process_campaign_data,
 )
-from Campaign.management.commands.UpdateCampaignModels import (
-    _update_campaign_models,
-)
 from Campaign.models import (
     Campaign,
     CampaignData,
@@ -41,6 +38,9 @@ from Campaign.utils import (
     _process_users,
     _validate_language_codes,
     CAMPAIGN_TASK_TYPES,
+)
+from EvalData.management.commands.UpdateEvalDataModels import (
+    _update_eval_data_models,
 )
 
 from Dashboard.utils import generate_confirmation_token
@@ -144,8 +144,10 @@ class Command(BaseCommand):
 
         # TODO: run only if the campaign does not exist
 
-        # Initialise campaign based on manifest data
+        #############################################################
         self.stdout.write('### Running InitCampaign')
+
+        # Initialise campaign based on manifest data
         # TODO: extract generation of context from _init_campaign
         context = _init_campaign(
             manifest_data, csv_output, xlsx_output, only_activated,
@@ -158,7 +160,8 @@ class Command(BaseCommand):
 
         owner = _identify_super_users()[0]
 
-        self.stdout.write('### Uploading JSON with batches')
+        #############################################################
+        self.stdout.write('### Creating new campaign')
 
         batches_json = options['batches_json']
         if batches_json is not None:
@@ -182,7 +185,6 @@ class Command(BaseCommand):
             campaign_data.save()
             self.stdout.write('Uploaded file name: {}'.format(campaign_data.dataFile))
 
-            self.stdout.write('### Create new campaign')
             campaign_name = context['CAMPAIGN_NAME']
             self.stdout.write('Campaign name: {}'.format(campaign_name))
             # The team is already created in one of the previous steps
@@ -207,24 +209,37 @@ class Command(BaseCommand):
                 )
 
 
+        #############################################################
         self.stdout.write('### Running validatecampaigndata')
+
         self.stdout.write('Campaign name: {}'.format(_campaign.campaignName))
         _validate_campaign_data(_campaign, self.stdout)
 
-
+        #############################################################
         self.stdout.write('### Running ProcessCampaignData')
+
         campaign_type = options['campaign_type']
         max_count = options['max_count']
         _process_campaign_data(_campaign, owner, campaign_type, max_count)
 
-        self.stdout.write('### Running UpdateCampaignModels')
-        # TODO: Is this actually needed?
-        _update_campaign_models(self.stdout)
+        #############################################################
+        self.stdout.write('### Running UpdateEvalDataModels')
+        _update_eval_data_models(self.stdout)
 
+        #############################################################
         self.stdout.write('### Running init_campaign again')
+
         _init_campaign(
             manifest_data, csv_output, xlsx_output, only_activated,
             confirmation_tokens,
             skip_agendas=False,
             stdout=self.stdout,
         )
+
+        if csv_output or xlxs_output:
+            self.stdout.write('Done. Credentials exported to a CSV/XLSX file.')
+        else:
+            self.stdout.write(
+                'Done. Re-run providing --csv-output or --xlsx-output '
+                'to export credentials.'
+            )

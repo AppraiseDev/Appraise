@@ -85,9 +85,13 @@ class Command(BaseCommand):
         pass
 
     def handle(self, *args, **options):
+        _update_campaign_models(self.stdout)
+
+
+def _update_eval_data_models(stdout):
         _msg = '\n[{0}]\n\n'.format(path.basename(__file__))
-        self.stdout.write(_msg)
-        self.stdout.write('\n[INIT]\n\n')
+        stdout.write(_msg)
+        stdout.write('\n[INIT]\n\n')
 
         # News Task language pairs
         news_task_languages = ()
@@ -98,7 +102,7 @@ class Command(BaseCommand):
         superusers = User.objects.filter(is_superuser=True)
         if not superusers.exists():
             _msg = 'Failure to identify superuser'
-            self.stdout.write(_msg)
+            stdout.write(_msg)
             return
 
         # Ensure that all Market and Metadata instances exist.
@@ -146,7 +150,7 @@ class Command(BaseCommand):
                   source, target
                 )
 
-            self.stdout.write(_msg)
+            stdout.write(_msg)
 
 #        tr1 = datetime.now()
 #        active_items = TextPair.objects.filter(activated=True)
@@ -280,7 +284,7 @@ class Command(BaseCommand):
                   source, target
                 )
 
-            self.stdout.write(_msg)
+            stdout.write(_msg)
 
 
         #################################################################
@@ -333,7 +337,7 @@ class Command(BaseCommand):
                   source, target
                 )
 
-            self.stdout.write(_msg)
+            stdout.write(_msg)
 
         t1 = datetime.now()
         task_data = MultiModalAssessmentTask.objects.values(
@@ -375,4 +379,4 @@ class Command(BaseCommand):
         t4 = datetime.now()
         print('Processed related MultiModalAssessmentTask instances', t4-t3)
 
-        self.stdout.write('\n[DONE]\n\n')
+        stdout.write('\n[DONE]\n\n')
