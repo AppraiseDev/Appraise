@@ -106,6 +106,11 @@ class Command(BaseCommand):
         _init_campaign(
             self.stdout,
             manifest_data, csv_output, xlsx_output, only_activated,
-            confirmation_tokens
+            confirmation_tokens,
+            # When run for the first time, do not process campaign agendas,
+            # because the campaign does not exist yet
+            skip_agendas=True
         )
+
+
 

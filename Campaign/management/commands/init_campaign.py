@@ -107,7 +107,7 @@ class Command(BaseCommand):
 
 def _init_campaign(
     stdout, manifest_data, csv_output, xlsx_output, only_activated=True,
-    confirmation_tokens=False
+    confirmation_tokens=False, skip_agendas=False,
 ):
     """Initialises campaign based on manifest data.
 
@@ -171,9 +171,8 @@ def _init_campaign(
 
     # Find super user
     superusers = _identify_super_users()
-    stdout.write(
-        'Identified superuser: {0}'.format(superusers[0])
-    )
+    if stdout is not None:
+        stdout.write('Identified superuser: {0}'.format(superusers[0]))
 
     # Process Market and Metadata instances for all language pairs
     _process_market_and_metadata(
@@ -217,10 +216,13 @@ def _init_campaign(
     _process_campaign_teams(ALL_LANGUAGES, superusers[0], CONTEXT)
     stdout.write('Processed CampaignTeam members')
 
-    # Process TaskAgenda instances for current campaign
-    _process_campaign_agendas(
-        credentials.keys(), CONTEXT, only_activated=only_activated
-    )
+    if not skip_agendas:
+        # Process TaskAgenda instances for current campaign
+        _process_campaign_agendas(
+            credentials.keys(), CONTEXT, only_activated=only_activated
+        )
+    else:
+        stdout.write('Processing campaign agendas was not requested')
 
 
 def _export_credentials(stdout, export_data, csv_output, xlsx_output):
