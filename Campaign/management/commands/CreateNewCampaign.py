@@ -4,8 +4,10 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 from datetime import datetime
+from os import path
 
 from django.core.management.base import BaseCommand, CommandError
+from django.core.files import File
 
 from tablib import Dataset
 
@@ -13,7 +15,7 @@ from Campaign.management.commands.init_campaign import (
     _init_campaign,
     _export_credentials,
 )
-
+from Campaign.models import Campaign, CampaignData, CampaignTeam, Market, Metadata
 from Campaign.utils import (
     _create_uniform_task_map,
     _identify_super_users,
@@ -38,6 +40,15 @@ class Command(BaseCommand):
             metavar='manifest-json',
             type=str,
             help='Path to manifest file in JSON format.',
+        )
+
+        # TODO: support adding multiple batches
+        parser.add_argument(
+            '--batches-json',
+            type=str,
+            default=None,
+            metavar='--json',
+            help='Path to batches in JSON format.',
         )
 
         parser.add_argument(
@@ -102,15 +113,58 @@ class Command(BaseCommand):
         only_activated = not options['include_completed']
         confirmation_tokens = options['task_confirmation_tokens']
 
+        # TODO: run only if the campaign does not exist
+
         # Initialise campaign based on manifest data
-        _init_campaign(
-            self.stdout,
+        self.stdout.write('### Running InitCampaign')
+        # TODO: extract generation of context from _init_campaign
+        context = _init_campaign(
             manifest_data, csv_output, xlsx_output, only_activated,
             confirmation_tokens,
             # When run for the first time, do not process campaign agendas,
             # because the campaign does not exist yet
-            skip_agendas=True
+            skip_agendas=True,
+            stdout=self.stdout,
         )
+
+        self.stdout.write('### Uploading JSON with batches')
+
+        batches_json = options['batches_json']
+        self.stdout.write('JSON batches path: {0!r}'.format(batches_json))
+        # TODO: check if this returns the most recent Market and Metadata
+        _market = Market.objects.last()
+        self.stdout.write('Market: {}'.format(_market))
+        _metadata = Metadata.objects.last()
+        self.stdout.write('Metadata: {}'.format(_metadata))
+
+        # TODO: do not create if the campaign already has a batch added?
+        owner = _identify_super_users()[0]
+        campaign_data = CampaignData(
+                # dataFile=batches_json,
+                market=_market,
+                metadata=_metadata,
+                createdBy=owner,
+            )
+        with open(batches_json, 'r') as _file:
+            _filename = path.basename(batches_json)
+            campaign_data.dataFile.save(_filename, File(_file), save=True)
+        campaign_data.save()
+        self.stdout.write('Uploaded file name: {}'.format(campaign_data.dataFile))
+
+        self.stdout.write('### Create new campaign')
+        campaign_name = context['CAMPAIGN_NAME']
+        self.stdout.write('Campaign name: {}'.format(campaign_name))
+        # The team is already created in one of the previous steps
+        _team = CampaignTeam.objects.get(teamName=campaign_name)
+        _campaign = Campaign(
+                campaignName=campaign_name,
+                createdBy=owner
+            )
+        _campaign.save()
+        _campaign.teams.add(_team)
+        _campaign.batches.add(campaign_data)
+        _campaign.save()
+
 
 
 

@@ -99,15 +99,15 @@ class Command(BaseCommand):
 
         # Initialise campaign based on manifest data
         _init_campaign(
-            self.stdout,
             manifest_data, csv_output, xlsx_output, only_activated,
-            confirmation_tokens
+            confirmation_tokens,
+            stdout=self.stdout,
         )
 
 
 def _init_campaign(
-    stdout, manifest_data, csv_output, xlsx_output, only_activated=True,
-    confirmation_tokens=False, skip_agendas=False,
+    manifest_data, csv_output, xlsx_output, only_activated=True,
+    confirmation_tokens=False, skip_agendas=False, stdout=None
 ):
     """Initialises campaign based on manifest data.
 
@@ -181,12 +181,14 @@ def _init_campaign(
         domain_name=manifest_data['CAMPAIGN_NAME'],
         corpus_name=manifest_data['CAMPAIGN_NAME'],
     )
-    stdout.write('Processed Market/Metadata instances')
+    if stdout is not None:
+        stdout.write('Processed Market/Metadata instances')
 
     # Create User accounts for all language pairs. We collect the
     # resulting user credentials for later print out/CSV export.
     credentials = _process_users(ALL_LANGUAGES, CONTEXT)
-    stdout.write('Processed User instances')
+    if stdout is not None:
+        stdout.write('Processed User instances')
 
     # Print credentials to screen.
     for username, secret in credentials.items():
@@ -210,11 +212,12 @@ def _init_campaign(
             export_data.append((_user, _password, _url))
 
     # Export credentials to CSV or Excel files, if specified
-    _export_credentials(stdout, export_data, csv_output, xlsx_output)
+    _export_credentials(export_data, csv_output, xlsx_output, stdout=stdout)
 
     # Add User instances as CampaignTeam members
     _process_campaign_teams(ALL_LANGUAGES, superusers[0], CONTEXT)
-    stdout.write('Processed CampaignTeam members')
+    if stdout is not None:
+        stdout.write('Processed CampaignTeam members')
 
     if not skip_agendas:
         # Process TaskAgenda instances for current campaign
@@ -222,10 +225,13 @@ def _init_campaign(
             credentials.keys(), CONTEXT, only_activated=only_activated
         )
     else:
-        stdout.write('Processing campaign agendas was not requested')
+        if stdout is not None:
+            stdout.write('Processing campaign agendas was not requested')
+
+    return CONTEXT
 
 
-def _export_credentials(stdout, export_data, csv_output, xlsx_output):
+def _export_credentials(export_data, csv_output, xlsx_output, stdout=None):
     """Export credentials to screen, CSV and Excel files.
 
     Parameters:
@@ -240,15 +246,13 @@ def _export_credentials(stdout, export_data, csv_output, xlsx_output):
         with open(csv_output, mode='w', newline='') as out_file:
             out_file.write(export_data.export('csv'))
 
-        stdout.write(
-            'Exported CSV file: {0!r}'.format(csv_output)
-        )
+        if stdout is not None:
+            stdout.write('Exported CSV file: {0!r}'.format(csv_output))
 
     # Write credentials to Excel file if specified.
     if xlsx_output:
         with open(xlsx_output, mode='wb') as out_file:
             out_file.write(export_data.export('xlsx'))
 
-        stdout.write(
-            'Exported Excel file: {0!r}'.format(xlsx_output)
-        )
+        if stdout is not None:
+            stdout.write('Exported Excel file: {0!r}'.format(xlsx_output))
