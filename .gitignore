@@ -1,9 +1,10 @@
 # Appraise
 Batches
-Packages
+development.db*
 Examples/**/*.csv
 Examples/**/*.log
-development.db*
+Packages
+regressiontests.db
 static
 
 # Python
