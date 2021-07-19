@@ -74,13 +74,22 @@ class Command(BaseCommand):
         task_url = 'http://localhost:8000/{}/'.format(campaign_url)
         self.stdout.write('Task URL: {0!r}'.format(task_url))
 
-        response = client.get(task_url)
+        try:
+            response = client.get(task_url)
+        except:
+            raise CommandError('Invalid campaign URL for user {0!r}'.format(username))
         if response.status_code == 400:
-            raise CommandError('Incorrect campaign URL for user {0!r}'.format(username))
-        # print(response.context.keys())
+            raise CommandError('Invalid campaign URL for user {0!r}'.format(username))
+
+        if options['verbosity'] > 1:
+            self.stdout.write('Available context keys: {}'.format(response.context.keys()))
 
         # Each task has different context, so the POST request needs to be
         # built separately for each task type
+        data = None
+        msg_info = None
+
+        ##################################################################
         if campaign_type == 'Direct':
             if len(scores) != 1:
                 raise ValueError('Task "Direct" requires exactly 1 score')
@@ -92,21 +101,41 @@ class Command(BaseCommand):
                 'start_timestamp': (datetime.now() - timedelta(minutes=5)).timestamp(),
                 'end_timestamp': datetime.now().timestamp(),
             }
-            self.stdout.write('Created data: {0}'.format(data))
-            _response = client.post(task_url, data, follow=True)
 
-            if _response.status_code != 200:
-                raise CommandError('Unsuccesful annotation, status code != 200')
-
-            self.stdout.write(
-                'Successfully annotated item {}/{} with score {} for user {}'.format(
-                    response.context['item_id'],
-                    response.context['task_id'],
-                    scores[0],
-                    username
-                )
+            msg_info = 'item {}/{} with score {} for user {}'.format(
+                response.context['item_id'],
+                response.context['task_id'],
+                scores[0],
+                username
             )
 
+        ##################################################################
+        elif campaign_type == 'Pairwise':
+            if len(scores) != 2:
+                raise ValueError('Task "Pairwise" requires exactly 2 scores')
+
+            data = {
+                'score': scores[0],
+                'item_id': response.context['item_id'],
+                'task_id': response.context['task_id'],
+                'start_timestamp': (datetime.now() - timedelta(minutes=5)).timestamp(),
+                'end_timestamp': datetime.now().timestamp(),
+            }
+            if response.context['candidate2_text'] is not None:
+                data['score2'] = scores[1]
+
+            msg_info = 'item {}/{} with score(s) {}'.format(
+                response.context['item_id'],
+                response.context['task_id'],
+                scores[0]
+            )
+            if response.context['candidate2_text'] is not None:
+                msg_info += ', {}'.format(scores[1])
+
+            msg_info += ' for user {}'.format(username)
+
+
+        ##################################################################
         else:
             raise CommandError(
                 'Task type "{}" is not yet supported in this script yet'.format(
@@ -114,7 +143,14 @@ class Command(BaseCommand):
                 )
             )
 
-        self.stdout.write('Done')
+        # Final call
+        self.stdout.write('Created data: {0}'.format(data))
+        response = client.post(task_url, data, follow=True)
+
+        if response.status_code != 200:
+            raise CommandError('Unsuccesful annotation, status code != 200')
+        else:
+            self.stdout.write('Successfully annotated ' + msg_info)
 
 
 def _get_task_url(task_type):
