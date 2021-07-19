@@ -15,8 +15,6 @@ from Campaign.utils import CAMPAIGN_TASK_TYPES
 from Dashboard.views import TASK_DEFINITIONS
 
 
-
-
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
     help = 'Make a testing annotation from a command line'
@@ -65,7 +63,7 @@ class Command(BaseCommand):
         is_logged_in = client.login(username=username, password=password)
         if not is_logged_in:
             raise CommandError('Incorrect username or password.')
-        self.stdout.write('User "{0}" has successfully signed in'.format(username))
+        self.stdout.write('User {0!r} has successfully signed in'.format(username))
 
         campaign_type = options['campaign_type']
         if campaign_type not in CAMPAIGN_TASK_TYPES:
@@ -78,15 +76,14 @@ class Command(BaseCommand):
 
         response = client.get(task_url)
         if response.status_code == 400:
-            raise CommandError('Incorrect campaign URL for user "{}"'.format(username))
-        # print(response)
+            raise CommandError('Incorrect campaign URL for user {0!r}'.format(username))
         # print(response.context.keys())
 
         # Each task has different context, so the POST request needs to be
         # built separately for each task type
         if campaign_type == 'Direct':
             if len(scores) != 1:
-                raise ValueError('"Direct" task requires exactly 1 score.')
+                raise ValueError('Task "Direct" requires exactly 1 score')
 
             data = {
                 'score': scores[0],
