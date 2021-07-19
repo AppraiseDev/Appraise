@@ -47,7 +47,7 @@ from Dashboard.utils import generate_confirmation_token
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
-    help = 'Creates a new campaign based on manifest file'
+    help = 'A single command for creating a new campaign based on manifest file'
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -60,6 +60,7 @@ class Command(BaseCommand):
         _valid_task_types = ', '.join(CAMPAIGN_TASK_TYPES.keys())
         parser.add_argument(
             'campaign_type',
+            metavar='campaign-type',
             type=str,
             help='Campaign type: {0}'.format(_valid_task_types),
         )
@@ -69,7 +70,7 @@ class Command(BaseCommand):
             '--batches-json',
             type=str,
             default=None,
-            metavar='--json',
+            metavar='JSON',
             help='Path to batches in JSON format.',
         )
 
@@ -77,7 +78,7 @@ class Command(BaseCommand):
             '--csv-output',
             type=str,
             default=None,
-            metavar='--csv',
+            metavar='CSV',
             help='Path used to create CSV file containing credentials.',
         )
 
@@ -85,7 +86,7 @@ class Command(BaseCommand):
             '--xlsx-output',
             type=str,
             default=None,
-            metavar='--xlsx',
+            metavar='XLSX',
             help='Path used to create Excel file containing credentials.',
         )
 
@@ -100,21 +101,21 @@ class Command(BaseCommand):
             '--task-confirmation-tokens',
             action='store_true',
             default=False,
-            help='Generate valid task confirmation tokens needed for integration with external crowd sourcing apps.',
+            help='Generate valid task confirmation tokens needed for integration ' \
+                 'with external crowd sourcing apps.',
         )
 
         parser.add_argument(
             '--max-count',
             type=int,
             default=-1,
+            metavar='INTEGER',
             help='Defines maximum number of batches to be processed',
         )
 
     def handle(self, *args, **options):
         manifest_json = options['manifest_json']
-        self.stdout.write(
-            'JSON manifest path: {0!r}'.format(manifest_json)
-        )
+        self.stdout.write('JSON manifest path: {0!r}'.format(manifest_json))
 
         csv_output = options['csv_output']
         self.stdout.write('CSV output path: {0!r}'.format(csv_output))
