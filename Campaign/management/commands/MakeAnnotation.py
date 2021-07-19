@@ -25,7 +25,7 @@ class Command(BaseCommand):
         parser.add_argument(
             'user',
             type=str,
-            help='User name and password, separated by any of " ,:/"',
+            help='User name and password separated by a semicolon (:)',
         )
 
         _valid_task_types = ', '.join(CAMPAIGN_TASK_TYPES.keys())
@@ -36,10 +36,21 @@ class Command(BaseCommand):
             help='Campaign type: {0}'.format(_valid_task_types),
         )
 
+        parser.add_argument(
+            'score',
+            metavar='score(s)',
+            type=str,
+            help='Score(s) that should be assigned, delimited by a semicolon ' \
+                 'if multiple scores are needed for the task type'
+        )
+
     def handle(self, *args, **options):
         # Get username and password from options
-        user = options['user'].replace(':', ' ').replace('/', ' ').replace(',', ' ')
-        username, password = user.split(' ')
+        username, password = options['user'].replace(':', ' ').split(' ')
+
+        # Get score(s)
+        _scores = options['score'].replace(':', ' ').split(' ')
+        scores = [int(score) for score in _scores]
 
         # Needed to get the response context
         # http://jazstudios.blogspot.com/2011/01/django-testing-views.html
@@ -73,10 +84,12 @@ class Command(BaseCommand):
 
         # Each task has different context, so the POST request needs to be
         # built separately for each task type
-        final_status_code = None
         if campaign_type == 'Direct':
+            if len(scores) != 1:
+                raise ValueError('"Direct" task requires exactly 1 score.')
+
             data = {
-                'score': 99,
+                'score': scores[0],
                 'item_id': response.context['item_id'],
                 'task_id': response.context['task_id'],
                 'start_timestamp': (datetime.now() - timedelta(minutes=5)).timestamp(),
@@ -84,11 +97,16 @@ class Command(BaseCommand):
             }
             self.stdout.write('Created data: {0}'.format(data))
             _response = client.post(task_url, data, follow=True)
-            final_status_code = _response.status_code
 
-            sys.stdout.write(
-                'User {} annotated item {}/{} with score {}'.format(
-                    username, item_id, task_id
+            if _response.status_code != 200:
+                raise CommandError('Unsuccesful annotation, status code != 200')
+
+            self.stdout.write(
+                'Successfully annotated item {}/{} with score {} for user {}'.format(
+                    response.context['item_id'],
+                    response.context['task_id'],
+                    scores[0],
+                    username
                 )
             )
 
@@ -99,13 +117,11 @@ class Command(BaseCommand):
                 )
             )
 
-        if final_status_code != 200:
-            raise CommandError('The POST request was unsuccessful, status code != 200')
         self.stdout.write('Done')
 
 
 def _get_task_url(task_type):
-    """Get task URL based on the campaign task type name."""
+    """Gets task URL based on the campaign task type name."""
     if task_type not in CAMPAIGN_TASK_TYPES:
         return None
     task_cls = CAMPAIGN_TASK_TYPES[task_type]
