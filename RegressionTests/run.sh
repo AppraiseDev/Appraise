@@ -89,12 +89,13 @@ for test_path in $(ls $APPRAISE_TESTS_DIR/tests/test_*.sh); do
     test_dir=$( dirname $test_path )
     test_file=$( basename $test_path )
 
-    # Tests are executed from their directory
-    cd $test_dir
-
-    logn "Running $( realpath --relative-to=. $test_path ) ..."
     test_time_start=$(date +%s.%N)
     ((++count_all))
+
+    logn "Running $( realpath --relative-to=. $test_path ) ..."
+
+    # Tests are executed from their directory
+    cd $test_dir
 
     # Run test
     $SHELL -x $test_file 2> $test_file.log 1>&2
