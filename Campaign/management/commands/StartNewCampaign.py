@@ -12,8 +12,9 @@ from django.core.files import File
 from tablib import Dataset
 
 from Campaign.management.commands.init_campaign import (
-    _init_campaign,
+    _create_context,
     _export_credentials,
+    _init_campaign,
 )
 from Campaign.management.commands.validatecampaigndata import (
     _validate_campaign_data,
@@ -137,6 +138,7 @@ class Command(BaseCommand):
 
         # Load manifest data, this may raise CommandError
         manifest_data = _load_campaign_manifest(manifest_json)
+        context = _create_context(manifest_data)
 
         # By default, we only include activated tasks into agenda creation.
         # Compute Boolean flag based on negation of --include-completed state.
@@ -149,9 +151,8 @@ class Command(BaseCommand):
         self.stdout.write('### Running InitCampaign')
 
         # Initialise campaign based on manifest data
-        # TODO: extract generation of context from _init_campaign
-        context = _init_campaign(
-            manifest_data, csv_output, xlsx_output, only_activated,
+        _init_campaign(
+            context, csv_output, xlsx_output, only_activated,
             confirmation_tokens,
             # When run for the first time, do not process campaign agendas,
             # because the campaign does not exist yet
@@ -231,7 +232,7 @@ class Command(BaseCommand):
         self.stdout.write('### Running init_campaign again')
 
         _init_campaign(
-            manifest_data, csv_output, xlsx_output, only_activated,
+            context, csv_output, xlsx_output, only_activated,
             confirmation_tokens,
             skip_agendas=False,
             stdout=self.stdout,
