@@ -3,6 +3,9 @@
 This directory contains regression tests based on data from `../Examples`.
 Regression tests are currently supported on Unix machines only.
 
+Warning: regression tests temporarily modify `Appraise/settings.py`, so run the
+`run.sh` script with caution.
+
 
 ## Usage
 
