@@ -20,7 +20,7 @@ for score in $( seq 10 10 100 ); do
 done
 
 # Export scores without timestamps and compare with the expected output
-$APPRAISE_MANAGE ExportSystemScoresToCSV example1 | cut -f-6 -d, > $prefix.scores.csv
+$APPRAISE_MANAGE ExportSystemScoresToCSV example1 | cut -f-7 -d, > $prefix.scores.csv
 diff $prefix.scores.csv $prefix.scores.csv.expected
 
 # Exit with success code
