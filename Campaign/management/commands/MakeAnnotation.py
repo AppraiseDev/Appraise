@@ -38,8 +38,8 @@ class Command(BaseCommand):
             'score',
             metavar='score(s)',
             type=str,
-            help='Score(s) that should be assigned, delimited by a semicolon ' \
-                 'if multiple scores are needed for the task type'
+            help='Score(s) that should be assigned, delimited by a semicolon '
+            'if multiple scores are needed for the task type',
         )
 
     def handle(self, *args, **options):
@@ -82,7 +82,9 @@ class Command(BaseCommand):
             raise CommandError('Invalid campaign URL for user {0!r}'.format(username))
 
         if options['verbosity'] > 1:
-            self.stdout.write('Available context keys: {}'.format(response.context.keys()))
+            self.stdout.write(
+                'Available context keys: {}'.format(response.context.keys())
+            )
 
         # Each task has different context, so the POST request needs to be
         # built separately for each task type
@@ -106,7 +108,7 @@ class Command(BaseCommand):
                 response.context['item_id'],
                 response.context['task_id'],
                 scores[0],
-                username
+                username,
             )
 
         ##################################################################
@@ -125,15 +127,12 @@ class Command(BaseCommand):
                 data['score2'] = scores[1]
 
             msg_info = 'item {}/{} with score(s) {}'.format(
-                response.context['item_id'],
-                response.context['task_id'],
-                scores[0]
+                response.context['item_id'], response.context['task_id'], scores[0]
             )
             if response.context['candidate2_text'] is not None:
                 msg_info += ', {}'.format(scores[1])
 
             msg_info += ' for user {}'.format(username)
-
 
         ##################################################################
         else:

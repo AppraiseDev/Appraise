@@ -62,32 +62,26 @@ class Command(BaseCommand):
             '--task-confirmation-tokens',
             action='store_true',
             default=False,
-            help='Generate valid task confirmation tokens needed for ' \
-                 'integration with external crowd sourcing apps.',
+            help='Generate valid task confirmation tokens needed for '
+            'integration with external crowd sourcing apps.',
         )
 
     def handle(self, *args, **options):
         manifest_json = options['manifest_json']
-        self.stdout.write(
-            'JSON manifest path: {0!r}'.format(manifest_json)
-        )
+        self.stdout.write('JSON manifest path: {0!r}'.format(manifest_json))
 
         csv_output = options['csv_output']
         self.stdout.write('CSV output path: {0!r}'.format(csv_output))
         if csv_output and not csv_output.lower().endswith('.csv'):
             raise CommandError(
-                'csv_output {0!r} does not point to .csv file'.format(
-                    csv_output
-                )
+                'csv_output {0!r} does not point to .csv file'.format(csv_output)
             )
 
         xlsx_output = options['xlsx_output']
         self.stdout.write('Excel output path: {0!r}'.format(xlsx_output))
         if xlsx_output and not xlsx_output.lower().endswith('.xlsx'):
             raise CommandError(
-                'xlsx_output {0!r} does not point to .xlsx file'.format(
-                    xlsx_output
-                )
+                'xlsx_output {0!r} does not point to .xlsx file'.format(xlsx_output)
             )
 
         # Load manifest data, this may raise CommandError
@@ -102,15 +96,23 @@ class Command(BaseCommand):
 
         # Initialise campaign based on manifest data
         _init_campaign(
-            context, csv_output, xlsx_output, only_activated,
+            context,
+            csv_output,
+            xlsx_output,
+            only_activated,
             confirmation_tokens,
             stdout=self.stdout,
         )
 
 
 def _init_campaign(
-    context, csv_output, xlsx_output, only_activated=True,
-    confirmation_tokens=False, skip_agendas=False, stdout=None
+    context,
+    csv_output,
+    xlsx_output,
+    only_activated=True,
+    confirmation_tokens=False,
+    skip_agendas=False,
+    stdout=None,
 ):
     """Initialises campaign based on manifest data.
 

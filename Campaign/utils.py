@@ -182,9 +182,7 @@ def _get_tasks_by_market(tasks, context):
             task.marketSourceLanguageCode().replace('-', ''),
             task.marketTargetLanguageCode().replace('-', ''),
         )
-        key = format_str.format(
-            market_code.lower(), context.get('CAMPAIGN_NO')
-        )
+        key = format_str.format(market_code.lower(), context.get('CAMPAIGN_NO'))
         tasks_by_market[key].append(task)
 
     for key in tasks_by_market.keys():
@@ -212,9 +210,7 @@ def _get_tasks_map_for_language_pair(source_code, target_code, context):
     required_keys = ('REDUNDANCY', 'TASKS_TO_ANNOTATORS')
     _validate_required_keys(context, required_keys)
 
-    _tasks_map = context.get('TASKS_TO_ANNOTATORS').get(
-        (source_code, target_code)
-    )
+    _tasks_map = context.get('TASKS_TO_ANNOTATORS').get((source_code, target_code))
     if _tasks_map is None:
         _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
             (source_code, target_code)
@@ -333,9 +329,7 @@ def _map_tasks_to_users_by_market(tasks, usernames, context):
         for user, tasks_for_user in zip(users.order_by('id'), _tasks_map):
             print(source_code, target_code, user, tasks_for_user)
             for task_id in tasks_for_user:
-                tasks_to_users_map[key].append(
-                    (_tasks_for_current_key[task_id], user)
-                )
+                tasks_to_users_map[key].append((_tasks_for_current_key[task_id], user))
 
     return tasks_to_users_map
 
@@ -371,23 +365,17 @@ def _process_campaign_agendas(usernames, context, only_activated=True):
         print('Identified {} activated task(s)'.format(len(tasks)))
 
     # Map tasks to users, by market, and considering TASKS_TO_ANNOTATORS
-    tasks_to_users_map = _map_tasks_to_users_by_market(
-        tasks, usernames, context
-    )
+    tasks_to_users_map = _map_tasks_to_users_by_market(tasks, usernames, context)
 
     for key in tasks_to_users_map:
         print('[{0}]'.format(key))
         for task, user in tasks_to_users_map[key]:
             print(user, '-->', task.id)
 
-            agenda = TaskAgenda.objects.filter(
-                user=user, campaign=_campaign
-            )
+            agenda = TaskAgenda.objects.filter(user=user, campaign=_campaign)
 
             if not agenda.exists():
-                agenda = TaskAgenda.objects.create(
-                    user=user, campaign=_campaign
-                )
+                agenda = TaskAgenda.objects.create(user=user, campaign=_campaign)
             else:
                 agenda = agenda[0]
 
@@ -430,17 +418,13 @@ def _process_campaign_teams(language_pairs, owner, context):
 
     for _src, _tgt in language_pairs:
         try:
-            _tasks_map = _get_tasks_map_for_language_pair(
-                _src, _tgt, context
-            )
+            _tasks_map = _get_tasks_map_for_language_pair(_src, _tgt, context)
 
         except (LookupError, ValueError) as _exc:
             print(str(_exc))
             continue
 
-        _tasks = sum([len(x) for x in _tasks_map]) // context.get(
-            'REDUNDANCY'
-        )
+        _tasks = sum([len(x) for x in _tasks_map]) // context.get('REDUNDANCY')
         _annotators = len(_tasks_map)
 
         campaign_team_object = _get_or_create_campaign_team(
@@ -537,9 +521,7 @@ def _process_users(language_pairs, context):
             secret = hasher.hexdigest()[:8]
 
             if not User.objects.filter(username=username).exists():
-                new_user = User.objects.create_user(
-                    username=username, password=secret
-                )
+                new_user = User.objects.create_user(username=username, password=secret)
                 new_user.save()
 
             _credentials[username] = secret
@@ -559,9 +541,7 @@ def _validate_language_codes(codes):
     """
     for code in codes:
         if not validate_language_code(code):
-            raise CommandError(
-                '{0!r} contains invalid language code!'.format(code)
-            )
+            raise CommandError('{0!r} contains invalid language code!'.format(code))
 
 
 def _validate_required_keys(context, required_keys):
@@ -578,7 +558,5 @@ def _validate_required_keys(context, required_keys):
     for required_key in required_keys:
         if not required_key in context.keys():
             raise ValueError(
-                'context does not contain required key {0!r}'.format(
-                    required_key
-                )
+                'context does not contain required key {0!r}'.format(required_key)
             )

@@ -102,8 +102,8 @@ class Command(BaseCommand):
             '--task-confirmation-tokens',
             action='store_true',
             default=False,
-            help='Generate valid task confirmation tokens needed for integration ' \
-                 'with external crowd sourcing apps.',
+            help='Generate valid task confirmation tokens needed for integration '
+            'with external crowd sourcing apps.',
         )
 
         parser.add_argument(
@@ -122,18 +122,14 @@ class Command(BaseCommand):
         self.stdout.write('CSV output path: {0!r}'.format(csv_output))
         if csv_output and not csv_output.lower().endswith('.csv'):
             raise CommandError(
-                'csv_output {0!r} does not point to .csv file'.format(
-                    csv_output
-                )
+                'csv_output {0!r} does not point to .csv file'.format(csv_output)
             )
 
         xlsx_output = options['xlsx_output']
         self.stdout.write('Excel output path: {0!r}'.format(xlsx_output))
         if xlsx_output and not xlsx_output.lower().endswith('.xlsx'):
             raise CommandError(
-                'xlsx_output {0!r} does not point to .xlsx file'.format(
-                    xlsx_output
-                )
+                'xlsx_output {0!r} does not point to .xlsx file'.format(xlsx_output)
             )
 
         # Load manifest data, this may raise CommandError
@@ -152,7 +148,10 @@ class Command(BaseCommand):
 
         # Initialise campaign based on manifest data
         _init_campaign(
-            context, csv_output, xlsx_output, only_activated,
+            context,
+            csv_output,
+            xlsx_output,
+            only_activated,
             confirmation_tokens,
             # When run for the first time, do not process campaign agendas,
             # because the campaign does not exist yet
@@ -168,11 +167,15 @@ class Command(BaseCommand):
         batches_json = options['batches_json']
         if batches_json is not None:
             self.stdout.write('JSON batches path: {0!r}'.format(batches_json))
-            campaign_data = _upload_batches_json(batches_json, owner, stdout=self.stdout)
+            campaign_data = _upload_batches_json(
+                batches_json, owner, stdout=self.stdout
+            )
 
             campaign_name = context['CAMPAIGN_NAME']
             self.stdout.write('Campaign name: {}'.format(campaign_name))
-            _campaign = _create_campaign(campaign_name, campaign_data, owner, stdout=self.stdout)
+            _campaign = _create_campaign(
+                campaign_name, campaign_data, owner, stdout=self.stdout
+            )
 
         else:  # i.e. batches_json is None
             _campaign = Campaign.objects.filter(campaignName=campaign_name)
@@ -183,7 +186,6 @@ class Command(BaseCommand):
                     'Campaign {0!r} does not exist and no JSON file '
                     'with batches provided via --batches-json.'.format(campaign_name)
                 )
-
 
         #############################################################
         self.stdout.write('### Running validatecampaigndata')
@@ -206,7 +208,10 @@ class Command(BaseCommand):
         self.stdout.write('### Running init_campaign again')
 
         _init_campaign(
-            context, csv_output, xlsx_output, only_activated,
+            context,
+            csv_output,
+            xlsx_output,
+            only_activated,
             confirmation_tokens,
             skip_agendas=False,
             stdout=self.stdout,
@@ -230,11 +235,10 @@ def _upload_batches_json(batches_json, owner, stdout=None):
     stdout.write('Metadata: {}'.format(_metadata))
 
     campaign_data = CampaignData(
-            # dataFile=batches_json,
-            market=_market,
-            metadata=_metadata,
-            createdBy=owner,
-        )
+        market=_market,
+        metadata=_metadata,
+        createdBy=owner,
+    )
 
     with open(batches_json, 'r') as _file:
         _filename = path.basename(batches_json)
@@ -249,10 +253,7 @@ def _create_campaign(campaign_name, campaign_data, owner, stdout=None):
     """Create a new campaign."""
     # The team is already created in one of the previous steps
     team = CampaignTeam.objects.get(teamName=campaign_name)
-    campaign = Campaign(
-            campaignName=campaign_name,
-            createdBy=owner
-        )
+    campaign = Campaign(campaignName=campaign_name, createdBy=owner)
     campaign.save()
     campaign.teams.add(team)
     campaign.batches.add(campaign_data)

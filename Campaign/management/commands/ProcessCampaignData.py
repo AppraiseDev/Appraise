@@ -60,9 +60,7 @@ def _process_campaign_data(campaign, batch_user, campaign_type, max_count):
     """Process campaign data."""
     # Validate campaign type
     if not campaign_type in CAMPAIGN_TASK_TYPES.keys():
-        raise CommandError(
-            'Bad campaign type {0}'.format(campaign_type)
-        )
+        raise CommandError('Bad campaign type {0}'.format(campaign_type))
 
     # TODO: add rollback in case of errors
     for batch_data in campaign.batches.filter(dataValid=True):
@@ -70,9 +68,7 @@ def _process_campaign_data(campaign, batch_user, campaign_type, max_count):
         task_cls = CAMPAIGN_TASK_TYPES.get(campaign_type)
 
         try:
-            task_cls.import_from_json(
-                campaign, batch_user, batch_data, max_count
-            )
+            task_cls.import_from_json(campaign, batch_user, batch_data, max_count)
 
         except Exception as e:
             raise CommandError(e)
