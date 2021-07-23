@@ -14,12 +14,17 @@ Then run:
 
     bash RegressionTests/run.sh
 
-Example output will look like this:
+To run only tests from a specific subdirectory, provide a path to it as the
+argument, for example:
+
+    bash RegressionTests/run.sh RegressionTests/test/examples
+
+An example output looks like this:
 
     [07/19/2021 18:11:23] Running regression tests...
-    [07/19/2021 18:11:23] Running test_examples_direct.sh ... OK
+    [07/19/2021 18:11:23] Running RegressionTests/tests/examples/test_examples_direct.sh ... OK
     [07/19/2021 18:11:38] Test took 00:00:15.212s
-    [07/19/2021 18:11:38] Running test_examples_pairwise.sh ... OK
+    [07/19/2021 18:11:38] Running RegressionTests/tests/examples/test_examples_pairwise.sh ... OK
     [07/19/2021 18:11:51] Test took 00:00:12.851s
     ---------------------
     Ran 2 tests in 00:00:28.345s, 2 passed, 0 failed
@@ -27,7 +32,7 @@ Example output will look like this:
 Standard output and error of each test are written to `test_*.sh.log` file. Use
 log files for debugging if a test fails, for example:
 
-    less RegressionTests/tests/test_examples_pairwise.sh.log
+    less RegressionTests/tests/examples/test_examples_pairwise.sh.log
 
 
 ## Adding new tests
