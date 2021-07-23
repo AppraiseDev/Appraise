@@ -5,6 +5,7 @@
 
 SHELL=/bin/bash
 
+
 ##########################################################################
 # Helper functions
 
@@ -27,6 +28,7 @@ function format_time {
     LANG=C printf "%02d:%02d:%02.3fs" $dh $dm $ds
 }
 
+
 ##########################################################################
 # Setup environment
 
@@ -34,7 +36,8 @@ log "Appraise Git commit: $( git rev-parse --verify HEAD | cut -c-7)"
 
 export APPRAISE_TESTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export APPRAISE_ROOT=$( realpath $APPRAISE_TESTS_DIR/../ )
-export APPRAISE_DATABASE=regressiontests.db
+#export APPRAISE_DATABASE=regressiontests.db
+export APPRAISE_DATABASE=development.db
 export APPRAISE_DB_NAME=default
 export APPRAISE_EXAMPLES="$APPRAISE_ROOT/Examples"
 
@@ -71,8 +74,16 @@ $APPRAISE_PYTHON manage.py flush   --database $APPRAISE_DB_NAME --no-input
 $APPRAISE_PYTHON manage.py createsuperuser --database $APPRAISE_DB_NAME \
     --no-input --username admin --email admin@appraise.org
 
+
 ##########################################################################
 # Run regression tests
+
+# Default directory with all regression tests is 'tests'
+test_prefixes="$APPRAISE_TESTS_DIR/tests"
+if [ $# -ge 1 ]; then
+    test_prefixes=$1
+fi
+test_dirs=$(find $test_prefixes -type d | grep -v "/_")
 
 # Exit codes
 export EXIT_CODE_SUCCESS=0
@@ -82,42 +93,47 @@ count_all=0
 count_failed=0
 count_passed=0
 
+declare -a tests_failed
+
 time_start=$(date +%s.%N)
 
 log "Running regression tests..."
-for test_path in $(ls $APPRAISE_TESTS_DIR/tests/test_*.sh); do
-    test_dir=$( dirname $test_path )
-    test_file=$( basename $test_path )
+for test_dir in $test_dirs; do
+    log "Checking directory: $test_dir"
 
-    test_time_start=$(date +%s.%N)
-    ((++count_all))
+    for test_path in $(ls -A $test_dir/test_*.sh 2>/dev/null); do
+        test_file=$( basename $test_path )
+        test_name="${test_file%.*}"
+        test_time_start=$(date +%s.%N)
+        ((++count_all))
 
-    logn "Running $( realpath --relative-to=. $test_path ) ..."
+        logn "Running $( realpath --relative-to=. $test_path ) ..."
 
-    # Tests are executed from their directory
-    cd $test_dir
+        # Tests are executed from their directory
+        cd $test_dir
 
-    # Run test
-    $SHELL -x $test_file 2> $test_file.log 1>&2
-    exit_code=$?
+        # Run test
+        $SHELL -x $test_file 2> $test_file.log 1>&2
+        exit_code=$?
 
-    # Check exit code
-    if [ $exit_code -eq $EXIT_CODE_SUCCESS ]; then
-        ((++count_passed))
-        echo " OK"
-    else
-        ((++count_failed))
-        tests_failed+=($test_path)
-        echo " failed"
-        success=false
-    fi
+        # Check exit code
+        if [ $exit_code -eq $EXIT_CODE_SUCCESS ]; then
+            ((++count_passed))
+            echo " OK"
+        else
+            ((++count_failed))
+            tests_failed+=($test_path)
+            echo " failed"
+            success=false
+        fi
 
-    cd $APPRAISE_ROOT
+        # Report time
+        test_time_end=$(date +%s.%N)
+        test_time=$(format_time $test_time_start $test_time_end)
+        log "Test took $test_time"
 
-    # Report time
-    test_time_end=$(date +%s.%N)
-    test_time=$(format_time $test_time_start $test_time_end)
-    log "Test took $test_time"
+        cd $APPRAISE_ROOT
+    done
 done
 
 time_end=$(date +%s.%N)
@@ -132,10 +148,20 @@ test -e Appraise/settings.py.bak && mv Appraise/settings.py.bak Appraise/setting
 
 
 ##########################################################################
-# Print summary
+# Show summary
 prev_log="$APPRAISE_TESTS_DIR/previous.log"
 rm -f $prev_log
 
+# Print failed tests
+if [ -n "$tests_failed" ]; then
+    echo "---------------------"
+fi
+[[ -z "$tests_failed" ]] || echo "Failed:" | tee -a $prev_log
+for test_name in "${tests_failed[@]}"; do
+    echo "  - $test_name" | tee -a $prev_log
+done
+
+# Print summary
 echo "---------------------" | tee -a $prev_log
 echo -n "Ran $count_all tests in $time_total, $count_passed passed, $count_failed failed" | tee -a $prev_log
 echo "" | tee -a $prev_log
