@@ -87,7 +87,7 @@ class Command(BaseCommand):
         # Load manifest data, this may raise CommandError
         manifest_data = _load_campaign_manifest(manifest_json)
         # Read context from manifest data
-        context = _create_context(manifest_data)
+        context = _create_context(manifest_data, stdout=self.stdout)
 
         # By default, we only include activated tasks into agenda creation.
         # Compute Boolean flag based on negation of --include-completed state.
@@ -214,7 +214,7 @@ def _export_credentials(export_data, csv_output, xlsx_output, stdout=None):
             stdout.write('Exported Excel file: {0!r}'.format(xlsx_output))
 
 
-def _create_context(manifest_data):
+def _create_context(manifest_data, stdout=None):
     """Create context from manifest JSON.
 
     Parameters:
@@ -250,7 +250,16 @@ def _create_context(manifest_data):
     _validate_language_codes(ALL_LANGUAGE_CODES)
 
     # DirectAssessmentTask is the default task for backward compatibility
-    TASK_TYPE = manifest_data.get('TASK_TYPE', 'Direct')
+    if 'TASK_TYPE' not in manifest_data:
+        TASK_TYPE = 'Direct'
+        if stdout is not None:
+            stdout.write(
+                'No task type found in the manifest file, assuming it is "Direct". '
+                'If this is incorrect, define "TASK_TYPE" in the manifest file.'
+            )
+    else:
+        TASK_TYPE = manifest_data.get('TASK_TYPE', 'Direct')
+
     # Raise an exception if an unrecognized task type is provided
     if TASK_TYPE not in CAMPAIGN_TASK_TYPES:
         _msg = 'Unrecognized TASK_TYPE \'{0}\'. Supported tasks are: {1}'.format(

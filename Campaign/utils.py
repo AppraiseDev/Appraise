@@ -327,7 +327,7 @@ def _map_tasks_to_users_by_market(tasks, usernames, context):
             raise CommandError(_msg)
 
         for user, tasks_for_user in zip(users.order_by('id'), _tasks_map):
-            print(source_code, target_code, user, tasks_for_user)
+            print('Mapping task(s) to user:', source_code, target_code, user, tasks_for_user)
             for task_id in tasks_for_user:
                 tasks_to_users_map[key].append((_tasks_for_current_key[task_id], user))
 
@@ -353,6 +353,7 @@ def _process_campaign_agendas(usernames, context, only_activated=True):
     # Get Campaign instance for campaign name
     _campaign = _get_campaign_instance(context.get('CAMPAIGN_NAME'))
     print('Identified Campaign {0!r}'.format(context.get('CAMPAIGN_NAME')))
+    print('Task type: {}'.format(context['TASK_TYPE']))
 
     # Get all tasks for this campaign
     _task_type = CAMPAIGN_TASK_TYPES[context['TASK_TYPE']]

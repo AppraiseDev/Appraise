@@ -6,7 +6,7 @@ set -eo pipefail
 prefix=example_pairwise
 
 # Create campaign from Examples/Pairwise
-$APPRAISE_MANAGE StartNewCampaign $APPRAISE_EXAMPLES/Pairwise/manifest.json Pairwise \
+$APPRAISE_MANAGE StartNewCampaign $APPRAISE_EXAMPLES/Pairwise/manifest.json \
     --batches-json $APPRAISE_EXAMPLES/Pairwise/batches.json \
     --csv-output $prefix.users.csv
 

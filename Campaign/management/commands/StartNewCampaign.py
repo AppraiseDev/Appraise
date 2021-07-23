@@ -25,7 +25,6 @@ from Campaign.models import (
 from Campaign.utils import (
     _identify_super_users,
     _load_campaign_manifest,
-    CAMPAIGN_TASK_TYPES,
 )
 from EvalData.management.commands.UpdateEvalDataModels import _update_eval_data_models
 
@@ -41,14 +40,6 @@ class Command(BaseCommand):
             metavar='manifest-json',
             type=str,
             help='Path to manifest file in JSON format.',
-        )
-
-        _valid_task_types = ', '.join(CAMPAIGN_TASK_TYPES.keys())
-        parser.add_argument(
-            'campaign_type',
-            metavar='campaign-type',
-            type=str,
-            help='Campaign type: {0}'.format(_valid_task_types),
         )
 
         # TODO: support adding multiple batches
@@ -119,7 +110,7 @@ class Command(BaseCommand):
 
         # Load manifest data, this may raise CommandError
         manifest_data = _load_campaign_manifest(manifest_json)
-        context = _create_context(manifest_data)
+        context = _create_context(manifest_data, stdout=self.stdout)
 
         # By default, we only include activated tasks into agenda creation.
         # Compute Boolean flag based on negation of --include-completed state.
@@ -181,9 +172,9 @@ class Command(BaseCommand):
         #############################################################
         self.stdout.write('### Running ProcessCampaignData')
 
-        campaign_type = options['campaign_type']
-        max_count = options['max_count']
-        _process_campaign_data(_campaign, owner, campaign_type, max_count)
+        _campaign_type = context['TASK_TYPE']
+        _max_count = options['max_count']
+        _process_campaign_data(_campaign, owner, _campaign_type, _max_count)
 
         #############################################################
         self.stdout.write('### Running UpdateEvalDataModels')

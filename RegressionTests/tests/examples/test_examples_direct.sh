@@ -6,7 +6,7 @@ set -eo pipefail
 prefix=example_direct
 
 # Create campaign from Examples/Direct
-$APPRAISE_MANAGE StartNewCampaign $APPRAISE_EXAMPLES/Direct/manifest.json Direct \
+$APPRAISE_MANAGE StartNewCampaign $APPRAISE_EXAMPLES/Direct/manifest.json \
     --batches-json $APPRAISE_EXAMPLES/Direct/batches.json \
     --csv-output $prefix.users.csv
 
