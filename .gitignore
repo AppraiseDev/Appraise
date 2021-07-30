@@ -17,3 +17,5 @@ appraise.log
 # Editors
 .vscode
 *.sw[po]
+
+.venv
