@@ -20,41 +20,43 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
+DEBUG = os.environ.get('APPRAISE_DEBUG', True)
+
+ADMINS = os.environ.get('APPRAISE_ADMINS', ())
+MANAGERS = ADMINS
+
+SECRET_KEY = os.environ.get(
+    'APPRAISE_SECRET_KEY'
+)  # Throw if no SECRET_KEY set!
+ALLOWED_HOSTS = os.environ.get('APPRAISE_ALLOWED_HOSTS', '127.0.0.1').split(
+    ','
+)
+
+WSGI_APPLICATION = os.environ.get(
+    'APPRAISE_WSGI_APPLICATION', 'appraise.wsgi.application'
+)
+
 # Try to load local settings, otherwise use defaults.
 try:
     # pylint: disable=W0611
-    from Appraise.local_settings import DEBUG, ADMINS, MANAGERS, DATABASES, \
-      SECRET_KEY, ALLOWED_HOSTS, SECURE_CONTENT_TYPE_NOSNIFF, \
-      SECURE_BROWSER_XSS_FILTER, SESSION_COOKIE_SECURE, \
-      CSRF_COOKIE_SECURE, X_FRAME_OPTIONS, WSGI_APPLICATION
+    from appraise.local_settings import (  # type: ignore
+        DATABASES,
+    )
 
 except ImportError:
-    DEBUG = True
 
-    ADMINS = ()
-    MANAGERS = ADMINS
+    # Database
+    # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-    # pylint: disable=C0330
-    DATABASES = {
-      'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'development.db'),
-      }
-    }
-
-    SECRET_KEY = 'j^g&cs_-8-%gwx**xmq64pcm6o2c3ovrxy&%9n@ez#b=qi!uc%'
-    ALLOWED_HOSTS = [
-        '127.0.0.1',
-        'localhost',
-    ]
-
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SESSION_COOKIE_SECURE = False
-    CSRF_COOKIE_SECURE = False
-    X_FRAME_OPTIONS = 'DENY'
-
-    WSGI_APPLICATION = 'Appraise.wsgi.application'
+    DATABASES = os.environ.get(
+        'APPRAISE_DATABASES',
+        {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+            }
+        },
+    )
 
 FILE_UPLOAD_PERMISSIONS = 0o644
 
