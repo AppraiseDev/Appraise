@@ -36,27 +36,33 @@ WSGI_APPLICATION = os.environ.get(
     'APPRAISE_WSGI_APPLICATION', 'appraise.wsgi.application'
 )
 
-# Try to load local settings, otherwise use defaults.
-try:
-    # pylint: disable=W0611
-    from appraise.local_settings import (  # type: ignore
-        DATABASES,
-    )
+# Try to load database settings, otherwise use defaults.
+DB_ENGINE = os.environ.get('APPRAISE_DB_ENGINE')
+DB_NAME = os.environ.get('APPRAISE_DB_NAME')
+DB_USER = os.environ.get('APPRAISE_DB_USER')
+DB_PASSWORD = os.environ.get('APPRAISE_DB_PASSWORD')
+DB_HOST = os.environ.get('APPRAISE_DB_HOST')
+DB_PORT = os.environ.get('APPRAISE_DB_PORT')
 
-except ImportError:
+if all((DB_ENGINE, DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT)):
+    DATABASES = {
+        'default': {
+            'ENGINE': DB_ENGINE,
+            'NAME': DB_NAME,
+            'USER': DB_USER,
+            'PASSWORD': DB_PASSWORD,
+            'HOST': DB_HOST,
+            'PORT': DB_PORT,
+        }
+    }
 
-    # Database
-    # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
-
-    DATABASES = os.environ.get(
-        'APPRAISE_DATABASES',
-        {
-            'default': {
-                'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-            }
-        },
-    )
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
 
 FILE_UPLOAD_PERMISSIONS = 0o644
 
