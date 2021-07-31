@@ -1,5 +1,6 @@
 bs4
 django>=2.2.20,<3
 lxml
+psycopg2-binary
 tablib
 scipy
