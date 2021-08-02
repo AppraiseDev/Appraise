@@ -185,7 +185,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Base context for all views.
 BASE_CONTEXT = {
-  'commit_tag': '#wmt20dev',
+  'commit_tag': '#wmt21dev',
   'title': 'Appraise evaluation system',
   'static_url': STATIC_URL,
 }
