@@ -2,7 +2,7 @@ bs4
 django>=2.2.20,<3
 lxml
 psycopg2-binary<2.9
-python-debug-toolbar
+git+https://github.com/jazzband/django-debug-toolbar.git#egg=django-debug-toolbar
 tablib
 scipy
 whitenoise[brotli]
