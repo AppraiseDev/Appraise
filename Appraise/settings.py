@@ -21,6 +21,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 DEBUG = os.environ.get('APPRAISE_DEBUG', True)
+TEMPLATE_DEBUG = os.environ.get('APPRAISE_TEMPLATE_DEBUG', DEBUG)
 
 ADMINS = os.environ.get('APPRAISE_ADMINS', ())
 MANAGERS = ADMINS
