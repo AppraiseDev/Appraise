@@ -4,3 +4,4 @@ lxml
 psycopg2-binary
 tablib
 scipy
+whitenoise
