@@ -373,7 +373,7 @@ class CampaignData(BaseMetadata):
     """
 
     dataFile = models.FileField(
-        verbose_name=_('Data file'), upload_to=Path(MEDIA_ROOT) / 'Batches'
+        verbose_name=_('Data file'), upload_to='{0}Batches'.format(MEDIA_ROOT)
     )
 
     market = models.ForeignKey(
