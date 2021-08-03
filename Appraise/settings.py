@@ -183,6 +183,8 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# Allow to specify absolute filesystem path to the directory that will hold user-uploaded files.
+MEDIA_ROOT = os.environ.get('APPRAISE_MEDIA_ROOT', '')
 
 # Base context for all views.
 BASE_CONTEXT = {
