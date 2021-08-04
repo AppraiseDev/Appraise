@@ -14,6 +14,8 @@ from logging.handlers import RotatingFileHandler
 
 import os
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -185,6 +187,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Allow to specify absolute filesystem path to the directory that will hold user-uploaded files.
 MEDIA_ROOT = os.environ.get('APPRAISE_MEDIA_ROOT', '')
+if MEDIA_ROOT and MEDIA_ROOT[-1] != '/':
+    raise ImproperlyConfigured('MEDIA_ROOT needs to end with a slash!')
 
 # Base context for all views.
 BASE_CONTEXT = {

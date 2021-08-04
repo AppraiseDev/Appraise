@@ -12,7 +12,6 @@ from django.core.exceptions import ValidationError
 from django.utils.text import format_lazy as f
 from django.utils.translation import ugettext_lazy as _
 
-from Appraise.settings import MEDIA_ROOT
 from Dashboard.models import validate_language_code
 from EvalData.models import (
     AnnotationTaskRegistry,
@@ -373,7 +372,7 @@ class CampaignData(BaseMetadata):
     """
 
     dataFile = models.FileField(
-        verbose_name=_('Data file'), upload_to='{0}Batches'.format(MEDIA_ROOT)
+        verbose_name=_('Data file'), upload_to='Batches'
     )
 
     market = models.ForeignKey(
