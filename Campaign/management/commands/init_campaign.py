@@ -66,12 +66,12 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        manifest_json = options['manifest_json']
+        manifest_json = options.get('manifest_json')
         self.stdout.write(
             'JSON manifest path: {0!r}'.format(manifest_json)
         )
 
-        csv_output = options['csv_output']
+        csv_output = options.get('csv_output')
         self.stdout.write('CSV output path: {0!r}'.format(csv_output))
         if csv_output and not csv_output.lower().endswith('.csv'):
             raise CommandError(
@@ -80,7 +80,7 @@ class Command(BaseCommand):
                 )
             )
 
-        xlsx_output = options['xlsx_output']
+        xlsx_output = options.get('xlsx_output')
         self.stdout.write('Excel output path: {0!r}'.format(xlsx_output))
         if xlsx_output and not xlsx_output.lower().endswith('.xlsx'):
             raise CommandError(
@@ -94,8 +94,8 @@ class Command(BaseCommand):
 
         # By default, we only include activated tasks into agenda creation.
         # Compute Boolean flag based on negation of --include-completed state.
-        only_activated = not options['include_completed']
-        confirmation_tokens = options['task_confirmation_tokens']
+        only_activated = not options.get('include_completed')
+        confirmation_tokens = options.get('task_confirmation_tokens')
 
         # Initialise campaign based on manifest data
         self.init_campaign(

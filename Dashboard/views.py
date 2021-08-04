@@ -12,7 +12,7 @@ from inspect import currentframe, getframeinfo
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User, Group
 from django.contrib.auth import authenticate, login, logout
-from django.shortcuts import render, redirect, render_to_response
+from django.shortcuts import render, redirect
 
 from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
@@ -103,7 +103,7 @@ def _page_not_found(request, template_name='404.html'):
         request.path,
     )
 
-    return render_to_response('Dashboard/404.html', BASE_CONTEXT)
+    return render(request, 'Dashboard/404.html', BASE_CONTEXT)
 
 
 def _server_error(request, template_name='500.html'):
@@ -118,7 +118,7 @@ def _server_error(request, template_name='500.html'):
         request.path,
     )
 
-    return render_to_response('Dashboard/500.html', BASE_CONTEXT)
+    return render(request, 'Dashboard/500.html', BASE_CONTEXT)
 
 
 def sso_login(request, username, password):
