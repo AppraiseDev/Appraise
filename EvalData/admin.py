@@ -507,7 +507,7 @@ class TaskAgendaAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(
               reverse('admin:EvalData_taskagenda_changelist'))
 
-        _pk = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        _pk = request.POST.getlist(admin.helpers.ACTION_CHECKBOX_NAME)
         return HttpResponseRedirect(
           reverse('reset-taskagenda', args=_pk))
     reset_taskagenda.short_description = "Reset task agenda"
