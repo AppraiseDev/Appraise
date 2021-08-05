@@ -22,12 +22,12 @@ handler404 = 'Dashboard.views._page_not_found'
 handler500 = 'Dashboard.views._server_error'
 
 urlpatterns = [
-    re_path(r'^admin/', admin.site.urls),
-
     re_path(
         r'^admin/taskagenda/reset/(?P<agenda_id>[0-9]+)/$',
         evaldata_views.reset_taskagenda,
         name='reset-taskagenda'),
+
+    re_path(r'^admin/', admin.site.urls),
 
     re_path(r'^$', dashboard_views.frontpage, name='frontpage'),
 
