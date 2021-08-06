@@ -81,6 +81,15 @@ class Command(BaseCommand):
         if response.status_code == 400:
             raise CommandError('Invalid campaign URL for user {0!r}'.format(username))
 
+        # No context means no more items
+        if response.context is None:
+            self.stdout.write(
+                'Unsuccesful annotation: user "{}" does not have more items'.format(
+                    username
+                )
+            )
+            exit()
+
         if options['verbosity'] > 1:
             self.stdout.write(
                 'Available context keys: {}'.format(response.context.keys())
@@ -133,6 +142,28 @@ class Command(BaseCommand):
                 msg_info += ', {}'.format(scores[1])
 
             msg_info += ' for user {}'.format(username)
+
+        ##################################################################
+        elif campaign_type == 'Document':
+            if len(scores) != 1:
+                raise ValueError('Task "Document" requires exactly 1 score')
+
+            data = {
+                'score': scores[0],
+                'item_id': response.context['item_id'],
+                'document_id': response.context['document_id'],
+                'task_id': response.context['task_id'],
+                'start_timestamp': (datetime.now() - timedelta(minutes=5)).timestamp(),
+                'end_timestamp': datetime.now().timestamp(),
+            }
+
+            msg_info = 'item {}/{}/{} with score {} for user {}'.format(
+                response.context['item_id'],
+                response.context['task_id'],
+                response.context['document_id'],
+                scores[0],
+                username,
+            )
 
         ##################################################################
         else:
