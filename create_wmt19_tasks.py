@@ -1,12 +1,19 @@
 # pylint: disable=C0103,C0111,C0330,E1101
 import sys
-
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
+from collections import OrderedDict
 from glob import iglob
 from json import dumps as json_dumps
-from os.path import basename, join
-from random import choice, seed, shuffle
-from typing import Any, Dict, List, Text, Tuple
+from os.path import basename
+from os.path import join
+from random import choice
+from random import seed
+from random import shuffle
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Text
+from typing import Tuple
 
 from bs4 import BeautifulSoup  # type: ignore
 
