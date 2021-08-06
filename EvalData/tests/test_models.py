@@ -3,13 +3,11 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from Campaign.models import Campaign
-from EvalData.models import (
-    Market,
-    Metadata,
-    ObjectID,
-    TaskAgenda,
-    TextSegment,
-)
+from EvalData.models import Market
+from EvalData.models import Metadata
+from EvalData.models import ObjectID
+from EvalData.models import TaskAgenda
+from EvalData.models import TextSegment
 
 
 class TaskAgendaTests(TestCase):
