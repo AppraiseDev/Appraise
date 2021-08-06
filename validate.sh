@@ -4,8 +4,9 @@ pip install black mypy pylint-fail-under reorder-python-imports safety
 pip install -r requirements.txt
 
 export PYLINT_THRESHOLD=8
+export BLACK_LINE_MAXLEN=88
 
-black -S --check .
+black -S -l $BLACK_LINE_MAXLEN --check .
 find . -name "*.py" -not -path "./.venv/*" | xargs mypy
 find . -name "*.py" -not -path "./.venv/*" | xargs pylint-fail-under --fail_under $PYLINT_THRESHOLD
 find . -name "*.py" -not -path "./.venv/*" | xargs reorder-python-imports --diff-only
