@@ -410,13 +410,13 @@ class Command(BaseCommand):
 
             # if scipy is available, perform sigtest for all pairs of systems
             try:
-                import scipy
+                import scipy  # type: ignore
 
             except ImportError:
                 print("NO SCIPY")
                 continue
 
-            from scipy.stats import mannwhitneyu, bayes_mvs
+            from scipy.stats import mannwhitneyu, bayes_mvs  # type: ignore
             from itertools import combinations_with_replacement
 
             system_ids = []

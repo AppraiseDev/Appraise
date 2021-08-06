@@ -9,4 +9,4 @@ class Migration(migrations.Migration):
         ('EvalData', '0042_auto_20201006_1552'),
     ]
 
-    operations = []
+    operations = []  # type: ignore

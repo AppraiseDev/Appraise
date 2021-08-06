@@ -3,7 +3,7 @@
 pip install black mypy pylint-fail-under reorder-python-imports safety
 pip install -r requirements.txt
 
-export PYLINT_THRESHOLD=8
+export PYLINT_THRESHOLD=6
 export BLACK_LINE_MAXLEN=88
 
 black -S -l $BLACK_LINE_MAXLEN --check .

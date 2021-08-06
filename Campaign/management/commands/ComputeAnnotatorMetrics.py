@@ -264,7 +264,7 @@ class Command(BaseCommand):
             metric4 = segments_by_user[key]
 
             try:
-                from scipy import stats
+                from scipy import stats  # type: ignore
 
                 _x = []
                 _y = []

@@ -120,7 +120,7 @@ class MarketAdmin(BaseMetadataAdmin):
     ] + BaseMetadataAdmin.list_filter
     search_fields = ['marketID'] + BaseMetadataAdmin.search_fields
 
-    fieldsets = (
+    fieldsets = (  # type: ignore
         (
             None,
             {
@@ -164,7 +164,7 @@ class MetadataAdmin(BaseMetadataAdmin):
             None,
             {'fields': (['market', 'corpusName', 'versionInfo', 'source'])},
         ),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class TextSegmentAdmin(BaseMetadataAdmin):
@@ -207,7 +207,7 @@ class TextSegmentAdmin(BaseMetadataAdmin):
                 )
             },
         ),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class TextSegmentWithTwoTargetsAdmin(BaseMetadataAdmin):
@@ -262,7 +262,7 @@ class TextSegmentWithTwoTargetsAdmin(BaseMetadataAdmin):
                 )
             },
         ),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class TextPairAdmin(BaseMetadataAdmin):
@@ -311,56 +311,7 @@ class TextPairAdmin(BaseMetadataAdmin):
                 )
             },
         ),
-    ) + BaseMetadataAdmin.fieldsets
-
-
-class TextPairAdmin(BaseMetadataAdmin):
-    """
-    Model admin for TextPair instances.
-    """
-
-    list_display = [
-        '__str__',
-        'itemID',
-        'itemType',
-        'sourceID',
-        'sourceText',
-        'targetID',
-        'targetText',
-    ] + BaseMetadataAdmin.list_display
-    list_filter = [
-        'metadata__corpusName',
-        'metadata__versionInfo',
-        'metadata__market__sourceLanguageCode',
-        'metadata__market__targetLanguageCode',
-        'metadata__market__domainName',
-        'itemType',
-    ] + BaseMetadataAdmin.list_filter
-    search_fields = [
-        'sourceID',
-        'sourceText',
-        'targetID',
-        'targetText',
-    ] + BaseMetadataAdmin.search_fields
-
-    fieldsets = (
-        (
-            None,
-            {
-                'fields': (
-                    [
-                        'metadata',
-                        'itemID',
-                        'itemType',
-                        'sourceID',
-                        'sourceText',
-                        'targetID',
-                        'targetText',
-                    ]
-                )
-            },
-        ),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class TextPairWithContextAdmin(BaseMetadataAdmin):
@@ -427,7 +378,7 @@ class TextPairWithContextAdmin(BaseMetadataAdmin):
                 )
             },
         ),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class TextPairWithImageAdmin(BaseMetadataAdmin):
@@ -478,7 +429,7 @@ class TextPairWithImageAdmin(BaseMetadataAdmin):
                 )
             },
         ),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class DirectAssessmentTaskAdmin(BaseMetadataAdmin):
@@ -519,7 +470,7 @@ class DirectAssessmentTaskAdmin(BaseMetadataAdmin):
                 )
             },
         ),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class DirectAssessmentResultAdmin(BaseMetadataAdmin):
@@ -541,14 +492,14 @@ class DirectAssessmentResultAdmin(BaseMetadataAdmin):
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
         # nothing model specific
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     readonly_fields = ('item', 'task')
 
     fieldsets = (
         (None, {'fields': (['score', 'start_time', 'end_time'])}),
         ('Related', {'fields': (['item', 'task'])}),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class DirectAssessmentContextTaskAdmin(BaseMetadataAdmin):
@@ -589,7 +540,7 @@ class DirectAssessmentContextTaskAdmin(BaseMetadataAdmin):
                 )
             },
         ),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class DirectAssessmentContextResultAdmin(BaseMetadataAdmin):
@@ -612,14 +563,14 @@ class DirectAssessmentContextResultAdmin(BaseMetadataAdmin):
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
         # nothing model specific
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     readonly_fields = ('item', 'task')
 
     fieldsets = (
         (None, {'fields': (['score', 'start_time', 'end_time'])}),
         ('Related', {'fields': (['item', 'task'])}),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class DirectAssessmentDocumentTaskAdmin(DirectAssessmentContextTaskAdmin):
@@ -676,7 +627,7 @@ class MultiModalAssessmentTaskAdmin(BaseMetadataAdmin):
                 )
             },
         ),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class MultiModalAssessmentResultAdmin(BaseMetadataAdmin):
@@ -698,14 +649,14 @@ class MultiModalAssessmentResultAdmin(BaseMetadataAdmin):
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
         # nothing model specific
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (
         (
             None,
             {'fields': (['score', 'start_time', 'end_time', 'item', 'task'])},
         ),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class WorkAgendaAdmin(admin.ModelAdmin):
@@ -761,7 +712,7 @@ class TaskAgendaAdmin(admin.ModelAdmin):
         _pk = request.POST.getlist(admin.helpers.ACTION_CHECKBOX_NAME)
         return HttpResponseRedirect(reverse('reset-taskagenda', args=_pk))
 
-    reset_taskagenda.short_description = "Reset task agenda"
+    reset_taskagenda.short_description = "Reset task agenda"  # type: ignore
 
 
 class PairwiseAssessmentTaskAdmin(BaseMetadataAdmin):
@@ -802,7 +753,7 @@ class PairwiseAssessmentTaskAdmin(BaseMetadataAdmin):
                 )
             },
         ),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class PairwiseAssessmentResultAdmin(BaseMetadataAdmin):
@@ -825,7 +776,7 @@ class PairwiseAssessmentResultAdmin(BaseMetadataAdmin):
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
         # nothing model specific
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     readonly_fields = ('item', 'task')
 
@@ -835,7 +786,7 @@ class PairwiseAssessmentResultAdmin(BaseMetadataAdmin):
             {'fields': (['score1', 'score2', 'start_time', 'end_time'])},
         ),
         ('Related', {'fields': (['item', 'task'])}),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class DataAssessmentTaskAdmin(BaseMetadataAdmin):
@@ -876,7 +827,7 @@ class DataAssessmentTaskAdmin(BaseMetadataAdmin):
                 )
             },
         ),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class DataAssessmentResultAdmin(BaseMetadataAdmin):
@@ -898,14 +849,14 @@ class DataAssessmentResultAdmin(BaseMetadataAdmin):
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
         # nothing model specific
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     readonly_fields = ('item', 'task')
 
     fieldsets = (
         (None, {'fields': (['score', 'start_time', 'end_time'])}),
         ('Related', {'fields': (['item', 'task'])}),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 admin.site.register(Market, MarketAdmin)

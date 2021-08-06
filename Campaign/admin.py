@@ -56,7 +56,7 @@ class CampaignTeamAdmin(BaseMetadataAdmin):
                 )
             },
         ),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class CampaignDataAdmin(BaseMetadataAdmin):
@@ -77,11 +77,11 @@ class CampaignDataAdmin(BaseMetadataAdmin):
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
         # nothing model specific
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (
         (None, {'fields': ('dataFile', 'market', 'metadata')}),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class CampaignAdmin(BaseMetadataAdmin):
@@ -92,10 +92,10 @@ class CampaignAdmin(BaseMetadataAdmin):
     list_display = ['campaignName'] + BaseMetadataAdmin.list_display
     list_filter = [
         # nothing model specific
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         # nothing model specific
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     filter_horizontal = ['batches']
 
@@ -111,7 +111,7 @@ class CampaignAdmin(BaseMetadataAdmin):
                 )
             },
         ),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class TrustedUserAdmin(admin.ModelAdmin):
@@ -124,7 +124,7 @@ class TrustedUserAdmin(admin.ModelAdmin):
         ('campaign__campaignName', DropdownFilter),
         #      'campaign'
     ]
-    search_fields = [
+    search_fields = [  # type: ignore
         # nothing model specific
     ]
 
