@@ -5,10 +5,12 @@ See LICENSE for usage details
 """
 from uuid import uuid4
 
-# pylint: disable=import-error
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
+from django.contrib.auth.models import User
 from django.db import models
-from django.db.utils import OperationalError, ProgrammingError
+from django.db.utils import OperationalError
+from django.db.utils import ProgrammingError
+# pylint: disable=import-error
 
 LANGUAGE_CODES_AND_NAMES = {
     'ces': 'Czech (čeština)',

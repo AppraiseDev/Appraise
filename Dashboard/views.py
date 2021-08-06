@@ -5,34 +5,37 @@ See LICENSE for usage details
 """
 from datetime import datetime
 from hashlib import md5
-from inspect import currentframe, getframeinfo
+from inspect import currentframe
+from inspect import getframeinfo
 
-
-# pylint: disable=import-error,C0330
+from django.contrib.auth import authenticate
+from django.contrib.auth import login
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User, Group
-from django.contrib.auth import authenticate, login, logout
-from django.shortcuts import render, redirect
+from django.contrib.auth.models import Group
+from django.contrib.auth.models import User
+from django.shortcuts import redirect
+from django.shortcuts import render
 
 from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
-from Dashboard.models import UserInviteToken, LANGUAGE_CODES_AND_NAMES
+from Dashboard.models import LANGUAGE_CODES_AND_NAMES
+from Dashboard.models import UserInviteToken
 from Dashboard.utils import generate_confirmation_token
-from EvalData.models import (
-    DataAssessmentTask,
-    DataAssessmentResult,
-    DirectAssessmentTask,
-    DirectAssessmentResult,
-    DirectAssessmentContextTask,
-    DirectAssessmentContextResult,
-    DirectAssessmentDocumentTask,
-    DirectAssessmentDocumentResult,
-    MultiModalAssessmentTask,
-    MultiModalAssessmentResult,
-    PairwiseAssessmentTask,
-    PairwiseAssessmentResult,
-    TaskAgenda,
-)
+from EvalData.models import DataAssessmentResult
+from EvalData.models import DataAssessmentTask
+from EvalData.models import DirectAssessmentContextResult
+from EvalData.models import DirectAssessmentContextTask
+from EvalData.models import DirectAssessmentDocumentResult
+from EvalData.models import DirectAssessmentDocumentTask
+from EvalData.models import DirectAssessmentResult
+from EvalData.models import DirectAssessmentTask
+from EvalData.models import MultiModalAssessmentResult
+from EvalData.models import MultiModalAssessmentTask
+from EvalData.models import PairwiseAssessmentResult
+from EvalData.models import PairwiseAssessmentTask
+from EvalData.models import TaskAgenda
+# pylint: disable=import-error,C0330
 
 # TODO: move task definition to models so that they can be used
 # elsewhere in the codebase

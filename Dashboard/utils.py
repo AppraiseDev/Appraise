@@ -6,19 +6,19 @@ See LICENSE for usage details
 from collections import defaultdict
 from datetime import datetime
 from hashlib import md5
-from math import floor, sqrt
-from scipy.stats import mannwhitneyu  # type: ignore
+from math import floor
+from math import sqrt
 from uuid import UUID
 
+from scipy.stats import mannwhitneyu  # type: ignore
+
 from Appraise.settings import SECRET_KEY
-from EvalData.models import (
-    DataAssessmentResult,
-    DirectAssessmentResult,
-    DirectAssessmentContextResult,
-    DirectAssessmentDocumentResult,
-    MultiModalAssessmentResult,
-    PairwiseAssessmentResult,
-)
+from EvalData.models import DataAssessmentResult
+from EvalData.models import DirectAssessmentContextResult
+from EvalData.models import DirectAssessmentDocumentResult
+from EvalData.models import DirectAssessmentResult
+from EvalData.models import MultiModalAssessmentResult
+from EvalData.models import PairwiseAssessmentResult
 
 RESULT_TYPES = {
     DataAssessmentResult,
