@@ -22,6 +22,7 @@ from EvalData.models import DirectAssessmentResult
 from EvalData.models import MultiModalAssessmentResult
 from EvalData.models import PairwiseAssessmentResult
 from EvalData.models import seconds_to_timedelta
+
 # pylint: disable=import-error
 
 RESULT_TYPE_BY_CLASS_NAME = {
@@ -110,9 +111,7 @@ def campaign_status(request, campaign_name, sort_key=2):
             _cs = _annotations - 1  # Corrected sample size for stdev.
             _user_stdev = 1
             if _cs > 0:
-                _user_stdev = sqrt(
-                    sum(((x[2] - _user_mean) ** 2 / _cs) for x in _data)
-                )
+                _user_stdev = sqrt(sum(((x[2] - _user_mean) ** 2 / _cs) for x in _data))
 
             if int(_user_stdev) == 0:
                 _user_stdev = 1
@@ -132,14 +131,10 @@ def campaign_status(request, campaign_name, sort_key=2):
                 _dst[_key].append(_z_score)
 
             _first_modified = (
-                seconds_to_timedelta(min(_start_times))
-                if _start_times
-                else None
+                seconds_to_timedelta(min(_start_times)) if _start_times else None
             )
             _last_modified = (
-                seconds_to_timedelta(max(_end_times))
-                if _end_times
-                else None
+                seconds_to_timedelta(max(_end_times)) if _end_times else None
             )
             _annotation_time = sum(_durations) if _durations else None
 
@@ -186,9 +181,7 @@ def campaign_status(request, campaign_name, sort_key=2):
             if _annotation_time:
                 _hours = int(floor(_annotation_time / 3600))
                 _minutes = int(floor((_annotation_time % 3600) / 60))
-                _annotation_time = '{0:0>2d}h{1:0>2d}m'.format(
-                    _hours, _minutes
-                )
+                _annotation_time = '{0:0>2d}h{1:0>2d}m'.format(_hours, _minutes)
 
             else:
                 _annotation_time = 'n/a'

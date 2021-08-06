@@ -12,6 +12,7 @@ from sys import exit as sys_exit
 
 from django.core.management.base import BaseCommand
 from django.core.management.base import CommandError
+
 # pylint: disable=E0401,W0611
 
 INFO_MSG = 'INFO: '
@@ -22,25 +23,20 @@ class Command(BaseCommand):
 
     # pylint: disable=C0330,no-self-use
     def add_arguments(self, parser):
+        parser.add_argument('csv_file', type=str, help='Path to combination CSV file')
         parser.add_argument(
-          'csv_file', type=str,
-          help='Path to combination CSV file'
+            'systems_path', type=str, help='Path to systems text folder'
+        )
+        parser.add_argument('target_path', type=str, help='Path to target file')
+        parser.add_argument(
+            '--unicode',
+            action='store_true',
+            help='Expects text files in Unicode encoding',
         )
         parser.add_argument(
-          'systems_path', type=str,
-          help='Path to systems text folder'
-        )
-        parser.add_argument(
-          'target_path', type=str,
-          help='Path to target file'
-        )
-        parser.add_argument(
-          '--unicode', action='store_true',
-          help='Expects text files in Unicode encoding'
-        )
-        parser.add_argument(
-          '--ignore-ids', type=str,
-          help='Defines comma separated list of segment IDs to ignore'
+            '--ignore-ids',
+            type=str,
+            help='Defines comma separated list of segment IDs to ignore',
         )
 
     def handle(self, *args, **options):
@@ -75,9 +71,11 @@ class Command(BaseCommand):
 
         for system_file in iglob(systems_glob):
             if '+' in basename(system_file):
-                print('Cannot use system files with + in names ' \
-                  'as this breaks multi-system meta systems:\n' \
-                  '{0}'.format(system_file))
+                print(
+                    'Cannot use system files with + in names '
+                    'as this breaks multi-system meta systems:\n'
+                    '{0}'.format(system_file)
+                )
                 sys_exit(-1)
             systems_files.append(system_file)
 
@@ -97,19 +95,19 @@ class Command(BaseCommand):
                 segment_id = item[0]
                 system_id = item[1]
 
-                if not system_id in source_data.keys() or \
-                  not segment_id in source_data[system_id].keys():
-                    _msg = '{0}Segment ID {1} does not exist for system ' \
-                    'ID {2}'.format(
-                      INFO_MSG, segment_id, system_id
+                if (
+                    not system_id in source_data.keys()
+                    or not segment_id in source_data[system_id].keys()
+                ):
+                    _msg = (
+                        '{0}Segment ID {1} does not exist for system '
+                        'ID {2}'.format(INFO_MSG, segment_id, system_id)
                     )
                     self.stdout.write(_msg)
                     continue
 
                 if segment_id in segment_ids_to_ignore:
-                    _msg = '{0}Ignoring segment_id={1}'.format(
-                      INFO_MSG, segment_id
-                    )
+                    _msg = '{0}Ignoring segment_id={1}'.format(INFO_MSG, segment_id)
                     self.stdout.write(_msg)
                     continue
 
@@ -118,7 +116,6 @@ class Command(BaseCommand):
                 output_file.write('\r\n')
 
         self.stdout.write('\n[DONE]\n\n')
-
 
     @staticmethod
     def _load_text_from_file(file_path, encoding='utf8'):

@@ -8,6 +8,7 @@ import logging
 from Appraise.settings import LOG_HANDLER
 from Appraise.settings import LOG_LEVEL
 
+
 def _get_logger(name):
     """
     Initialises and returns named Django logger instance.

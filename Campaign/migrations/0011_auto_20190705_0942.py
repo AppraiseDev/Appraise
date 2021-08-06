@@ -13,11 +13,23 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='campaign',
             name='packageFile',
-            field=models.FileField(blank=True, null=True, upload_to='Packages', verbose_name='Package file'),
+            field=models.FileField(
+                blank=True,
+                null=True,
+                upload_to='Packages',
+                verbose_name='Package file',
+            ),
         ),
         migrations.AlterField(
             model_name='campaign',
             name='batches',
-            field=models.ManyToManyField(blank=True, null=True, related_name='campaign_campaign_batches', related_query_name='campaign_campaigns', to='Campaign.CampaignData', verbose_name='Batches'),
+            field=models.ManyToManyField(
+                blank=True,
+                null=True,
+                related_name='campaign_campaign_batches',
+                related_query_name='campaign_campaigns',
+                to='Campaign.CampaignData',
+                verbose_name='Batches',
+            ),
         ),
     ]

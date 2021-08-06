@@ -16,16 +16,28 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='textpair',
             name='sourceID',
-            field=models.CharField(help_text='(max. 250 characters)', max_length=250, verbose_name='Source ID'),
+            field=models.CharField(
+                help_text='(max. 250 characters)',
+                max_length=250,
+                verbose_name='Source ID',
+            ),
         ),
         migrations.AlterField(
             model_name='textpair',
             name='targetID',
-            field=models.CharField(help_text='(max. 250 characters)', max_length=250, verbose_name='Target ID'),
+            field=models.CharField(
+                help_text='(max. 250 characters)',
+                max_length=250,
+                verbose_name='Target ID',
+            ),
         ),
         migrations.AlterField(
             model_name='textsegment',
             name='segmentID',
-            field=models.CharField(help_text='(max. 250 characters)', max_length=250, verbose_name='Segment ID'),
+            field=models.CharField(
+                help_text='(max. 250 characters)',
+                max_length=250,
+                verbose_name='Segment ID',
+            ),
         ),
     ]

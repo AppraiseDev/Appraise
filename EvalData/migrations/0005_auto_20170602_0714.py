@@ -18,6 +18,15 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='directassessmenttask',
             name='assignedTo',
-            field=models.ForeignKey(blank=True, help_text='(user working on this task)', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='evaldata_directassessmenttask_assignedTo', related_query_name='evaldata_directassessmenttasks', to=settings.AUTH_USER_MODEL, verbose_name='Assigned to'),
+            field=models.ForeignKey(
+                blank=True,
+                help_text='(user working on this task)',
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name='evaldata_directassessmenttask_assignedTo',
+                related_query_name='evaldata_directassessmenttasks',
+                to=settings.AUTH_USER_MODEL,
+                verbose_name='Assigned to',
+            ),
         ),
     ]

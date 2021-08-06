@@ -20,19 +20,81 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ObjectID',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('typeName', models.CharField(help_text='(max. 100 characters)', max_length=100, verbose_name='Type name')),
-                ('primaryID', models.CharField(help_text='(max. 50 characters)', max_length=50, verbose_name='Primary ID')),
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
+                (
+                    'typeName',
+                    models.CharField(
+                        help_text='(max. 100 characters)',
+                        max_length=100,
+                        verbose_name='Type name',
+                    ),
+                ),
+                (
+                    'primaryID',
+                    models.CharField(
+                        help_text='(max. 50 characters)',
+                        max_length=50,
+                        verbose_name='Primary ID',
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
             name='TaskAgenda',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('_completed_tasks', models.ManyToManyField(blank=True, related_name='evaldata_taskagenda_completedtasks', related_query_name='evaldata_taskagendas_completed', to='EvalData.ObjectID', verbose_name='Completed tasks')),
-                ('_open_tasks', models.ManyToManyField(blank=True, related_name='evaldata_taskagenda_opentasks', related_query_name='evaldata_taskagendas_open', to='EvalData.ObjectID', verbose_name='Open tasks')),
-                ('campaign', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='Campaign.Campaign', verbose_name='Campaign')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='User')),
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
+                (
+                    '_completed_tasks',
+                    models.ManyToManyField(
+                        blank=True,
+                        related_name='evaldata_taskagenda_completedtasks',
+                        related_query_name='evaldata_taskagendas_completed',
+                        to='EvalData.ObjectID',
+                        verbose_name='Completed tasks',
+                    ),
+                ),
+                (
+                    '_open_tasks',
+                    models.ManyToManyField(
+                        blank=True,
+                        related_name='evaldata_taskagenda_opentasks',
+                        related_query_name='evaldata_taskagendas_open',
+                        to='EvalData.ObjectID',
+                        verbose_name='Open tasks',
+                    ),
+                ),
+                (
+                    'campaign',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to='Campaign.Campaign',
+                        verbose_name='Campaign',
+                    ),
+                ),
+                (
+                    'user',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name='User',
+                    ),
+                ),
             ],
         ),
     ]

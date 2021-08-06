@@ -17,6 +17,14 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='directassessmentresult',
             name='task',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='evaldata_directassessmentresult_task', related_query_name='evaldata_directassessmentresults', to='EvalData.DirectAssessmentTask', verbose_name='Task'),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name='evaldata_directassessmentresult_task',
+                related_query_name='evaldata_directassessmentresults',
+                to='EvalData.DirectAssessmentTask',
+                verbose_name='Task',
+            ),
         ),
     ]

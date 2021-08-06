@@ -16,7 +16,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='directassessmenttask',
             name='batchNo',
-            field=models.PositiveIntegerField(default=-1, help_text='(1-based)', verbose_name='Batch No'),
+            field=models.PositiveIntegerField(
+                default=-1, help_text='(1-based)', verbose_name='Batch No'
+            ),
             preserve_default=False,
         ),
     ]

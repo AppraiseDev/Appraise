@@ -17,16 +17,19 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-          'source_json', type=str,
-          help='JSON file containing direct assessment data'
+            'source_json',
+            type=str,
+            help='JSON file containing direct assessment data',
         )
         parser.add_argument(
-          'segments_json', type=str,
-          help='JSON file containing segments data'
+            'segments_json',
+            type=str,
+            help='JSON file containing segments data',
         )
         parser.add_argument(
-          'target_json', type=str,
-          help='Defines path to JSON target file'
+            'target_json',
+            type=str,
+            help='Defines path to JSON target file',
         )
 
     def handle(self, *args, **options):
@@ -61,7 +64,7 @@ class Command(BaseCommand):
 
             for md5_hash in json_data:
                 json_item = json_data[md5_hash]
-                
+
                 systemIDs = json_item['systems']
                 segmentID = int(json_item['segment_id'])
                 patchData = json_item['segment_bad']
@@ -94,6 +97,9 @@ class Command(BaseCommand):
 
         json_data = dumps(patchJson, indent=2, sort_keys=True)
         with open(options['target_json'], mode='w', encoding='utf8') as output_file:
-            self.stdout.write('Creating {0} ... '.format(options['target_json']), ending='')
+            self.stdout.write(
+                'Creating {0} ... '.format(options['target_json']),
+                ending='',
+            )
             output_file.write(str(json_data))
             self.stdout.write('OK')

@@ -19,12 +19,23 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='directassessmenttask',
             name='assignedTo',
-            field=models.ForeignKey(default=None, help_text='(user working on this task)', on_delete=django.db.models.deletion.PROTECT, related_name='evaldata_directassessmenttask_assignedTo', related_query_name='evaldata_directassessmenttasks', to=settings.AUTH_USER_MODEL, verbose_name='Assigned to'),
+            field=models.ForeignKey(
+                default=None,
+                help_text='(user working on this task)',
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name='evaldata_directassessmenttask_assignedTo',
+                related_query_name='evaldata_directassessmenttasks',
+                to=settings.AUTH_USER_MODEL,
+                verbose_name='Assigned to',
+            ),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='directassessmenttask',
             name='requiredAnnotations',
-            field=models.PositiveSmallIntegerField(help_text='(value in range=[1,50])', verbose_name='Required annotations'),
+            field=models.PositiveSmallIntegerField(
+                help_text='(value in range=[1,50])',
+                verbose_name='Required annotations',
+            ),
         ),
     ]

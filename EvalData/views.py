@@ -12,6 +12,7 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from .models import TaskAgenda
+
 # pylint: disable=unused-import
 
 
@@ -34,6 +35,4 @@ def reset_taskagenda(request, agenda_id):
     _ret, _msg, _lvl = _obj.reset_taskagenda()
     messages.add_message(request, _lvl, _msg)
 
-    return HttpResponseRedirect(
-        reverse('admin:EvalData_taskagenda_changelist')
-    )
+    return HttpResponseRedirect(reverse('admin:EvalData_taskagenda_changelist'))

@@ -16,13 +16,21 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='directassessmentresult',
             name='end_time',
-            field=models.FloatField(default=0, help_text='(in seconds)', verbose_name='End time'),
+            field=models.FloatField(
+                default=0,
+                help_text='(in seconds)',
+                verbose_name='End time',
+            ),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='directassessmentresult',
             name='start_time',
-            field=models.FloatField(default=0, help_text='(in seconds)', verbose_name='Start time'),
+            field=models.FloatField(
+                default=0,
+                help_text='(in seconds)',
+                verbose_name='Start time',
+            ),
             preserve_default=False,
         ),
     ]

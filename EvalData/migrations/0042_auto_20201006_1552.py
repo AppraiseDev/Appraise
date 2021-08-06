@@ -6,13 +6,20 @@ from django.db import models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('EvalData', '0041_directassessmentdocumentresult_directassessmentdocumenttask'),
+        (
+            'EvalData',
+            '0041_directassessmentdocumentresult_directassessmentdocumenttask',
+        ),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='textsegment',
             name='segmentText',
-            field=models.TextField(help_text='(max. 2000 characters)', max_length=2000, verbose_name='Segment text'),
+            field=models.TextField(
+                help_text='(max. 2000 characters)',
+                max_length=2000,
+                verbose_name='Segment text',
+            ),
         ),
     ]

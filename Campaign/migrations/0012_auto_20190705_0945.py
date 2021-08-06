@@ -13,6 +13,13 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='campaign',
             name='teams',
-            field=models.ManyToManyField(blank=True, null=True, related_name='campaign_campaign_teams', related_query_name='campaign_campaigns', to='Campaign.CampaignTeam', verbose_name='Teams'),
+            field=models.ManyToManyField(
+                blank=True,
+                null=True,
+                related_name='campaign_campaign_teams',
+                related_query_name='campaign_campaigns',
+                to='Campaign.CampaignTeam',
+                verbose_name='Teams',
+            ),
         ),
     ]

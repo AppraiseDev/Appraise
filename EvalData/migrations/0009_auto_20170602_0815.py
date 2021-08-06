@@ -16,21 +16,37 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='metadata',
             name='source',
-            field=models.CharField(help_text='(max. 5000 characters)', max_length=5000, verbose_name='Source'),
+            field=models.CharField(
+                help_text='(max. 5000 characters)',
+                max_length=5000,
+                verbose_name='Source',
+            ),
         ),
         migrations.AlterField(
             model_name='textpair',
             name='sourceText',
-            field=models.CharField(help_text='(max. 5000 characters)', max_length=5000, verbose_name='Source text'),
+            field=models.CharField(
+                help_text='(max. 5000 characters)',
+                max_length=5000,
+                verbose_name='Source text',
+            ),
         ),
         migrations.AlterField(
             model_name='textpair',
             name='targetText',
-            field=models.CharField(help_text='(max. 5000 characters)', max_length=5000, verbose_name='Target text'),
+            field=models.CharField(
+                help_text='(max. 5000 characters)',
+                max_length=5000,
+                verbose_name='Target text',
+            ),
         ),
         migrations.AlterField(
             model_name='textsegment',
             name='segmentText',
-            field=models.CharField(help_text='(max. 5000 characters)', max_length=5000, verbose_name='Segment text'),
+            field=models.CharField(
+                help_text='(max. 5000 characters)',
+                max_length=5000,
+                verbose_name='Segment text',
+            ),
         ),
     ]

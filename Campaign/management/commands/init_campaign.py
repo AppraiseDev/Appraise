@@ -64,26 +64,20 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         manifest_json = options.get('manifest_json')
-        self.stdout.write(
-            'JSON manifest path: {0!r}'.format(manifest_json)
-        )
+        self.stdout.write('JSON manifest path: {0!r}'.format(manifest_json))
 
         csv_output = options.get('csv_output')
         self.stdout.write('CSV output path: {0!r}'.format(csv_output))
         if csv_output and not csv_output.lower().endswith('.csv'):
             raise CommandError(
-                'csv_output {0!r} does not point to .csv file'.format(
-                    csv_output
-                )
+                'csv_output {0!r} does not point to .csv file'.format(csv_output)
             )
 
         xlsx_output = options.get('xlsx_output')
         self.stdout.write('Excel output path: {0!r}'.format(xlsx_output))
         if xlsx_output and not xlsx_output.lower().endswith('.xlsx'):
             raise CommandError(
-                'xlsx_output {0!r} does not point to .xlsx file'.format(
-                    xlsx_output
-                )
+                'xlsx_output {0!r} does not point to .xlsx file'.format(xlsx_output)
             )
 
         # Load manifest data, this may raise CommandError
@@ -96,13 +90,20 @@ class Command(BaseCommand):
 
         # Initialise campaign based on manifest data
         self.init_campaign(
-            manifest_data, csv_output, xlsx_output, only_activated,
-            confirmation_tokens
+            manifest_data,
+            csv_output,
+            xlsx_output,
+            only_activated,
+            confirmation_tokens,
         )
 
     def init_campaign(
-        self, manifest_data, csv_output, xlsx_output, only_activated=True,
-        confirmation_tokens=False
+        self,
+        manifest_data,
+        csv_output,
+        xlsx_output,
+        only_activated=True,
+        confirmation_tokens=False,
     ):
         """Initialises campaign based on manifest data.
 
@@ -166,9 +167,7 @@ class Command(BaseCommand):
 
         # Find super user
         superusers = _identify_super_users()
-        self.stdout.write(
-            'Identified superuser: {0}'.format(superusers[0])
-        )
+        self.stdout.write('Identified superuser: {0}'.format(superusers[0]))
 
         # Process Market and Metadata instances for all language pairs
         _process_market_and_metadata(
@@ -191,7 +190,12 @@ class Command(BaseCommand):
         # Generate Dataset with user credentials and SSO URLs
         export_data = Dataset()
         if confirmation_tokens:
-            export_data.headers = ('Username', 'Password', 'URL', 'ConfirmationToken')
+            export_data.headers = (
+                'Username',
+                'Password',
+                'URL',
+                'ConfirmationToken',
+            )
         else:
             export_data.headers = ('Username', 'Password', 'URL')
         export_data.title = datetime.strftime(datetime.now(), '%Y%m%d')
@@ -232,15 +236,11 @@ class Command(BaseCommand):
             with open(csv_output, mode='w', newline='') as out_file:
                 out_file.write(export_data.export('csv'))
 
-            self.stdout.write(
-                'Exported CSV file: {0!r}'.format(csv_output)
-            )
+            self.stdout.write('Exported CSV file: {0!r}'.format(csv_output))
 
         # Write credentials to Excel file if specified.
         if xlsx_output:
             with open(xlsx_output, mode='wb') as out_file:
                 out_file.write(export_data.export('xlsx'))
 
-            self.stdout.write(
-                'Exported Excel file: {0!r}'.format(xlsx_output)
-            )
+            self.stdout.write('Exported Excel file: {0!r}'.format(xlsx_output))

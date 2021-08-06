@@ -16,11 +16,21 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='objectid',
             name='primaryID',
-            field=models.CharField(db_index=True, help_text='(max. 50 characters)', max_length=50, verbose_name='Primary ID'),
+            field=models.CharField(
+                db_index=True,
+                help_text='(max. 50 characters)',
+                max_length=50,
+                verbose_name='Primary ID',
+            ),
         ),
         migrations.AlterField(
             model_name='objectid',
             name='typeName',
-            field=models.CharField(db_index=True, help_text='(max. 100 characters)', max_length=100, verbose_name='Type name'),
+            field=models.CharField(
+                db_index=True,
+                help_text='(max. 100 characters)',
+                max_length=100,
+                verbose_name='Type name',
+            ),
         ),
     ]

@@ -18,8 +18,8 @@ from typing import Tuple
 from bs4 import BeautifulSoup  # type: ignore
 
 
-MAX_TASK_SIZE = 100     # No support for tasks over 100 items
-MAX_DOC_LENGTH = 70     # We do not support documents longer than 70 segments
+MAX_TASK_SIZE = 100  # No support for tasks over 100 items
+MAX_DOC_LENGTH = 70  # We do not support documents longer than 70 segments
 
 
 def load_docs_from_sgml(
@@ -50,9 +50,7 @@ def load_docs_from_sgml(
     return all_docs
 
 
-def _create_bad_ref(
-    seg_text: str, ref_text: str, character_based: bool = False
-) -> str:
+def _create_bad_ref(seg_text: str, ref_text: str, character_based: bool = False) -> str:
     """
     Creates bad reference for given text.
 
@@ -229,14 +227,14 @@ def process_sgml(file_path: str) -> Dict[int, List[str]]:
 
 
 if __name__ == "__main__":
-    SRC_SGML = sys.argv[1]        # Path to source .sgm file
-    REF_SGML = sys.argv[2]        # Path to reference .sgm file
-    SYS_PATH = sys.argv[3]        # Path to the directory with system outputs
-    SYS_GLOB = sys.argv[4]        # Pattern for .sgm files, e.g '*.sgm'
-    OUT_NAME = sys.argv[5]        # Prefix for .csv and .json output files
-    SRC_LANG = sys.argv[6]        # Code for source language, e.g. eng
-    TGT_LANG = sys.argv[7]        # Code for target language, e.g. deu
-    TASK_MAX = int(sys.argv[8])   # Maximum number of tasks
+    SRC_SGML = sys.argv[1]  # Path to source .sgm file
+    REF_SGML = sys.argv[2]  # Path to reference .sgm file
+    SYS_PATH = sys.argv[3]  # Path to the directory with system outputs
+    SYS_GLOB = sys.argv[4]  # Pattern for .sgm files, e.g '*.sgm'
+    OUT_NAME = sys.argv[5]  # Prefix for .csv and .json output files
+    SRC_LANG = sys.argv[6]  # Code for source language, e.g. eng
+    TGT_LANG = sys.argv[7]  # Code for target language, e.g. deu
+    TASK_MAX = int(sys.argv[8])  # Maximum number of tasks
     CONTROLS = sys.argv[9].lower() not in ['', '0', 'false', 'off']
     ENC = 'utf-8'
 
@@ -333,17 +331,17 @@ if __name__ == "__main__":
 
         # Below code would pick systems one after the other
         #
-        #curr_val = None
-        #for iter_val in DOC_STATS[curr_key]:
+        # curr_val = None
+        # for iter_val in DOC_STATS[curr_key]:
         #    if iter_val[2] == all_systems[CURR_SYS]:
         #        curr_val = iter_val
         #        DOC_STATS[curr_key].remove(iter_val)
         #        break
         #
-        #if not curr_val:
+        # if not curr_val:
         #    curr_val = DOC_STATS[curr_key].pop(0)
         #    CURR_SYS = all_systems.index(curr_val[2])
-        #CURR_SYS = (CURR_SYS + 1) % len(all_systems)
+        # CURR_SYS = (CURR_SYS + 1) % len(all_systems)
 
         curr_task.append(curr_val)
         if not DOC_STATS[curr_key]:
@@ -405,9 +403,7 @@ if __name__ == "__main__":
             if _data[-1] != 'True':
                 _data.append('False')  # isControl=False
             print(_data)
-            csv_data.append(
-                ','.join(_data)
-            )
+            csv_data.append(','.join(_data))
 
     with open(f'{OUT_NAME}.csv', mode='w') as _file:
         for csv_line in csv_data:
@@ -476,10 +472,12 @@ if __name__ == "__main__":
 
                 target_text = item_tgt
                 target_type = 'TGT'
-                if CONTROLS and isControl:  # Do not generate any BAD items if QC is disabled
+                if (
+                    CONTROLS and isControl
+                ):  # Do not generate any BAD items if QC is disabled
                     randomCoinFlip = choice(
-                        [False, False, True, True, True]  # 60:40 chance
-                    )
+                        [False, False, True, True, True]
+                    )  # 60:40 chance
                     if randomCoinFlip:
                         target_text = item_bad
                         target_type = 'BAD'
@@ -537,9 +535,7 @@ if __name__ == "__main__":
 
         json_file_name = f'{OUT_NAME}.json'
         with open(json_file_name, mode='w', encoding='utf8') as out_file:
-            sys.stdout.write(
-                'Creating {0} ... '.format(json_file_name, ending='')
-            )
+            sys.stdout.write('Creating {0} ... '.format(json_file_name, ending=''))
             out_file.write(str(json_text))
             sys.stdout.write('OK\n')
 

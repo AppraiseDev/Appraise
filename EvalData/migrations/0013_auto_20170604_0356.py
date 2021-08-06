@@ -26,6 +26,14 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='directassessmenttask',
             name='assignedTo',
-            field=models.ManyToManyField(blank=True, help_text='(users working on this task)', null=True, related_name='evaldata_directassessmenttask_assignedTo', related_query_name='evaldata_directassessmenttasks', to=settings.AUTH_USER_MODEL, verbose_name='Assigned to'),
+            field=models.ManyToManyField(
+                blank=True,
+                help_text='(users working on this task)',
+                null=True,
+                related_name='evaldata_directassessmenttask_assignedTo',
+                related_query_name='evaldata_directassessmenttasks',
+                to=settings.AUTH_USER_MODEL,
+                verbose_name='Assigned to',
+            ),
         ),
     ]

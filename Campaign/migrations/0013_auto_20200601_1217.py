@@ -15,16 +15,34 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='campaign',
             name='batches',
-            field=models.ManyToManyField(blank=True, related_name='campaign_campaign_batches', related_query_name='campaign_campaigns', to='Campaign.CampaignData', verbose_name='Batches'),
+            field=models.ManyToManyField(
+                blank=True,
+                related_name='campaign_campaign_batches',
+                related_query_name='campaign_campaigns',
+                to='Campaign.CampaignData',
+                verbose_name='Batches',
+            ),
         ),
         migrations.AlterField(
             model_name='campaign',
             name='packageFile',
-            field=models.FileField(blank=True, null=True, upload_to='Packages', validators=[Campaign.models._validate_package_file], verbose_name='Package file'),
+            field=models.FileField(
+                blank=True,
+                null=True,
+                upload_to='Packages',
+                validators=[Campaign.models._validate_package_file],
+                verbose_name='Package file',
+            ),
         ),
         migrations.AlterField(
             model_name='campaign',
             name='teams',
-            field=models.ManyToManyField(blank=True, related_name='campaign_campaign_teams', related_query_name='campaign_campaigns', to='Campaign.CampaignTeam', verbose_name='Teams'),
+            field=models.ManyToManyField(
+                blank=True,
+                related_name='campaign_campaign_teams',
+                related_query_name='campaign_campaigns',
+                to='Campaign.CampaignTeam',
+                verbose_name='Teams',
+            ),
         ),
     ]

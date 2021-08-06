@@ -93,8 +93,9 @@ class Command(BaseCommand):
 
         # News Task language pairs
         news_task_languages = ()
-        news_task_pairs = [(x, 'eng') for x in news_task_languages] \
-          + [('eng', x) for x in news_task_languages]
+        news_task_pairs = [(x, 'eng') for x in news_task_languages] + [
+            ('eng', x) for x in news_task_languages
+        ]
 
         # Find super user
         superusers = User.objects.filter(is_superuser=True)
@@ -108,17 +109,17 @@ class Command(BaseCommand):
             try:
                 # Create NewsTask Market instance, if needed
                 market = Market.objects.filter(
-                  sourceLanguageCode=source,
-                  targetLanguageCode=target,
-                  domainName='NewsTask'
+                    sourceLanguageCode=source,
+                    targetLanguageCode=target,
+                    domainName='NewsTask',
                 )
 
                 if not market.exists():
                     new_market = Market(
-                      sourceLanguageCode=source,
-                      targetLanguageCode=target,
-                      domainName='NewsTask',
-                      createdBy=superusers[0]
+                        sourceLanguageCode=source,
+                        targetLanguageCode=target,
+                        domainName='NewsTask',
+                        createdBy=superusers[0],
                     )
                     new_market.save()
                     market = new_market
@@ -130,36 +131,42 @@ class Command(BaseCommand):
 
                 if not metadata.exists():
                     new_metadata = Metadata(
-                      market=market,
-                      corpusName='NewsTest2017',
-                      versionInfo='1.0',
-                      source='official',
-                      createdBy=superusers[0]
+                        market=market,
+                        corpusName='NewsTest2017',
+                        versionInfo='1.0',
+                        source='official',
+                        createdBy=superusers[0],
                     )
                     new_metadata.save()
 
             except (OperationalError, ProgrammingError):
                 _msg = 'Failure processing source={0}, target={1}'.format(
-                  source, target
+                    source, target
                 )
 
             finally:
                 _msg = 'Success processing source={0}, target={1}'.format(
-                  source, target
+                    source, target
                 )
 
             self.stdout.write(_msg)
 
-#        tr1 = datetime.now()
-#        active_items = TextPair.objects.filter(activated=True)
-#        print(active_items.count())
-#        active_items.update(activated=False)
-#        tr2 = datetime.now()
-#        print('reset', tr2-tr1)
+        #        tr1 = datetime.now()
+        #        active_items = TextPair.objects.filter(activated=True)
+        #        print(active_items.count())
+        #        active_items.update(activated=False)
+        #        tr2 = datetime.now()
+        #        print('reset', tr2-tr1)
 
         #################################################################
 
-        for (task_cls, result_cls, item_cls, evaldata_task_str, evaldata_result_str) in MODEL_DEFINITIONS:
+        for (
+            task_cls,
+            result_cls,
+            item_cls,
+            evaldata_task_str,
+            evaldata_result_str,
+        ) in MODEL_DEFINITIONS:
             task_name = task_cls.__name__
             result_name = result_cls.__name__
             item_name = item_cls.__name__
@@ -170,12 +177,15 @@ class Command(BaseCommand):
             results = result_cls.objects.filter(completed=False)
             results.update(activated=False, completed=True)
             t2 = datetime.now()
-            print('  Processed', result_name, 'instances', t2-t1)
+            print('  Processed', result_name, 'instances', t2 - t1)
 
-            bad_results = result_cls.objects.filter(
-                Q(item=None) | Q(task=None)
+            bad_results = result_cls.objects.filter(Q(item=None) | Q(task=None))
+            print(
+                '  Identified bad',
+                result_name,
+                'instances',
+                bad_results.count(),
             )
-            print('  Identified bad', result_name, 'instances', bad_results.count())
 
             #################################################################
             # Check which 'task_cls' instances can be activated.
@@ -194,9 +204,7 @@ class Command(BaseCommand):
             task_data = task_cls.objects.values(
                 'id', 'activated', 'completed', 'requiredAnnotations'
             )
-            task_data = task_data.annotate(
-                results=Count(evaldata_result_str)
-            )
+            task_data = task_data.annotate(results=Count(evaldata_result_str))
             for task in task_data:
                 if task['results'] >= 100 * task['requiredAnnotations']:
                     if task['activated']:
@@ -213,7 +221,7 @@ class Command(BaseCommand):
             tta.update(activated=True, completed=False)
 
             t2 = datetime.now()
-            print('  Processed', task_name, 'instances', t2-t1)
+            print('  Processed', task_name, 'instances', t2 - t1)
 
             filters = {
                 evaldata_task_str + '__campaign__activated': True,
@@ -223,14 +231,13 @@ class Command(BaseCommand):
             item_data.update(activated=True)
 
             t3 = datetime.now()
-            print('  Processed', item_name, 'instances', t3-t2)
+            print('  Processed', item_name, 'instances', t3 - t2)
 
             task_ids = task_cls.objects.filter(campaign__activated=True)
             task_ids.update(activated=True)
 
             t4 = datetime.now()
-            print('  Processed related', task_name, 'instances', t4-t3)
-
+            print('  Processed related', task_name, 'instances', t4 - t3)
 
         #################################################################
         # Metrics Task language pairs
@@ -242,17 +249,17 @@ class Command(BaseCommand):
             try:
                 # Create MetricsTask Market instance, if needed
                 market = Market.objects.filter(
-                  sourceLanguageCode=source,
-                  targetLanguageCode=target,
-                  domainName='MetricsTask'
+                    sourceLanguageCode=source,
+                    targetLanguageCode=target,
+                    domainName='MetricsTask',
                 )
 
                 if not market.exists():
                     new_market = Market(
-                      sourceLanguageCode=source,
-                      targetLanguageCode=target,
-                      domainName='MetricsTask',
-                      createdBy=superusers[0]
+                        sourceLanguageCode=source,
+                        targetLanguageCode=target,
+                        domainName='MetricsTask',
+                        createdBy=superusers[0],
                     )
                     new_market.save()
                     market = new_market
@@ -264,26 +271,25 @@ class Command(BaseCommand):
 
                 if not metadata.exists():
                     new_metadata = Metadata(
-                      market=market,
-                      corpusName='MetricsTest2017',
-                      versionInfo='1.0',
-                      source='official',
-                      createdBy=superusers[0]
+                        market=market,
+                        corpusName='MetricsTest2017',
+                        versionInfo='1.0',
+                        source='official',
+                        createdBy=superusers[0],
                     )
                     new_metadata.save()
 
             except (OperationalError, ProgrammingError):
                 _msg = 'Failure processing source={0}, target={1}'.format(
-                  source, target
+                    source, target
                 )
 
             finally:
                 _msg = 'Success processing source={0}, target={1}'.format(
-                  source, target
+                    source, target
                 )
 
             self.stdout.write(_msg)
-
 
         #################################################################
         # MultiModal Task language pairs
@@ -295,17 +301,17 @@ class Command(BaseCommand):
             try:
                 # Create MultiModalTask Market instance, if needed
                 market = Market.objects.filter(
-                  sourceLanguageCode=source,
-                  targetLanguageCode=target,
-                  domainName='MultiModalTask'
+                    sourceLanguageCode=source,
+                    targetLanguageCode=target,
+                    domainName='MultiModalTask',
                 )
 
                 if not market.exists():
                     new_market = Market(
-                      sourceLanguageCode=source,
-                      targetLanguageCode=target,
-                      domainName='MultiModalTask',
-                      createdBy=superusers[0]
+                        sourceLanguageCode=source,
+                        targetLanguageCode=target,
+                        domainName='MultiModalTask',
+                        createdBy=superusers[0],
                     )
                     new_market.save()
                     market = new_market
@@ -317,32 +323,32 @@ class Command(BaseCommand):
 
                 if not metadata.exists():
                     new_metadata = Metadata(
-                      market=market,
-                      corpusName='MultiModalTest2017',
-                      versionInfo='1.0',
-                      source='official',
-                      createdBy=superusers[0]
+                        market=market,
+                        corpusName='MultiModalTest2017',
+                        versionInfo='1.0',
+                        source='official',
+                        createdBy=superusers[0],
                     )
                     new_metadata.save()
 
             except (OperationalError, ProgrammingError):
                 _msg = 'Failure processing source={0}, target={1}'.format(
-                  source, target
+                    source, target
                 )
 
             finally:
                 _msg = 'Success processing source={0}, target={1}'.format(
-                  source, target
+                    source, target
                 )
 
             self.stdout.write(_msg)
 
         t1 = datetime.now()
         task_data = MultiModalAssessmentTask.objects.values(
-          'id', 'activated', 'completed', 'requiredAnnotations'
+            'id', 'activated', 'completed', 'requiredAnnotations'
         )
         task_data = task_data.annotate(
-          results=Count('evaldata_multimodalassessmentresults')
+            results=Count('evaldata_multimodalassessmentresults')
         )
         for task in task_data:
             if task['results'] >= 100 * task['requiredAnnotations']:
@@ -360,21 +366,21 @@ class Command(BaseCommand):
         tta.update(activated=True, completed=False)
 
         t2 = datetime.now()
-        print('Processed MultiModalAssessmentTask instances', t2-t1)
+        print('Processed MultiModalAssessmentTask instances', t2 - t1)
 
         item_data = TextPairWithImage.objects.filter(
-          evaldata_multimodalassessmenttasks__campaign__activated=True,
-          activated=False
+            evaldata_multimodalassessmenttasks__campaign__activated=True,
+            activated=False,
         )
         item_data.update(activated=True)
 
         t3 = datetime.now()
-        print('Processed TextPairWithImage instances', t3-t2)
+        print('Processed TextPairWithImage instances', t3 - t2)
 
         task_ids = MultiModalAssessmentTask.objects.filter(campaign__activated=True)
         task_ids.update(activated=True)
 
         t4 = datetime.now()
-        print('Processed related MultiModalAssessmentTask instances', t4-t3)
+        print('Processed related MultiModalAssessmentTask instances', t4 - t3)
 
         self.stdout.write('\n[DONE]\n\n')

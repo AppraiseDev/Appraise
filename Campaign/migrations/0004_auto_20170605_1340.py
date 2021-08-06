@@ -16,46 +16,64 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='campaign',
             name='activated',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Activated?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Activated?'
+            ),
         ),
         migrations.AlterField(
             model_name='campaign',
             name='completed',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Completed?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Completed?'
+            ),
         ),
         migrations.AlterField(
             model_name='campaign',
             name='retired',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Retired?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Retired?'
+            ),
         ),
         migrations.AlterField(
             model_name='campaigndata',
             name='activated',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Activated?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Activated?'
+            ),
         ),
         migrations.AlterField(
             model_name='campaigndata',
             name='completed',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Completed?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Completed?'
+            ),
         ),
         migrations.AlterField(
             model_name='campaigndata',
             name='retired',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Retired?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Retired?'
+            ),
         ),
         migrations.AlterField(
             model_name='campaignteam',
             name='activated',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Activated?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Activated?'
+            ),
         ),
         migrations.AlterField(
             model_name='campaignteam',
             name='completed',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Completed?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Completed?'
+            ),
         ),
         migrations.AlterField(
             model_name='campaignteam',
             name='retired',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Retired?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Retired?'
+            ),
         ),
     ]

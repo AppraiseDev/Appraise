@@ -16,11 +16,19 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='campaign',
             name='campaignName',
-            field=models.CharField(help_text='(max. 250 characters)', max_length=250, verbose_name='Campaign name'),
+            field=models.CharField(
+                help_text='(max. 250 characters)',
+                max_length=250,
+                verbose_name='Campaign name',
+            ),
         ),
         migrations.AlterField(
             model_name='campaignteam',
             name='teamName',
-            field=models.CharField(help_text='(max. 250 characters)', max_length=250, verbose_name='Team name'),
+            field=models.CharField(
+                help_text='(max. 250 characters)',
+                max_length=250,
+                verbose_name='Team name',
+            ),
         ),
     ]

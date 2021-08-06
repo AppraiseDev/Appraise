@@ -20,11 +20,49 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='WorkAgenda',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('campaign', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='Campaign.Campaign', verbose_name='Campaign')),
-                ('completedTasks', models.ManyToManyField(related_name='evaldata_workagenda_completedtasks', related_query_name='evaldata_workagendas', to='EvalData.DirectAssessmentTask', verbose_name='Completed tasks')),
-                ('openTasks', models.ManyToManyField(related_name='evaldata_workagenda_opentasks', related_query_name='evaldata_workagendas', to='EvalData.DirectAssessmentTask', verbose_name='Open tasks')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL, verbose_name='User')),
+                (
+                    'id',
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name='ID',
+                    ),
+                ),
+                (
+                    'campaign',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to='Campaign.Campaign',
+                        verbose_name='Campaign',
+                    ),
+                ),
+                (
+                    'completedTasks',
+                    models.ManyToManyField(
+                        related_name='evaldata_workagenda_completedtasks',
+                        related_query_name='evaldata_workagendas',
+                        to='EvalData.DirectAssessmentTask',
+                        verbose_name='Completed tasks',
+                    ),
+                ),
+                (
+                    'openTasks',
+                    models.ManyToManyField(
+                        related_name='evaldata_workagenda_opentasks',
+                        related_query_name='evaldata_workagendas',
+                        to='EvalData.DirectAssessmentTask',
+                        verbose_name='Open tasks',
+                    ),
+                ),
+                (
+                    'user',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name='User',
+                    ),
+                ),
             ],
         ),
     ]

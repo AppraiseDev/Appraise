@@ -53,9 +53,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Identify Campaign instance for given name.
         try:
-            campaign = Campaign.get_campaign_or_raise(
-                options['campaign_name']
-            )
+            campaign = Campaign.get_campaign_or_raise(options['campaign_name'])
 
         except LookupError as error:
             raise CommandError(error)
@@ -73,8 +71,9 @@ class Command(BaseCommand):
 
             if qs_obj and qs_obj.exists():
                 _scores = result_cls.get_system_data(
-                    campaign.id, extended_csv=True,
-                    add_batch_info=options['batch_info']
+                    campaign.id,
+                    extended_csv=True,
+                    add_batch_info=options['batch_info'],
                 )
                 system_scores.extend(_scores)
 

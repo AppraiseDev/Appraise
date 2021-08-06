@@ -69,9 +69,7 @@ def run_quality_control(username):
     _data = None
     result_type = None
     for _type in RESULT_TYPES:
-        _data = _type.objects.filter(
-            createdBy__username=username, completed=True
-        )
+        _data = _type.objects.filter(createdBy__username=username, completed=True)
         # Get the first result task type available: might not work in all scenarios
         if _data:
             result_type = _type
@@ -108,9 +106,7 @@ def run_quality_control(username):
     _cs = _annotations - 1  # Corrected sample size for stdev.
     _user_stdev = 1
     if _cs > 0:
-        _user_stdev = sqrt(
-            sum(((x[2] - _user_mean) ** 2 / _cs) for x in _data)
-        )
+        _user_stdev = sqrt(sum(((x[2] - _user_mean) ** 2 / _cs) for x in _data))
 
     if int(_user_stdev) == 0:
         _user_stdev = 1

@@ -27,12 +27,8 @@ TEMPLATE_DEBUG = os.environ.get('APPRAISE_TEMPLATE_DEBUG', DEBUG)
 ADMINS = os.environ.get('APPRAISE_ADMINS', ())
 MANAGERS = ADMINS
 
-SECRET_KEY = os.environ.get(
-    'APPRAISE_SECRET_KEY'
-)  # Throw if no SECRET_KEY set!
-ALLOWED_HOSTS = os.environ.get('APPRAISE_ALLOWED_HOSTS', '127.0.0.1').split(
-    ','
-)
+SECRET_KEY = os.environ.get('APPRAISE_SECRET_KEY')  # Throw if no SECRET_KEY set!
+ALLOWED_HOSTS = os.environ.get('APPRAISE_ALLOWED_HOSTS', '127.0.0.1').split(',')
 
 WSGI_APPLICATION = os.environ.get(
     'APPRAISE_WSGI_APPLICATION', 'appraise.wsgi.application'
@@ -77,8 +73,13 @@ LOG_DATE = "%m/%d/%Y @ %H:%M:%S"
 LOG_FORMATTER = logging.Formatter(LOG_FORMAT, LOG_DATE)
 
 # pylint: disable=C0330
-LOG_HANDLER = RotatingFileHandler(filename=LOG_FILENAME, mode="a",
-  maxBytes=50*1024*1024, backupCount=5, encoding="utf-8")
+LOG_HANDLER = RotatingFileHandler(
+    filename=LOG_FILENAME,
+    mode="a",
+    maxBytes=50 * 1024 * 1024,
+    backupCount=5,
+    encoding="utf-8",
+)
 LOG_HANDLER.setFormatter(LOG_FORMATTER)
 
 LOGIN_URL = '/dashboard/sign-in/'
@@ -105,6 +106,7 @@ if DEBUG:
     try:
         # pylint: disable=W0611
         import debug_toolbar  # type: ignore
+
         INSTALLED_APPS.append('debug_toolbar')
 
     except ImportError:
@@ -115,16 +117,18 @@ if DEBUG:
     if 'debug_toolbar' in INSTALLED_APPS:
         MIDDLEWARE.append('debug_toolbar.middleware.DebugToolbarMiddleware')
 
-MIDDLEWARE.extend([
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-])
+MIDDLEWARE.extend(
+    [
+        'django.middleware.security.SecurityMiddleware',
+        'whitenoise.middleware.WhiteNoiseMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.common.CommonMiddleware',
+        'django.middleware.csrf.CsrfViewMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+        'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    ]
+)
 
 ROOT_URLCONF = 'Appraise.urls'
 
@@ -191,14 +195,14 @@ if MEDIA_ROOT and MEDIA_ROOT[-1] != '/':
 
 # Base context for all views.
 BASE_CONTEXT = {
-  'commit_tag': '#wmt21dev',
-  'title': 'Appraise evaluation system',
-  'static_url': STATIC_URL,
+    'commit_tag': '#wmt21dev',
+    'title': 'Appraise evaluation system',
+    'static_url': STATIC_URL,
 }
 
 if DEBUG:
     INTERNAL_IPS = [
-      '127.0.0.1',
+        '127.0.0.1',
     ]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

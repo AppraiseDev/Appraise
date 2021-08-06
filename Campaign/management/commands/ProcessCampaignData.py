@@ -39,9 +39,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Identify Campaign instance for given name.
         try:
-            campaign = Campaign.get_campaign_or_raise(
-                options['campaign_name']
-            )
+            campaign = Campaign.get_campaign_or_raise(options['campaign_name'])
 
         except LookupError as error:
             raise CommandError(error)
@@ -51,18 +49,14 @@ class Command(BaseCommand):
 
         # Find super user
         superusers = _identify_super_users()
-        self.stdout.write(
-            'Identified superuser: {0}'.format(superusers[0])
-        )
+        self.stdout.write('Identified superuser: {0}'.format(superusers[0]))
 
         # Identify batch user who needs to be a superuser
         batch_user = superusers.first()
 
         # Validate campaign type
         if not campaign_type in CAMPAIGN_TASK_TYPES.keys():
-            raise CommandError(
-                'Bad campaign type {0}'.format(campaign_type)
-            )
+            raise CommandError('Bad campaign type {0}'.format(campaign_type))
 
         # TODO: add rollback in case of errors
         for batch_data in campaign.batches.filter(dataValid=True):
@@ -70,9 +64,7 @@ class Command(BaseCommand):
             task_cls = CAMPAIGN_TASK_TYPES.get(campaign_type)
 
             try:
-                task_cls.import_from_json(
-                    campaign, batch_user, batch_data, max_count
-                )
+                task_cls.import_from_json(campaign, batch_user, batch_data, max_count)
 
             except Exception as e:
                 raise CommandError(e)

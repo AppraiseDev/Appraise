@@ -13,6 +13,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='dataassessmentresult',
             name='rank',
-            field=models.PositiveSmallIntegerField(blank=True, help_text='(value in range=[1,100])', null=True, verbose_name='Score'),
+            field=models.PositiveSmallIntegerField(
+                blank=True,
+                help_text='(value in range=[1,100])',
+                null=True,
+                verbose_name='Score',
+            ),
         ),
     ]

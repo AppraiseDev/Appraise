@@ -16,11 +16,23 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='workagenda',
             name='completedTasks',
-            field=models.ManyToManyField(blank=True, related_name='evaldata_workagenda_completedtasks', related_query_name='evaldata_workagendas', to='EvalData.DirectAssessmentTask', verbose_name='Completed tasks'),
+            field=models.ManyToManyField(
+                blank=True,
+                related_name='evaldata_workagenda_completedtasks',
+                related_query_name='evaldata_workagendas',
+                to='EvalData.DirectAssessmentTask',
+                verbose_name='Completed tasks',
+            ),
         ),
         migrations.AlterField(
             model_name='workagenda',
             name='openTasks',
-            field=models.ManyToManyField(blank=True, related_name='evaldata_workagenda_opentasks', related_query_name='evaldata_workagendas', to='EvalData.DirectAssessmentTask', verbose_name='Open tasks'),
+            field=models.ManyToManyField(
+                blank=True,
+                related_name='evaldata_workagenda_opentasks',
+                related_query_name='evaldata_workagendas',
+                to='EvalData.DirectAssessmentTask',
+                verbose_name='Open tasks',
+            ),
         ),
     ]

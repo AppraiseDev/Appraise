@@ -35,6 +35,7 @@ from EvalData.models import MultiModalAssessmentTask
 from EvalData.models import PairwiseAssessmentResult
 from EvalData.models import PairwiseAssessmentTask
 from EvalData.models import TaskAgenda
+
 # pylint: disable=import-error,C0330
 
 # TODO: move task definition to models so that they can be used
@@ -79,11 +80,11 @@ TASK_DEFINITIONS = (
     ),
 )
 
-TASK_TYPES   = tuple([tup[1] for tup in TASK_DEFINITIONS])
+TASK_TYPES = tuple([tup[1] for tup in TASK_DEFINITIONS])
 TASK_RESULTS = tuple([tup[2] for tup in TASK_DEFINITIONS])
 # TODO: task names should be stored in task classes as an attribute
-TASK_NAMES   = {tup[1]:tup[0] for tup in TASK_DEFINITIONS}
-TASK_URLS    = {tup[0]:tup[3] for tup in TASK_DEFINITIONS}
+TASK_NAMES = {tup[1]: tup[0] for tup in TASK_DEFINITIONS}
+TASK_URLS = {tup[0]: tup[3] for tup in TASK_DEFINITIONS}
 
 
 from deprecated import add_deprecated_method
@@ -329,9 +330,7 @@ def update_profile(request):
 
     # Determine user target languages
     for group in request.user.groups.all():
-        if group.name.lower() in [
-            x.lower() for x in LANGUAGE_CODES_AND_NAMES
-        ]:
+        if group.name.lower() in [x.lower() for x in LANGUAGE_CODES_AND_NAMES]:
             languages.add(group.name.lower())
 
     context = {
@@ -358,8 +357,8 @@ def dashboard(request):
     template_context.update(BASE_CONTEXT)
 
     annotations = 0  # Completed items
-    hits = 0         # Completed HITs
-    total_hits = 0   # Total number of HITs expected from the user
+    hits = 0  # Completed HITs
+    total_hits = 0  # Total number of HITs expected from the user
     for result_cls in TASK_RESULTS:
         annotations += result_cls.get_completed_for_user(request.user)
         _hits, _total = result_cls.get_hit_status_for_user(request.user)
@@ -376,9 +375,7 @@ def dashboard(request):
             code = current_task.marketTargetLanguageCode()
             print('  User groups:', request.user.groups.all())
             if code not in request.user.groups.values_list('name', flat=True):
-                _msg = (
-                    'Language %s not specified for user %s. Giving up task %s'
-                )
+                _msg = 'Language %s not specified for user %s. Giving up task %s'
                 LOGGER.info(_msg, code, request.user.username, current_task)
 
                 current_task.assignedTo.remove(request.user)
@@ -428,7 +425,7 @@ def dashboard(request):
     # Otherwise, compute set of language codes eligible for next task.
 
     # Mapping: task type => campaign name => list of languages
-    languages_map = { task_cls: {} for task_cls in TASK_TYPES }
+    languages_map = {task_cls: {} for task_cls in TASK_TYPES}
 
     if not current_task and not work_completed:
         languages = []
@@ -445,7 +442,7 @@ def dashboard(request):
         from Campaign.models import Campaign
 
         # Mapping: task type => campaigns as QuerySet
-        campaign_map = { task_cls: None for task_cls in TASK_TYPES }
+        campaign_map = {task_cls: None for task_cls in TASK_TYPES}
 
         for campaign in Campaign.objects.all():
             print('Campaign: {0}'.format(campaign.campaignName))
@@ -495,9 +492,8 @@ def dashboard(request):
 
     _t3 = datetime.now()
 
-
     # Collect total annotation time
-    times = { 'days': 0, 'hours': 0, 'minutes': 0, 'seconds': 0 }
+    times = {'days': 0, 'hours': 0, 'minutes': 0, 'seconds': 0}
     for task_cls in TASK_RESULTS:
         duration = task_cls.get_time_for_user(request.user)
         secs = duration.total_seconds()
@@ -508,7 +504,6 @@ def dashboard(request):
         times['seconds'] += int((secs - (days * 86400)) % 60)
 
     _t4 = datetime.now()
-
 
     # All languages per task type
     # Mapping: task name => list of (code, language, campaign, task_url)
@@ -526,9 +521,11 @@ def dashboard(request):
                     (lang_code, lang_name, camp_name, task_url)
                 )
 
-        print('    Languages "{}": {}'.format(
-            task_name,
-            str(all_languages.get(task_name, 'none')).encode('utf-8'))
+        print(
+            '    Languages "{}": {}'.format(
+                task_name,
+                str(all_languages.get(task_name, 'none')).encode('utf-8'),
+            )
         )
 
     # Note that the default task type is 'direct'
@@ -565,9 +562,7 @@ def dashboard(request):
 @login_required
 def group_status(request):
     _method = getframeinfo(currentframe()).function
-    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format(
-        'Dashboard.views', _method
-    )
+    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format('Dashboard.views', _method)
     raise NotImplementedError(_msg)
 
 
@@ -575,9 +570,7 @@ def group_status(request):
 @login_required
 def multimodal_status(request):
     _method = getframeinfo(currentframe()).function
-    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format(
-        'Dashboard.views', _method
-    )
+    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format('Dashboard.views', _method)
     raise NotImplementedError(_msg)
 
 
@@ -585,9 +578,7 @@ def multimodal_status(request):
 @login_required
 def system_status(request):
     _method = getframeinfo(currentframe()).function
-    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format(
-        'Dashboard.views', _method
-    )
+    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format('Dashboard.views', _method)
     raise NotImplementedError(_msg)
 
 
@@ -595,9 +586,7 @@ def system_status(request):
 @login_required
 def multimodal_systems(request):
     _method = getframeinfo(currentframe()).function
-    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format(
-        'Dashboard.views', _method
-    )
+    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format('Dashboard.views', _method)
     raise NotImplementedError(_msg)
 
 
@@ -606,9 +595,7 @@ def multimodal_systems(request):
 @add_deprecated_method
 def metrics_status(request):
     _method = getframeinfo(currentframe()).function
-    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format(
-        'Dashboard.views', _method
-    )
+    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format('Dashboard.views', _method)
     raise NotImplementedError(_msg)
 
 
@@ -617,7 +604,5 @@ def metrics_status(request):
 @add_deprecated_method
 def fe17_status(request):
     _method = getframeinfo(currentframe()).function
-    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format(
-        'Dashboard.views', _method
-    )
+    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format('Dashboard.views', _method)
     raise NotImplementedError(_msg)

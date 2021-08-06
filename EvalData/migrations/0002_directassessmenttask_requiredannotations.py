@@ -16,7 +16,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='directassessmenttask',
             name='requiredAnnotations',
-            field=models.PositiveSmallIntegerField(default=1, help_text='(value in range=[1,5])', verbose_name='Required annotations'),
+            field=models.PositiveSmallIntegerField(
+                default=1,
+                help_text='(value in range=[1,5])',
+                verbose_name='Required annotations',
+            ),
             preserve_default=False,
         ),
     ]

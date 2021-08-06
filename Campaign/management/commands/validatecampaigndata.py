@@ -25,17 +25,13 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Identify Campaign instance for given name.
         try:
-            campaign = Campaign.get_campaign_or_raise(
-                options['campaign_name']
-            )
+            campaign = Campaign.get_campaign_or_raise(options['campaign_name'])
 
         except LookupError as error:
             raise CommandError(error)
 
         validated_batches = 0
-        batches_to_check = campaign.batches.filter(
-            dataValid=False, dataReady=False
-        )
+        batches_to_check = campaign.batches.filter(dataValid=False, dataReady=False)
         for batch in batches_to_check:
             batch_name = batch.dataFile.name
             batch_file = batch.dataFile
@@ -47,22 +43,16 @@ class Command(BaseCommand):
                 if batch_name.endswith('.zip'):
                     if not is_zipfile(batch_file):
                         self.stdout.write(
-                            'Batch {0} not a valid ZIP archive'.format(
-                                batch_name
-                            )
+                            'Batch {0} not a valid ZIP archive'.format(batch_name)
                         )
                         continue
 
                     batch_zip = ZipFile(batch_file)
                     batch_json_files = [
-                        x
-                        for x in batch_zip.namelist()
-                        if x.endswith('.json')
+                        x for x in batch_zip.namelist() if x.endswith('.json')
                     ]
                     for batch_json_file in batch_json_files:
-                        batch_data = batch_zip.read(
-                            batch_json_file
-                        ).decode('utf-8')
+                        batch_data = batch_zip.read(batch_json_file).decode('utf-8')
                         loads(batch_data, encoding='utf-8')
 
                 else:
@@ -76,6 +66,4 @@ class Command(BaseCommand):
             except Exception as error:
                 raise CommandError(error)
 
-        self.stdout.write(
-            'Validated {0} batches'.format(validated_batches)
-        )
+        self.stdout.write('Validated {0} batches'.format(validated_batches))

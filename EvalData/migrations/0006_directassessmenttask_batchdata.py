@@ -18,7 +18,16 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='directassessmenttask',
             name='batchData',
-            field=models.ForeignKey(blank=True, null=True, default=None, on_delete=django.db.models.deletion.PROTECT, related_name='evaldata_directassessmenttask_campaigndata', related_query_name='evaldata_directassessmenttasks', to='Campaign.CampaignData', verbose_name='Campaign data'),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                default=None,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name='evaldata_directassessmenttask_campaigndata',
+                related_query_name='evaldata_directassessmenttasks',
+                to='Campaign.CampaignData',
+                verbose_name='Campaign data',
+            ),
             preserve_default=False,
         ),
     ]

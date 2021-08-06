@@ -49,12 +49,8 @@ def fe17_status(request):
     _t3 = datetime.now()
     task_status = []
     for task in task_data.order_by('id'):
-        source_language = (
-            task.items.first().metadata.market.sourceLanguageCode
-        )
-        target_language = (
-            task.items.first().metadata.market.targetLanguageCode
-        )
+        source_language = task.items.first().metadata.market.sourceLanguageCode
+        target_language = task.items.first().metadata.market.targetLanguageCode
         annotators = task.assignedTo.count()
         results = task.evaldata_directassessmentresult_task.count()
         task_status.append(
@@ -98,9 +94,7 @@ def group_status(request):
 
     _group_status = []
     for group in group_data:
-        _group_status.append(
-            (group, group_data[group][0], group_data[group][1])
-        )
+        _group_status.append((group, group_data[group][0], group_data[group][1]))
 
     sorted_status = sorted(_group_status, key=lambda x: x[1], reverse=True)
     _t4 = datetime.now()
@@ -137,12 +131,8 @@ def metrics_status(request):
     _t3 = datetime.now()
     task_status = []
     for task in task_data.order_by('id'):
-        source_language = (
-            task.items.first().metadata.market.sourceLanguageCode
-        )
-        target_language = (
-            task.items.first().metadata.market.targetLanguageCode
-        )
+        source_language = task.items.first().metadata.market.sourceLanguageCode
+        target_language = task.items.first().metadata.market.targetLanguageCode
         annotators = task.assignedTo.count()
         results = task.evaldata_directassessmentresult_task.count()
         task_status.append(
@@ -187,9 +177,7 @@ def multimodal_status(request):
 
     _group_status = []
     for group in group_data:
-        _group_status.append(
-            (group, group_data[group][0], group_data[group][1])
-        )
+        _group_status.append((group, group_data[group][0], group_data[group][1]))
 
     sorted_status = sorted(_group_status, key=lambda x: x[1], reverse=True)
     _t4 = datetime.now()
@@ -220,9 +208,7 @@ def multimodal_systems(request):
     context.update(BASE_CONTEXT)
 
     _t2 = datetime.now()
-    system_data = MultiModalAssessmentResult.get_system_status(
-        sort_index=1
-    )
+    system_data = MultiModalAssessmentResult.get_system_status(sort_index=1)
     _t3 = datetime.now()
     sorted_status = []
     total_completed = 0

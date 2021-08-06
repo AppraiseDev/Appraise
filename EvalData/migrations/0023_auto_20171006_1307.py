@@ -17,11 +17,25 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='directassessmentresult',
             name='item',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='evaldata_directassessmentresult_items', related_query_name='evaldata_directassessmentresult_item', to='EvalData.TextPair', verbose_name='Item'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name='evaldata_directassessmentresult_items',
+                related_query_name='evaldata_directassessmentresult_item',
+                to='EvalData.TextPair',
+                verbose_name='Item',
+            ),
         ),
         migrations.AlterField(
             model_name='directassessmentresult',
             name='task',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='evaldata_directassessmentresult_tasks', related_query_name='evaldata_directassessmentresult_task', to='EvalData.DirectAssessmentTask', verbose_name='Task'),
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name='evaldata_directassessmentresult_tasks',
+                related_query_name='evaldata_directassessmentresult_task',
+                to='EvalData.DirectAssessmentTask',
+                verbose_name='Task',
+            ),
         ),
     ]

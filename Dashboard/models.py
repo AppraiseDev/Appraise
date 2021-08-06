@@ -10,6 +10,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.utils import OperationalError
 from django.db.utils import ProgrammingError
+
 # pylint: disable=import-error
 
 LANGUAGE_CODES_AND_NAMES = {
@@ -247,9 +248,7 @@ class UserInviteToken(models.Model):
 
     group = models.ForeignKey(Group, models.PROTECT, db_index=True)
 
-    user = models.ForeignKey(
-        User, models.PROTECT, db_index=True, blank=True, null=True
-    )
+    user = models.ForeignKey(User, models.PROTECT, db_index=True, blank=True, null=True)
 
     token = models.CharField(
         max_length=8,

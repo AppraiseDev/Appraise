@@ -16,11 +16,33 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='textpair',
             name='itemType',
-            field=models.CharField(choices=[('SRC', 'Source text'), ('TGT', 'Target text'), ('REF', 'Reference text'), ('BAD', 'Bad reference'), ('CHK', 'Redundant check')], db_index=True, max_length=5, verbose_name='Item type'),
+            field=models.CharField(
+                choices=[
+                    ('SRC', 'Source text'),
+                    ('TGT', 'Target text'),
+                    ('REF', 'Reference text'),
+                    ('BAD', 'Bad reference'),
+                    ('CHK', 'Redundant check'),
+                ],
+                db_index=True,
+                max_length=5,
+                verbose_name='Item type',
+            ),
         ),
         migrations.AlterField(
             model_name='textsegment',
             name='itemType',
-            field=models.CharField(choices=[('SRC', 'Source text'), ('TGT', 'Target text'), ('REF', 'Reference text'), ('BAD', 'Bad reference'), ('CHK', 'Redundant check')], db_index=True, max_length=5, verbose_name='Item type'),
+            field=models.CharField(
+                choices=[
+                    ('SRC', 'Source text'),
+                    ('TGT', 'Target text'),
+                    ('REF', 'Reference text'),
+                    ('BAD', 'Bad reference'),
+                    ('CHK', 'Redundant check'),
+                ],
+                db_index=True,
+                max_length=5,
+                verbose_name='Item type',
+            ),
         ),
     ]

@@ -13,11 +13,15 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='textsegmentwithtwotargets',
             name='contextLeft',
-            field=models.TextField(blank=True, null=True, verbose_name='Context (left)'),
+            field=models.TextField(
+                blank=True, null=True, verbose_name='Context (left)'
+            ),
         ),
         migrations.AddField(
             model_name='textsegmentwithtwotargets',
             name='contextRight',
-            field=models.TextField(blank=True, null=True, verbose_name='Context (right)'),
+            field=models.TextField(
+                blank=True, null=True, verbose_name='Context (right)'
+            ),
         ),
     ]

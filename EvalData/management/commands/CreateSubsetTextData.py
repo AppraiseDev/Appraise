@@ -17,6 +17,7 @@ from django.core.management.base import CommandError
 
 INFO_MSG = 'INFO: '
 
+
 class Command(BaseCommand):
     """
     Creates subset text files based on given JSON batch file.
@@ -31,39 +32,38 @@ class Command(BaseCommand):
     Supports --unicode to specify UTF-16 as text encoding and --ignore-ids
     to specify a comma separated list of IDs to ignore during file creation.
     """
+
     help = 'Creates subset text files based on given JSON batch file'
 
     # pylint: disable=C0330
     def add_arguments(self, parser):
+        parser.add_argument('source_file', type=str, help='Path to source text file')
+        parser.add_argument('json_file', type=str, help='Path to JSON batch file')
         parser.add_argument(
-          'source_file', type=str,
-          help='Path to source text file'
+            'target_path',
+            type=str,
+            help='Path to bad reference text folder',
         )
         parser.add_argument(
-          'json_file', type=str,
-          help='Path to JSON batch file'
+            '--unicode',
+            action='store_true',
+            help='Expects text files in Unicode encoding',
         )
         parser.add_argument(
-          'target_path', type=str,
-          help='Path to bad reference text folder'
+            '--ignore-ids',
+            type=str,
+            help='Defines comma separated list of segment IDs to ignore',
         )
         parser.add_argument(
-          '--unicode', action='store_true',
-          help='Expects text files in Unicode encoding'
+            '--ref-file',
+            type=str,
+            help='Path to corresponding reference file',
         )
         parser.add_argument(
-          '--ignore-ids', type=str,
-          help='Defines comma separated list of segment IDs to ignore'
+            '--src-file',
+            type=str,
+            help='Path to corresponding source file',
         )
-        parser.add_argument(
-          '--ref-file', type=str,
-          help='Path to corresponding reference file'
-        )
-        parser.add_argument(
-          '--src-file', type=str,
-          help='Path to corresponding source file'
-        )
-
 
     def handle(self, *args, **options):
         _msg = '\n[{0}]\n\n'.format(path.basename(__file__))
@@ -102,52 +102,43 @@ class Command(BaseCommand):
             src_data = Command._load_text_from_file(options['src_file'], encoding)
 
         # Load segment ids for all systems from JSON batch file.
-        ids_data = Command._load_ids_from_json_file(
-          options['json_file'])
+        ids_data = Command._load_ids_from_json_file(options['json_file'])
 
         # Filter segments for current system ID, creating sorted output.
         system_id = basename(options['source_file'])
         filtered_data = Command._filter_segments_for_system_id(
-          system_id, ids_data, segment_ids_to_ignore
+            system_id, ids_data, segment_ids_to_ignore
         )
 
         # Get text for filtered segments.
-        filtered_text = [
-          source_data[segment_id] for segment_id in filtered_data]
+        filtered_text = [source_data[segment_id] for segment_id in filtered_data]
 
         # Write filtered data into target file.
-        target_file = path.join(
-          options['target_path'], system_id + '.filtered.txt')
+        target_file = path.join(options['target_path'], system_id + '.filtered.txt')
 
-        self._save_text_into_file(
-          target_file, filtered_text, encoding=encoding)
+        self._save_text_into_file(target_file, filtered_text, encoding=encoding)
 
         if ref_data:
             # Get reference text for filtered segments.
-            reference_text = [
-              ref_data[segment_id] for segment_id in filtered_data]
+            reference_text = [ref_data[segment_id] for segment_id in filtered_data]
 
             # Write filtered reference data into target file.
             target_file = path.join(
-              options['target_path'], system_id + '.reference.txt')
+                options['target_path'], system_id + '.reference.txt'
+            )
 
-            self._save_text_into_file(
-              target_file, reference_text, encoding=encoding)
+            self._save_text_into_file(target_file, reference_text, encoding=encoding)
 
         if src_data:
             # Get source text for filtered segments.
-            source_text = [
-              src_data[segment_id] for segment_id in filtered_data]
+            source_text = [src_data[segment_id] for segment_id in filtered_data]
 
             # Write filtered source data into target file.
-            target_file = path.join(
-              options['target_path'], system_id + '.source.txt')
+            target_file = path.join(options['target_path'], system_id + '.source.txt')
 
-            self._save_text_into_file(
-              target_file, source_text, encoding=encoding)
+            self._save_text_into_file(target_file, source_text, encoding=encoding)
 
         self.stdout.write('\n[DONE]\n\n')
-
 
     @staticmethod
     def _load_ids_to_ignore(ignore_ids):
@@ -162,10 +153,8 @@ class Command(BaseCommand):
 
         return segment_ids_to_ignore
 
-
     @staticmethod
-    def _filter_segments_for_system_id(
-          system_id, ids_data, segment_ids_to_ignore):
+    def _filter_segments_for_system_id(system_id, ids_data, segment_ids_to_ignore):
         """
         Filters segments in ids_data based on the given system ID.
 
@@ -186,7 +175,6 @@ class Command(BaseCommand):
             print('Unknown system ID={0}'.format(system_id))
 
         return filtered_data
-
 
     @staticmethod
     def _load_ids_from_json_file(json_file):
@@ -215,15 +203,12 @@ class Command(BaseCommand):
 
         return ids_data
 
-
     def _save_text_into_file(self, file_path, file_text, encoding='utf8'):
         """
         Saves text from iterable into file.
         """
         try:
-            _msg = '{0}Writing text file {1} ... '.format(
-              INFO_MSG, file_path
-            )
+            _msg = '{0}Writing text file {1} ... '.format(INFO_MSG, file_path)
             self.stdout.write(_msg, ending='')
 
             # We enforce Windows line breaks here.
@@ -240,7 +225,6 @@ class Command(BaseCommand):
             self.stdout.write('FAIL')
             self.stdout.write(format_exc())
 
-
     @staticmethod
     def _load_text_from_file(file_path, encoding='utf8'):
         """
@@ -256,16 +240,13 @@ class Command(BaseCommand):
 
         return file_text
 
-
     def _create_target_path(self, target_path):
         """
         Creates target path if it does not exist.
         """
         if not path.exists(target_path):
             try:
-                _msg = '{0}Creating target path {1} ... '.format(
-                  INFO_MSG, target_path
-                )
+                _msg = '{0}Creating target path {1} ... '.format(INFO_MSG, target_path)
                 self.stdout.write(_msg, ending='')
                 makedirs(target_path)
                 self.stdout.write('OK')

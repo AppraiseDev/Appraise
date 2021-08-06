@@ -16,12 +16,18 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='directassessmenttask',
             name='currentItemNo',
-            field=models.PositiveIntegerField(default=1, help_text='(1-based)', verbose_name='Current item number'),
+            field=models.PositiveIntegerField(
+                default=1,
+                help_text='(1-based)',
+                verbose_name='Current item number',
+            ),
             preserve_default=False,
         ),
         migrations.AlterField(
             model_name='directassessmenttask',
             name='batchNo',
-            field=models.PositiveIntegerField(help_text='(1-based)', verbose_name='Batch number'),
+            field=models.PositiveIntegerField(
+                help_text='(1-based)', verbose_name='Batch number'
+            ),
         ),
     ]
