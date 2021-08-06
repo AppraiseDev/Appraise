@@ -9,16 +9,16 @@ from datetime import timedelta
 from traceback import format_exc
 from typing import Set
 
-from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.db import models
 from django.utils.text import format_lazy as f
 from django.utils.timezone import utc
 from django.utils.translation import ugettext_lazy as _
 
+from Appraise.utils import _get_logger
 # TODO: Unclear if these are needed?
 # from Appraise.settings import STATIC_URL, BASE_CONTEXT
-from Appraise.utils import _get_logger
 
 MAX_DOMAINNAME_LENGTH = 20
 MAX_LANGUAGECODE_LENGTH = 10

@@ -9,13 +9,11 @@ from json import loads
 from zipfile import is_zipfile
 from zipfile import ZipFile
 
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 from django.utils.text import format_lazy as f
 from django.utils.translation import ugettext_lazy as _
 
-# TODO: Unclear if these are needed?
-# from Appraise.settings import STATIC_URL, BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 from EvalData.models.base_models import AnnotationTaskRegistry
@@ -25,6 +23,8 @@ from EvalData.models.base_models import MAX_SEGMENTID_LENGTH
 from EvalData.models.base_models import MAX_SEGMENTTEXT_LENGTH
 from EvalData.models.base_models import seconds_to_timedelta
 from EvalData.models.base_models import TextPair
+# TODO: Unclear if these are needed?
+# from Appraise.settings import STATIC_URL, BASE_CONTEXT
 
 LOGGER = _get_logger(name=__name__)
 

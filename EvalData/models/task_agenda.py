@@ -4,16 +4,16 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=C0103,C0330,no-member
-from inspect import currentframe, getframeinfo
+from inspect import currentframe
+from inspect import getframeinfo
 from re import compile as re_compile
 
-from django.db import models
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-# TODO: Unclear if these are needed?
-# from Appraise.settings import STATIC_URL, BASE_CONTEXT
+from deprecated import add_deprecated_method
 from EvalData.models.base_models import ObjectID
 from EvalData.models.direct_assessment import DirectAssessmentResult
 from EvalData.models.direct_assessment import DirectAssessmentTask
@@ -21,8 +21,8 @@ from EvalData.models.direct_assessment_context import DirectAssessmentContextRes
 from EvalData.models.direct_assessment_document import DirectAssessmentDocumentResult
 from EvalData.models.multi_modal_assessment import MultiModalAssessmentResult
 from EvalData.models.pairwise_assessment import PairwiseAssessmentResult
-
-from deprecated import add_deprecated_method
+# TODO: Unclear if these are needed?
+# from Appraise.settings import STATIC_URL, BASE_CONTEXT
 
 
 class TaskAgenda(models.Model):
