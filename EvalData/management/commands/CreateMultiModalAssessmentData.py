@@ -4,13 +4,18 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=W0611
-from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 import json
-from django.core.management.base import BaseCommand, CommandError
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
+from collections import OrderedDict
 from math import floor
 from os.path import basename
-from random import seed, shuffle
+from random import seed
+from random import shuffle
+
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
+
+from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 
 # pylint: disable=C0111
 class Command(BaseCommand):

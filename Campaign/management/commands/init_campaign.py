@@ -5,22 +5,19 @@ See LICENSE for usage details
 """
 from datetime import datetime
 
-from django.core.management.base import BaseCommand, CommandError
-
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 from tablib import Dataset  # type: ignore
 
-from Campaign.utils import (
-    _create_uniform_task_map,
-    _identify_super_users,
-    _load_campaign_manifest,
-    _process_campaign_agendas,
-    _process_campaign_teams,
-    _process_market_and_metadata,
-    _process_users,
-    _validate_language_codes,
-    CAMPAIGN_TASK_TYPES,
-)
-
+from Campaign.utils import _create_uniform_task_map
+from Campaign.utils import _identify_super_users
+from Campaign.utils import _load_campaign_manifest
+from Campaign.utils import _process_campaign_agendas
+from Campaign.utils import _process_campaign_teams
+from Campaign.utils import _process_market_and_metadata
+from Campaign.utils import _process_users
+from Campaign.utils import _validate_language_codes
+from Campaign.utils import CAMPAIGN_TASK_TYPES
 from Dashboard.utils import generate_confirmation_token
 
 # pylint: disable=C0111,C0330,E1101

@@ -6,13 +6,11 @@ See LICENSE for usage details
 from gzip import open as gz_open
 from os.path import basename
 
-# pylint: disable=E0401,W0611
-from django.core.management.base import (
-    BaseCommand,
-    CommandError,
-)
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
 from EvalData.models import DirectAssessmentResult
+# pylint: disable=E0401,W0611
 
 
 INFO_MSG = 'INFO: '

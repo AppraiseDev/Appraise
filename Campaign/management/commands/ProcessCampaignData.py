@@ -1,17 +1,16 @@
 # pylint: disable=C0103,C0111,C0330,E1101
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
 from Campaign.models import Campaign
 from Campaign.utils import _identify_super_users
 from Campaign.utils import CAMPAIGN_TASK_TYPES
-from EvalData.models import (
-    DataAssessmentTask,
-    DirectAssessmentTask,
-    DirectAssessmentContextTask,
-    DirectAssessmentDocumentTask,
-    MultiModalAssessmentTask,
-    PairwiseAssessmentTask,
-)
+from EvalData.models import DataAssessmentTask
+from EvalData.models import DirectAssessmentContextTask
+from EvalData.models import DirectAssessmentDocumentTask
+from EvalData.models import DirectAssessmentTask
+from EvalData.models import MultiModalAssessmentTask
+from EvalData.models import PairwiseAssessmentTask
 
 
 class Command(BaseCommand):

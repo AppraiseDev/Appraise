@@ -1,13 +1,17 @@
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
+from collections import OrderedDict
 from functools import cmp_to_key
 from json import loads
+from random import seed
+from random import shuffle
+
 from django.contrib.auth.models import User
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
 from Campaign.models import Campaign
-from EvalData.models import DirectAssessmentTask, DirectAssessmentResult
-
-from random import seed, shuffle
+from EvalData.models import DirectAssessmentResult
+from EvalData.models import DirectAssessmentTask
 
 def compute_mean(sample):
     """Computes sample mean"""

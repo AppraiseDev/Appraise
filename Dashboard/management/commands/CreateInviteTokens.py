@@ -5,16 +5,20 @@ See LICENSE for usage details
 """
 # pylint: disable=C0103
 from collections import defaultdict
-from csv import DictWriter, DictReader
+from csv import DictReader
+from csv import DictWriter
 from datetime import datetime
 from hashlib import md5
-from os.path import abspath, basename, exists
+from os.path import abspath
+from os.path import basename
+from os.path import exists
 
-# pylint: disable=import-error,unused-import
 from django.contrib.auth.models import Group
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
 from Dashboard.models import UserInviteToken
+# pylint: disable=import-error,unused-import
 
 
 INFO_MSG = 'INFO: '

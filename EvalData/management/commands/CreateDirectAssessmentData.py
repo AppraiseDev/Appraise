@@ -3,34 +3,26 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
-from collections import (
-    defaultdict,
-    OrderedDict,
-)
-from glob import iglob
 import hashlib
 import json
+from collections import defaultdict
+from collections import OrderedDict
+from glob import iglob
 from math import floor
-from os.path import (
-    basename,
-    exists,
-    sep as path_sep,
-)
-from random import (
-    randint,
-    randrange,
-    seed,
-    shuffle,
-)
+from os.path import basename
+from os.path import exists
+from os.path import sep as path_sep
+from random import randint
+from random import randrange
+from random import seed
+from random import shuffle
 from sys import exit as sys_exit
 
-# pylint: disable=E0401,W0611
-from django.core.management.base import (
-    BaseCommand,
-    CommandError,
-)
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
+# pylint: disable=E0401,W0611
 
 # pylint: disable=C0111
 class Command(BaseCommand):

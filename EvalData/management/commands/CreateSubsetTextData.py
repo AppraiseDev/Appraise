@@ -4,12 +4,16 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=W0611
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
+from collections import OrderedDict
 from json import load
-from os import makedirs, path
+from os import makedirs
+from os import path
 from os.path import basename
 from traceback import format_exc
-from django.core.management.base import BaseCommand, CommandError
+
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
 INFO_MSG = 'INFO: '
 

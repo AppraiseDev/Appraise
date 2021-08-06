@@ -3,22 +3,16 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
-from collections import (
-    defaultdict,
-    OrderedDict,
-)
+from collections import defaultdict
+from collections import OrderedDict
 from glob import iglob
-from os.path import (
-    basename,
-    sep as path_sep,
-)
+from os.path import basename
+from os.path import sep as path_sep
 from sys import exit as sys_exit
 
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 # pylint: disable=E0401,W0611
-from django.core.management.base import (
-    BaseCommand,
-    CommandError,
-)
 
 INFO_MSG = 'INFO: '
 

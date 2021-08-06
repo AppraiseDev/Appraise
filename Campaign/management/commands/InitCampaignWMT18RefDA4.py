@@ -1,10 +1,14 @@
 from hashlib import md5
 
-from django.contrib.auth.models import User, Group
-from django.core.management.base import BaseCommand, CommandError
+from django.contrib.auth.models import Group
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
-from Campaign.models import Campaign, CampaignTeam
-from EvalData.models import Market, Metadata
+from Campaign.models import Campaign
+from Campaign.models import CampaignTeam
+from EvalData.models import Market
+from EvalData.models import Metadata
 
 EX_LANGUAGES = (
   'deu', 'est', 'fin', 'rus', 'trk', 'zho'

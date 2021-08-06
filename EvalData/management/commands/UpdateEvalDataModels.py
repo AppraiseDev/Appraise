@@ -6,32 +6,34 @@ See LICENSE for usage details
 # pylint: disable=W0611
 from datetime import datetime
 from os import path
-from django.contrib.auth.models import User
 
-from django.core.management.base import BaseCommand, CommandError
-from django.db.models import Count, Q
-from django.db.utils import OperationalError, ProgrammingError
-from EvalData.models import (
-    Market,
-    Metadata,
-    DataAssessmentTask,
-    DataAssessmentResult,
-    TextPairWithDomain,
-    DirectAssessmentTask,
-    DirectAssessmentResult,
-    TextPair,
-    DirectAssessmentContextTask,
-    DirectAssessmentContextResult,
-    DirectAssessmentDocumentTask,
-    DirectAssessmentDocumentResult,
-    TextPairWithContext,
-    MultiModalAssessmentTask,
-    MultiModalAssessmentResult,
-    TextPairWithImage,
-    PairwiseAssessmentTask,
-    PairwiseAssessmentResult,
-    TextSegmentWithTwoTargets,
-)
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
+from django.db.models import Count
+from django.db.models import Q
+from django.db.utils import OperationalError
+from django.db.utils import ProgrammingError
+
+from EvalData.models import DataAssessmentResult
+from EvalData.models import DataAssessmentTask
+from EvalData.models import DirectAssessmentContextResult
+from EvalData.models import DirectAssessmentContextTask
+from EvalData.models import DirectAssessmentDocumentResult
+from EvalData.models import DirectAssessmentDocumentTask
+from EvalData.models import DirectAssessmentResult
+from EvalData.models import DirectAssessmentTask
+from EvalData.models import Market
+from EvalData.models import Metadata
+from EvalData.models import MultiModalAssessmentResult
+from EvalData.models import MultiModalAssessmentTask
+from EvalData.models import PairwiseAssessmentResult
+from EvalData.models import PairwiseAssessmentTask
+from EvalData.models import TextPair
+from EvalData.models import TextPairWithContext
+from EvalData.models import TextPairWithDomain
+from EvalData.models import TextPairWithImage
+from EvalData.models import TextSegmentWithTwoTargets
 
 MODEL_DEFINITIONS = (
     (

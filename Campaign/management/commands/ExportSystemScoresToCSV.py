@@ -2,23 +2,22 @@
 import csv
 import sys
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
 from Campaign.models import Campaign
-from EvalData.models import (
-    DataAssessmentResult,
-    DataAssessmentTask,
-    DirectAssessmentResult,
-    DirectAssessmentTask,
-    DirectAssessmentContextResult,
-    DirectAssessmentContextTask,
-    DirectAssessmentDocumentResult,
-    DirectAssessmentDocumentTask,
-    MultiModalAssessmentResult,
-    MultiModalAssessmentTask,
-    PairwiseAssessmentResult,
-    PairwiseAssessmentTask,
-)
+from EvalData.models import DataAssessmentResult
+from EvalData.models import DataAssessmentTask
+from EvalData.models import DirectAssessmentContextResult
+from EvalData.models import DirectAssessmentContextTask
+from EvalData.models import DirectAssessmentDocumentResult
+from EvalData.models import DirectAssessmentDocumentTask
+from EvalData.models import DirectAssessmentResult
+from EvalData.models import DirectAssessmentTask
+from EvalData.models import MultiModalAssessmentResult
+from EvalData.models import MultiModalAssessmentTask
+from EvalData.models import PairwiseAssessmentResult
+from EvalData.models import PairwiseAssessmentTask
 
 CAMPAIGN_TASK_TYPES = (
     (DataAssessmentTask, DataAssessmentResult),

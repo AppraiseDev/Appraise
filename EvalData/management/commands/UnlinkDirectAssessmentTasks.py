@@ -4,17 +4,27 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=W0611
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from os import path
-from django.contrib.auth.models import User
 
-from django.core.management.base import BaseCommand, CommandError
-from django.db.models import Count, Q
-from django.db.utils import OperationalError, ProgrammingError
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
+from django.db.models import Count
+from django.db.models import Q
+from django.db.utils import OperationalError
+from django.db.utils import ProgrammingError
 from django.utils.timezone import utc
-from EvalData.models import Market, Metadata, DirectAssessmentTask, \
-  DirectAssessmentResult, TextPair, MultiModalAssessmentTask, \
-  MultiModalAssessmentResult, TextPairWithImage
+
+from EvalData.models import DirectAssessmentResult
+from EvalData.models import DirectAssessmentTask
+from EvalData.models import Market
+from EvalData.models import Metadata
+from EvalData.models import MultiModalAssessmentResult
+from EvalData.models import MultiModalAssessmentTask
+from EvalData.models import TextPair
+from EvalData.models import TextPairWithImage
 
 
 INFO_MSG = 'INFO: '
