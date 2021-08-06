@@ -17,3 +17,4 @@ jobs:
         env:
             PYLINT_THRESHOLD: 6
             BLACK_LINE_MAXLEN: 88
+            APPRAISE_SECRET_KEY: not_a_real_key
