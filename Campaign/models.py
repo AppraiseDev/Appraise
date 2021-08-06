@@ -2,23 +2,23 @@
 Campaign models.py
 """
 # pylint: disable=C0111,C0330,E1101
-from json import JSONDecodeError, loads
+from json import JSONDecodeError
+from json import loads
 from pathlib import Path
-from zipfile import ZipFile, is_zipfile
+from zipfile import is_zipfile
+from zipfile import ZipFile
 
-from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.db import models
 from django.utils.text import format_lazy as f
 from django.utils.translation import ugettext_lazy as _
 
 from Dashboard.models import validate_language_code
-from EvalData.models import (
-    AnnotationTaskRegistry,
-    BaseMetadata,
-    Market,
-    Metadata,
-)
+from EvalData.models import AnnotationTaskRegistry
+from EvalData.models import BaseMetadata
+from EvalData.models import Market
+from EvalData.models import Metadata
 
 MAX_TEAMNAME_LENGTH = 250
 MAX_SMALLINTEGER_VALUE = 32767

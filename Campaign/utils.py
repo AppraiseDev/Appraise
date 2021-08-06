@@ -3,30 +3,29 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
+from collections import OrderedDict
 from hashlib import md5
-from json import JSONDecodeError, load
+from json import JSONDecodeError
+from json import load
 
 from django.contrib.auth.models import User
 from django.core.management.base import CommandError
 
-from Campaign.models import Campaign, CampaignTeam
-from Dashboard.models import (
-    LANGUAGE_CODES_AND_NAMES,
-    validate_language_code,
-)
-from EvalData.models import (
-    DataAssessmentTask,
-    DirectAssessmentTask,
-    DirectAssessmentContextTask,
-    DirectAssessmentDocumentTask,
-    MultiModalAssessmentTask,
-    PairwiseAssessmentTask,
-    Market,
-    Metadata,
-    ObjectID,
-    TaskAgenda,
-)
+from Campaign.models import Campaign
+from Campaign.models import CampaignTeam
+from Dashboard.models import LANGUAGE_CODES_AND_NAMES
+from Dashboard.models import validate_language_code
+from EvalData.models import DataAssessmentTask
+from EvalData.models import DirectAssessmentContextTask
+from EvalData.models import DirectAssessmentDocumentTask
+from EvalData.models import DirectAssessmentTask
+from EvalData.models import Market
+from EvalData.models import Metadata
+from EvalData.models import MultiModalAssessmentTask
+from EvalData.models import ObjectID
+from EvalData.models import PairwiseAssessmentTask
+from EvalData.models import TaskAgenda
 
 # Map convinient task type names into their corresponding task classes
 CAMPAIGN_TASK_TYPES = {

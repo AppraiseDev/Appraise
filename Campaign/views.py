@@ -6,24 +6,23 @@ See LICENSE for usage details
 # pylint: disable=E1101
 from collections import defaultdict
 from datetime import datetime
-from math import floor, sqrt
+from math import floor
+from math import sqrt
 
-# pylint: disable=import-error
 from django.contrib.auth.decorators import login_required
 from django.core.management.base import CommandError
 from django.http import HttpResponse
 
 from Appraise.utils import _get_logger
 from Campaign.utils import _get_campaign_instance
-from EvalData.models import (
-    DataAssessmentResult,
-    DirectAssessmentResult,
-    DirectAssessmentContextResult,
-    DirectAssessmentDocumentResult,
-    MultiModalAssessmentResult,
-    PairwiseAssessmentResult,
-    seconds_to_timedelta,
-)
+from EvalData.models import DataAssessmentResult
+from EvalData.models import DirectAssessmentContextResult
+from EvalData.models import DirectAssessmentDocumentResult
+from EvalData.models import DirectAssessmentResult
+from EvalData.models import MultiModalAssessmentResult
+from EvalData.models import PairwiseAssessmentResult
+from EvalData.models import seconds_to_timedelta
+# pylint: disable=import-error
 
 RESULT_TYPE_BY_CLASS_NAME = {
     'DataAssessmentTask': DataAssessmentResult,

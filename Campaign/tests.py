@@ -11,7 +11,8 @@ from django.core.files.base import File
 from django.core.management.base import CommandError
 from django.test import TestCase
 
-from Campaign.models import _validate_package_file, Campaign
+from Campaign.models import _validate_package_file
+from Campaign.models import Campaign
 
 
 class TestInitCampaign(TestCase):

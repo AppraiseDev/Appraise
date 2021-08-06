@@ -5,10 +5,11 @@ Campaign admin.py
 from django.contrib import admin
 from django.contrib.admin.filters import AllValuesFieldListFilter
 
+from Campaign.models import Campaign
+from Campaign.models import CampaignData
+from Campaign.models import CampaignTeam
+from Campaign.models import TrustedUser
 from EvalData.admin import BaseMetadataAdmin
-from Campaign.models import (
-    CampaignTeam, CampaignData, Campaign, TrustedUser
-)
 
 
 class DropdownFilter(AllValuesFieldListFilter):
