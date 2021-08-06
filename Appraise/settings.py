@@ -10,9 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 import logging
-from logging.handlers import RotatingFileHandler
-
 import os
+from logging.handlers import RotatingFileHandler
 
 from django.core.exceptions import ImproperlyConfigured
 

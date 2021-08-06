@@ -4,12 +4,15 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=unused-import,import-error
-from django.conf.urls import handler404, handler500, include
+from django.conf.urls import handler404
+from django.conf.urls import handler500
+from django.conf.urls import include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import re_path
 
-from Appraise.settings import BASE_CONTEXT, DEBUG
+from Appraise.settings import BASE_CONTEXT
+from Appraise.settings import DEBUG
 from Campaign import views as campaign_views
 from Dashboard import views as dashboard_views
 from EvalData import views as evaldata_views
