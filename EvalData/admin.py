@@ -5,19 +5,34 @@ See LICENSE for usage details
 """
 # pylint: disable=C0330
 from datetime import datetime
-from django.contrib import admin, messages
+
+from django.contrib import admin
+from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.timezone import utc
-from .models import Market, Metadata, TextSegment, TextPair, TextPairWithImage
-from .models import TextPairWithContext, TextSegmentWithTwoTargets
-from .models import DataAssessmentTask, DataAssessmentResult
-from .models import DirectAssessmentTask, DirectAssessmentResult
-from .models import DirectAssessmentContextTask, DirectAssessmentContextResult
-from .models import DirectAssessmentDocumentTask, DirectAssessmentDocumentResult
-from .models import MultiModalAssessmentTask, MultiModalAssessmentResult
-from .models import PairwiseAssessmentTask, PairwiseAssessmentResult
-from .models import WorkAgenda, TaskAgenda
+
+from .models import DataAssessmentResult
+from .models import DataAssessmentTask
+from .models import DirectAssessmentContextResult
+from .models import DirectAssessmentContextTask
+from .models import DirectAssessmentDocumentResult
+from .models import DirectAssessmentDocumentTask
+from .models import DirectAssessmentResult
+from .models import DirectAssessmentTask
+from .models import Market
+from .models import Metadata
+from .models import MultiModalAssessmentResult
+from .models import MultiModalAssessmentTask
+from .models import PairwiseAssessmentResult
+from .models import PairwiseAssessmentTask
+from .models import TaskAgenda
+from .models import TextPair
+from .models import TextPairWithContext
+from .models import TextPairWithImage
+from .models import TextSegment
+from .models import TextSegmentWithTwoTargets
+from .models import WorkAgenda
 
 
 # TODO:chrife: find a way to use SELECT-based filtering widgets
