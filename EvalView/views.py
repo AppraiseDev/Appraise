@@ -5,30 +5,29 @@ See LICENSE for usage details
 """
 from datetime import datetime
 
-# pylint: disable=import-error
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
-from django.utils.timezone import utc
 from django.http import JsonResponse
+from django.shortcuts import redirect
+from django.shortcuts import render
+from django.utils.timezone import utc
 
 from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Campaign.models import Campaign
-from EvalData.models import (
-    DataAssessmentTask,
-    DataAssessmentResult,
-    DirectAssessmentTask,
-    DirectAssessmentResult,
-    DirectAssessmentContextTask,
-    DirectAssessmentContextResult,
-    DirectAssessmentDocumentTask,
-    DirectAssessmentDocumentResult,
-    MultiModalAssessmentTask,
-    MultiModalAssessmentResult,
-    PairwiseAssessmentTask,
-    PairwiseAssessmentResult,
-    TaskAgenda,
-)
+from EvalData.models import DataAssessmentResult
+from EvalData.models import DataAssessmentTask
+from EvalData.models import DirectAssessmentContextResult
+from EvalData.models import DirectAssessmentContextTask
+from EvalData.models import DirectAssessmentDocumentResult
+from EvalData.models import DirectAssessmentDocumentTask
+from EvalData.models import DirectAssessmentResult
+from EvalData.models import DirectAssessmentTask
+from EvalData.models import MultiModalAssessmentResult
+from EvalData.models import MultiModalAssessmentTask
+from EvalData.models import PairwiseAssessmentResult
+from EvalData.models import PairwiseAssessmentTask
+from EvalData.models import TaskAgenda
+# pylint: disable=import-error
 
 LOGGER = _get_logger(name=__name__)
 
