@@ -8,7 +8,7 @@ from os.path import basename, join
 from random import choice, seed, shuffle
 from typing import Any, Dict, List, Text, Tuple
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup  # type: ignore
 
 
 MAX_TASK_SIZE = 100     # No support for tasks over 100 items

@@ -7,7 +7,7 @@ from collections import defaultdict
 from datetime import datetime
 from hashlib import md5
 from math import floor, sqrt
-from scipy.stats import mannwhitneyu
+from scipy.stats import mannwhitneyu  # type: ignore
 from uuid import UUID
 
 from Appraise.settings import SECRET_KEY

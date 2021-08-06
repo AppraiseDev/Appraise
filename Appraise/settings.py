@@ -105,7 +105,7 @@ INSTALLED_APPS = [
 if DEBUG:
     try:
         # pylint: disable=W0611
-        import debug_toolbar
+        import debug_toolbar  # type: ignore
         INSTALLED_APPS.append('debug_toolbar')
 
     except ImportError:

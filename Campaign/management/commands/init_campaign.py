@@ -7,7 +7,7 @@ from datetime import datetime
 
 from django.core.management.base import BaseCommand, CommandError
 
-from tablib import Dataset
+from tablib import Dataset  # type: ignore
 
 from Campaign.utils import (
     _create_uniform_task_map,

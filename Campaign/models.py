@@ -349,7 +349,7 @@ class CampaignTeam(BaseMetadata):
         """
         return self.members.count()
 
-    teamMembers.short_description = '# of team members'
+    teamMembers.short_description = '# of team members'  # type: ignore
 
     # TODO: Connect to actual data, producing correct completion status.
     # pylint: disable=no-self-use
@@ -363,7 +363,7 @@ class CampaignTeam(BaseMetadata):
         """
         return '0%'
 
-    completionStatus.short_description = 'Completion status'
+    completionStatus.short_description = 'Completion status'  # type: ignore
 
 
 class CampaignData(BaseMetadata):

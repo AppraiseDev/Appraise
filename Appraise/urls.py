@@ -4,9 +4,10 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=unused-import,import-error
-from django.conf.urls import handler404, handler500, include, re_path
+from django.conf.urls import handler404, handler500, include
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
+from django.urls import re_path
 
 from Appraise.settings import BASE_CONTEXT, DEBUG
 from Campaign import views as campaign_views
@@ -174,10 +175,10 @@ urlpatterns = [
 
 if DEBUG:
     try:
-        import debug_toolbar
+        import debug_toolbar  # type: ignore
         urlpatterns = [
             re_path(r'^__debug__/', include(debug_toolbar.urls)),
-        ] + urlpatterns
+        ] + urlpatterns  # type: ignore
 
     except ImportError:
         pass

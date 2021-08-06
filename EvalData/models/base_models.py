@@ -120,7 +120,7 @@ class AnnotationTaskRegistry():
 
     Use @AnnotationTaskRegistry.register decorator to register class.
     """
-    _ANNOTATION_TASK_REGISTRY = set()  # Set[str]
+    _ANNOTATION_TASK_REGISTRY = set()  # type: Set[str]
 
     @staticmethod
     def register(obj):
