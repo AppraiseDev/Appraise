@@ -15,8 +15,11 @@ MAX_TASK_SIZE = 100  # No support for tasks over 100 items
 MAX_DOC_LENGTH = 70  # We do not support documents longer than 70 segments
 
 DEFAULT_TRANSLATOR = "DEFAULT"
-SHUFFLE_DOCS_WITH_CONTROL_ITEMS = False
-INCLUDE_REFERENCES_AS_SYSTEMS = False
+# If False, documents with control items will be very last ones in each batch
+SHUFFLE_DOCS_WITH_CONTROL_ITEMS = True
+# If True, add references as additional system outputs
+INCLUDE_REFERENCES_AS_SYSTEMS = True
+REFERENCE_AS_SYSTEM_PREFIX = 'translator-'
 
 
 def unwrap_xml(
@@ -349,12 +352,19 @@ if __name__ == "__main__":
         XML_FILE, encoding=ENC
     )
 
-    # List of system names that can be iterated deterministically
-    SYS_IDS = sorted(list(SYS_DOCS.keys()))
-
     # This reference will be used for generating BAD items
     REF_ID = sorted(list(REF_DOCS.keys()))[0]
     print(f'Using reference "{REF_ID}"')
+
+    # Add references as additional system outputs
+    if INCLUDE_REFERENCES_AS_SYSTEMS:
+        for ref_id in sorted(list(REF_DOCS.keys())):
+            sys_id = REFERENCE_AS_SYSTEM_PREFIX + ref_id
+            print(f'Adding reference "{ref_id}" as system output "{sys_id}"')
+            SYS_DOCS[sys_id] = REF_DOCS[ref_id]
+
+    # List of system names that can be iterated deterministically
+    SYS_IDS = sorted(list(SYS_DOCS.keys()))
 
     for sys_id in SYS_IDS:
         print(f'Generating bad references for {sys_id}')
