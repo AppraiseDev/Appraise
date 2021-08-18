@@ -46,9 +46,10 @@ class Command(BaseCommand):
         parser.add_argument(
             '--batches-json',
             type=str,
-            default=None,
+            default=[],
             metavar='JSON',
-            help='Path to batches in JSON format.',
+            nargs='+',
+            help='List of paths to batches in JSON format.',
         )
 
         parser.add_argument(
@@ -141,19 +142,22 @@ class Command(BaseCommand):
         self.stdout.write('### Creating a new campaign')
 
         batches_json = options['batches_json']
-        if batches_json is not None:
-            self.stdout.write('JSON batches path: {0!r}'.format(batches_json))
-            campaign_data = _upload_batches_json(
-                batches_json, owner, stdout=self.stdout
-            )
+        campaign_name = context['CAMPAIGN_NAME']
+        if batches_json:
+            campaign_data = []
+            self.stdout.write('JSON batches path(s):')
+            for _batches_json in batches_json:
+                self.stdout.write('- {0!r}'.format(_batches_json))
+                campaign_data.append(_upload_batches_json(
+                    _batches_json, owner, stdout=self.stdout
+                ))
 
-            campaign_name = context['CAMPAIGN_NAME']
             self.stdout.write('Campaign name: {}'.format(campaign_name))
             _campaign = _create_campaign(
                 campaign_name, campaign_data, owner, stdout=self.stdout
             )
 
-        else:  # i.e. batches_json is None
+        else:  # i.e. batches_json is empty
             _campaign = Campaign.objects.filter(campaignName=campaign_name)
             if _campaign.exists():
                 _campaign = _campaign[0]
@@ -232,6 +236,7 @@ def _create_campaign(campaign_name, campaign_data, owner, stdout=None):
     campaign = Campaign(campaignName=campaign_name, createdBy=owner)
     campaign.save()
     campaign.teams.add(team)
-    campaign.batches.add(campaign_data)
+    for _campaign_data in campaign_data:
+        campaign.batches.add(_campaign_data)
     campaign.save()
     return campaign
