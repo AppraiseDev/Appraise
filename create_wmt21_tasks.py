@@ -14,6 +14,7 @@ from lxml import etree
 MAX_TASK_SIZE = 100  # No support for tasks over 100 items
 MAX_DOC_LENGTH = 70  # We do not support documents longer than 70 segments
 
+MISSING_TRANSLATION_MESSAGE = ("NO TRANSLATION AVAILABLE",)
 DEFAULT_TRANSLATOR = "DEFAULT"
 # If False, documents with control items will be very last ones in each batch
 SHUFFLE_DOCS_WITH_CONTROL_ITEMS = True
@@ -24,7 +25,7 @@ REFERENCE_AS_SYSTEM_PREFIX = 'translator-'
 
 def unwrap_xml(
     xml_file,
-    missing_message="NO TRANSLATION AVAILABLE",
+    missing_message=MISSING_TRANSLATION_MESSAGE,
     encoding='utf-8',
 ):
     """
@@ -156,6 +157,12 @@ def unwrap_xml(
                     # _ref_text = trans_to_ref.get(translator, {translator: {}}).get(
                     _ref_text = trans_to_ref[translator].get(seg_id, missing_message)
                     ref_docs[translator][doc_id].append((seg_id, _ref_text))
+
+                    if _ref_text == MISSING_TRANSLATION_MESSAGE:
+                        print(
+                            f'Warning: missing reference for translator {translator}, '
+                            f'document {doc_id}, segment {seg_id}'
+                        )
             if hyp_lang:
                 for system in systems:
                     if doc_id not in hyp_docs[system]:
@@ -164,6 +171,12 @@ def unwrap_xml(
                     # _hyp_text = system_to_ref.get(system, {system: {}}).get(
                     _hyp_text = system_to_ref[system].get(seg_id, missing_message)
                     hyp_docs[system][doc_id].append((seg_id, _hyp_text))
+
+                    if _hyp_text == MISSING_TRANSLATION_MESSAGE:
+                        print(
+                            f'Warning: missing translation from {system}, '
+                            f'document {doc_id}, segment {seg_id}'
+                        )
 
         src_docs[doc_id] = src
 
