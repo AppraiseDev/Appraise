@@ -5,10 +5,9 @@ from collections import defaultdict, OrderedDict
 from glob import iglob
 from json import dumps as json_dumps
 from os.path import basename, join
-from random import choice, seed, shuffle
+from random import choice, randint, seed, shuffle
 from typing import Any, Dict, List, Text, Tuple
 
-from bs4 import BeautifulSoup
 from lxml import etree
 
 
@@ -16,12 +15,13 @@ MAX_TASK_SIZE = 100  # No support for tasks over 100 items
 MAX_DOC_LENGTH = 70  # We do not support documents longer than 70 segments
 
 DEFAULT_TRANSLATOR = "DEFAULT"
+SHUFFLE_DOCS_WITH_CONTROL_ITEMS = False
+INCLUDE_REFERENCES_AS_SYSTEMS = False
 
 
 def unwrap_xml(
     xml_file,
     missing_message="NO TRANSLATION AVAILABLE",
-    no_testsuites=True,
     encoding='utf-8',
 ):
     """
@@ -73,30 +73,34 @@ def unwrap_xml(
         raise RuntimeError("No source languages found")
 
     src_lang = src_langs.pop()
-    src_docs = {}
+    src_docs = OrderedDict()
 
     if len(ref_langs) > 1:
         raise RuntimeError("Multiple reference languages found")
 
+    translators = list(translators)
     if len(ref_langs) > 0:
         if len(translators) == 0:
             print("No translator identifiers found")
-            translators.add(DEFAULT_TRANSLATOR)
+            translators.append(DEFAULT_TRANSLATOR)
         ref_lang = ref_langs.pop()
-        ref_docs = {translator: {} for translator in translators}
+        ref_docs = OrderedDict(
+            (translator, OrderedDict()) for translator in translators
+        )
     else:
         print("No references found")
         ref_lang = None
-        ref_docs = {}
+        ref_docs = OrderedDict()
 
     if len(hyp_langs) > 1:
         raise RuntimeError("Multiple hypothesis languages found")
 
+    systems = list(systems)
     if len(hyp_langs) > 0:
-        hyp_docs = {system: {} for system in systems}
+        hyp_docs = OrderedDict((system, OrderedDict()) for system in systems)
         hyp_lang = hyp_langs.pop()
     else:
-        hyp_docs = {}
+        hyp_docs = OrderedDict()
         hyp_lang = None
 
     # Extract text
@@ -104,7 +108,7 @@ def unwrap_xml(
     for doc in tree.getroot().findall(".//doc"):
         doc_id = doc.get("id")
         src = []
-        if no_testsuites and "testsuite" in doc.attrib:
+        if "testsuite" in doc.attrib:
             continue
         doc_count += 1
         src_sents = {int(seg.get("id")): seg.text for seg in doc.findall(".//src//seg")}
@@ -146,18 +150,16 @@ def unwrap_xml(
                     if doc_id not in ref_docs[translator]:
                         ref_docs[translator][doc_id] = []
 
-                    _ref_text = trans_to_ref.get(translator, {translator: {}}).get(
-                        seg_id, missing_message
-                    )
+                    # _ref_text = trans_to_ref.get(translator, {translator: {}}).get(
+                    _ref_text = trans_to_ref[translator].get(seg_id, missing_message)
                     ref_docs[translator][doc_id].append((seg_id, _ref_text))
             if hyp_lang:
                 for system in systems:
                     if doc_id not in hyp_docs[system]:
                         hyp_docs[system][doc_id] = []
 
-                    _hyp_text = system_to_ref.get(system, {system: {}}).get(
-                        seg_id, missing_message
-                    )
+                    # _hyp_text = system_to_ref.get(system, {system: {}}).get(
+                    _hyp_text = system_to_ref[system].get(seg_id, missing_message)
                     hyp_docs[system][doc_id].append((seg_id, _hyp_text))
 
         src_docs[doc_id] = src
@@ -340,21 +342,27 @@ if __name__ == "__main__":
         REQUIRED_SEGS = 100
     print(f'Setting REQUIRED_SEGS={REQUIRED_SEGS}')
 
-    SYS_DOCS: Dict[str, Dict[str, List[Tuple[str, str]]]] = {}
-    BAD_DOCS: Dict[str, Dict[str, List[Tuple[str, str]]]] = {}
+    SYS_DOCS: Dict[str, Dict[str, List[Tuple[str, str]]]] = OrderedDict()
+    BAD_DOCS: Dict[str, Dict[str, List[Tuple[str, str]]]] = OrderedDict()
     print(f'Loading docs from {XML_FILE}')
-    src_lang, SRC_DOCS, ref_lang, REF_DOCS, hyp_lang, SYS_DOCS = unwrap_xml(XML_FILE, encoding=ENC)
+    src_lang, SRC_DOCS, ref_lang, REF_DOCS, hyp_lang, SYS_DOCS = unwrap_xml(
+        XML_FILE, encoding=ENC
+    )
 
+    # List of system names that can be iterated deterministically
+    SYS_IDS = sorted(list(SYS_DOCS.keys()))
+
+    # This reference will be used for generating BAD items
     REF_ID = sorted(list(REF_DOCS.keys()))[0]
-    print(f'Using reference {REF_ID}')
+    print(f'Using reference "{REF_ID}"')
 
-    for sys_id in SYS_DOCS.keys():
+    for sys_id in SYS_IDS:
         print(f'Generating bad references for {sys_id}')
         BAD_DOCS[sys_id] = create_bad_refs(SYS_DOCS[sys_id], REF_DOCS[REF_ID])
 
     # pylint: disable-msg=invalid-name
-    some_sys_id = choice(list(SYS_DOCS.keys()))
-    some_doc_id = choice(list(SYS_DOCS[some_sys_id].keys()))
+    some_sys_id = choice(SYS_IDS)
+    some_doc_id = choice(sorted(list(SYS_DOCS[some_sys_id].keys())))
     some_sys_text = SYS_DOCS[some_sys_id][some_doc_id]
     some_bad_text = BAD_DOCS[some_sys_id][some_doc_id]
     print(some_sys_id, some_doc_id)
@@ -364,9 +372,9 @@ if __name__ == "__main__":
         print(_b)
         print('---')
 
-    DOC_STATS: Dict[int, List[Tuple[int, str, str]]] = {}
-    for sys_id in SYS_DOCS:
-        for doc_id in SYS_DOCS[sys_id]:
+    DOC_STATS: Dict[int, List[Tuple[int, str, str]]] = OrderedDict()
+    for sys_id in SYS_IDS:
+        for doc_id in SYS_DOCS[sys_id].keys():
             doc_len = len(SYS_DOCS[sys_id][doc_id])
 
             # We do not support documents longer than 70 segments.
@@ -382,10 +390,10 @@ if __name__ == "__main__":
     for doc_len in DOC_STATS:
         shuffle(DOC_STATS[doc_len])
 
-    print(sorted(DOC_STATS.keys()))
+    print(DOC_STATS.keys())
     total_docs = 0
     total_sys = set()
-    for doc_len in sorted(DOC_STATS.keys()):
+    for doc_len in DOC_STATS.keys():
         print(f'{doc_len}:\t{len(DOC_STATS[doc_len])}')
         total_docs += len(DOC_STATS[doc_len])
         for x in DOC_STATS[doc_len]:
@@ -397,7 +405,7 @@ if __name__ == "__main__":
     CURR_SYS = 0
     curr_task: List[Tuple[int, str, str]] = []
     while DOC_STATS.keys():
-        ALL_KEYS = list(DOC_STATS.keys())
+        ALL_KEYS = sorted(list(DOC_STATS.keys()))
         max_delta = REQUIRED_SEGS - CURR_LEN
         valid_keys = [x for x in ALL_KEYS if x <= max_delta]
 
@@ -517,9 +525,13 @@ if __name__ == "__main__":
 
         source_id = basename(XML_FILE)
 
-        items_data = []
+        items_data = []  # It keeps items grouped into document
         _item = 0
+        doc_counter = 0
         for doc_data in task:
+            items_data.append([])  # Add a new bucket for items from this documents
+            has_control_item = False
+
             doc_len, doc_id, sys_id, *rest = doc_data
 
             isControl = rest is not None and rest
@@ -562,15 +574,16 @@ if __name__ == "__main__":
 
                 target_text = item_tgt
                 target_type = 'TGT'
-                if (
-                    CONTROLS and isControl
-                ):  # Do not generate any BAD items if QC is disabled
+
+                # Do not generate any BAD items if QC is disabled
+                if CONTROLS and isControl:
                     randomCoinFlip = choice(
                         [False, False, True, True, True]  # 60:40 chance
                     )
                     if randomCoinFlip:
                         target_text = item_bad
                         target_type = 'BAD'
+                        has_control_item = True
 
                 obj: Dict[str, Any] = OrderedDict()
                 obj['_item'] = _item
@@ -586,20 +599,20 @@ if __name__ == "__main__":
                 obj['documentID'] = doc_id
                 obj['isCompleteDocument'] = False
 
-                print(seg_id)
-                print(' '.join(context_src))
-                print(item_src)
-                print('...')
-                print(' '.join(context_tgt))
-                print(item_tgt.encode('utf-8'))
-                print('---')
+                # print(seg_id)
+                # print(' '.join(context_src))
+                # print(item_src)
+                # print('...')
+                # print(' '.join(context_tgt))
+                # print(item_tgt.encode('utf-8'))
+                # print('---')
 
                 context_src.append(item_src)
                 context_ref.append(item_ref)
                 context_bad.append(item_bad)
                 context_tgt.append(target_text)
 
-                items_data.append(obj)
+                items_data[-1].append(obj)
                 _item += 1
                 seg_counter += 1
 
@@ -614,9 +627,18 @@ if __name__ == "__main__":
             obj['itemType'] = 'TGT'
             obj['documentID'] = doc_id
             obj['isCompleteDocument'] = True
-            items_data.append(obj)
+            items_data[-1].append(obj)
 
-        output_data = OrderedDict({'task': task_data, 'items': items_data})
+            if has_control_item and SHUFFLE_DOCS_WITH_CONTROL_ITEMS:
+                # Move the document with control items to a random position so
+                # that they are not accumulated as very last documents
+                _bad_doc = items_data.pop()
+                _pos = randint(0, len(items_data) - 1)
+                items_data.insert(_pos, _bad_doc)
+
+        # Extract items from documents
+        _items_data = [item for doc_items in items_data for item in doc_items]
+        output_data = OrderedDict({'task': task_data, 'items': _items_data})
 
         json_data.append(output_data)
 
@@ -625,7 +647,11 @@ if __name__ == "__main__":
 
         json_file_name = f'{OUT_NAME}.json'
         with open(json_file_name, mode='w', encoding='utf8') as out_file:
-            sys.stdout.write('Creating {0} ... '.format(json_file_name, ending=''))
+            sys.stdout.write(
+                'Creating {0}, batch no. {1} ... '.format(
+                    json_file_name, batch_id + 1, ending=''
+                )
+            )
             out_file.write(str(json_text))
             sys.stdout.write('OK\n')
 
@@ -633,4 +659,4 @@ if __name__ == "__main__":
 
     print(f'Total tasks: {len(sampled_tasks)}')
     print(f'Total docs:  {total_docs}')
-    print(f'Total sys:   {len(total_sys)} {total_sys}')
+    print(f'Total sys:   {len(total_sys)} {sorted(list(total_sys))}')
