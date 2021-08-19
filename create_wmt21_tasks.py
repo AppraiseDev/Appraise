@@ -333,10 +333,10 @@ def create_bad_refs(
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 7:
+    if len(sys.argv) < 8:
         print('Example usage:')
         print(
-            f'  {sys.argv[0]} newstest2021.en-de.all.xml batches.en-de enu deu 50 True'
+            f'  {sys.argv[0]} newstest2021.en-de.all.xml batches.en-de enu deu 50 True False'
         )
         exit()
 
@@ -345,7 +345,10 @@ if __name__ == "__main__":
     SRC_LANG = sys.argv[3]  # Code for source language, e.g. eng
     TGT_LANG = sys.argv[4]  # Code for target language, e.g. deu
     TASK_MAX = int(sys.argv[5])  # Maximum number of tasks
-    CONTROLS = sys.argv[6].lower() not in ['', '0', 'false', 'off']
+    CONTROLS = sys.argv[6].lower() not in ['', '0', 'false', 'off']  # Generate QC items
+    CHARLANG = sys.argv[7].lower() in ['1', 'true', 'on']  # Character-based
+    print(f'Character based={CHARLANG}')
+
     ENC = 'utf-8'
 
     RND_SEED = 123456
@@ -357,6 +360,7 @@ if __name__ == "__main__":
     else:
         REQUIRED_SEGS = 100
     print(f'Setting REQUIRED_SEGS={REQUIRED_SEGS}')
+
 
     SYS_DOCS: Dict[str, Dict[str, List[Tuple[str, str]]]] = OrderedDict()
     BAD_DOCS: Dict[str, Dict[str, List[Tuple[str, str]]]] = OrderedDict()
@@ -381,7 +385,9 @@ if __name__ == "__main__":
 
     for sys_id in SYS_IDS:
         print(f'Generating bad references for {sys_id}')
-        BAD_DOCS[sys_id] = create_bad_refs(SYS_DOCS[sys_id], REF_DOCS[REF_ID])
+        BAD_DOCS[sys_id] = create_bad_refs(
+            SYS_DOCS[sys_id], REF_DOCS[REF_ID], character_based=CHARLANG
+        )
 
     # pylint: disable-msg=invalid-name
     some_sys_id = choice(SYS_IDS)
