@@ -467,6 +467,7 @@ def _process_market_and_metadata(language_pairs, owner, **kwargs):
     """
     _context = dict(**kwargs)
 
+    markets_and_metadata = []
     for _src, _tgt in language_pairs:
         _market = _get_or_create_market(
             source_code=_src,
@@ -482,6 +483,8 @@ def _process_market_and_metadata(language_pairs, owner, **kwargs):
             source=_context.get('source', 'official'),
             owner=owner,
         )
+        markets_and_metadata.append((_market, _meta))
+    return markets_and_metadata
 
 
 def _process_users(language_pairs, context):

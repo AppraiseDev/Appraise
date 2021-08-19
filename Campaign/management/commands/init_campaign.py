@@ -124,6 +124,7 @@ def _init_campaign(
     - confirmation_tokens:bool export valid task confirmation tokens.
     """
     ALL_LANGUAGES = context['ALL_LANGUAGES']
+    print('All languages:', ALL_LANGUAGES)
 
     # Find super user
     superusers = _identify_super_users()

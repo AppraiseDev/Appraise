@@ -25,6 +25,7 @@ from Campaign.models import (
 from Campaign.utils import (
     _identify_super_users,
     _load_campaign_manifest,
+    _process_market_and_metadata,
 )
 from EvalData.management.commands.UpdateEvalDataModels import _update_eval_data_models
 
@@ -144,13 +145,35 @@ class Command(BaseCommand):
         batches_json = options['batches_json']
         campaign_name = context['CAMPAIGN_NAME']
         if batches_json:
+            # Get markets and metad data for batches
+            markets_and_metadata = _process_market_and_metadata(
+                context['ALL_LANGUAGES'],
+                owner,
+                domain_name=campaign_name,
+                corpus_name=campaign_name,
+            )
+            # A batch needs its own market, so check if each batch has one
+            if len(markets_and_metadata) != len(batches_json):
+                raise ValueError(
+                    'Mismatch of number of markets ({0}) and JSON batches ({1})'.format(
+                        len(markets_and_metadata), len(batches_json)
+                    )
+                )
+
             campaign_data = []
-            self.stdout.write('JSON batches path(s):')
-            for _batches_json in batches_json:
+            for _batches_json, (_market, _meta) in zip(
+                batches_json, markets_and_metadata
+            ):
                 self.stdout.write('- {0!r}'.format(_batches_json))
-                campaign_data.append(_upload_batches_json(
-                    _batches_json, owner, stdout=self.stdout
-                ))
+                campaign_data.append(
+                    _upload_batches_json(
+                        _batches_json,
+                        owner,
+                        market=_market,
+                        metadata=_meta,
+                        stdout=self.stdout,
+                    )
+                )
 
             self.stdout.write('Campaign name: {}'.format(campaign_name))
             _campaign = _create_campaign(
@@ -178,7 +201,8 @@ class Command(BaseCommand):
 
         _campaign_type = context['TASK_TYPE']
         _max_count = options['max_count']
-        _process_campaign_data(_campaign, owner, _campaign_type, _max_count)
+        if not _campaign.activated:
+            _process_campaign_data(_campaign, owner, _campaign_type, _max_count)
 
         #############################################################
         self.stdout.write('### Running UpdateEvalDataModels')
@@ -206,17 +230,15 @@ class Command(BaseCommand):
             )
 
 
-def _upload_batches_json(batches_json, owner, stdout=None):
+def _upload_batches_json(batches_json, owner, market, metadata, stdout=None):
     """Upload batches and return a CampaignData object."""
-    # TODO: check if this returns the most recent Market and Metadata
-    _market = Market.objects.last()
-    stdout.write('Market: {}'.format(_market))
-    _metadata = Metadata.objects.last()
-    stdout.write('Metadata: {}'.format(_metadata))
+    stdout.write('Batch: {}'.format(batches_json))
+    stdout.write('  Market: {}'.format(market))
+    stdout.write('  Metadata: {}'.format(metadata))
 
     campaign_data = CampaignData(
-        market=_market,
-        metadata=_metadata,
+        market=market,
+        metadata=metadata,
         createdBy=owner,
     )
 
