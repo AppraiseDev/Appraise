@@ -259,7 +259,8 @@ def _create_bad_ref(seg_text: str, ref_text: str, character_based: bool = False)
         bad_pos = choice(range(seg_len - bad_len))
 
     elif seg_len > 3:
-        bad_pos = choice([x + 1 for x in range(seg_len - bad_len - 1)])
+        _xs = max(1, seg_len - bad_len - 1)
+        bad_pos = choice([x + 1 for x in range(_xs)])
 
     ref_pos = 0
     if ref_len - bad_len > 0:
@@ -274,6 +275,9 @@ def _create_bad_ref(seg_text: str, ref_text: str, character_based: bool = False)
     if character_based:
         bad_text = ''.join(bad_data)
 
+    # print(seg_text)
+    # print(bad_text)
+    # print('------------')
     return bad_text
 
 
@@ -360,7 +364,6 @@ if __name__ == "__main__":
     else:
         REQUIRED_SEGS = 100
     print(f'Setting REQUIRED_SEGS={REQUIRED_SEGS}')
-
 
     SYS_DOCS: Dict[str, Dict[str, List[Tuple[str, str]]]] = OrderedDict()
     BAD_DOCS: Dict[str, Dict[str, List[Tuple[str, str]]]] = OrderedDict()
@@ -663,10 +666,19 @@ if __name__ == "__main__":
                 # that they are not accumulated as very last documents
                 _bad_doc = items_data.pop()
                 _pos = randint(0, len(items_data) - 1)
+                print(f'  Moving the last QC document to position {_pos}')
                 items_data.insert(_pos, _bad_doc)
 
         # Extract items from documents
         _items_data = [item for doc_items in items_data for item in doc_items]
+        # Re-assign _item numbers
+        if SHUFFLE_DOCS_WITH_CONTROL_ITEMS:
+            _item = 0
+            for i in range(len(_items_data)):
+                _items_data[i]['_item'] = _item
+                if _items_data[i]['isCompleteDocument'] == False:
+                    _item += 1
+
         output_data = OrderedDict({'task': task_data, 'items': _items_data})
 
         json_data.append(output_data)
