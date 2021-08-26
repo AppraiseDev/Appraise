@@ -326,7 +326,7 @@ def _map_tasks_to_users_by_market(tasks, usernames, context):
             raise CommandError(_msg)
 
         for user, tasks_for_user in zip(users.order_by('id'), _tasks_map):
-            print(source_code, target_code, user, tasks_for_user)
+            print('Mapping task(s) to user:', source_code, target_code, user, tasks_for_user)
             for task_id in tasks_for_user:
                 tasks_to_users_map[key].append((_tasks_for_current_key[task_id], user))
 
@@ -357,14 +357,17 @@ def _process_campaign_agendas(usernames, context, only_activated=True):
     # Get Campaign instance for campaign name
     _campaign = _get_campaign_instance(context.get('CAMPAIGN_NAME'))
     print('Identified Campaign {0!r}'.format(context.get('CAMPAIGN_NAME')))
+    print('Task type: {}'.format(context['TASK_TYPE']))
 
     # Get all tasks for this campaign
     _task_type = CAMPAIGN_TASK_TYPES[context['TASK_TYPE']]
     tasks = _task_type.objects.filter(campaign=_campaign)
+    print('Identified {} task(s)'.format(len(tasks)))
 
     # Constrain to only activated, if requested
     if only_activated:
         tasks = tasks.filter(activated=True)
+        print('Identified {} activated task(s)'.format(len(tasks)))
 
     # Map tasks to users, by market, and considering TASKS_TO_ANNOTATORS
     tasks_to_users_map = _map_tasks_to_users_by_market(tasks, usernames, context)
@@ -468,6 +471,7 @@ def _process_market_and_metadata(language_pairs, owner, **kwargs):
     """
     _context = dict(**kwargs)
 
+    markets_and_metadata = []
     for _src, _tgt in language_pairs:
         _market = _get_or_create_market(
             source_code=_src,
@@ -483,6 +487,8 @@ def _process_market_and_metadata(language_pairs, owner, **kwargs):
             source=_context.get('source', 'official'),
             owner=owner,
         )
+        markets_and_metadata.append((_market, _meta))
+    return markets_and_metadata
 
 
 def _process_users(language_pairs, context):
