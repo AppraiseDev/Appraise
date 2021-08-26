@@ -276,7 +276,6 @@ class PairwiseAssessmentTask(BaseMetadata):
                 ))
                 if not trusted_user or item.itemType.startswith('TGT'):
                     next_item = item
-                    print('  - got it')
                     break
 
             completed_items += 1
