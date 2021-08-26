@@ -37,7 +37,10 @@
             <p>This is your unique confirmation token, which you may need to certify that you have completed the work.</p>
             <div class="row">
               <div class="col-sm-6 col-sm-offset-3 text-center alert alert-info">
-                <p>{{ work_completed }}</p>
+                <input style="vertical-align: middle; border: 0px; background-color: transparent; font-size: large; margin-right: 10px;" id="work_completed_token" value="{{ work_completed }}" readonly=readonly size=36 />
+                <button type="button" class="btn btn-default btn-xs" onclick="javascript:var token=document.getElementById('work_completed_token'); token.select(); document.execCommand('copy'); token.blur(); window.getSelection().removeAllRanges();">
+                  <span id="copy_button" class="glyphicon glyphicon-copy" aria-hidden="true"></span> Copy
+                </button>
               </div>
             </div>
 {% else %}

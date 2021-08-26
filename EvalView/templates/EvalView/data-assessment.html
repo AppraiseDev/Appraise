@@ -80,7 +80,7 @@ function reset_form() {
     $('#slider').slider('option', 'value', 0);
     $('input[name="score"]').val(-1);
     // reset rank
-    $('input[name="rank"]').attr('checked',false);
+    $('input[name="rank"]').prop('checked',false);
 }
 
 function validate_form() {
@@ -184,13 +184,13 @@ function update_score() {
     <div class="item-box item-{% cycle 'odd' 'even' %} quotelike">
         <div class="row">
             <div class="col-sm-6">
-                <span title="Source sentence #{{ loop.index|add:"1" }}">
-                    <p>{{ source_text|safe }}</p>
+                <span title="Source sentence #{{ forloop.counter }}">
+                    <p>{{ source_text|escape }}</p>
                 </span>
             </div>
             <div class="col-sm-6">
-                <span title="Target sentence #{{ loop.index|add:"1" }}">
-                    <p>{{ target_text|safe }}</p>
+                <span title="Target sentence #{{ forloop.counter }}">
+                    <p>{{ target_text|escape }}</p>
                 </span>
             </div>
         </div>
@@ -245,7 +245,7 @@ function update_score() {
             <div class="col-sm-3">
                 <p>
                 <label class="radio-inline">
-                    <input type="radio" name="rank" id="radio-{{ loop.index }}" value="{{ rank_value }}">
+                    <input type="radio" name="rank" id="radio-{{ forloop.counter }}" value="{{ rank_value }}">
                     <span class="radio-label">{{ rank_label }}</span>
                 </label>
                 </p>
