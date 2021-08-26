@@ -326,7 +326,13 @@ def _map_tasks_to_users_by_market(tasks, usernames, context):
             raise CommandError(_msg)
 
         for user, tasks_for_user in zip(users.order_by('id'), _tasks_map):
-            print('Mapping task(s) to user:', source_code, target_code, user, tasks_for_user)
+            print(
+                'Mapping task(s) to user:',
+                source_code,
+                target_code,
+                user,
+                tasks_for_user,
+            )
             for task_id in tasks_for_user:
                 tasks_to_users_map[key].append((_tasks_for_current_key[task_id], user))
 
