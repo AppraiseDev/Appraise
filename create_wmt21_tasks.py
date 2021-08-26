@@ -689,9 +689,8 @@ if __name__ == "__main__":
         json_file_name = f'{OUT_NAME}.json'
         with open(json_file_name, mode='w', encoding='utf8') as out_file:
             sys.stdout.write(
-                'Creating {0}, batch no. {1} ... '.format(
-                    json_file_name, batch_id + 1
-                ), ending=''
+                'Creating {0}, batch no. {1} ... '.format(json_file_name, batch_id + 1),
+                ending='',
             )
             out_file.write(str(json_text))
             sys.stdout.write('OK\n')
