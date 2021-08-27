@@ -203,6 +203,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'yua': 'Yucatec Maya (mayaʼ tʼàan)',
     'pus': 'Pashto (پښتو)',
     'lzh': 'Classical Chinese (文言文)',
+    'chv': 'Chuvash (Чӑвашла)',
 }
 
 # Ensure that all languages have a corresponding group.
