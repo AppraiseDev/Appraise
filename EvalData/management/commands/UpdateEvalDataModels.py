@@ -85,7 +85,7 @@ class Command(BaseCommand):
         pass
 
     def handle(self, *args, **options):
-        _update_campaign_models(self.stdout)
+        _update_eval_data_models(self.stdout)
 
 
 def _update_eval_data_models(stdout):
