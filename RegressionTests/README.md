@@ -17,7 +17,7 @@ Then run:
 To run only tests from a specific subdirectory, provide a path to it as the
 argument, for example:
 
-    bash RegressionTests/run.sh RegressionTests/test/examples
+    bash RegressionTests/run.sh RegressionTests/tests/examples
 
 An example output looks like this:
 
