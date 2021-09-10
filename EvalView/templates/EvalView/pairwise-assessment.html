@@ -55,7 +55,7 @@ $(document).ready(function() {
     $('#reference-label').hide();
   }
 
-  if (Cookies.get('show-diff') == 'yes') {
+  if (Cookies.get('show-diff') != 'no') {
     $('.candidate-text').addClass('active');
   }
 
@@ -239,7 +239,7 @@ function match_sliders()
               title="Reset the slider(s). Access key: '2'"><i class="icon-repeat"></i> Reset</button>
       {% if candidate2_text %}
       <button onclick="javascript:toggle_diff();" accesskey="4" type="button" class="btn"
-              title="Show or hide highlighting differences between two segments. Access key: '4'">Show/Hide diff.</button>
+              title="Show or hide highlighted differences between segments. Access key: '4'">Show/Hide diff.</button>
       {% endif %}
       {% if context_left or context_right %}
       <button onclick="javascript:toggle_context();" accesskey="5" type="button" class="btn"
@@ -252,7 +252,7 @@ function match_sliders()
               title="Match the second slider with the first one. Access key: '3'">Match sliders</button>
       {% endif %}
       <button class="btn btn-primary" name="submit_button" accesskey="1" type="submit" value="SUBMIT" onclick="javascript:return validate_form();"
-              title="Submit score(s). Access key: '5'"><i class="icon-ok-sign icon-white"></i> Submit</button>
+              title="Submit score(s). Access key: '1'"><i class="icon-ok-sign icon-white"></i> Submit</button>
     </td>
   </tr>
   </table>
