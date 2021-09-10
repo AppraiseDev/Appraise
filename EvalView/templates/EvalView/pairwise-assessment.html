@@ -55,7 +55,7 @@ $(document).ready(function() {
     $('#reference-label').hide();
   }
 
-  if (Cookies.get('show-diff') == 'yes') {
+  if (Cookies.get('show-diff') != 'no') {
     $('.candidate-text').addClass('active');
   }
 
