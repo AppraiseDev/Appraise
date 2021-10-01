@@ -3,8 +3,10 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+from io import StringIO
 from datetime import datetime
 from os import path
+from zipfile import ZipFile, is_zipfile
 
 from django.core.management.base import BaseCommand, CommandError
 from django.core.files import File
@@ -242,9 +244,21 @@ def _upload_batches_json(batches_json, owner, market, metadata, stdout=None):
         createdBy=owner,
     )
 
-    with open(batches_json, 'r') as _file:
-        _filename = path.basename(batches_json)
-        campaign_data.dataFile.save(_filename, File(_file), save=True)
+    _filename = path.basename(batches_json)
+
+    if batches_json.endswith('.zip') and is_zipfile(batches_json):
+        with ZipFile(batches_json) as batch_zip:
+            _batch_json_files = [
+                x for x in batch_zip.namelist() if x.endswith('.json')
+            ]
+            for _batch_json_file in _batch_json_files:
+                _content = batch_zip.read(_batch_json_file).decode('utf8')
+                _reader = StringIO(_content)
+                _file = File(_reader)
+                campaign_data.dataFile.save(_filename, _file, save=True)
+    else:
+        with open(batches_json, 'r') as _file:
+            campaign_data.dataFile.save(_filename, File(_file), save=True)
     campaign_data.save()
     stdout.write('Uploaded file name: {}'.format(campaign_data.dataFile))
 
