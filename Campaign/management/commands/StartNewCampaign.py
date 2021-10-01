@@ -5,7 +5,6 @@ See LICENSE for usage details
 """
 from datetime import datetime
 from os import path
-from zipfile import is_zipfile
 
 from django.core.management.base import BaseCommand, CommandError
 from django.core.files import File
@@ -232,14 +231,6 @@ class Command(BaseCommand):
             )
 
 
-def _create_file_obj(batches_json):
-    """Create file object."""
-    if is_zipfile(batches_json):
-        with open(batches_json, 'rb') as _zip:
-            return ContentFile(_zip.read())
-    return File(open(batches_json, 'r'))
-
-
 def _upload_batches_json(batches_json, owner, market, metadata, stdout=None):
     """Upload batches and return a CampaignData object."""
     stdout.write('Batch: {}'.format(batches_json))
@@ -253,7 +244,9 @@ def _upload_batches_json(batches_json, owner, market, metadata, stdout=None):
     )
 
     _filename = path.basename(batches_json)
-    campaign_data.dataFile.save(_filename, _create_file_obj(batches_json))
+    with open(batches_json, 'rb') as _reader:
+        _file = ContentFile(_reader.read())
+        campaign_data.dataFile.save(_filename, _file)
     campaign_data.save()
     stdout.write('Uploaded file name: {}'.format(campaign_data.dataFile))
 
