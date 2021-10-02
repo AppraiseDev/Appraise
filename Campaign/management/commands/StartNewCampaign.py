@@ -3,7 +3,6 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
-from io import StringIO
 from datetime import datetime
 from os import path
 from zipfile import is_zipfile
