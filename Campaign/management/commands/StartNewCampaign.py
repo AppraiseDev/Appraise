@@ -6,10 +6,11 @@ See LICENSE for usage details
 from io import StringIO
 from datetime import datetime
 from os import path
-from zipfile import ZipFile, is_zipfile
+from zipfile import is_zipfile
 
 from django.core.management.base import BaseCommand, CommandError
 from django.core.files import File
+from django.core.files.base import ContentFile
 
 from Campaign.management.commands.init_campaign import (
     _create_context,
@@ -223,13 +224,21 @@ class Command(BaseCommand):
             stdout=self.stdout,
         )
 
-        if csv_output or xlxs_output:
+        if csv_output or xlsx_output:
             self.stdout.write('Done. Credentials exported to a CSV/XLSX file.')
         else:
             self.stdout.write(
                 'Done. Re-run providing --csv-output or --xlsx-output '
                 'to export credentials.'
             )
+
+
+def _create_file_obj(batches_json):
+    """Create file object."""
+    if is_zipfile(batches_json):
+        with open(batches_json, 'rb') as _zip:
+            return ContentFile(_zip.read())
+    return File(open(batches_json, 'r'))
 
 
 def _upload_batches_json(batches_json, owner, market, metadata, stdout=None):
@@ -245,20 +254,7 @@ def _upload_batches_json(batches_json, owner, market, metadata, stdout=None):
     )
 
     _filename = path.basename(batches_json)
-
-    if batches_json.endswith('.zip') and is_zipfile(batches_json):
-        with ZipFile(batches_json) as batch_zip:
-            _batch_json_files = [
-                x for x in batch_zip.namelist() if x.endswith('.json')
-            ]
-            for _batch_json_file in _batch_json_files:
-                _content = batch_zip.read(_batch_json_file).decode('utf8')
-                _reader = StringIO(_content)
-                _file = File(_reader)
-                campaign_data.dataFile.save(_filename, _file, save=True)
-    else:
-        with open(batches_json, 'r') as _file:
-            campaign_data.dataFile.save(_filename, File(_file), save=True)
+    campaign_data.dataFile.save(_filename, _create_file_obj(batches_json))
     campaign_data.save()
     stdout.write('Uploaded file name: {}'.format(campaign_data.dataFile))
 
