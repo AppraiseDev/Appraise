@@ -15,6 +15,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from deprecated import add_deprecated_method
 from EvalData.models.base_models import ObjectID
+from EvalData.models.data_assessment import DataAssessmentTask
 from EvalData.models.direct_assessment import DirectAssessmentResult
 from EvalData.models.direct_assessment import DirectAssessmentTask
 from EvalData.models.direct_assessment_context import (
@@ -150,6 +151,7 @@ class TaskAgenda(models.Model):
         Returns True upon success, False otherwise.
         """
         type_to_result_class_mapping = {
+            'DataAssessmentTask': DataAssessmentTask,
             'DirectAssessmentTask': DirectAssessmentResult,
             'DirectAssessmentContextTask': DirectAssessmentContextResult,
             'DirectAssessmentDocumentTask': DirectAssessmentDocumentResult,
