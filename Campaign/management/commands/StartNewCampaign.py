@@ -5,7 +5,6 @@ See LICENSE for usage details
 """
 from datetime import datetime
 from os import path
-from zipfile import is_zipfile
 
 from django.core.management.base import BaseCommand, CommandError
 from django.core.files import File
