@@ -45,9 +45,9 @@ log "Appraise root directory: $APPRAISE_ROOT"
 
 # Set absolute path to python executable
 export APPRAISE_PYTHON=${PYTHONBIN:-"$APPRAISE_ROOT/venv/bin/python3"}
-export APPRAISE_MANAGE="$APPRAISE_PYTHON $APPRAISE_ROOT/manage.py"
 test -f $APPRAISE_PYTHON || APPRAISE_PYTHON=$(command -v python3)
 log "Python executable: $APPRAISE_PYTHON"
+export APPRAISE_MANAGE="$APPRAISE_PYTHON $APPRAISE_ROOT/manage.py"
 
 if ! command -v $APPRAISE_PYTHON > /dev/null; then
     echo "Python environment not found. Did you follow INSTALL.md?"
