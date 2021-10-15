@@ -5,10 +5,6 @@ on: [pull_request]
 jobs:
   testing:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -31,7 +27,7 @@ jobs:
           cat listing.txt
           7z a -tzip ../regression-tests-appraise.zip @listing.txt
       - name: Publish outputs
-        uses: actions/upload-artifacts@v2
+        uses: actions/upload-artifact@v2
         with:
           name: regression-tests-appraise
           path: regression-tests-appraise.zip
