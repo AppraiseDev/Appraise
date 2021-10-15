@@ -166,6 +166,28 @@ class Command(BaseCommand):
             )
 
         ##################################################################
+        elif campaign_type == 'Data':
+            if len(scores) != 2:
+                raise ValueError('Task "Data" requires exactly 1 score (0-100) and 1 label (1-4)')
+
+            data = {
+                'score': scores[0],
+                'rank': scores[1],
+                'item_id': response.context['item_id'],
+                'task_id': response.context['task_id'],
+                'start_timestamp': (datetime.now() - timedelta(minutes=5)).timestamp(),
+                'end_timestamp': datetime.now().timestamp(),
+            }
+
+            msg_info = 'item {}/{} with score {} and label {} for user {}'.format(
+                response.context['item_id'],
+                response.context['task_id'],
+                scores[0],
+                scores[1],
+                username,
+            )
+
+        ##################################################################
         else:
             raise CommandError(
                 'Task type "{}" is not yet supported in this script yet'.format(
