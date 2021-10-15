@@ -1,0 +1,20 @@
+name: "Tests"
+
+on: [pull_request]
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install requirements
+        run: pip install -r requirements-dev.txt
+      - name: Unit tests
+        run: python manage.py test -v2
+      - name: Regression tests
+        run: bash RegressionTests/run.sh
