@@ -25,7 +25,7 @@ jobs:
           find . -type f \( -name "*.log" -o -name "*.out" -o -name "*.diff" \) -print | cut -c3- > listing.txt
           echo "Creating an artifact with the following files:"
           cat listing.txt
-          7z a -tzip ../regression-tests-appraise.zip @listing.txt
+          7z a -tzip regression-tests-appraise.zip @listing.txt
       - name: Publish outputs
         uses: actions/upload-artifact@v2
         with:
