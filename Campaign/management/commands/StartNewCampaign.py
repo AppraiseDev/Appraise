@@ -5,9 +5,11 @@ See LICENSE for usage details
 """
 from datetime import datetime
 from os import path
+from zipfile import is_zipfile
 
 from django.core.management.base import BaseCommand, CommandError
 from django.core.files import File
+from django.core.files.base import ContentFile
 
 from Campaign.management.commands.init_campaign import (
     _create_context,
@@ -221,13 +223,21 @@ class Command(BaseCommand):
             stdout=self.stdout,
         )
 
-        if csv_output or xlxs_output:
+        if csv_output or xlsx_output:
             self.stdout.write('Done. Credentials exported to a CSV/XLSX file.')
         else:
             self.stdout.write(
                 'Done. Re-run providing --csv-output or --xlsx-output '
                 'to export credentials.'
             )
+
+
+def _create_file_obj(batches_json):
+    """Create file object."""
+    if is_zipfile(batches_json):
+        with open(batches_json, 'rb') as _zip:
+            return ContentFile(_zip.read())
+    return File(open(batches_json, 'r'))
 
 
 def _upload_batches_json(batches_json, owner, market, metadata, stdout=None):
@@ -242,9 +252,8 @@ def _upload_batches_json(batches_json, owner, market, metadata, stdout=None):
         createdBy=owner,
     )
 
-    with open(batches_json, 'r') as _file:
-        _filename = path.basename(batches_json)
-        campaign_data.dataFile.save(_filename, File(_file), save=True)
+    _filename = path.basename(batches_json)
+    campaign_data.dataFile.save(_filename, _create_file_obj(batches_json))
     campaign_data.save()
     stdout.write('Uploaded file name: {}'.format(campaign_data.dataFile))
 

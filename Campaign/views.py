@@ -127,7 +127,13 @@ def campaign_status(request, campaign_name, sort_key=2):
                     continue
 
                 _z_score = (_x[2] - _user_mean) / _user_stdev
-                _key = '{0}-{1}'.format(_x[3], _x[4])
+                # Script generating batches for data assessment task does not
+                # keep equal itemIDs for respective TGT and BAD items, so it
+                # cannot be used as a key.
+                if result_type is DataAssessmentResult:
+                    _key = str(_x[4])
+                else:
+                    _key = '{0}-{1}'.format(_x[3], _x[4])
                 _dst[_key].append(_z_score)
 
             _first_modified = (
