@@ -510,6 +510,8 @@ class Command(BaseCommand):
                             )
                         )
 
+
+            latex_data = []
             sorted_by_wins = []
             for key, values in normalized_scores.items():
                 systemID = values[0]
@@ -517,6 +519,9 @@ class Command(BaseCommand):
                 data = [len(wins), wins]
                 data.extend(values)
                 sorted_by_wins.append(tuple(data))
+
+            latex_data.append('\begin{tabular}{ccrl}')
+            latex_data.append(' & Ave. & Ave. z & System\\ \hline')
 
             print('-' * 80)
             print(
@@ -566,9 +571,24 @@ class Command(BaseCommand):
                 ).replace('+', ' ')
                 print(output)
 
+                add_cluster_boundary = False
                 remaining_systems = len(sorted_by_wins) - current_system
                 if min_wins_current_cluster == remaining_systems:
                     print('-' * 80)
                     min_wins_current_cluster = remaining_systems
+                    add_cluster_boundary = True
+
+                _latex_data = (
+                    '\Uncon{}',
+                    '{0:.1f}'.format(rScore),
+                    '{0:.3f}'.format(zScore),
+                    systemID[:51],
+                    '\hline' if add_cluster_boundary else ''
+                )
+                latex_data.append('{0} & {1} & {2} & {3}{4}'.format(*_latex_data))
 
                 last_wins_count = wins
+
+        print()
+        print('\n'.join(latex_data))
+        print()
