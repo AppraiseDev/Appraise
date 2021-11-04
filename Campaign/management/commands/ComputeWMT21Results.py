@@ -523,28 +523,25 @@ class Command(BaseCommand):
                 'Wins                                         System ID  Z Score H Score  R Score'
             )
 
-            def sort_by_wins_and_z_score(x, y):
-                if x[0] == y[0]:
-                    if x[4] > y[4]:
-                        return 1
-                    elif x[4] == y[4]:
-                        return 0
-                    else:
-                        return -1
-                elif x[0] > y[0]:
+            def sort_by_z_score(x, y):
+                if x[4] > y[4]:
                     return 1
+                elif x[4] == y[4]:
+                    return 0
                 else:
                     return -1
 
+            min_wins_current_cluster = len(sorted_by_wins)
             current_system = 0
             last_wins_count = None
             for values in sorted(
                 sorted_by_wins,
-#                key=cmp_to_key(sort_by_wins_and_z_score),
-                key=4,  # zScore
+                key=cmp_to_key(sort_by_z_score),
                 reverse=True,
             ):
                 current_system += 1
+
+                min_wins_current_cluster = min(wins, min_wins_current_cluster)
 
                 # values = normalized_scores[key]
                 wins = values[0]
@@ -554,10 +551,6 @@ class Command(BaseCommand):
                 zScore = values[4]
                 rScore = values[5]
                 hScore = values[6]
-
-                remaining_systems = len(sorted_by_wins) - current_system
-                if wins == remaining_systems:
-                    print('-' * 80)
 
                 # ChriFe: note that this could possibly mix up things as wins
                 #   is computed irrespective of order. So, possible that a system
@@ -573,6 +566,9 @@ class Command(BaseCommand):
                 ).replace('+', ' ')
                 print(output)
 
-                last_wins_count = wins
+                remaining_systems = len(sorted_by_wins) - current_system
+                if min_wins_current_cluster == remaining_systems:
+                    print('-' * 80)
+                    min_wins_current_cluster = remaining_systems
 
-            print('-' * 80)
+                last_wins_count = wins
