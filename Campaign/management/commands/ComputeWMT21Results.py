@@ -520,8 +520,8 @@ class Command(BaseCommand):
                 data.extend(values)
                 sorted_by_wins.append(tuple(data))
 
-            latex_data.append('\begin{tabular}{ccrl}')
-            latex_data.append(' & Ave. & Ave. z & System\\ \hline')
+            latex_data.append('\\begin{tabular}{ccrl}')
+            latex_data.append(' & Ave. & Ave. z & System\\\\ \\hline')
 
             print('-' * 80)
             print(
@@ -582,11 +582,14 @@ class Command(BaseCommand):
                     '{0:.1f}'.format(rScore),
                     '{0:.3f}'.format(zScore),
                     systemID[:51],
-                    '\hline' if add_cluster_boundary else ''
+                    '\\hline' if add_cluster_boundary else ''
                 )
                 latex_data.append('{0} & {1} & {2} & {3}{4}'.format(*_latex_data))
 
                 last_wins_count = wins
+
+        latex_data.append('\\hline')
+        latex_data.append('\\end{tabular}')
 
         print()
         print('\n'.join(latex_data))
