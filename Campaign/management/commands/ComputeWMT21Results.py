@@ -546,8 +546,6 @@ class Command(BaseCommand):
             ):
                 current_system += 1
 
-                min_wins_current_cluster = min(wins, min_wins_current_cluster)
-
                 # values = normalized_scores[key]
                 wins = values[0]
                 better_than = values[1]
@@ -571,15 +569,16 @@ class Command(BaseCommand):
                 ).replace('+', ' ')
                 print(output)
 
+                min_wins_current_cluster = min(wins, min_wins_current_cluster)
+
                 add_cluster_boundary = False
                 remaining_systems = len(sorted_by_wins) - current_system
                 if min_wins_current_cluster == remaining_systems:
                     print('-' * 80)
-                    min_wins_current_cluster = remaining_systems
                     add_cluster_boundary = True
 
                 _latex_data = (
-                    '\Uncon{}',
+                    '\\Uncon{}',
                     '{0:.1f}'.format(rScore),
                     '{0:.3f}'.format(zScore),
                     systemID[:51],
