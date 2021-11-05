@@ -239,6 +239,8 @@ class Command(BaseCommand):
             language_pair = system_item[4:6]
             data_by_language_pair[language_pair].append(system_item)
 
+        latex_data = []
+
         for language_pair, language_data in data_by_language_pair.items():
             user_scores = defaultdict(list)
             system_z_scores = defaultdict(list)
@@ -512,7 +514,6 @@ class Command(BaseCommand):
                         )
 
 
-            latex_data = []
             sorted_by_wins = []
             for key, values in normalized_scores.items():
                 systemID = values[0]
@@ -588,15 +589,16 @@ class Command(BaseCommand):
                     ranks,
                     '{0:.1f}'.format(rScore),
                     '{0:.3f}'.format(zScore),
-                    systemID[:51],
+                    systemID[:51].replace('_', '\_'),
                     '\\\\ \\hline' if add_cluster_boundary else '\\\\'
                 )
                 latex_data.append('{0} & {1} & {2} & {3} & {4}{5}'.format(*_latex_data))
 
                 last_wins_count = wins
 
-        latex_data.append('\\hline')
-        latex_data.append('\\end{tabular}')
+            latex_data.append('\\hline')
+            latex_data.append('\\end{tabular}')
+            latex_data.append('')
 
         print()
         print('\n'.join(latex_data))
