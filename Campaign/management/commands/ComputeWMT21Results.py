@@ -522,10 +522,10 @@ class Command(BaseCommand):
                 data.extend(values)
                 sorted_by_wins.append(tuple(data))
 
-            source_language = LANGUAGE_CODES_AND_NAMES[language_pair[0].split('(')[0]]
-            target_language = LANGUAGE_CODES_AND_NAMES[language_pair[1].split('(')[0]]
+            source_language = LANGUAGE_CODES_AND_NAMES[language_pair[0]].split('(')[0].strip()
+            target_language = LANGUAGE_CODES_AND_NAMES[language_pair[1]].split('(')[0].strip()
  
-            latex_data.append('{\\bf  \\tto{{0}}{{1}} } \\\\[0.5mm] '.format(source_language, target_language))
+            latex_data.append('{\\bf  \\tto{'+source_language+'}{'+target_language+'} } \\\\[0.5mm] '.format(source_language, target_language))
             latex_data.append('\\begin{tabular}{cccrl}')
             latex_data.append('& Rank & Ave. & Ave. z & System\\\\ \\hline')
 
