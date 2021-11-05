@@ -10,6 +10,7 @@ from django.core.management.base import BaseCommand
 from django.core.management.base import CommandError
 
 from Campaign.models import Campaign
+from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 from EvalData.models import DirectAssessmentResult
 from EvalData.models import DirectAssessmentTask
 
@@ -520,8 +521,12 @@ class Command(BaseCommand):
                 data.extend(values)
                 sorted_by_wins.append(tuple(data))
 
-            latex_data.append('\\begin{tabular}{ccrl}')
-            latex_data.append(' & Ave. & Ave. z & System\\\\ \\hline')
+            source_language = LANGUAGE_CODES_AND_NAMES[language_pair[0].split('(')[0]]
+            target_language = LANGUAGE_CODES_AND_NAMES[language_pair[1].split('(')[0]]
+ 
+            latex_data.append('{\\bf  \\tto{{0}}{{1}} } \\\\[0.5mm] '.format(source_language, target_language))
+            latex_data.append('\\begin{tabular}{cccrl}')
+            latex_data.append('& Rank & Ave. & Ave. z & System\\\\ \\hline')
 
             print('-' * 80)
             print(
@@ -577,14 +582,16 @@ class Command(BaseCommand):
                     print('-' * 80)
                     add_cluster_boundary = True
 
+                ranks = ''
                 _latex_data = (
                     '\\Uncon{}',
+                    ranks,
                     '{0:.1f}'.format(rScore),
                     '{0:.3f}'.format(zScore),
                     systemID[:51],
-                    '\\hline' if add_cluster_boundary else ''
+                    '\\\\ \\hline' if add_cluster_boundary else '\\\\'
                 )
-                latex_data.append('{0} & {1} & {2} & {3}{4}'.format(*_latex_data))
+                latex_data.append('{0} & {1} & {2} & {3} & {4}{5}'.format(*_latex_data))
 
                 last_wins_count = wins
 
