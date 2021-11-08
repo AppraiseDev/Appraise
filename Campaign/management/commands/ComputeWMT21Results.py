@@ -598,7 +598,7 @@ class Command(BaseCommand):
                 top_rank = losses + 1
                 worst_rank = total_systems - wins
 
-                ranks = '{0}-{1}'.format(top_rank, worst_rank)
+                ranks = '{0}-{1}'.format(top_rank, worst_rank) if top_rank != worst_rank else str(top_rank)
                 _latex_data = (
                     '\\Uncon{}',
                     ranks,
