@@ -523,6 +523,7 @@ class Command(BaseCommand):
                 wins = wins_for_system[systemID]
                 data = [len(wins), wins]
                 data.extend(values)
+                losses = losses_for_system[systemID]
                 data.extend([len(losses), losses_for_system[systemID]])
                 sorted_by_wins.append(tuple(data))
 
@@ -597,7 +598,7 @@ class Command(BaseCommand):
                 top_rank = losses + 1
                 worst_rank = total_systems - wins
 
-                ranks = '{top_rank}-{worst_rank}'.format(top_rank, worst_rank)
+                ranks = '{0}-{1}'.format(top_rank, worst_rank)
                 _latex_data = (
                     '\\Uncon{}',
                     ranks,
