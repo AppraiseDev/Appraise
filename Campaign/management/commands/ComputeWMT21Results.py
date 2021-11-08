@@ -429,6 +429,7 @@ class Command(BaseCommand):
                 system_ids.append(system_id)
 
             wins_for_system = defaultdict(list)
+            losses_for_system = defaultdict(list)
             p_level = 0.05
             for (sysA, sysB) in combinations_with_replacement(system_ids, 2):
                 sysA_ids = set([x[0] for x in system_z_scores[sysA]])
@@ -487,9 +488,11 @@ class Command(BaseCommand):
                     if p_value < p_level:
                         if sysA != sysB:
                             wins_for_system[sysA].append(sysB)
+                            losses_for_system[sysB].append(sysA)
                 else:
                     if p_value < p_level:
                         wins_for_system[sysA].append(sysB)
+                        losses_for_system[sysB].append(sysA)
 
                 if show_p_values:
                     if options['use_ar']:
@@ -520,12 +523,13 @@ class Command(BaseCommand):
                 wins = wins_for_system[systemID]
                 data = [len(wins), wins]
                 data.extend(values)
+                data.extend([len(losses), losses_for_system[systemID]])
                 sorted_by_wins.append(tuple(data))
 
             source_language = LANGUAGE_CODES_AND_NAMES[language_pair[0]].split('(')[0].strip()
             target_language = LANGUAGE_CODES_AND_NAMES[language_pair[1]].split('(')[0].strip()
  
-            latex_data.append('{\\bf  \\tto{'+source_language+'}{'+target_language+'} } \\\\[0.5mm] '.format(source_language, target_language))
+            latex_data.append('{\\bf  \\tto{'+source_language+'}{'+target_language+'} } \\\\[0.5mm] ')
             latex_data.append('\\begin{tabular}{cccrl}')
             latex_data.append('& Rank & Ave. & Ave. z & System\\\\ \\hline')
 
@@ -542,7 +546,8 @@ class Command(BaseCommand):
                 else:
                     return -1
 
-            min_wins_current_cluster = len(sorted_by_wins)
+            total_systems = len(sorted_by_wins)
+            min_wins_current_cluster = total_systems
             current_system = 0
             last_wins_count = None
             for values in sorted(
@@ -560,6 +565,8 @@ class Command(BaseCommand):
                 zScore = values[4]
                 rScore = values[5]
                 hScore = values[6]
+                losses = values[7]
+                worse_than = values[8]
 
                 # ChriFe: note that this could possibly mix up things as wins
                 #   is computed irrespective of order. So, possible that a system
@@ -583,7 +590,14 @@ class Command(BaseCommand):
                     print('-' * 80)
                     add_cluster_boundary = True
 
-                ranks = ''
+                # Rank range is determined as follows:
+                #
+                # top-rank:   # of losses + 1       (e.g., 3 if two systems are sig better)
+                # worst=rank: # systems - # of wins (e.g., 5 if 9 total systems but better than 4)
+                top_rank = losses + 1
+                worst_rank = total_systems - wins
+
+                ranks = '{top_rank}-{worst_rank}'.format(top_rank, worst_rank)
                 _latex_data = (
                     '\\Uncon{}',
                     ranks,
