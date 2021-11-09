@@ -15,6 +15,20 @@ from EvalData.models import DirectAssessmentResult
 from EvalData.models import DirectAssessmentTask
 
 
+LANGUAGE_CODES = {
+    'eng': 'en',
+    'deu': 'de',
+    'ces': 'cs',
+    'fra': 'fr',
+    'isl': 'is',
+    'zho': 'zh',
+    'hau': 'ha',
+    'jpn': 'ja',
+    'rus': 'ru'
+}
+
+
+
 def compute_mean(sample):
     """Computes sample mean"""
     return sum(sample) / float(len(sample) or 1)
@@ -240,6 +254,7 @@ class Command(BaseCommand):
             data_by_language_pair[language_pair].append(system_item)
 
         latex_data = []
+        tsv_data = []
 
         for language_pair, language_data in data_by_language_pair.items():
             user_scores = defaultdict(list)
@@ -516,7 +531,6 @@ class Command(BaseCommand):
                             )
                         )
 
-
             sorted_by_wins = []
             for key, values in normalized_scores.items():
                 systemID = values[0]
@@ -529,10 +543,17 @@ class Command(BaseCommand):
 
             source_language = LANGUAGE_CODES_AND_NAMES[language_pair[0]].split('(')[0].strip()
             target_language = LANGUAGE_CODES_AND_NAMES[language_pair[1]].split('(')[0].strip()
+
+            pair = '{0}-{1}'.format(
+                LANGUAGE_CODES[language_pair[0]],
+                LANGUAGE_CODES[language_pair[1]]
+            )
  
             latex_data.append('{\\bf  \\tto{'+source_language+'}{'+target_language+'} } \\\\[0.5mm] ')
             latex_data.append('\\begin{tabular}{cccrl}')
             latex_data.append('& Rank & Ave. & Ave. z & System\\\\ \\hline')
+
+            tsv_data.append('pair\tsystem\trank\tave\tave_z')
 
             print('-' * 80)
             print(
@@ -609,6 +630,8 @@ class Command(BaseCommand):
                 )
                 latex_data.append('{0} & {1} & {2} & {3} & {4}{5}'.format(*_latex_data))
 
+                tsv_data.append('\t'.join((pair, systemID[:51].replace('_', '\_'), rank, '{0:.1f}'.format(rScore), '{0:.3f}'.format(zScore))))
+
                 last_wins_count = wins
 
             latex_data.append('\\hline')
@@ -617,4 +640,8 @@ class Command(BaseCommand):
 
         print()
         print('\n'.join(latex_data))
+        print()
+
+        print()
+        print('\n'.join(tsv_data))
         print()
