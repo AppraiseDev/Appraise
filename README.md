@@ -48,3 +48,16 @@ If you use Appraise in your research, please cite the following paper:
         pages = "86--88"
     }
 
+## WMT21 Collaboration with Toloka
+
+For WMT21 we have partnered with Toloka to collect more annotations for the human evaluation of the news translation shared task. We are grateful for their support and look forward to our continued collaboration in the future!
+
+In Toloka's own words:
+
+> The international data labeling platform Toloka collaborated with the WMT team to improve existing machine translation methods. Toloka's crowdsourcing service was integrated with Appraise, an open-source framework for human-based annotation tasks.
+>
+> To increase the accuracy of machine translation, we need to systematically compare different MT methods to reference data. However, obtaining sufficient reference data can pose a challenge, especially for rare languages. Toloka solved this problem by providing a global crowdsourcing platform with enough annotators to cover all relevant language pairs. At the same time, the integration preserved the labeling processes that were already set up in Appraise without breaking any tasks.
+>
+> Collaboration between Toloka and Appraise made it possible to get a relevant pool of annotators, provide them with an interface for labeling and getting rewards, and then combine quality control rules from both systems into a mutually reinforcing set for reliable results.
+
+You can learn more about Toloka on their website: https://we.toloka.ai/docs/web/index.html
