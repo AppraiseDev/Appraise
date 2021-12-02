@@ -60,4 +60,4 @@ In Toloka's own words:
 >
 > Collaboration between Toloka and Appraise made it possible to get a relevant pool of annotators, provide them with an interface for labeling and getting rewards, and then combine quality control rules from both systems into a mutually reinforcing set for reliable results.
 
-You can learn more about Toloka on their website: https://we.toloka.ai/docs/web/index.html
+You can learn more about Toloka on their website: https://toloka.ai/
