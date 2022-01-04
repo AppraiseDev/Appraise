@@ -18,16 +18,8 @@ from EvalData.models import (
     DirectAssessmentDocumentResult,
     MultiModalAssessmentResult,
     PairwiseAssessmentResult,
+    RESULT_TYPES
 )
-
-RESULT_TYPES = {
-    DataAssessmentResult,
-    DirectAssessmentResult,
-    DirectAssessmentContextResult,
-    DirectAssessmentDocumentResult,
-    MultiModalAssessmentResult,
-    PairwiseAssessmentResult,
-}
 
 # Maximum allowed p-value for the Wilcoxon rank-sum test
 MAX_WILCOXON_PVALUE = 0.010
