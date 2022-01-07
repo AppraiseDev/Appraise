@@ -396,7 +396,7 @@ def direct_assessment(request, code=None, campaign_name=None):
     }
     context.update(BASE_CONTEXT)
 
-    return render(request, 'EvalView/direct-assessment-context.html', context)
+    return render(request, 'EvalView/direct-assessment.html', context)
 
 
 # pylint: disable=C0103,C0330
