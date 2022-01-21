@@ -35,7 +35,7 @@ $(document).ready(function() {
   var $a = $('#id_candidate_text').attr('data-pseudo-content');
   $('#id_candidate_text').attr('data-pseudo-content', $a.rot13());
   alert($a);
-  
+
   // Increment the idle time counter every second.
   //var idleInterval = setInterval(timerIncrement, 1000);
 
@@ -134,7 +134,7 @@ function update_score()
 <div class="row">
 <div class="col-sm-12">
 <blockquote>
-<p><strong>{{reference_text|safe}}</strong></p>
+<p><strong>{{reference_text|escape}}</strong></p>
 <small>{{reference_label}}</small>
 </blockquote>
 </div>
@@ -151,7 +151,7 @@ function update_score()
 <div class="col-sm-12">
 <blockquote>
 <!--<p id="id_candidate_text" data-pseudo-content="{{candidate_text|safe}}"></p>-->
-<p><strong>{{candidate_text|safe}}</strong></p>
+<p><strong>{{candidate_text|escape}}</strong></p>
 <small>{{candidate_label}}</small>
 </blockquote>
 </div>
