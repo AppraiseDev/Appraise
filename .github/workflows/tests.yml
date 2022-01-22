@@ -1,0 +1,33 @@
+name: "Tests"
+
+on: [pull_request]
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install requirements
+        run: pip install -r requirements-dev.txt
+      - name: Python information
+        run: |
+          python3 --version | tee python_version.log
+          pip freeze | tee pip_freeze.log
+      - name: Unit tests
+        run: python3 manage.py test -v2
+      - name: Regression tests
+        run: bash RegressionTests/run.sh
+        # Continue even if tests fail, so that we can collect test outputs for debugging
+        continue-on-error: true
+      - name: Collect outputs
+        run: |
+          find . -type f \( -name "*.log" -o -name "*.out" -o -name "*.diff" \) -print | cut -c3- > listing.txt
+          echo "Creating an artifact with the following files:"
+          cat listing.txt
+          7z a -tzip regression-tests-appraise.zip @listing.txt
+      - name: Publish outputs
+        uses: actions/upload-artifact@v2
+        with:
+          name: regression-tests-appraise
+          path: regression-tests-appraise.zip
