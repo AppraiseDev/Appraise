@@ -18,6 +18,7 @@ from EvalData.models import (
     BaseMetadata,
     Market,
     Metadata,
+    RESULT_TYPES
 )
 
 MAX_TEAMNAME_LENGTH = 250
@@ -26,7 +27,6 @@ MAX_FILEFILED_SIZE = (
     10
 )  # TODO: this does not get enforced currently; remove?
 MAX_CAMPAIGNNAME_LENGTH = 250
-
 
 # TODO: _validate_task_json(task_json)
 
@@ -351,17 +351,32 @@ class CampaignTeam(BaseMetadata):
 
     teamMembers.short_description = '# of team members'
 
-    # TODO: Connect to actual data, producing correct completion status.
+    # TODO: make it to be the minimum of:
+    # - # of completed annotations / # required annotations; and
+    # - # of completed hours / # required hours.
     # pylint: disable=no-self-use
     def completionStatus(self):
         """
-        Proxy method return completion status in percent.
+        Proxy method returning completion status in percent. This is defined as
+        # of completed annotations / # of required annotations.
 
-        This is defined to be the minimum of:
-        - # of completed annotations / # required annotations; and
-        - # of completed hours / # required hours.
         """
-        return '0%'
+        # Required annotations times the number of users excluding the owner
+        count_all = self.requiredAnnotations * (self.members.count() - 1)
+
+        count_done = 0
+        for result_type in RESULT_TYPES:
+            for user in self.members.all():
+                if user == self.owner:  # Skip superuser
+                    continue
+                count_done += result_type.objects.filter(
+                    createdBy=user, completed=True
+                ).count()
+
+        completion = 0.0
+        if count_all != 0:
+            completion = count_done / float(count_all)
+        return '{:.2%}'.format(completion)
 
     completionStatus.short_description = 'Completion status'
 

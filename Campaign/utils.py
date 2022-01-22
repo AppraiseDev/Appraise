@@ -16,28 +16,12 @@ from Dashboard.models import (
     validate_language_code,
 )
 from EvalData.models import (
-    DataAssessmentTask,
-    DirectAssessmentTask,
-    DirectAssessmentContextTask,
-    DirectAssessmentDocumentTask,
-    MultiModalAssessmentTask,
-    PairwiseAssessmentTask,
+    CAMPAIGN_TASK_TYPES,
     Market,
     Metadata,
     ObjectID,
     TaskAgenda,
 )
-
-# Map convinient task type names into their corresponding task classes
-CAMPAIGN_TASK_TYPES = {
-    'Data': DataAssessmentTask,
-    'Direct': DirectAssessmentTask,
-    'DocLevelDA': DirectAssessmentContextTask,
-    'Document': DirectAssessmentDocumentTask,
-    'MultiModal': MultiModalAssessmentTask,
-    'Pairwise': PairwiseAssessmentTask,
-}
-
 
 def _create_uniform_task_map(annotators, tasks, redudancy):
     """

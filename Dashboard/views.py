@@ -19,68 +19,17 @@ from Appraise.utils import _get_logger
 from Dashboard.models import UserInviteToken, LANGUAGE_CODES_AND_NAMES
 from Dashboard.utils import generate_confirmation_token
 from EvalData.models import (
-    DataAssessmentTask,
-    DataAssessmentResult,
     DirectAssessmentTask,
-    DirectAssessmentResult,
-    DirectAssessmentContextTask,
-    DirectAssessmentContextResult,
-    DirectAssessmentDocumentTask,
-    DirectAssessmentDocumentResult,
-    MultiModalAssessmentTask,
-    MultiModalAssessmentResult,
-    PairwiseAssessmentTask,
-    PairwiseAssessmentResult,
     TaskAgenda,
-)
-
-# TODO: move task definition to models so that they can be used
-# elsewhere in the codebase
-
-TASK_DEFINITIONS = (
-    (
-        'direct',
-        DirectAssessmentTask,
-        DirectAssessmentResult,
-        'direct-assessment',
-    ),
-    (
-        'context',
-        DirectAssessmentContextTask,
-        DirectAssessmentContextResult,
-        'direct-assessment-context',
-    ),
-    (
-        'document',
-        DirectAssessmentDocumentTask,
-        DirectAssessmentDocumentResult,
-        'direct-assessment-document',
-    ),
-    (
-        'multimodal',
-        MultiModalAssessmentTask,
-        MultiModalAssessmentResult,
-        'multimodal-assessment',
-    ),
-    (
-        'pairwise',
-        PairwiseAssessmentTask,
-        PairwiseAssessmentResult,
-        'pairwise-assessment',
-    ),
-    (
-        'data',
-        DataAssessmentTask,
-        DataAssessmentResult,
-        'data-assessment',
-    ),
+    TASK_DEFINITIONS,
 )
 
 TASK_TYPES   = tuple([tup[1] for tup in TASK_DEFINITIONS])
 TASK_RESULTS = tuple([tup[2] for tup in TASK_DEFINITIONS])
+
 # TODO: task names should be stored in task classes as an attribute
-TASK_NAMES   = {tup[1]:tup[0] for tup in TASK_DEFINITIONS}
-TASK_URLS    = {tup[0]:tup[3] for tup in TASK_DEFINITIONS}
+TASK_NAMES   = {tup[1]:tup[0].lower() for tup in TASK_DEFINITIONS}
+TASK_URLS    = {tup[0].lower():tup[3] for tup in TASK_DEFINITIONS}
 
 
 from deprecated import add_deprecated_method

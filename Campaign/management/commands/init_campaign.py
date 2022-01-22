@@ -92,7 +92,7 @@ class Command(BaseCommand):
         # By default, we only include activated tasks into agenda creation.
         # Compute Boolean flag based on negation of --include-completed state.
         only_activated = not options['include_completed']
-        confirmation_tokens = options['task_confirmation_tokens']
+        confirmation_tokens = options.get('task_confirmation_tokens', False)
 
         # Initialise campaign based on manifest data
         _init_campaign(
