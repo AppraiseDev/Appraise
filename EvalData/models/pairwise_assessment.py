@@ -101,6 +101,7 @@ class TextSegmentWithTwoTargets(TextSegment):
         """
         Returns the pair of texts with HTML tags highlighting token differences.
         Both texts must be non empty.
+        HTML tags in both texts will be escaped automatically.
 
         For example,
             'a b c d e' and 'a B c e f'
