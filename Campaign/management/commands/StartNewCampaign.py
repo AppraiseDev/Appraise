@@ -145,6 +145,7 @@ class Command(BaseCommand):
 
         batches_json = options['batches_json']
         campaign_name = context['CAMPAIGN_NAME']
+        campaign_opts = context.get('TASK_OPTIONS', '')
         if batches_json:
             # Get markets and metad data for batches
             markets_and_metadata = _process_market_and_metadata(
@@ -178,7 +179,7 @@ class Command(BaseCommand):
 
             self.stdout.write('Campaign name: {}'.format(campaign_name))
             _campaign = _create_campaign(
-                campaign_name, campaign_data, owner, stdout=self.stdout
+                campaign_name, campaign_data, campaign_opts, owner, stdout=self.stdout
             )
 
         else:  # i.e. batches_json is empty
@@ -253,11 +254,13 @@ def _upload_batches_json(batches_json, owner, market, metadata, stdout=None):
     return campaign_data
 
 
-def _create_campaign(campaign_name, campaign_data, owner, stdout=None):
+def _create_campaign(campaign_name, campaign_data, campaign_options, owner, stdout=None):
     """Create a new campaign."""
     # The team is already created in one of the previous steps
     team = CampaignTeam.objects.get(teamName=campaign_name)
     campaign = Campaign(campaignName=campaign_name, createdBy=owner)
+    if campaign_options:
+        campaign.campaignOptions = campaign_options
     campaign.save()
     campaign.teams.add(team)
     for _campaign_data in campaign_data:

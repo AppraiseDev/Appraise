@@ -35,7 +35,7 @@ LOGGER = _get_logger(name=__name__)
 
 # pylint: disable=C0103,C0330
 @login_required
-def _direct_assessment(request, code, campaign_name, html_file, active_page):
+def direct_assessment(request, code=None, campaign_name=None):
     """
     Direct assessment annotation view.
     """
@@ -254,8 +254,14 @@ def _direct_assessment(request, code, campaign_name, html_file, active_page):
             '(middle) or preference for <em>Candidate B</em> (right).'
         )
 
+    campaign_opts = campaign.campaignOptions or ""
+    if 'sqm' in campaign_opts.lower():
+        html_file = 'EvalView/direct-assessment-sqm.html'
+    else:
+        html_file = 'EvalView/direct-assessment-context.html'
+
     context = {
-        'active_page': active_page,
+        'active_page': 'direct-assessment',
         'reference_label': reference_label,
         'reference_text': current_item.sourceText,
         'candidate_label': candidate_label,
@@ -279,20 +285,6 @@ def _direct_assessment(request, code, campaign_name, html_file, active_page):
     return render(
         request, html_file, context
     )
-
-
-@login_required
-def direct_assessment(request, code=None, campaign_name=None):
-    return _direct_assessment(request, code, campaign_name,
-                              html_file='EvalView/direct-assessment-context.html',
-                              active_page='direct-assessment')
-
-
-@login_required
-def direct_assessment_sqm(request, code=None, campaign_name=None):
-    return _direct_assessment(request, code, campaign_name,
-                              html_file='EvalView/direct-assessment-sqm.html',
-                              active_page='direct-assessment-sqm')
 
 
 # pylint: disable=C0103,C0330
