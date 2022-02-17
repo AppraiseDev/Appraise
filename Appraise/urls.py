@@ -106,6 +106,22 @@ urlpatterns = [
         name='direct-assessment'),
 
     url(
+        r'^direct-assessment-sqm/$',
+        evalview_views.direct_assessment_sqm,
+        name='direct-assessment-sqm'),
+
+    url(
+        r'^direct-assessment-sqm/(?P<code>[a-z]{3})/$',
+        evalview_views.direct_assessment_sqm,
+        name='direct-assessment-sqm'),
+
+    url(
+        r'^direct-assessment-sqm/(?P<code>[a-z]{3})/'
+        r'(?P<campaign_name>[a-zA-Z0-9]+)/$',
+        evalview_views.direct_assessment_sqm,
+        name='direct-assessment-sqm'),
+
+    url(
         r'^direct-assessment-context/$',
         evalview_views.direct_assessment_context,
         name='direct-assessment-context'),
