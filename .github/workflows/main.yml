@@ -1,4 +1,3 @@
-
 name: "PythonCodeValidator"
 
 on: [push, pull_request]
