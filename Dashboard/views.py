@@ -30,8 +30,8 @@ TASK_TYPES = tuple([tup[1] for tup in TASK_DEFINITIONS])
 TASK_RESULTS = tuple([tup[2] for tup in TASK_DEFINITIONS])
 
 # TODO: task names should be stored in task classes as an attribute
-TASK_NAMES = {tup[1]:tup[0].lower() for tup in TASK_DEFINITIONS}
-TASK_URLS = {tup[0].lower():tup[3] for tup in TASK_DEFINITIONS}
+TASK_NAMES = {tup[1]: tup[0].lower() for tup in TASK_DEFINITIONS}
+TASK_URLS = {tup[0].lower(): tup[3] for tup in TASK_DEFINITIONS}
 
 
 from deprecated import add_deprecated_method

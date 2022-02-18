@@ -28,6 +28,7 @@ from EvalData.models import ObjectID
 from EvalData.models import PairwiseAssessmentTask
 from EvalData.models import TaskAgenda
 
+
 def _create_uniform_task_map(annotators, tasks, redudancy):
     """
     Creates task maps, uniformly distributed across given annotators.

@@ -53,7 +53,7 @@ TASK_DEFINITIONS = (
 )
 
 # Map convenient task type names into their corresponding task classes
-CAMPAIGN_TASK_TYPES = {tup[0]:tup[1] for tup in TASK_DEFINITIONS}
+CAMPAIGN_TASK_TYPES = {tup[0]: tup[1] for tup in TASK_DEFINITIONS}
 
 # List of task result types
 RESULT_TYPES = tuple([tup[2] for tup in TASK_DEFINITIONS])
