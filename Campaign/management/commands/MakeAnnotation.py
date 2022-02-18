@@ -56,7 +56,7 @@ class Command(BaseCommand):
         django.test.utils.setup_test_environment()
 
         # Create a client with a server name that is already in ALLOWED_HOSTS
-        client = Client(SERVER_NAME='localhost')
+        client = Client(SERVER_NAME='127.0.0.1')
         session = client.session
         session.save()
 
@@ -71,7 +71,7 @@ class Command(BaseCommand):
         self.stdout.write('Task type: {0!r}'.format(campaign_type))
         campaign_url = _get_task_url(campaign_type)
 
-        task_url = 'http://localhost:8000/{}/'.format(campaign_url)
+        task_url = 'http://127.0.0.1:8000/{}/'.format(campaign_url)
         self.stdout.write('Task URL: {0!r}'.format(task_url))
 
         try:

@@ -36,15 +36,16 @@ log "Appraise Git commit: $( git rev-parse --verify HEAD | cut -c-7)"
 
 export APPRAISE_TESTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export APPRAISE_ROOT=$( realpath $APPRAISE_TESTS_DIR/../ )
-#export APPRAISE_DATABASE=regressiontests.db
 export APPRAISE_DATABASE=development.db
 export APPRAISE_DB_NAME=default
 export APPRAISE_EXAMPLES="$APPRAISE_ROOT/Examples"
+# Disable Django Debug Toolbar for regression testing
+export APPRAISE_DEBUG=
 
 log "Appraise root directory: $APPRAISE_ROOT"
 
 # Set absolute path to python executable
-export APPRAISE_PYTHON=${PYTHONBIN:-"$APPRAISE_ROOT/venv/bin/python3"}
+export APPRAISE_PYTHON=${PYTHONBIN:-"$APPRAISE_ROOT/venv2/bin/python3"}
 test -f $APPRAISE_PYTHON || APPRAISE_PYTHON=$(command -v python3)
 log "Python executable: $APPRAISE_PYTHON"
 export APPRAISE_MANAGE="$APPRAISE_PYTHON $APPRAISE_ROOT/manage.py"

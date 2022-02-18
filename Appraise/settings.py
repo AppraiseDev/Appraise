@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 import logging
 import os
+import warnings
 from logging.handlers import RotatingFileHandler
 
 from django.core.exceptions import ImproperlyConfigured
@@ -27,11 +28,15 @@ TEMPLATE_DEBUG = os.environ.get('APPRAISE_TEMPLATE_DEBUG', DEBUG)
 ADMINS = os.environ.get('APPRAISE_ADMINS', ())
 MANAGERS = ADMINS
 
-SECRET_KEY = os.environ.get('APPRAISE_SECRET_KEY')  # Throw if no SECRET_KEY set!
+_SECRET_KEY_DEFAULT = 'j^g&cs_-8-%gwx**xmq64pcm6o2c3ovrxy&%9n@ez#b=qi!uc%'
+SECRET_KEY = os.environ.get('APPRAISE_SECRET_KEY', _SECRET_KEY_DEFAULT)
+if SECRET_KEY == _SECRET_KEY_DEFAULT:
+    warnings.warn('Using the default SECRET_KEY value! Set and export APPRAISE_SECRET_KEY envvar instead')
+
 ALLOWED_HOSTS = os.environ.get('APPRAISE_ALLOWED_HOSTS', '127.0.0.1').split(',')
 
 WSGI_APPLICATION = os.environ.get(
-    'APPRAISE_WSGI_APPLICATION', 'appraise.wsgi.application'
+    'APPRAISE_WSGI_APPLICATION', 'Appraise.wsgi.application'
 )
 
 # Try to load database settings, otherwise use defaults.
@@ -106,10 +111,10 @@ if DEBUG:
     try:
         # pylint: disable=W0611
         import debug_toolbar  # type: ignore
-
         INSTALLED_APPS.append('debug_toolbar')
-
+        warnings.warn('Enabled Django Debug Toolbar in installed apps')
     except ImportError:
+        warnings.warn('Django Debug Toolbar not installed')
         pass
 
 MIDDLEWARE = []
@@ -186,7 +191,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# TODO: This is a temporary hack for running Appraise locally for regression
+# testing and development as WhiteNoise staticfiles app does not work.
+if SECRET_KEY != _SECRET_KEY_DEFAULT:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Allow to specify absolute filesystem path to the directory that will hold user-uploaded files.
 MEDIA_ROOT = os.environ.get('APPRAISE_MEDIA_ROOT', '')

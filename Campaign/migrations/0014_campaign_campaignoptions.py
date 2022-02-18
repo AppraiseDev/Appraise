@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('Campaign', '0013_auto_20200601_1217'),
+        ('Campaign', '0014_auto_20210804_0940'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='campaign',
             name='campaignOptions',
-            field=models.TextField(blank=True, null=True, verbose_name='Campaign task-specific options'),
+            field=models.TextField(
+                blank=True, null=True, verbose_name='Campaign task-specific options'
+            ),
         ),
     ]
