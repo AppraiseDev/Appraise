@@ -16,6 +16,7 @@ from Campaign.models import Campaign
 from Campaign.models import CampaignTeam
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 from Dashboard.models import validate_language_code
+from EvalData.models import CAMPAIGN_TASK_TYPES
 from EvalData.models import DataAssessmentTask
 from EvalData.models import DirectAssessmentContextTask
 from EvalData.models import DirectAssessmentDocumentTask
@@ -26,17 +27,6 @@ from EvalData.models import MultiModalAssessmentTask
 from EvalData.models import ObjectID
 from EvalData.models import PairwiseAssessmentTask
 from EvalData.models import TaskAgenda
-
-# Map convinient task type names into their corresponding task classes
-CAMPAIGN_TASK_TYPES = {
-    'Data': DataAssessmentTask,
-    'Direct': DirectAssessmentTask,
-    'DocLevelDA': DirectAssessmentContextTask,
-    'Document': DirectAssessmentDocumentTask,
-    'MultiModal': MultiModalAssessmentTask,
-    'Pairwise': PairwiseAssessmentTask,
-}
-
 
 def _create_uniform_task_map(annotators, tasks, redudancy):
     """

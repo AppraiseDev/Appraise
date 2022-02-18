@@ -88,8 +88,8 @@ class Command(BaseCommand):
 
         # By default, we only include activated tasks into agenda creation.
         # Compute Boolean flag based on negation of --include-completed state.
-        only_activated = not options.get('include_completed')
-        confirmation_tokens = options.get('task_confirmation_tokens')
+        only_activated = not options['include_completed']
+        confirmation_tokens = options.get('task_confirmation_tokens', False)
 
         # Initialise campaign based on manifest data
         _init_campaign(
@@ -274,6 +274,7 @@ def _create_context(manifest_data, stdout=None):
         'REDUNDANCY': manifest_data['REDUNDANCY'],
         'TASKS_TO_ANNOTATORS': TASKS_TO_ANNOTATORS,
         'TASK_TYPE': TASK_TYPE,
+        'TASK_OPTIONS': manifest_data.get('TASK_OPTIONS', ''),
     }
 
     return context

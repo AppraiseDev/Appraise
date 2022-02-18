@@ -5,7 +5,6 @@ See LICENSE for usage details
 """
 from datetime import datetime
 from os import path
-from zipfile import is_zipfile
 
 from django.core.management.base import BaseCommand, CommandError
 from django.core.files import File
@@ -146,6 +145,7 @@ class Command(BaseCommand):
 
         batches_json = options['batches_json']
         campaign_name = context['CAMPAIGN_NAME']
+        campaign_opts = context.get('TASK_OPTIONS', '')
         if batches_json:
             # Get markets and metad data for batches
             markets_and_metadata = _process_market_and_metadata(
@@ -179,7 +179,7 @@ class Command(BaseCommand):
 
             self.stdout.write('Campaign name: {}'.format(campaign_name))
             _campaign = _create_campaign(
-                campaign_name, campaign_data, owner, stdout=self.stdout
+                campaign_name, campaign_data, campaign_opts, owner, stdout=self.stdout
             )
 
         else:  # i.e. batches_json is empty
@@ -232,14 +232,6 @@ class Command(BaseCommand):
             )
 
 
-def _create_file_obj(batches_json):
-    """Create file object."""
-    if is_zipfile(batches_json):
-        with open(batches_json, 'rb') as _zip:
-            return ContentFile(_zip.read())
-    return File(open(batches_json, 'r'))
-
-
 def _upload_batches_json(batches_json, owner, market, metadata, stdout=None):
     """Upload batches and return a CampaignData object."""
     stdout.write('Batch: {}'.format(batches_json))
@@ -253,18 +245,22 @@ def _upload_batches_json(batches_json, owner, market, metadata, stdout=None):
     )
 
     _filename = path.basename(batches_json)
-    campaign_data.dataFile.save(_filename, _create_file_obj(batches_json))
+    with open(batches_json, 'rb') as _reader:
+        _file = ContentFile(_reader.read())
+        campaign_data.dataFile.save(_filename, _file)
     campaign_data.save()
     stdout.write('Uploaded file name: {}'.format(campaign_data.dataFile))
 
     return campaign_data
 
 
-def _create_campaign(campaign_name, campaign_data, owner, stdout=None):
+def _create_campaign(campaign_name, campaign_data, campaign_options, owner, stdout=None):
     """Create a new campaign."""
     # The team is already created in one of the previous steps
     team = CampaignTeam.objects.get(teamName=campaign_name)
     campaign = Campaign(campaignName=campaign_name, createdBy=owner)
+    if campaign_options:
+        campaign.campaignOptions = campaign_options
     campaign.save()
     campaign.teams.add(team)
     for _campaign_data in campaign_data:
