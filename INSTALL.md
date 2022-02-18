@@ -19,7 +19,7 @@
 
         python manage.py migrate
         python manage.py createsuperuser
-        python manage.py collectstatic
+        python manage.py collectstatic --no-post-process
 
     Follow instructions on your screen; do not leave the password empty.
 
