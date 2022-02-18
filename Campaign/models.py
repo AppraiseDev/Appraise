@@ -457,6 +457,13 @@ class Campaign(BaseMetadata):
         ),
     )
 
+    # Field for task-specific options used by all tasks within this campaign
+    campaignOptions = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name=_('Campaign task-specific options'),
+    )
+
     teams = models.ManyToManyField(
         CampaignTeam,
         blank=True,
