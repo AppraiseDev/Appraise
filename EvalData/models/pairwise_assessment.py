@@ -15,6 +15,7 @@ from django.db import models
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.utils.html import escape
 from django.utils.text import format_lazy as f
 from django.utils.timezone import utc
 from django.utils.translation import ugettext_lazy as _
@@ -100,6 +101,7 @@ class TextSegmentWithTwoTargets(TextSegment):
         """
         Returns the pair of texts with HTML tags highlighting token differences.
         Both texts must be non empty.
+        HTML tags in both texts will be escaped automatically.
 
         For example,
             'a b c d e' and 'a B c e f'
@@ -110,8 +112,8 @@ class TextSegmentWithTwoTargets(TextSegment):
         if not self.target1Text or not self.target2Text:
             return (self.target1Text, self.target2Text)
 
-        toks1 = self.target1Text.split()
-        toks2 = self.target2Text.split()
+        toks1 = escape(self.target1Text).split()
+        toks2 = escape(self.target2Text).split()
         matcher = SequenceMatcher(None, toks1, toks2)
 
         text1 = ''
