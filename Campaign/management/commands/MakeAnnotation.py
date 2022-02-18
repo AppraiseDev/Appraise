@@ -3,13 +3,14 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 
 import django
-
-from django.core.management.base import BaseCommand, CommandError
-from django.test import Client
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 from django.template.response import SimpleTemplateResponse
+from django.test import Client
 
 from Campaign.utils import CAMPAIGN_TASK_TYPES
 from Dashboard.views import TASK_DEFINITIONS

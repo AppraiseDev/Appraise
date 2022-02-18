@@ -23,8 +23,8 @@ from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 from Dashboard.models import UserInviteToken
 from Dashboard.utils import generate_confirmation_token
 from EvalData.models import DirectAssessmentTask
-from EvalData.models import TaskAgenda
 from EvalData.models import TASK_DEFINITIONS
+from EvalData.models import TaskAgenda
 
 TASK_TYPES = tuple([tup[1] for tup in TASK_DEFINITIONS])
 TASK_RESULTS = tuple([tup[2] for tup in TASK_DEFINITIONS])

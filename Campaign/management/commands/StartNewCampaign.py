@@ -6,31 +6,25 @@ See LICENSE for usage details
 from datetime import datetime
 from os import path
 
-from django.core.management.base import BaseCommand, CommandError
 from django.core.files import File
 from django.core.files.base import ContentFile
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
-from Campaign.management.commands.init_campaign import (
-    _create_context,
-    _init_campaign,
-)
-from Campaign.management.commands.validatecampaigndata import _validate_campaign_data
+from Campaign.management.commands.init_campaign import _create_context
+from Campaign.management.commands.init_campaign import _init_campaign
 from Campaign.management.commands.ProcessCampaignData import _process_campaign_data
-from Campaign.models import (
-    Campaign,
-    CampaignData,
-    CampaignTeam,
-    Market,
-    Metadata,
-)
-from Campaign.utils import (
-    _identify_super_users,
-    _load_campaign_manifest,
-    _process_market_and_metadata,
-)
-from EvalData.management.commands.UpdateEvalDataModels import _update_eval_data_models
-
+from Campaign.management.commands.validatecampaigndata import _validate_campaign_data
+from Campaign.models import Campaign
+from Campaign.models import CampaignData
+from Campaign.models import CampaignTeam
+from Campaign.models import Market
+from Campaign.models import Metadata
+from Campaign.utils import _identify_super_users
+from Campaign.utils import _load_campaign_manifest
+from Campaign.utils import _process_market_and_metadata
 from Dashboard.utils import generate_confirmation_token
+from EvalData.management.commands.UpdateEvalDataModels import _update_eval_data_models
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
