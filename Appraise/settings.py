@@ -31,7 +31,9 @@ MANAGERS = ADMINS
 _SECRET_KEY_DEFAULT = 'j^g&cs_-8-%gwx**xmq64pcm6o2c3ovrxy&%9n@ez#b=qi!uc%'
 SECRET_KEY = os.environ.get('APPRAISE_SECRET_KEY', _SECRET_KEY_DEFAULT)
 if SECRET_KEY == _SECRET_KEY_DEFAULT:
-    warnings.warn('Using the default SECRET_KEY value! Set and export APPRAISE_SECRET_KEY envvar instead')
+    warnings.warn(
+        'Using the default SECRET_KEY value! Set and export APPRAISE_SECRET_KEY envvar instead'
+    )
 
 ALLOWED_HOSTS = os.environ.get('APPRAISE_ALLOWED_HOSTS', '127.0.0.1').split(',')
 
@@ -111,6 +113,7 @@ if DEBUG:
     try:
         # pylint: disable=W0611
         import debug_toolbar  # type: ignore
+
         INSTALLED_APPS.append('debug_toolbar')
         warnings.warn('Enabled Django Debug Toolbar in installed apps')
     except ImportError:

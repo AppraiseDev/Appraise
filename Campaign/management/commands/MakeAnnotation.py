@@ -168,7 +168,9 @@ class Command(BaseCommand):
         ##################################################################
         elif campaign_type == 'Data':
             if len(scores) != 2:
-                raise ValueError('Task "Data" requires exactly 1 score (0-100) and 1 label (1-4)')
+                raise ValueError(
+                    'Task "Data" requires exactly 1 score (0-100) and 1 label (1-4)'
+                )
 
             data = {
                 'score': scores[0],
