@@ -24,9 +24,8 @@ LANGUAGE_CODES = {
     'zho': 'zh',
     'hau': 'ha',
     'jpn': 'ja',
-    'rus': 'ru'
+    'rus': 'ru',
 }
-
 
 
 def compute_mean(sample):
@@ -541,15 +540,24 @@ class Command(BaseCommand):
                 data.extend([len(losses), losses_for_system[systemID]])
                 sorted_by_wins.append(tuple(data))
 
-            source_language = LANGUAGE_CODES_AND_NAMES[language_pair[0]].split('(')[0].strip()
-            target_language = LANGUAGE_CODES_AND_NAMES[language_pair[1]].split('(')[0].strip()
+            source_language = (
+                LANGUAGE_CODES_AND_NAMES[language_pair[0]].split('(')[0].strip()
+            )
+            target_language = (
+                LANGUAGE_CODES_AND_NAMES[language_pair[1]].split('(')[0].strip()
+            )
 
             pair = '{0}-{1}'.format(
-                LANGUAGE_CODES[language_pair[0]],
-                LANGUAGE_CODES[language_pair[1]]
+                LANGUAGE_CODES[language_pair[0]], LANGUAGE_CODES[language_pair[1]]
             )
- 
-            latex_data.append('{\\bf  \\tto{'+source_language+'}{'+target_language+'} } \\\\[0.5mm] ')
+
+            latex_data.append(
+                '{\\bf  \\tto{'
+                + source_language
+                + '}{'
+                + target_language
+                + '} } \\\\[0.5mm] '
+            )
             latex_data.append('\\begin{tabular}{cccrl}')
             latex_data.append('& Rank & Ave. & Ave. z & System\\\\ \\hline')
 
@@ -596,8 +604,8 @@ class Command(BaseCommand):
                 #   in the lower cluster. This will become clear when creating
                 #   the matrix tables...
 
-#                if last_wins_count != wins:
-#                    print('-' * 80)
+                #                if last_wins_count != wins:
+                #                    print('-' * 80)
 
                 output = '{0:02d} {1:>51} {2:>+2.5f} {3:>1.5f} {4:>2.5f}'.format(
                     wins, systemID[:51], zScore, hScore, rScore
@@ -619,18 +627,32 @@ class Command(BaseCommand):
                 top_rank = losses + 1
                 worst_rank = total_systems - wins
 
-                ranks = '{0}-{1}'.format(top_rank, worst_rank) if top_rank != worst_rank else str(top_rank)
+                ranks = (
+                    '{0}-{1}'.format(top_rank, worst_rank)
+                    if top_rank != worst_rank
+                    else str(top_rank)
+                )
                 _latex_data = (
                     '\\Uncon{}',
                     ranks,
                     '{0:.1f}'.format(rScore),
                     '{0:.3f}'.format(zScore),
                     systemID[:51].replace('_', '\_'),
-                    '\\\\ \\hline' if add_cluster_boundary else '\\\\'
+                    '\\\\ \\hline' if add_cluster_boundary else '\\\\',
                 )
                 latex_data.append('{0} & {1} & {2} & {3} & {4}{5}'.format(*_latex_data))
 
-                tsv_data.append('\t'.join((pair, systemID[:51].replace('_', '\_'), rank, '{0:.1f}'.format(rScore), '{0:.3f}'.format(zScore))))
+                tsv_data.append(
+                    '\t'.join(
+                        (
+                            pair,
+                            systemID[:51].replace('_', '\_'),
+                            rank,
+                            '{0:.1f}'.format(rScore),
+                            '{0:.3f}'.format(zScore),
+                        )
+                    )
+                )
 
                 last_wins_count = wins
 
