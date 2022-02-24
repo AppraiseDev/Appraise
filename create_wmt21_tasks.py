@@ -565,7 +565,7 @@ if __name__ == "__main__":
 
         source_id = basename(XML_FILE)
 
-        items_data = []  # type: ignore ; It keeps items grouped into document
+        items_data: List[List[Dict[str, Any]]] = []  # Keeps items grouped into document
         _item = 0
         doc_counter = 0
         for doc_data in task:
@@ -698,7 +698,6 @@ if __name__ == "__main__":
         with open(json_file_name, mode='w', encoding='utf8') as out_file:
             sys.stdout.write(
                 'Creating {0}, batch no. {1} ... '.format(json_file_name, batch_id + 1),
-                ending='',
             )
             out_file.write(str(json_text))
             sys.stdout.write('OK\n')
