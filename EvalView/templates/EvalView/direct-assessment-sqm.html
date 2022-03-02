@@ -6,7 +6,13 @@
 #slider .ui-slider-range { background: #729fcf; }
 #slider .ui-slider-handle { border-color: #729fcf; }
 
-.psqm-labels { margin-top:1ex; font-size: x-small; }
+.slider { margin-top: 10px; }
+.quotelike {
+  border-left: 5px solid #eee;
+  font-size: 16px;
+  margin: 0 0 20px;
+  padding: 10px 20px;
+}
 
 [data-pseudo-content]::before,
 [data-pseudo-content--before]::before,
@@ -34,9 +40,9 @@ $(document).ready(function() {
   $('#slider').slider({orientation: "horizontal", range: "min", change: update_score});
   $('input[name="score"]').val(-1);
 
-  var $a = $('#id_candidate_text').attr('data-pseudo-content');
-  $('#id_candidate_text').attr('data-pseudo-content', $a.rot13());
-  alert($a);
+  //var $a = $('#id_candidate_text').attr('data-pseudo-content');
+  //$('#id_candidate_text').attr('data-pseudo-content', $a.rot13());
+  //alert($a);
 
   // Increment the idle time counter every second.
   //var idleInterval = setInterval(timerIncrement, 1000);
@@ -141,7 +147,15 @@ function update_score()
 <div class="row">
 <div class="col-sm-12">
 <blockquote>
-<p style="color: gray;">{% if reference_context_left %}{{reference_context_left|safe}}{% endif %} <strong>{{reference_text|safe}}</strong> {% if reference_context_right %}{{reference_context_right|safe}}{% endif %}</p>
+<p style="color: gray;">
+  {% if reference_context_left %}
+    {{reference_context_left|safe}}
+  {% endif %}
+  <strong>{{reference_text|safe}}</strong>
+  {% if reference_context_right %}
+    {{reference_context_right|safe}}
+  {% endif %}
+</p>
 <small>{{reference_label}}</small>
 </blockquote>
 </div>
@@ -158,40 +172,24 @@ function update_score()
 <div class="row">
 <div class="col-sm-12">
 <blockquote>
-<!--<p id="id_candidate_text" data-pseudo-content="{{candidate_text|safe}}"></p>-->
-<p style="color: black;">{% if candidate_context_left %}{{candidate_context_left|safe}}{% endif %} <strong>{{candidate_text|safe}}</strong> {% if candidate_context_right %}{{candidate_context_right|safe}}{% endif %}</p>
+<p style="color: black;">
+  {% if candidate_context_left %}
+    {{candidate_context_left|safe}}
+  {% endif %}
+  <strong>{{candidate_text|safe}}</strong>
+  {% if candidate_context_right %}
+    {{candidate_context_right|safe}}
+  {% endif %}
+</p>
 <small>{{candidate_label}}</small>
 </blockquote>
 </div>
 </div>
 
-<div class="row">
-<div class="col-md-12">
-  <table class="" style="width:100%;color: #777;">
-  <tr>
-    <td class="col-xs-1" style="text-align:left;">0</td>
-    <td class="col-xs-2" style="text-align:center;">1</td>
-    <td class="col-xs-2" style="text-align:center;">2</td>
-    <td class="col-xs-2" style="text-align:center;">3</td>
-    <td class="col-xs-2" style="text-align:center;">4</td>
-    <td class="col-xs-2" style="text-align:center;">5</td>
-    <td class="col-xs-1" style="text-align:right;">6</td>
-  </tr>
-  </table>
-</div>
-<div class="col-md-12">
-  <blockquote>
-    <div id="slider"></div>
-    <table class="psqm-labels" style="color: #777;">
-      <tr>
-        <td class="col-xs-2" style="vertical-align:top;text-align:left;padding-left:0;">0: Nonsense or no meaning preserved</td>
-        <td class="col-xs-4" style="vertical-align:top;text-align:center;">2: Some meaning preserved</td>
-        <td class="col-xs-4" style="vertical-align:top;text-align:center;">4: Most meaning preserved and few grammar mistakes</td>
-        <td class="col-xs-2" style="vertical-align:top;text-align:right;padding-right:0;">6: Perfect meaning and grammar</td>
-      </tr>
-    </table>
-  </blockquote>
-</div>
+<div class="row quotelike">
+  {% with sliderid='' %}
+  {% include 'EvalView/_sqm_slider.html' %}
+  {% endwith %}
 </div>
 
 </span>
@@ -200,27 +198,18 @@ function update_score()
   <table style="width:100%">
   <tr>
     <td style="width:40%;text-align:left;">
-      <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn"><i class="icon-repeat"></i> Reset</button>
+      <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn">
+        <i class="icon-repeat"></i> Reset</button>
     <td style="width:20%;text-align:right;">
-      <button class="btn btn-primary" name="submit_button" accesskey="1" type="submit" value="SUBMIT" onclick="javascript:return validate_form();"><i class="icon-ok-sign icon-white"></i> Submit</button>
+      <button class="btn btn-primary" name="submit_button" accesskey="1" type="submit" value="SUBMIT" onclick="javascript:return validate_form();">
+        <i class="icon-ok-sign icon-white"></i> Submit</button>
+      </button>
     </td>
   </tr>
   </table>
 </div>
 
-<br/>
-
-<div class="row">
-<div class="col-md-12">
-  <p>Assess the translation quality with the quality levels described as follows:</p>
-  <ul class="list-unstyled">
-    <li><strong>0: Nonsense/No meaning preserved</strong>: Nearly all information is lost between the translation and source. Grammar is irrelevant.</li>
-    <li><strong>2: Some meaning preserved</strong>: The translation preserves some of the meaning of the source but misses significant parts. The narrative is hard to follow due to fundamental errors. Grammar may be poor.</li>
-    <li><strong>4: Most meaning preserved and few grammar mistakes</strong>: The translation retains most of the meaning of the source. It may have some grammar mistakes or minor contextual inconsistencies.</li>
-    <li><strong>6: Perfect meaning and grammar</strong>: The meaning of the translation is completely consistent with the source and the surrounding context (if applicable). The grammar is also correct.</li>
-  </ul>
-</div>
-</div>
+{% include 'EvalView/_sqm_instructions.html' %}
 
 </form>
 
