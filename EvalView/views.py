@@ -1488,7 +1488,7 @@ def data_assessment(request, code=None, campaign_name=None):
     if any(opt in campaign_opts for opt in ['disablemtlabel', 'disablemtrank']):
         ranks = None
         rank_question_text = None
-        score_question_text[0] = score_question_text[0][13:] # remove 'Question #1: '
+        score_question_text[0] = score_question_text[0][13:]  # remove 'Question #1: '
 
     context = {
         'active_page': 'data-assessment',
