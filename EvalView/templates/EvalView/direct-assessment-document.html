@@ -16,6 +16,7 @@
 
 .question-box { margin-bottom:10px; }
 .question-box p { font-size: 120%; margin: 10px 0 20px; font-style: italic; color: #31708f; }
+.question-box li { font-size: 100%; font-style: italic; color: #31708f; }
 .document-box { padding-top: 10px; }
 .document-box p { font-size: 16px; }
 
@@ -455,6 +456,9 @@ function _show_error_box(item_box, msg) {
             {% for text in priming_question_texts %}
             <p>{{text|safe}}</p>
             {% endfor %}
+            {% if sqm %}
+            {% include 'EvalView/_sqm_instructions.html' %}
+            {% endif %}
         </div>
     </div>
     <div class="row">
@@ -525,9 +529,15 @@ function _show_error_box(item_box, msg) {
 
         <div class="target-box toggleable" >
             <div class="row">
+            {% if sqm %}
+                {% with sliderid=item.itemID %}
+                {% include 'EvalView/_sqm_slider.html' %}
+                {% endwith %}
+            {% else %}
                 {% with sliderid=item.itemID %}
                 {% include 'EvalView/_slider.html' %}
                 {% endwith %}
+            {% endif %}
             </div>
 
             <table class="row action-box">
@@ -558,15 +568,24 @@ function _show_error_box(item_box, msg) {
                     {% for text in document_question_texts %}
                     <p>{{text|safe}}</p>
                     {% endfor %}
+                    {% if sqm %}
+                    {% include 'EvalView/_sqm_instructions.html' %}
+                    {% endif %}
                 </div>
             </div>
         </div>
 
         <div class="target-box document-box quotelike">
             <div class="row">
+            {% if sqm %}
+                {% with sliderid=item.itemID %}
+                {% include 'EvalView/_sqm_slider.html' %}
+                {% endwith %}
+            {% else %}
                 {% with sliderid=item.itemID %}
                 {% include 'EvalView/_slider.html' %}
                 {% endwith %}
+            {% endif %}
             </div>
 
             <table class="action-box">

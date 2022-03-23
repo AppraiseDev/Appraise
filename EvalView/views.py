@@ -821,24 +821,33 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     candidate_label = 'Candidate translation'
 
     priming_question_texts = [
-        'Below you see a document with {0} sentences in {1} '
-        'and their corresponding candidate translations in {2}. '
-        'Score each candidate sentence translation in the document context, '
-        'answering the question: '.format(
+        'Below you see a document with {0} sentences in {1} (left columns) '
+        'and their corresponding candidate translations in {2} (right columns). '
+        'Score each candidate sentence translation in the document context. '
+        'You may revisit already scored sentences and update their scores at any time '
+        'by clicking at a source text.'.format(
             len(block_items), source_language, target_language
         ),
+        'Assess the translation quality answering the question: ',
         'How accurately does the candidate text (right column, in bold) convey the '
         'original semantics of the source text (left column) in the document context? ',
-        'You may revisit already scored sentences and update their scores at any time '
-        'by clicking at a source text.',
     ]
     document_question_texts = [
-        'Please score the document translation above answering the question '
-        '(you can score the entire document only after scoring all previous sentences):',
+        'Please score the overall document translation quality (you can score '
+        'the whole document only after scoring all individual sentences first).',
+        'Answer the question: ',
+        'Assess the translation quality answering the question: ',
         'How accurately does the <strong>entire</strong> candidate document translation '
         'in {0} (right column) convey the original semantics of the source document '
         'in {1} (left column)? '.format(target_language, source_language),
     ]
+
+    campaign_opts = (campaign.campaignOptions or "").lower()
+    use_sqm = 'sqm' in campaign_opts
+
+    if use_sqm:
+        priming_question_texts = priming_question_texts[:1]
+        document_question_texts = document_question_texts[:1]
 
     # A part of context used in responses to both Ajax and standard POST
     # requests
@@ -857,6 +866,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'campaign': campaign.campaignName,
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
+        'sqm': use_sqm,
     }
 
     if ajax:
