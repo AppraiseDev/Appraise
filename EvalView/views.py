@@ -823,22 +823,21 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     priming_question_texts = [
         'Below you see a document with {0} sentences in {1} '
         'and their corresponding candidate translations in {2}. '
-        'Score each candidate translation in the document context, answering the question: '.format(
+        'Score each candidate sentence translation in the document context, '
+        'answering the question: '.format(
             len(block_items), source_language, target_language
         ),
-        'How accurately does the candidate text (right column, in bold) convey '
-        'the original semantics of the source text (left column) in the document context? ',
+        'How accurately does the candidate text (right column, in bold) convey the '
+        'original semantics of the source text (left column) in the document context? ',
         'You may revisit already scored sentences and update their scores at any time '
         'by clicking at a source text.',
     ]
     document_question_texts = [
         'Please score the document translation above answering the question '
         '(you can score the entire document only after scoring all previous sentences):',
-        'How accurately does the <strong>entire</strong> candidate document in '
-        '{0} (right column) convey '
-        'the original semantics of the source document in {1} (left column)? '.format(
-            target_language, source_language
-        ),
+        'How accurately does the <strong>entire</strong> candidate document translation '
+        'in {0} (right column) convey the original semantics of the source document '
+        'in {1} (left column)? '.format(target_language, source_language),
     ]
 
     # A part of context used in responses to both Ajax and standard POST
