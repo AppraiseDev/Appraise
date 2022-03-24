@@ -21,6 +21,7 @@ from EvalData.models import DirectAssessmentDocumentResult
 from EvalData.models import DirectAssessmentResult
 from EvalData.models import MultiModalAssessmentResult
 from EvalData.models import PairwiseAssessmentResult
+from EvalData.models import PairwiseAssessmentDocumentResult
 from EvalData.models import seconds_to_timedelta
 
 # pylint: disable=import-error
@@ -32,6 +33,7 @@ RESULT_TYPE_BY_CLASS_NAME = {
     'DirectAssessmentDocumentTask': DirectAssessmentDocumentResult,
     'MultiModalAssessmentTask': MultiModalAssessmentResult,
     'PairwiseAssessmentTask': PairwiseAssessmentResult,
+    'PairwiseAssessmentDocumentTask': PairwiseAssessmentDocumentResult,
 }
 
 LOGGER = _get_logger(name=__name__)

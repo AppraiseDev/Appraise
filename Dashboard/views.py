@@ -339,6 +339,7 @@ def dashboard(request):
 
         for agenda in agendas:
             LOGGER.info('Identified work agenda %s', agenda)
+            print('Identified work agenda', agenda)
 
             tasks_to_complete = []
             for serialized_open_task in agenda.serialized_open_tasks():

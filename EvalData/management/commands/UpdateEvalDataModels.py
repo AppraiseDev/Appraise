@@ -29,11 +29,14 @@ from EvalData.models import MultiModalAssessmentResult
 from EvalData.models import MultiModalAssessmentTask
 from EvalData.models import PairwiseAssessmentResult
 from EvalData.models import PairwiseAssessmentTask
+from EvalData.models import PairwiseAssessmentDocumentResult
+from EvalData.models import PairwiseAssessmentDocumentTask
 from EvalData.models import TextPair
 from EvalData.models import TextPairWithContext
 from EvalData.models import TextPairWithDomain
 from EvalData.models import TextPairWithImage
 from EvalData.models import TextSegmentWithTwoTargets
+from EvalData.models import TextSegmentWithTwoTargetsWithContext
 
 MODEL_DEFINITIONS = (
     (
@@ -70,6 +73,13 @@ MODEL_DEFINITIONS = (
         TextSegmentWithTwoTargets,
         'evaldata_pairwiseassessmenttasks',
         'evaldata_pairwiseassessmentresults',
+    ),
+    (
+        PairwiseAssessmentDocumentTask,
+        PairwiseAssessmentDocumentResult,
+        TextSegmentWithTwoTargetsWithContext,
+        'evaldata_pairwiseassessmentdocumenttasks',
+        'evaldata_pairwiseassessmentdocumentresults',
     ),
     # Note: MultiModalAssessmentTask is handled differently than
     # other task types, so it is not included in this tuple

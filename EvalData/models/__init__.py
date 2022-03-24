@@ -10,6 +10,7 @@ from .direct_assessment_context import *
 from .direct_assessment_document import *
 from .multi_modal_assessment import *
 from .pairwise_assessment import *
+from .pairwise_assessment_document import *
 from .task_agenda import *
 
 # Task definitions: user-friendly name, task class, task result class, URL name
@@ -43,6 +44,12 @@ TASK_DEFINITIONS = (
         PairwiseAssessmentTask,
         PairwiseAssessmentResult,
         'pairwise-assessment',
+    ),
+    (
+        'PairwiseDocument',
+        PairwiseAssessmentDocumentTask,
+        PairwiseAssessmentDocumentResult,
+        'pairwise-assessment-document',
     ),
     (
         'Data',

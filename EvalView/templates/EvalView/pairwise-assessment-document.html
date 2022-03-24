@@ -121,14 +121,14 @@ $(document).ready(function() {
     // First unannotated item-box, i.e. with data-item-completed=False
     var next_item;
     // Update slider bars for annotated items
-    $('input[name^="score"]').each(function() {
+    $('input[name^="score1"]').each(function() {
         var item_box = $(this).closest('.item-box');
         var is_completed = item_box.data('item-completed');
         if(is_completed == "True") {
             // Show a tick icon
             item_box.find('.source-btn-done').show();
-            var score = $(this).val();
-            item_box.find('.slider').slider('value', score);
+            var score1 = $(this).val();
+            item_box.find('.slider').slider('value', score1);
             // Change submit button label to 'Update'
             item_box.find('button[name="next_button"]').text('Update');
         } else if(next_item === undefined) {
@@ -222,29 +222,8 @@ function toggle_full_screen() {
 function update_score() {
     // Assign new score to the corresponding input
     var new_score = $(this).slider('value');
-    var new_input = $('#' + this.id.replace('slider', 'score'));
+    var new_input = $('#' + this.id.replace('slider', 'score1'));
     new_input.val(new_score);
-
-    //var item_box = $(this).closest('.item-box');
-    //_color_score_box(item_box, new_score);
-    // item_box.find('.score-box').show().html(new_score);
-    // item_box.find('.preview-box').removeClass('inactive');
-}
-
-function _color_score_box(item_box, new_score) {
-    if (!ENABLE_COLOR_LABELS)
-        return;
-    // desaturate max red and green a bit, max is 255
-    MAX_RED = 225;
-    MAX_GREEN = 225;
-    // Calculate RGB values
-    var pos =  new_score / 100.0;
-    r = Math.round(pos < 0.5 ? MAX_RED : ((1 - pos) * 2) * MAX_RED);
-    g = Math.round(pos < 0.5 ? (pos * 2) * MAX_GREEN : MAX_GREEN);
-    b = 0;
-    // Set background color and show the label
-    var score_box = item_box.find('.score-box');
-    score_box.show().css('background-color', 'rgb(' + r + ',' + g + ',' + b + ')');
 }
 
 function reset_form() {
@@ -253,7 +232,7 @@ function reset_form() {
     idleTime = 0;
     item_box.find('input[name="start_timestamp"]').val(Date.now()/1000.0);
     // Reset slider and OK tick
-    var last_score = parseInt(item_box.data('item-score'));
+    var last_score = parseInt(item_box.data('item-score1'));
     if(last_score == -1) { // i.e. not scored yet
         item_box.find('.slider').slider('option', 'value', 0);
         item_box.find('.source-btn-done').hide();
@@ -265,7 +244,7 @@ function reset_form() {
         //_color_score_box(item_box, last_score);
         //item_box.find('.score-box').show().html(last_score);
     }
-    item_box.find('input[name="score"]').val(last_score);
+    item_box.find('input[name="score1"]').val(last_score);
 }
 
 function _change_item_status_icon(item_box, icon_name) {
@@ -293,9 +272,9 @@ function submit_form(e) {
     var button_text = $(this).text();
 
     // Validate form
-    var score = item_box.find('input[name="score"]').val();
+    var score1 = item_box.find('input[name="score1"]').val();
     var index = item_box.data('item-id');
-    if (score == -1) {
+    if (score1 == -1) {
         alert('Sentence #' + (index + 1) + ' has no score. ' +
             'Please score all candidate sentences. Thanks!');
         return false;
@@ -305,9 +284,9 @@ function submit_form(e) {
     item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
 
     // Check if score has not been changed. If so, just move to the next item.
-    var prev_score = item_box.data('item-score');
-    //console.log('score=', score, 'prevscore=', prev_score);
-    if (score == prev_score) {
+    var prev_score1 = item_box.data('item-score1');
+    //console.log('score1=', score1, 'prevscore1=', prev_score1);
+    if (score1 == prev_score1) {
         e.preventDefault();
         _hide_target_box.call(item_box);
         _show_target_box.call(item_box.next());
@@ -348,7 +327,7 @@ function submit_form(e) {
 
                     // Update data- attributes in the scored item
                     item_box.data('item-completed', 'True');
-                    item_box.data('item-score', score);
+                    item_box.data('item-score1', score1);
                     // Change submit button label to 'Update'
                     item_box.find('button[name="next_button"]').text('Update');
 
@@ -401,10 +380,10 @@ function submit_form(e) {
 function last_form() {
     var item_box = $(this).closest('.item-box');
     // Validate form
-    var score = item_box.find('input[name="score"]').val();
+    var score1 = item_box.find('input[name="score1"]').val();
     var index = item_box.data('item-id');
-    if (score == -1) {
-        alert('Please score the document translation. Thanks!');
+    if (score1 == -1) {
+        alert('Please score1 the document translation. Thanks!');
         return false;
     }
     // It is a security check, but this should never occur, because the last
@@ -526,7 +505,8 @@ function _show_error_box(item_box, msg) {
              {% if scores.current_item %} active{% endif %}"
      data-item-id="{{ item.itemID }}"
      data-item-completed="{{ scores.completed }}"
-     data-item-score="{{ scores.score }}">
+     data-item-score1="{{ scores.score1 }}"
+     data-item-score2="{{ scores.score2 }}">
 
     <form action="{{action_url}}" method="post">
         {% csrf_token %}
@@ -536,7 +516,8 @@ function _show_error_box(item_box, msg) {
         <input name="item_id" type="hidden" value="{{ item.itemID }}" />
         <input name="task_id" type="hidden" value="{{ item.id }}" />
         <input name="document_id" type="hidden" value="{{ item.documentID }}" />
-        <input name="score" type="hidden" value="{{ scores.score }}" id="score{{ item.itemID }}" />
+        <input name="score1" type="hidden" value="{{ scores.score1 }}" id="score1{{ item.itemID }}" />
+        <input name="score2" type="hidden" value="{{ scores.score2 }}" id="score2{{ item.itemID }}" />
         <input name="ajax" type="hidden" value="False" />
 
         {% if not item.isCompleteDocument %}
@@ -546,12 +527,12 @@ function _show_error_box(item_box, msg) {
                 <div class="source-box col-sm-3">
                     <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
                     <span title="Source sentence #{{ item.itemID|add:"1" }}">
-                        <p>{{ item.sourceText }}<small class="segment-label">- {{ reference_label }}</small></p>
+                        <p>{{ item.segmentText }}<small class="segment-label">- {{ reference_label }}</small></p>
                     </span>
                 </div>
                 <div class="col-sm-4">
                     <span title="Candidate translation A of source sentence #{{ item.itemID|add:"1" }}">
-                        <p class="source-box"><strong>{{item.targetText|safe}}</strong><small class="segment-label">- Candidate translation A</small></p>
+                        <p class="source-box"><strong>{{item.target1Text|safe}}</strong><small class="segment-label">- Candidate translation A</small></p>
                     </span>
 
             <div class="row half-slider target-box toggleable">
@@ -569,7 +550,7 @@ function _show_error_box(item_box, msg) {
                 </div>
                 <div class="col-sm-4">
                     <span title="Candidate translation B of source sentence #{{ item.itemID|add:"1" }}">
-                        <p class="source-box"><strong>{{item.targetText|safe}}</strong><small class="segment-label">- Candidate translation B</small></p>
+                        <p class="source-box"><strong>{{item.target2Text|safe}}</strong><small class="segment-label">- Candidate translation B</small></p>
                     </span>
 
             <div class="row half-slider target-box toggleable">
@@ -596,7 +577,7 @@ function _show_error_box(item_box, msg) {
                         <button class="btn button-align"
                                 accesskey="3"
                                 type="button">
-                            <i class="icon-repeat"></i> Align</button>
+                            <i class="icon-repeat"></i> Match</button>
                         <button class="btn button-next btn-primary"
                                 name="next_button"
                                 accesskey="1"

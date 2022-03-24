@@ -28,6 +28,9 @@ from EvalData.models.multi_modal_assessment import (
     MultiModalAssessmentResult,
 )
 from EvalData.models.pairwise_assessment import PairwiseAssessmentResult
+from EvalData.models.pairwise_assessment_document import (
+    PairwiseAssessmentDocumentResult,
+)
 
 # TODO: Unclear if these are needed?
 # from Appraise.settings import STATIC_URL, BASE_CONTEXT
@@ -156,6 +159,7 @@ class TaskAgenda(models.Model):
             'DirectAssessmentContextTask': DirectAssessmentContextResult,
             'DirectAssessmentDocumentTask': DirectAssessmentDocumentResult,
             'MultiModalAssessmentTask': MultiModalAssessmentResult,
+            'PairwiseAssessmentDocumentTask': PairwiseAssessmentDocumentResult,
             'PairwiseAssessmentTask': PairwiseAssessmentResult,
         }
 

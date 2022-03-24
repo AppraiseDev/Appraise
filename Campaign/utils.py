@@ -17,15 +17,9 @@ from Campaign.models import CampaignTeam
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 from Dashboard.models import validate_language_code
 from EvalData.models import CAMPAIGN_TASK_TYPES
-from EvalData.models import DataAssessmentTask
-from EvalData.models import DirectAssessmentContextTask
-from EvalData.models import DirectAssessmentDocumentTask
-from EvalData.models import DirectAssessmentTask
 from EvalData.models import Market
 from EvalData.models import Metadata
-from EvalData.models import MultiModalAssessmentTask
 from EvalData.models import ObjectID
-from EvalData.models import PairwiseAssessmentTask
 from EvalData.models import TaskAgenda
 
 

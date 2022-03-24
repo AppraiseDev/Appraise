@@ -171,6 +171,22 @@ urlpatterns = [
         name='pairwise-assessment',
     ),
     re_path(
+        r'^pairwise-assessment-document/$',
+        evalview_views.pairwise_assessment_document,
+        name='pairwise-assessment-document',
+    ),
+    re_path(
+        r'^pairwise-assessment-document/(?P<code>[a-z]{3})/$',
+        evalview_views.pairwise_assessment_document,
+        name='pairwise-assessment-document',
+    ),
+    re_path(
+        r'^pairwise-assessment-document/(?P<code>[a-z]{3})/'
+        r'(?P<campaign_name>[a-zA-Z0-9]+)/$',
+        evalview_views.pairwise_assessment_document,
+        name='pairwise-assessment-document',
+    ),
+    re_path(
         r'^campaign-status/(?P<campaign_name>[a-zA-Z0-9]+)/'
         r'(?P<sort_key>[0123456])?/?$',
         campaign_views.campaign_status,

@@ -26,6 +26,8 @@ from .models import MultiModalAssessmentResult
 from .models import MultiModalAssessmentTask
 from .models import PairwiseAssessmentResult
 from .models import PairwiseAssessmentTask
+from .models import PairwiseAssessmentDocumentResult
+from .models import PairwiseAssessmentDocumentTask
 from .models import TaskAgenda
 from .models import TextPair
 from .models import TextPairWithContext
@@ -577,7 +579,6 @@ class DirectAssessmentDocumentTaskAdmin(DirectAssessmentContextTaskAdmin):
     """
     Model admin for DirectAssessmentDocumentTask instances.
     """
-
     pass
 
 
@@ -585,7 +586,6 @@ class DirectAssessmentDocumentResultAdmin(DirectAssessmentContextResultAdmin):
     """
     Model admin for DirectAssessmentDocumentResult instances.
     """
-
     pass
 
 
@@ -789,6 +789,81 @@ class PairwiseAssessmentResultAdmin(BaseMetadataAdmin):
     ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
+class PairwiseAssessmentDocumentTaskAdmin(BaseMetadataAdmin):
+    """
+    Model admin for PairwiseAssessmentDocumentTask instances.
+    """
+
+    list_display = [
+        'dataName',
+        'batchNo',
+        'campaign',
+        'requiredAnnotations',
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+        'campaign__campaignName',
+        'campaign__batches__market__targetLanguageCode',
+        'campaign__batches__market__sourceLanguageCode',
+        'batchData',
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+        'campaign__campaignName',
+        'assignedTo',
+    ] + BaseMetadataAdmin.search_fields
+
+    fieldsets = (
+        (
+            None,
+            {
+                'fields': (
+                    [
+                        'batchData',
+                        'batchNo',
+                        'campaign',
+                        'items',
+                        'requiredAnnotations',
+                        'assignedTo',
+                    ]
+                )
+            },
+        ),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
+
+
+class PairwiseAssessmentDocumentResultAdmin(BaseMetadataAdmin):
+    """
+    Model admin for PairwiseAssessmentDocumentResult instances.
+    """
+
+    list_display = [
+        '__str__',
+        'score1',
+        'score2',
+        'start_time',
+        'end_time',
+        'duration',
+        'item_type',
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+        'item__itemType',
+        'task__completed',
+        'item__isCompleteDocument',
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+        # nothing model specific
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
+
+    readonly_fields = ('item', 'task')
+
+    fieldsets = (
+        (
+            None,
+            {'fields': (['score1', 'score2', 'start_time', 'end_time'])},
+        ),
+        ('Related', {'fields': (['item', 'task'])}),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
+
+
 class DataAssessmentTaskAdmin(BaseMetadataAdmin):
     """
     Model admin for DataAssessmentTask instances.
@@ -878,5 +953,7 @@ admin.site.register(MultiModalAssessmentTask, MultiModalAssessmentTaskAdmin)
 admin.site.register(MultiModalAssessmentResult, MultiModalAssessmentResultAdmin)
 admin.site.register(PairwiseAssessmentTask, PairwiseAssessmentTaskAdmin)
 admin.site.register(PairwiseAssessmentResult, PairwiseAssessmentResultAdmin)
+admin.site.register(PairwiseAssessmentDocumentTask, PairwiseAssessmentDocumentTaskAdmin)
+admin.site.register(PairwiseAssessmentDocumentResult, PairwiseAssessmentDocumentResultAdmin)
 admin.site.register(WorkAgenda, WorkAgendaAdmin)
 admin.site.register(TaskAgenda, TaskAgendaAdmin)
