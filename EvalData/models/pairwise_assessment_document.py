@@ -567,7 +567,12 @@ class PairwiseAssessmentDocumentResult(BaseMetadata):
 
     # pylint: disable=E1136
     def _generate_str_name(self):
-       return '{0}.{1}[{2}]'.format(self.__class__.__name__, self.campaign, self.id)
+        return '{0}.{1}={2}+{3}'.format(
+            self.__class__.__name__,
+            self.item,
+            self.score1,
+            self.score2,
+        )
 
     def duration(self):
         d = self.end_time - self.start_time

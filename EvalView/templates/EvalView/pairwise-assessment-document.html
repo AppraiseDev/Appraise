@@ -122,14 +122,15 @@ $(document).ready(function() {
     // First unannotated item-box, i.e. with data-item-completed=False
     var next_item;
     // Update slider bars for annotated items
-    $('input[name^="score1"]').each(function() {
+    $('input[name^="score"]').each(function() {
         var item_box = $(this).closest('.item-box');
         var is_completed = item_box.data('item-completed');
         if(is_completed == "True") {
             // Show a tick icon
             item_box.find('.source-btn-done').show();
-            var score1 = $(this).val();
-            item_box.find('.slider1').slider('value', score1);
+            var score = $(this).val();
+            var slider = $('#' + this.id.replace('score', 'slider'));
+            slider.slider('value', score);
             // Change submit button label to 'Update'
             item_box.find('button[name="next_button"]').text('Update');
         } else if(next_item === undefined) {
@@ -228,21 +229,24 @@ function update_score() {
 }
 
 function reset_form() {
-    // TODO: fix it for two sliders
     var item_box = $(this).closest('.item-box');
     // Reset timestamp
     idleTime = 0;
     item_box.find('input[name="start_timestamp"]').val(Date.now()/1000.0);
     // Reset slider and OK tick
-    var last_score = parseInt(item_box.data('item-score1'));
-    if(last_score == -1) { // i.e. not scored yet
-        item_box.find('.slider').slider('option', 'value', 0);
+    var last_score1 = parseInt(item_box.data('item-score1'));
+    var last_score2 = parseInt(item_box.data('item-score2'));
+    console.log('Reset to scores: ' + last_score1 + ' ' + last_score2);
+    if(last_score1 == -1 || last_score2 == -1) { // i.e. not scored yet
+        item_box.find('.slider').slider('option', 'value', -1);
         item_box.find('.source-btn-done').hide();
         item_box.find('.preview-box').addClass('inactive');
     } else { // i.e. updating the score
-        item_box.find('.slider').slider('option', 'value', last_score);
+        item_box.find('.slider1').slider('option', 'value', last_score1);
+        item_box.find('.slider2').slider('option', 'value', last_score2);
     }
-    item_box.find('input[name="score1"]').val(last_score);
+    item_box.find('input[name="score1"]').val(last_score1);
+    item_box.find('input[name="score2"]').val(last_score2);
 }
 
 function _change_item_status_icon(item_box, icon_name) {
@@ -385,9 +389,10 @@ function last_form() {
     var item_box = $(this).closest('.item-box');
     // Validate form
     var score1 = item_box.find('input[name="score1"]').val();
+    var score2 = item_box.find('input[name="score2"]').val();
     var index = item_box.data('item-id');
-    if (score1 == -1) {
-        alert('Please score the document translation. Thanks!');
+    if (score1 == -1 || score2 == -1) {
+        alert('Please score the document translations. Thanks!');
         return false;
     }
     // It is a security check, but this should never occur, because the last
