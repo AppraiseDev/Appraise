@@ -1818,7 +1818,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     block_scores = []
     for item, result in zip(block_items, block_results):
         item_scores = {
-            'completed': bool(result and result.score > -1),
+            'completed': bool(result and result.score1 > -1),
             'current_item': bool(item.id == current_item.id),
             'score1': result.score1 if result else -1,
             'score2': result.score2 if result else -1,

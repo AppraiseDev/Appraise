@@ -222,7 +222,7 @@ function toggle_full_screen() {
 function update_score() {
     // Assign new score to the corresponding input
     var new_score = $(this).slider('value');
-    var new_input = $('#' + this.id.replace('slider', 'score1'));
+    var new_input = $('#' + this.id.replace('slider', 'score'));
     new_input.val(new_score);
 }
 
@@ -273,9 +273,10 @@ function submit_form(e) {
 
     // Validate form
     var score1 = item_box.find('input[name="score1"]').val();
+    var score2 = item_box.find('input[name="score2"]').val();
     var index = item_box.data('item-id');
-    if (score1 == -1) {
-        alert('Sentence #' + (index + 1) + ' has no score. ' +
+    if ((score1 == -1) || (score2 == -1)) {
+        alert('Sentence #' + (index + 1) + ' misses a score. ' +
             'Please score all candidate sentences. Thanks!');
         return false;
     }
@@ -285,8 +286,10 @@ function submit_form(e) {
 
     // Check if score has not been changed. If so, just move to the next item.
     var prev_score1 = item_box.data('item-score1');
+    var prev_score2 = item_box.data('item-score2');
     //console.log('score1=', score1, 'prevscore1=', prev_score1);
-    if (score1 == prev_score1) {
+    //console.log('score2=', score2, 'prevscore2=', prev_score2);
+    if ((score1 == prev_score1) && (score2 == prev_score2)) {
         e.preventDefault();
         _hide_target_box.call(item_box);
         _show_target_box.call(item_box.next());
@@ -300,6 +303,8 @@ function submit_form(e) {
 
         // Say server that the client expect JSON response
         item_box.find('input[name="ajax"]').val('True');
+
+        console.log(item_box.find('form').serialize());
 
         // Workflow: Immediately after an Ajax request is sent, annotation
         // moves to the next element opening the next slider; if Ajax request
@@ -328,6 +333,7 @@ function submit_form(e) {
                     // Update data- attributes in the scored item
                     item_box.data('item-completed', 'True');
                     item_box.data('item-score1', score1);
+                    item_box.data('item-score2', score2);
                     // Change submit button label to 'Update'
                     item_box.find('button[name="next_button"]').text('Update');
 
@@ -537,11 +543,11 @@ function _show_error_box(item_box, msg) {
 
             <div class="row half-slider target-box toggleable">
             {% if sqm %}
-                {% with sliderid=item.itemID %}
+                {% with sliderid=item.itemID slidernum=1 %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
-                {% with sliderid=item.itemID %}
+                {% with sliderid=item.itemID slidernum=1 %}
                 {% include 'EvalView/_slider.html' %}
                 {% endwith %}
             {% endif %}
@@ -555,11 +561,11 @@ function _show_error_box(item_box, msg) {
 
             <div class="row half-slider target-box toggleable">
             {% if sqm %}
-                {% with sliderid=item.itemID %}
+                {% with sliderid=item.itemID slidernum=2 %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
-                {% with sliderid=item.itemID %}
+                {% with sliderid=item.itemID slidernum=2 %}
                 {% include 'EvalView/_slider.html' %}
                 {% endwith %}
             {% endif %}
