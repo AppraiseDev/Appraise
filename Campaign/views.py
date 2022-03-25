@@ -16,8 +16,8 @@ from django.http import HttpResponse
 from Appraise.utils import _get_logger
 from Campaign.utils import _get_campaign_instance
 from EvalData.models import DataAssessmentResult
-from EvalData.models import PairwiseAssessmentResult
 from EvalData.models import PairwiseAssessmentDocumentResult
+from EvalData.models import PairwiseAssessmentResult
 from EvalData.models import seconds_to_timedelta
 from EvalData.models import TASK_DEFINITIONS
 
