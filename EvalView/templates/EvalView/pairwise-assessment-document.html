@@ -41,6 +41,7 @@
 .source-btn-done { float: right; display: none; padding-bottom:5px; padding-left:5px; }
 .preview-box .row { padding-top:0; font-size:95%; /*font-weight:bold;*/ }
 
+.candidate-text.active .diff { background: #ff06; }
 .segment-label { display:block; font-size:small; font-style:italic; }
 
 .toggleable { display:none; }
@@ -202,6 +203,7 @@ function _hide_target_box() {
 }
 
 function toggle_diff() {
+    var item_box = $(this).closest('.item-box');
     var isActive = $('.candidate-text').first().hasClass('active');
     if (isActive) {
         $('.candidate-text').removeClass('active');
@@ -548,7 +550,7 @@ function _show_error_box(item_box, msg) {
                 </div>
                 <div class="col-sm-4">
                     <span title="Candidate translation A of source sentence #{{ item.itemID|add:"1" }}">
-                        <p class="source-box"><strong>{{item.target1Text|safe}}</strong><small class="segment-label">- {{ candidate1_label }}</small></p>
+                        <p class="source-box candidate-text"><strong>{{scores.candidate1_text|safe}}</strong><small class="segment-label">- {{ candidate1_label }}</small></p>
                     </span>
 
             <div class="row half-slider target-box toggleable">
@@ -566,7 +568,7 @@ function _show_error_box(item_box, msg) {
                 </div>
                 <div class="col-sm-4">
                     <span title="Candidate translation B of source sentence #{{ item.itemID|add:"1" }}">
-                        <p class="source-box"><strong>{{item.target2Text|safe}}</strong><small class="segment-label">- {{ candidate2_label }}</small></p>
+                        <p class="source-box candidate-text"><strong>{{scores.candidate2_text|safe}}</strong><small class="segment-label">- {{ candidate2_label }}</small></p>
                     </span>
 
             <div class="row half-slider target-box toggleable">

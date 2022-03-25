@@ -1817,11 +1817,15 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     # Get item scores from the latest corresponding results
     block_scores = []
     for item, result in zip(block_items, block_results):
+        # Get target texts with injected HTML tags showing diffs
+        _candidate1_text, _candidate2_text = item.target_texts_with_diffs()
         item_scores = {
             'completed': bool(result and result.score1 > -1),
             'current_item': bool(item.id == current_item.id),
             'score1': result.score1 if result else -1,
             'score2': result.score2 if result else -1,
+            'candidate1_text': _candidate1_text,
+            'candidate2_text': _candidate2_text,
         }
         block_scores.append(item_scores)
 
