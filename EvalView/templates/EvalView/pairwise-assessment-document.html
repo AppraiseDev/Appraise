@@ -389,7 +389,7 @@ function last_form() {
     var score1 = item_box.find('input[name="score1"]').val();
     var index = item_box.data('item-id');
     if (score1 == -1) {
-        alert('Please score1 the document translation. Thanks!');
+        alert('Please score the document translation. Thanks!');
         return false;
     }
     // It is a security check, but this should never occur, because the last
@@ -538,7 +538,7 @@ function _show_error_box(item_box, msg) {
                 </div>
                 <div class="col-sm-4">
                     <span title="Candidate translation A of source sentence #{{ item.itemID|add:"1" }}">
-                        <p class="source-box"><strong>{{item.target1Text|safe}}</strong><small class="segment-label">- Candidate translation A</small></p>
+                        <p class="source-box"><strong>{{item.target1Text|safe}}</strong><small class="segment-label">- {{ candidate1_label }}</small></p>
                     </span>
 
             <div class="row half-slider target-box toggleable">
@@ -556,7 +556,7 @@ function _show_error_box(item_box, msg) {
                 </div>
                 <div class="col-sm-4">
                     <span title="Candidate translation B of source sentence #{{ item.itemID|add:"1" }}">
-                        <p class="source-box"><strong>{{item.target2Text|safe}}</strong><small class="segment-label">- Candidate translation B</small></p>
+                        <p class="source-box"><strong>{{item.target2Text|safe}}</strong><small class="segment-label">- {{ candidate2_label }}</small></p>
                     </span>
 
             <div class="row half-slider target-box toggleable">
@@ -661,15 +661,30 @@ function _show_error_box(item_box, msg) {
 
         <div class="target-box document-box quotelike">
             <div class="row">
+            <div class="col-sm-6">
+                <small class="segment-label">{{ candidate1_label }}</small>
             {% if sqm %}
-                {% with sliderid=item.itemID %}
+                {% with sliderid=item.itemID slidernum=1 %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
-                {% with sliderid=item.itemID %}
+                {% with sliderid=item.itemID slidernum=1 %}
                 {% include 'EvalView/_slider.html' %}
                 {% endwith %}
             {% endif %}
+            </div>
+            <div class="col-sm-6">
+                <small class="segment-label">{{ candidate2_label }}</small>
+            {% if sqm %}
+                {% with sliderid=item.itemID slidernum=2 %}
+                {% include 'EvalView/_sqm_slider.html' %}
+                {% endwith %}
+            {% else %}
+                {% with sliderid=item.itemID slidernum=2 %}
+                {% include 'EvalView/_slider.html' %}
+                {% endwith %}
+            {% endif %}
+            </div>
             </div>
 
             <table class="action-box">
