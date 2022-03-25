@@ -145,6 +145,31 @@ class Command(BaseCommand):
             msg_info += ' for user {}'.format(username)
 
         ##################################################################
+        elif campaign_type == 'PairwiseDocument':
+            if len(scores) != 2:
+                raise ValueError('Task "PairwiseDocument" requires exactly 2 scores')
+
+            data = {
+                'score1': scores[0],
+                'score2': scores[1],
+                'item_id': response.context['item_id'],
+                'task_id': response.context['task_id'],
+                'document_id': response.context['document_id'],
+                'start_timestamp': (datetime.now() - timedelta(minutes=5)).timestamp(),
+                'end_timestamp': datetime.now().timestamp(),
+            }
+
+            msg_info = 'item {}/{}/{} with score(s) {}, {}'.format(
+                response.context['item_id'],
+                response.context['task_id'],
+                response.context['document_id'],
+                scores[0],
+                scores[1],
+            )
+
+            msg_info += ' for user {}'.format(username)
+
+        ##################################################################
         elif campaign_type == 'Document':
             if len(scores) != 1:
                 raise ValueError('Task "Document" requires exactly 1 score')
