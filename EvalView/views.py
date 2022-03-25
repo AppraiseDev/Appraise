@@ -1274,7 +1274,13 @@ def pairwise_assessment(request, code=None, campaign_name=None):
     }
     context.update(BASE_CONTEXT)
 
-    return render(request, 'EvalView/pairwise-assessment.html', context)
+    campaign_opts = campaign.campaignOptions or ""
+    if 'sqm' in campaign_opts.lower():
+        html_file = 'EvalView/pairwise-assessment-sqm.html'
+    else:
+        html_file = 'EvalView/pairwise-assessment.html'
+
+    return render(request, html_file, context)
 
 
 # pylint: disable=C0103,C0330
