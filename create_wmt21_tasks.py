@@ -1,12 +1,20 @@
 # pylint: disable=C0103,C0111,C0330,E1101
 import sys
-
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
+from collections import OrderedDict
 from glob import iglob
 from json import dumps as json_dumps
-from os.path import basename, join
-from random import choice, randint, seed, shuffle
-from typing import Any, Dict, List, Text, Tuple
+from os.path import basename
+from os.path import join
+from random import choice
+from random import randint
+from random import seed
+from random import shuffle
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Text
+from typing import Tuple
 
 from lxml import etree
 
@@ -557,7 +565,7 @@ if __name__ == "__main__":
 
         source_id = basename(XML_FILE)
 
-        items_data = []  # type: ignore ; It keeps items grouped into document
+        items_data: List[List[Dict[str, Any]]] = []  # Keeps items grouped into document
         _item = 0
         doc_counter = 0
         for doc_data in task:
@@ -690,7 +698,6 @@ if __name__ == "__main__":
         with open(json_file_name, mode='w', encoding='utf8') as out_file:
             sys.stdout.write(
                 'Creating {0}, batch no. {1} ... '.format(json_file_name, batch_id + 1),
-                ending='',
             )
             out_file.write(str(json_text))
             sys.stdout.write('OK\n')

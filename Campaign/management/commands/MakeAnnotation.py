@@ -3,13 +3,14 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 
 import django
-
-from django.core.management.base import BaseCommand, CommandError
-from django.test import Client
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 from django.template.response import SimpleTemplateResponse
+from django.test import Client
 
 from Campaign.utils import CAMPAIGN_TASK_TYPES
 from Dashboard.views import TASK_DEFINITIONS
@@ -56,7 +57,7 @@ class Command(BaseCommand):
         django.test.utils.setup_test_environment()
 
         # Create a client with a server name that is already in ALLOWED_HOSTS
-        client = Client(SERVER_NAME='localhost')
+        client = Client(SERVER_NAME='127.0.0.1')
         session = client.session
         session.save()
 
@@ -71,7 +72,7 @@ class Command(BaseCommand):
         self.stdout.write('Task type: {0!r}'.format(campaign_type))
         campaign_url = _get_task_url(campaign_type)
 
-        task_url = 'http://localhost:8000/{}/'.format(campaign_url)
+        task_url = 'http://127.0.0.1:8000/{}/'.format(campaign_url)
         self.stdout.write('Task URL: {0!r}'.format(task_url))
 
         try:
@@ -162,6 +163,30 @@ class Command(BaseCommand):
                 response.context['task_id'],
                 response.context['document_id'],
                 scores[0],
+                username,
+            )
+
+        ##################################################################
+        elif campaign_type == 'Data':
+            if len(scores) != 2:
+                raise ValueError(
+                    'Task "Data" requires exactly 1 score (0-100) and 1 label (1-4)'
+                )
+
+            data = {
+                'score': scores[0],
+                'rank': scores[1],
+                'item_id': response.context['item_id'],
+                'task_id': response.context['task_id'],
+                'start_timestamp': (datetime.now() - timedelta(minutes=5)).timestamp(),
+                'end_timestamp': datetime.now().timestamp(),
+            }
+
+            msg_info = 'item {}/{} with score {} and label {} for user {}'.format(
+                response.context['item_id'],
+                response.context['task_id'],
+                scores[0],
+                scores[1],
                 username,
             )
 
