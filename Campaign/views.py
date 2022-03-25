@@ -70,7 +70,10 @@ def campaign_status(request, campaign_name, sort_key=2):
                 createdBy=user, completed=True, task__campaign=campaign.id
             )
 
-            if result_type is PairwiseAssessmentResult or result_type is PairwiseAssessmentDocumentResult:
+            if (
+                result_type is PairwiseAssessmentResult
+                or result_type is PairwiseAssessmentDocumentResult
+            ):
                 _data = _data.values_list(
                     'start_time',
                     'end_time',

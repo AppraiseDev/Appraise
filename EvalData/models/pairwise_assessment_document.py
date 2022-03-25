@@ -34,6 +34,7 @@ class TextSegmentWithTwoTargetsWithContext(TextSegmentWithTwoTargets):
     """
     Models a pair of two text segments within a document context.
     """
+
     documentID = models.CharField(
         max_length=MAX_DOCUMENTID_LENGTH,
         verbose_name=_('Document ID'),

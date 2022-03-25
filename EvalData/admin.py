@@ -557,6 +557,7 @@ class DirectAssessmentDocumentTaskAdmin(DirectAssessmentContextTaskAdmin):
     """
     Model admin for DirectAssessmentDocumentTask instances.
     """
+
     pass
 
 
@@ -564,6 +565,7 @@ class DirectAssessmentDocumentResultAdmin(DirectAssessmentContextResultAdmin):
     """
     Model admin for DirectAssessmentDocumentResult instances.
     """
+
     pass
 
 
@@ -932,6 +934,8 @@ admin.site.register(MultiModalAssessmentResult, MultiModalAssessmentResultAdmin)
 admin.site.register(PairwiseAssessmentTask, PairwiseAssessmentTaskAdmin)
 admin.site.register(PairwiseAssessmentResult, PairwiseAssessmentResultAdmin)
 admin.site.register(PairwiseAssessmentDocumentTask, PairwiseAssessmentDocumentTaskAdmin)
-admin.site.register(PairwiseAssessmentDocumentResult, PairwiseAssessmentDocumentResultAdmin)
+admin.site.register(
+    PairwiseAssessmentDocumentResult, PairwiseAssessmentDocumentResultAdmin
+)
 admin.site.register(WorkAgenda, WorkAgendaAdmin)
 admin.site.register(TaskAgenda, TaskAgendaAdmin)

@@ -1593,7 +1593,9 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
 
     # If language code has been given, find a free task and assign to user.
     if not current_task:
-        current_task = PairwiseAssessmentDocumentTask.get_task_for_user(user=request.user)
+        current_task = PairwiseAssessmentDocumentTask.get_task_for_user(
+            user=request.user
+        )
 
     if not current_task:
         if code is None or campaign is None:
@@ -1647,7 +1649,9 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
 
         LOGGER.info('score1=%s, score2=%s, item_id=%s', score1, score2, item_id)
         print(
-            'Got request score1={0}, score2={1}, item_id={2}, ajax={3}'.format(score1, score2, item_id, ajax)
+            'Got request score1={0}, score2={1}, item_id={2}, ajax={3}'.format(
+                score1, score2, item_id, ajax
+            )
         )
 
         # If all required information was provided in the POST request
