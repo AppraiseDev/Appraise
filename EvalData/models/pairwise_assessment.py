@@ -28,6 +28,140 @@ from EvalData.models.base_models import *
 LOGGER = _get_logger(name=__name__)
 
 
+class TextSegmentWithTwoTargets(TextSegment):
+    """
+    Models a text segment with one or two sub-segments.
+    """
+
+    target1ID = models.CharField(
+        max_length=MAX_SEGMENTID_LENGTH,
+        verbose_name=_('Item ID (1)'),
+        help_text=_(f('(max. {value} characters)', value=MAX_SEGMENTID_LENGTH)),
+    )
+
+    target1Text = models.TextField(
+        blank=True,
+        verbose_name=_('Text (1)'),
+    )
+
+    target2ID = models.CharField(
+        null=True,
+        max_length=MAX_SEGMENTID_LENGTH,
+        verbose_name=_('Item ID (2)'),
+        help_text=_(f('(max. {value} characters)', value=MAX_SEGMENTID_LENGTH)),
+    )
+
+    target2Text = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name=_('Text (2)'),
+    )
+
+    contextLeft = models.TextField(
+        blank=True, null=True, verbose_name=_('Context (left)')
+    )
+
+    contextRight = models.TextField(
+        blank=True, null=True, verbose_name=_('Context (right)')
+    )
+
+    def has_context(self):
+        """Checks if the current segment has context provided."""
+        return self.contextLeft or self.contextRight
+
+    def context_left(self, last=5, separator=' '):
+        """
+        Returns formatted last 5 sentences from the left context.
+        Use separator='<br>' to show one sentence per line.
+        """
+        return (
+            separator.join(self.contextLeft.split('\n')[-last:])
+            if self.contextLeft
+            else ''
+        )
+
+    def context_right(self, first=5, separator=' '):
+        """
+        Returns formatted first 5 sentences from the right context.
+        Use separator='<br>' to show one sentence per line.
+        """
+        return (
+            separator.join(self.contextRight.split('\n')[:first])
+            if self.contextRight
+            else ''
+        )
+
+    def target_texts_with_diffs(self):
+        """
+        Returns the pair of texts with HTML tags highlighting token differences.
+        Both texts must be non empty.
+        HTML tags in both texts will be escaped automatically.
+
+        For example,
+            'a b c d e' and 'a B c e f'
+        will become:
+            'a <span class="diff diff-sub">b</span> c <span class="diff diff-del">d</span> e',
+            'a <span class="diff diff-sub">B</span> c e <span class="diff diff-ins">f</span>'
+        """
+        if not self.target1Text or not self.target2Text:
+            return (self.target1Text, self.target2Text)
+
+        toks1 = escape(self.target1Text).split()
+        toks2 = escape(self.target2Text).split()
+        matcher = SequenceMatcher(None, toks1, toks2)
+
+        text1 = ''
+        text2 = ''
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag == 'equal':
+                text1 += ' ' + ' '.join(toks1[i1:i2])
+                text2 += ' ' + ' '.join(toks2[j1:j2])
+            elif tag == 'replace':
+                text1 += (
+                    ' <span class="diff diff-sub">' + ' '.join(toks1[i1:i2]) + '</span>'
+                )
+                text2 += (
+                    ' <span class="diff diff-sub">' + ' '.join(toks2[j1:j2]) + '</span>'
+                )
+            elif tag == 'insert':
+                text2 += (
+                    ' <span class="diff diff-ins">' + ' '.join(toks2[j1:j2]) + '</span>'
+                )
+            elif tag == 'delete':
+                text1 += (
+                    ' <span class="diff diff-del">' + ' '.join(toks1[i1:i2]) + '</span>'
+                )
+        return (text1.strip(), text2.strip())
+
+    # pylint: disable=E1101
+    def is_valid(self):
+        """
+        Validates the current TextSegmentWithTwoTargets instance, checking
+        text.
+        """
+        if isinstance(self.target1Text, type('This is a test sentence.')):
+            return False
+
+        _len = len(self.target1Text)
+        if _len < 1 or _len > MAX_SEGMENTTEXT_LENGTH:
+            return False
+
+        if target2Text and len(target2Text) > 0:
+            if isinstance(self.target2Text, type('This is a test sentence.')):
+                return False
+
+            _len = len(self.target2Text)
+            if _len < 1 or _len > MAX_SEGMENTTEXT_LENGTH:
+                return False
+
+            # Texts must be different
+            if self.target1Text == self.target2Text:
+                return False
+
+        return super(TextSegmentWithTwoTargets, self).is_valid()
+
+
+>>>>>>> azure-webapp-dev
 @AnnotationTaskRegistry.register
 class PairwiseAssessmentTask(BaseMetadata):
     """
