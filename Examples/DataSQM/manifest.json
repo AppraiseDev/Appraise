@@ -1,0 +1,14 @@
+{
+    "CAMPAIGN_URL": "http://127.0.0.1:8000/dashboard/sso/",
+    "CAMPAIGN_NAME": "example8datasqm",
+    "CAMPAIGN_KEY": "c8",
+    "CAMPAIGN_NO": 8,
+    "REDUNDANCY": 1,
+
+    "TASKS_TO_ANNOTATORS": [
+        ["eng", "deu", "uniform",  2, 2]
+    ],
+
+    "TASK_TYPE": "Data",
+    "TASK_OPTIONS": "SQM;DisableMTLabels"
+}

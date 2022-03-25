@@ -1384,7 +1384,7 @@ def data_assessment(request, code=None, campaign_name=None):
     t2 = datetime.now()
     if request.method == "POST":
         score = request.POST.get('score', None)
-        rank = request.POST.get('rank', None)  # TODO: add to the model
+        rank = request.POST.get('rank', None)
         item_id = request.POST.get('item_id', None)
         task_id = request.POST.get('task_id', None)
         start_timestamp = request.POST.get('start_timestamp', None)
@@ -1395,9 +1395,7 @@ def data_assessment(request, code=None, campaign_name=None):
         print(_msg)
 
         if score is None:
-            print('No score provided, will no save!')
-        elif rank is None:
-            print('No rank provided, will no save!')
+            print('No score provided, will not save!')
         elif item_id and start_timestamp and end_timestamp:
             duration = float(end_timestamp) - float(start_timestamp)
             LOGGER.debug(float(start_timestamp))
@@ -1484,6 +1482,14 @@ def data_assessment(request, code=None, campaign_name=None):
 
     parallel_data = list(current_item.get_sentence_pairs())
 
+    campaign_opts = (campaign.campaignOptions or "").lower()
+    use_sqm = 'sqm' in campaign_opts
+
+    if any(opt in campaign_opts for opt in ['disablemtlabel', 'disablemtrank']):
+        ranks = None
+        rank_question_text = None
+        score_question_text[0] = score_question_text[0][13:]  # remove 'Question #1: '
+
     context = {
         'active_page': 'data-assessment',
         'source_label': source_label,
@@ -1493,6 +1499,7 @@ def data_assessment(request, code=None, campaign_name=None):
         'score_question_text': score_question_text,
         'rank_question_text': rank_question_text,
         'ranks': ranks,
+        'sqm': use_sqm,
         'item_id': current_item.itemID,
         'task_id': current_item.id,
         'document_domain': current_item.documentDomain,
