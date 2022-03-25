@@ -106,6 +106,7 @@ $(document).ready(function() {
     // Bind click events
     $('.slider').slider({orientation: "horizontal", range: "min", change: update_score });
     $('.button-reset').click(reset_form);
+    $('.button-match').click(match_sliders);
     if (ENABLE_UNRESTRICTED_ANNOTATION) {
         $('.source-box').clickToggle(_show_target_box, _hide_target_box);
     } else {
@@ -128,7 +129,7 @@ $(document).ready(function() {
             // Show a tick icon
             item_box.find('.source-btn-done').show();
             var score1 = $(this).val();
-            item_box.find('.slider').slider('value', score1);
+            item_box.find('.slider1').slider('value', score1);
             // Change submit button label to 'Update'
             item_box.find('button[name="next_button"]').text('Update');
         } else if(next_item === undefined) {
@@ -227,6 +228,7 @@ function update_score() {
 }
 
 function reset_form() {
+    // TODO: fix it for two sliders
     var item_box = $(this).closest('.item-box');
     // Reset timestamp
     idleTime = 0;
@@ -237,12 +239,8 @@ function reset_form() {
         item_box.find('.slider').slider('option', 'value', 0);
         item_box.find('.source-btn-done').hide();
         item_box.find('.preview-box').addClass('inactive');
-        item_box.find('.score-box').hide();
-        //item_box.find('.score-box').html('');
     } else { // i.e. updating the score
         item_box.find('.slider').slider('option', 'value', last_score);
-        //_color_score_box(item_box, last_score);
-        //item_box.find('.score-box').show().html(last_score);
     }
     item_box.find('input[name="score1"]').val(last_score);
 }
@@ -437,6 +435,13 @@ function close_all_items_except_current() {
     });
 }
 
+function match_sliders() {
+    var item_box = $(this).closest('.item-box');
+    var score1_box = item_box.find('input[name="score1"]');
+    var slider2 = $('#' + score1_box.attr('id').replace('score1', 'slider2'));
+    slider2.slider('option', 'value', score1_box.val());
+}
+
 function _show_error_box(item_box, msg) {
     // A hideable error box with a custom message displayed right above the item box
     item_box.before(
@@ -576,20 +581,10 @@ function _show_error_box(item_box, msg) {
                     <span class="source-btn-done glyphicon glyphicon-ok"></span>
 
                     <div class="target-box toggleable">
-                        <button class="btn button-reset"
-                                accesskey="2"
-                                type="reset">
-                            <i class="icon-repeat"></i> Reset</button>
-                        <button class="btn button-align"
-                                accesskey="3"
-                                type="button">
-                            <i class="icon-repeat"></i> Match</button>
-                        <button class="btn button-next btn-primary"
-                                name="next_button"
-                                accesskey="1"
-                                type="submit"
-                                value="{{ item.itemID }}">
-                            <i class="icon-ok-sign icon-white"></i> Submit</button>
+                        <button class="btn button-reset" accesskey="2" type="reset">Reset</button>
+                        <button class="btn button-match" accesskey="3" type="button">Match</button>
+                        <button class="btn button-next btn-primary" name="next_button" accesskey="1"
+                                type="submit" value="{{ item.itemID }}">Submit</button>
                      </div>
 
                 </div>
@@ -690,20 +685,11 @@ function _show_error_box(item_box, msg) {
             <table class="action-box">
                 <tr>
                     <td style="width:70%;text-align:left;">
-                        <button id="reset{{ item.itemID }}"
-                                class="btn button-reset"
-                                accesskey="2"
-                                type="reset">
-                            <i class="icon-repeat"></i> Reset</button>
+                        <button id="reset{{ item.itemID }}" class="btn button-reset" accesskey="2" type="reset">Reset</button>
                     </td>
                     <td style="width:30%;text-align:right;">
-                        <button id="button-doc"
-                                class="btn button-next btn-primary"
-                                name="next_button"
-                                accesskey="1"
-                                type="submit"
-                                value="{{ item.itemID }}">
-                            <i class="icon-ok-sign icon-white"></i> Submit</button>
+                        <button id="button-doc" class="btn button-next btn-primary" name="next_button" accesskey="1"
+                                type="submit" value="{{ item.itemID }}">Submit</button>
                     </td>
                 </tr>
             </table>
