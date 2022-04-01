@@ -16,7 +16,7 @@
 
 .question-box { margin-bottom:10px; }
 .question-box p { font-size: 120%; margin: 10px 0 20px; font-style: italic; color: #31708f; }
-.question-box li { font-size: 100%; font-style: italic; color: #31708f; }
+.question-box li { font-size: 120%; color: #31708f; }
 .document-box { padding-top: 10px; }
 .document-box p { font-size: 16px; }
 
@@ -457,7 +457,9 @@ function _show_error_box(item_box, msg) {
             <p>{{text|safe}}</p>
             {% endfor %}
             {% if sqm %}
-            {% include 'EvalView/_sqm_instructions.html' %}
+              {% with speech=speech %}
+              {% include 'EvalView/_sqm_instructions.html' %}
+              {% endwith %}
             {% endif %}
         </div>
     </div>
@@ -530,7 +532,7 @@ function _show_error_box(item_box, msg) {
         <div class="target-box toggleable" >
             <div class="row">
             {% if sqm %}
-                {% with sliderid=item.itemID %}
+                {% with sliderid=item.itemID speech=speech %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
@@ -578,7 +580,7 @@ function _show_error_box(item_box, msg) {
         <div class="target-box document-box quotelike">
             <div class="row">
             {% if sqm %}
-                {% with sliderid=item.itemID %}
+                {% with sliderid=item.itemID speech=speech %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
