@@ -856,17 +856,19 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             'Please take into consideration the following aspects when assessing the translation quality:',
             '<ul>'
             '<li>The document is part of a conversation thread between two speakers, '
-              'and each segment starts with either "A:" or "B:" to indicate the '
-              'speaker identity.</li>'
+            'and each segment starts with either "A:" or "B:" to indicate the '
+            'speaker identity.</li>'
             '<li>Some segments may contain "%pw" or "% pw" -- these correspond to '
-              'partial words in the speech and should be ignored during evaluation.</li>'
+            'partial words in the speech and should be ignored during evaluation.</li>'
             '<li>Please ignore the lack of capitalization and punctuation. Also, '
-              'please ignore "incorrect" grammar and focus more on the meaning: '
-              'these segments are informal conversations, so grammatical rules are '
-              'not so strict.</li>'
-            ]
+            'please ignore "incorrect" grammar and focus more on the meaning: '
+            'these segments are informal conversations, so grammatical rules are '
+            'not so strict.</li>',
+        ]
         if current_task.marketSourceLanguageCode() == "aeb":
-            priming_question_texts[-1] += '<li>The original source is Tunisian Arabic speech. There may be some variation in the transcription.</li>'
+            priming_question_texts[
+                -1
+            ] += '<li>The original source is Tunisian Arabic speech. There may be some variation in the transcription.</li>'
         priming_question_texts[-1] += '</ul>'
 
     # A part of context used in responses to both Ajax and standard POST
