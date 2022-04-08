@@ -871,6 +871,19 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             ] += '<li>The original source is Tunisian Arabic speech. There may be some variation in the transcription.</li>'
         priming_question_texts[-1] += '</ul>'
 
+    # Special instructions for IWSLT 2022 isometric task
+    if 'iwslt2022isometric' in campaign_opts:
+        priming_question_texts += [
+            'Please take into consideration the following aspects when assessing the translation quality:',
+            '<ul>'
+            '<li>The source texts come from transcribed video content published on YouTube.</li>'
+            '<li>Transcribed sentences have been split into segments based on pauses in the audio. It may happen that a single source sentence is split into multiple segments.</li>'
+            '<li>Please score each segment (including very short segments) individually with regard to the source segment and the surrounding context.</li>'
+            '<li>Take into account both grammar and meaning when scoring the segments.</li>'
+            '<li>Please pay attention to issues like repeated or new content in the candidate translation, which is not present in the source text.</li>'
+            '</ul>',
+        ]
+
     # A part of context used in responses to both Ajax and standard POST
     # requests
     context = {
