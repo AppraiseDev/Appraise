@@ -847,7 +847,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'Score each candidate sentence translation in the document context. '
         'You may revisit already scored sentences and update their scores at any time '
         'by clicking at a source text.'.format(
-            len(block_items), source_language, target_language
+            len(block_items) - 1, source_language, target_language
         ),
         'Assess the translation quality answering the question: ',
         'How accurately does the candidate text (right column, in bold) convey the '
