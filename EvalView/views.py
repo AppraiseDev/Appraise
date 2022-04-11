@@ -781,6 +781,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     t3 = datetime.now()
 
+    campaign_opts = (campaign.campaignOptions or "").lower()
+
     # Get all items from the document that the first unannotated item in the
     # task belongs to, and collect some additional statistics
     (
@@ -799,13 +801,32 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     # Get item scores from the latest corresponding results
     block_scores = []
+    _prev_item = None
     for item, result in zip(block_items, block_results):
         item_scores = {
             'completed': bool(result and result.score > -1),
             'current_item': bool(item.id == current_item.id),
             'score': result.score if result else -1,
         }
+
+        # This is a hot fix for a bug in the IWSLT2022 Isometric Task batches,
+        # where the document ID wasn't correctly incremented.
+        # TODO: delete after the campaign is finished or fix all documents in DB
+        if (
+            'iwslt2022isometric' in campaign_opts
+            and item.isCompleteDocument
+            and item.itemID != (_prev_item.itemID + 1)
+        ):
+            item.itemID += 1
+            item.save()
+            _msg = 'Self-repaired the document item {} for user {}'.format(
+                item, request.user.username
+            )
+            print(_msg)
+            LOGGER.info(_msg)
+
         block_scores.append(item_scores)
+        _prev_item = item
 
     # completed_items_check = current_task.completed_items_for_user(
     #     request.user)
@@ -841,7 +862,6 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'in {1} (left column)? '.format(target_language, source_language),
     ]
 
-    campaign_opts = (campaign.campaignOptions or "").lower()
     speech_translation = 'speechtranslation' in campaign_opts
 
     use_sqm = 'sqm' in campaign_opts
