@@ -821,25 +821,33 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     candidate_label = 'Candidate translation'
 
     priming_question_texts = [
-        'Below you see a document with {0} sentences in {1} '
-        'and their corresponding candidate translations in {2}. '
-        'Score each candidate translation in the document context, answering the question: '.format(
+        'Below you see a document with {0} sentences in {1} (left columns) '
+        'and their corresponding candidate translations in {2} (right columns). '
+        'Score each candidate sentence translation in the document context. '
+        'You may revisit already scored sentences and update their scores at any time '
+        'by clicking at a source text.'.format(
             len(block_items), source_language, target_language
         ),
-        'How accurately does the candidate text (right column, in bold) convey '
-        'the original semantics of the source text (left column) in the document context? ',
-        'You may revisit already scored sentences and update their scores at any time '
-        'by clicking at a source text.',
+        'Assess the translation quality answering the question: ',
+        'How accurately does the candidate text (right column, in bold) convey the '
+        'original semantics of the source text (left column) in the document context? ',
     ]
     document_question_texts = [
-        'Please score the document translation above answering the question '
-        '(you can score the entire document only after scoring all previous sentences):',
-        'How accurately does the <strong>entire</strong> candidate document in '
-        '{0} (right column) convey '
-        'the original semantics of the source document in {1} (left column)? '.format(
-            target_language, source_language
-        ),
+        'Please score the overall document translation quality (you can score '
+        'the whole document only after scoring all individual sentences first).',
+        'Answer the question: ',
+        'Assess the translation quality answering the question: ',
+        'How accurately does the <strong>entire</strong> candidate document translation '
+        'in {0} (right column) convey the original semantics of the source document '
+        'in {1} (left column)? '.format(target_language, source_language),
     ]
+
+    campaign_opts = (campaign.campaignOptions or "").lower()
+    use_sqm = 'sqm' in campaign_opts
+
+    if use_sqm:
+        priming_question_texts = priming_question_texts[:1]
+        document_question_texts = document_question_texts[:1]
 
     # A part of context used in responses to both Ajax and standard POST
     # requests
@@ -858,6 +866,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'campaign': campaign.campaignName,
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
+        'sqm': use_sqm,
     }
 
     if ajax:
@@ -1274,7 +1283,13 @@ def pairwise_assessment(request, code=None, campaign_name=None):
     }
     context.update(BASE_CONTEXT)
 
-    return render(request, 'EvalView/pairwise-assessment.html', context)
+    campaign_opts = campaign.campaignOptions or ""
+    if 'sqm' in campaign_opts.lower():
+        html_file = 'EvalView/pairwise-assessment-sqm.html'
+    else:
+        html_file = 'EvalView/pairwise-assessment.html'
+
+    return render(request, html_file, context)
 
 
 # pylint: disable=C0103,C0330
@@ -1378,7 +1393,7 @@ def data_assessment(request, code=None, campaign_name=None):
     t2 = datetime.now()
     if request.method == "POST":
         score = request.POST.get('score', None)
-        rank = request.POST.get('rank', None)  # TODO: add to the model
+        rank = request.POST.get('rank', None)
         item_id = request.POST.get('item_id', None)
         task_id = request.POST.get('task_id', None)
         start_timestamp = request.POST.get('start_timestamp', None)
@@ -1389,9 +1404,7 @@ def data_assessment(request, code=None, campaign_name=None):
         print(_msg)
 
         if score is None:
-            print('No score provided, will no save!')
-        elif rank is None:
-            print('No rank provided, will no save!')
+            print('No score provided, will not save!')
         elif item_id and start_timestamp and end_timestamp:
             duration = float(end_timestamp) - float(start_timestamp)
             LOGGER.debug(float(start_timestamp))
@@ -1478,6 +1491,14 @@ def data_assessment(request, code=None, campaign_name=None):
 
     parallel_data = list(current_item.get_sentence_pairs())
 
+    campaign_opts = (campaign.campaignOptions or "").lower()
+    use_sqm = 'sqm' in campaign_opts
+
+    if any(opt in campaign_opts for opt in ['disablemtlabel', 'disablemtrank']):
+        ranks = None
+        rank_question_text = None
+        score_question_text[0] = score_question_text[0][13:]  # remove 'Question #1: '
+
     context = {
         'active_page': 'data-assessment',
         'source_label': source_label,
@@ -1487,6 +1508,7 @@ def data_assessment(request, code=None, campaign_name=None):
         'score_question_text': score_question_text,
         'rank_question_text': rank_question_text,
         'ranks': ranks,
+        'sqm': use_sqm,
         'item_id': current_item.itemID,
         'task_id': current_item.id,
         'document_domain': current_item.documentDomain,

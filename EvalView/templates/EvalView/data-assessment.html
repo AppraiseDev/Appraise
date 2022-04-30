@@ -85,11 +85,17 @@ function reset_form() {
 
 function validate_form() {
     var score = $('input[name="score"]').val();
-    var radio = $('input[name="rank"]:checked');
-    if (score == -1 || radio.length == 0) {
-        alert('Please score the given document translation and decide if it is human or machine translated. Thanks!');
+    if (score == -1) {
+        alert('Please score the given document translation. Thanks!');
         return false;
     }
+    {% if ranks %}
+    var radio = $('input[name="rank"]:checked');
+    if (score == -1 || radio.length == 0) {
+        alert('Please score the given document translation and decide if it is machine or human translated. Thanks!');
+        return false;
+    }
+    {% endif %}
     return true;
 }
 
@@ -190,7 +196,7 @@ function update_score() {
             </div>
             <div class="col-sm-6">
                 <span title="Target sentence #{{ forloop.counter }}">
-                    <p>{{ target_text|escape }}</p>
+                    <p><i>{{ target_text|escape }}</i></p>
                 </span>
             </div>
         </div>
@@ -209,24 +215,19 @@ function update_score() {
     </div>
     {% endif %}
 
-    <div class="slider-box">
-        <div class="row">
-            <div class="col-sm-12">
-                <div id="slider"></div>
-                <table class="slider-grid">
-                    <tr>
-                        <td style="width:20%;text-align: right;"><small>&larr; Not at all</small></td>
-                        <td style="width:5%;text-align: right;">|</td>
-                        <td style="width:25%;text-align: right;">|</td>
-                        <td style="width:25%;text-align: right;">|</td>
-                        <td style="width:5%;text-align: right;"></td>
-                        <td style="width:20%;text-align: left;"><small>Perfectly &rarr;</small></td>
-                    </tr>
-                </table>
-            </div>
-        </div>
+    <div class="row">
+    {% if sqm %}
+      {% with sliderid='' %}
+      {% include 'EvalView/_sqm_slider.html' %}
+      {% endwith %}
+    {% else %}
+      {% with sliderid='' %}
+      {% include 'EvalView/_slider.html' %}
+      {% endwith %}
+    {% endif %}
     </div>
 
+    {% if ranks %}
     {% if rank_question_text %}
     <div class="question-box">
         <div class="row">
@@ -253,28 +254,26 @@ function update_score() {
             {% endfor %}
         </div>
     </div>
+    {% endif %}
 
     <table class="action-box">
         <tr>
             <td style="width:70%;text-align:left;">
-                <button accesskey="2"
-                        class="btn button-reset"
-                        onclick="javascript:reset_form();"
-                        type="reset">
+                <button accesskey="2" class="btn button-reset"
+                        onclick="javascript:reset_form();" type="reset">
                     <i class="icon-repeat"></i> Reset</button>
             </td>
             <td style="width:30%;text-align:right;">
-                <button accesskey="1"
-                        class="btn button-next btn-primary"
-                        name="submit_button"
-                        onclick="javascript:return validate_form();"
-                        type="submit"
-                        value="SUBMIT">
+                <button accesskey="1" class="btn button-next btn-primary" name="submit_button"
+                        onclick="javascript:return validate_form();" type="submit" value="SUBMIT">
                     <i class="icon-ok-sign icon-white"></i> Submit</button>
             </td>
         </tr>
     </table>
 
+    {% if sqm %}
+    {% include 'EvalView/_sqm_instructions.html' %}
+    {% endif %}
 </form>
 
 {% endblock %}
