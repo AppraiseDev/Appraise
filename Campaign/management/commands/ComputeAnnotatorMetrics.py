@@ -1,8 +1,7 @@
+import sys
 from collections import defaultdict
 from collections import OrderedDict
 from json import loads
-
-import sys
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
