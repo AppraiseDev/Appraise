@@ -1459,25 +1459,29 @@ def data_assessment(request, code=None, campaign_name=None):
     source_label = 'Source text'
     target_label = 'Translation'
     top_question_text = [
-        'You are presented a fragment of a document in {} and {}. '.format(
-            source_language, target_language
+        'You are presented a fragment of a document in {src} and {trg}. '.format(
+            src=source_language, trg=target_language
         ),
-        'Please judge the quality of the translations (taking in to '
-        'account aspects like adequacy, fluency, writing ability, '
-        'orthography, style, misalignments, etc.) on a scale from '
-        'poor (left) to perfect (right).',
+        'Please judge the quality of the translations between the documents on a scale from poor (left) to perfect (right), '
+        'taking in to account aspects like adequacy, fluency, writing ability, orthography, style, misalignments, etc. ',
+        'Please consider these aspects in both the {src} and {trg} part. '
+        'For example, poor fluency in the {src} fragment is a problem too. '
+        'While you may use the context from the other sentences in the document, '
+        'the translations need to be correct at the sentence level.'.format(
+            src=source_language, trg=target_language
+        ),
     ]
     score_question_text = [
         'Question #1: '
-        'What is the quality of the translations, taking in to '
-        'account aspects like adequacy, fluency, writing ability, '
-        'orthography, style, misalignments, etc.?'
+        'What is the quality of the translations, taking in to account aspects like '
+        'adequacy, fluency, writing ability, orthography, style, misalignments, etc.?'
     ]
     rank_question_text = [
         'Question #2: '
-        'Do you think any part of the translated text (left or right) '
-        'has been created by machine translation rather than written '
-        'by a human?'
+        'Do you think any of the sentences ({src} or {trg}) '
+        'were created by machine translation, rather than written by a human?'.format(
+            src=source_language, trg=target_language
+        ),
     ]
 
     # There should be exactly 4 ranks, otherwise change 'col-sm-3' in the HTML view.
