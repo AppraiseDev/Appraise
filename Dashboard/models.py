@@ -14,6 +14,7 @@ from django.db.utils import ProgrammingError
 # pylint: disable=import-error
 
 LANGUAGE_CODES_AND_NAMES = {
+    'aeb': 'Tunisian Arabic (تونسي)',
     'ces': 'Czech (čeština)',
     'zho': 'Chinese (中文)',
     'eng': 'English',
@@ -205,7 +206,6 @@ LANGUAGE_CODES_AND_NAMES = {
     'pus': 'Pashto (پښتو)',
     'lzh': 'Classical Chinese (文言文)',
     'chv': 'Chuvash (Чӑвашла)',
-    'aeb': 'Tunisian Arabic',
 }
 
 # Ensure that all languages have a corresponding group.
