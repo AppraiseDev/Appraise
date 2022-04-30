@@ -517,7 +517,7 @@ if __name__ == "__main__":
     _all_tasks = []
     for _tup in sampled_tasks:
         _all_tasks += list(_tup)
-    _docs_by_sys = Dict[str, List[Any]]
+    _docs_by_sys: Dict[str, Any] = {}
     for (_, docid, sysid) in _all_tasks:
         if sysid not in _docs_by_sys:
             _docs_by_sys[sysid] = []
