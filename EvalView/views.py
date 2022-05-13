@@ -783,6 +783,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     t3 = datetime.now()
 
+    campaign_opts = (campaign.campaignOptions or "").lower()
+
     # Get all items from the document that the first unannotated item in the
     # task belongs to, and collect some additional statistics
     (
@@ -801,13 +803,32 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     # Get item scores from the latest corresponding results
     block_scores = []
+    _prev_item = None
     for item, result in zip(block_items, block_results):
         item_scores = {
             'completed': bool(result and result.score > -1),
             'current_item': bool(item.id == current_item.id),
             'score': result.score if result else -1,
         }
+
+        # This is a hot fix for a bug in the IWSLT2022 Isometric Task batches,
+        # where the document ID wasn't correctly incremented.
+        # TODO: delete after the campaign is finished or fix all documents in DB
+        if (
+            'iwslt2022isometric' in campaign_opts
+            and item.isCompleteDocument
+            and item.itemID != (_prev_item.itemID + 1)
+        ):
+            item.itemID += 1
+            item.save()
+            _msg = 'Self-repaired the document item {} for user {}'.format(
+                item, request.user.username
+            )
+            print(_msg)
+            LOGGER.info(_msg)
+
         block_scores.append(item_scores)
+        _prev_item = item
 
     # completed_items_check = current_task.completed_items_for_user(
     #     request.user)
@@ -828,7 +849,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'Score each candidate sentence translation in the document context. '
         'You may revisit already scored sentences and update their scores at any time '
         'by clicking at a source text.'.format(
-            len(block_items), source_language, target_language
+            len(block_items) - 1, source_language, target_language
         ),
         'Assess the translation quality answering the question: ',
         'How accurately does the candidate text (right column, in bold) convey the '
@@ -843,12 +864,47 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'in {1} (left column)? '.format(target_language, source_language),
     ]
 
-    campaign_opts = (campaign.campaignOptions or "").lower()
-    use_sqm = 'sqm' in campaign_opts
+    speech_translation = 'speechtranslation' in campaign_opts
 
+    use_sqm = 'sqm' in campaign_opts
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
         document_question_texts = document_question_texts[:1]
+
+    # Special instructions for IWSLT 2022 dialect task
+    if 'iwslt2022dialectsrc' in campaign_opts:
+        speech_translation = True
+        priming_question_texts += [
+            'Please take into consideration the following aspects when assessing the translation quality:',
+            '<ul>'
+            '<li>The document is part of a conversation thread between two speakers, '
+            'and each segment starts with either "A:" or "B:" to indicate the '
+            'speaker identity.</li>'
+            '<li>Some candidate translations may contain "%pw" or "% pw", but since they correspond to '
+            'partial words in the speech they should not be considered as errors during evaluation.</li>'
+            '<li>Please ignore the lack of capitalization and punctuation. Also, '
+            'please ignore "incorrect" grammar and focus more on the meaning: '
+            'these segments are informal conversations, so grammatical rules are '
+            'not so strict.</li>',
+        ]
+        if current_task.marketSourceLanguageCode() == "aeb":
+            priming_question_texts[
+                -1
+            ] += '<li>The original source is Tunisian Arabic speech. There may be some variation in the transcription.</li>'
+        priming_question_texts[-1] += '</ul>'
+
+    # Special instructions for IWSLT 2022 isometric task
+    if 'iwslt2022isometric' in campaign_opts:
+        priming_question_texts += [
+            'Please take into consideration the following aspects when assessing the translation quality:',
+            '<ul>'
+            '<li>The source texts come from transcribed video content published on YouTube.</li>'
+            '<li>Transcribed sentences have been split into segments based on pauses in the audio. It may happen that a single source sentence is split into multiple segments.</li>'
+            '<li>Please score each segment (including very short segments) individually with regard to the source segment and the surrounding context.</li>'
+            '<li>Take into account both grammar and meaning when scoring the segments.</li>'
+            '<li>Please pay attention to issues like repeated or new content in the candidate translation, which is not present in the source text.</li>'
+            '</ul>',
+        ]
 
     # A part of context used in responses to both Ajax and standard POST
     # requests
@@ -868,6 +924,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
         'sqm': use_sqm,
+        'speech': speech_translation,
     }
 
     if ajax:
