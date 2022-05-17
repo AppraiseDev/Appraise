@@ -6,5 +6,5 @@ if [ "$?" -gt "0" ]; then
   curl https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
   sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
   apt-get update
-  apt install -y postgresql-client-11
+  apt-get install -y postgresql-client-11
 fi
