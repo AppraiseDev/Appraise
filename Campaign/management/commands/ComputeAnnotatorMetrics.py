@@ -1,3 +1,4 @@
+import sys
 from collections import defaultdict
 from collections import OrderedDict
 from json import loads
@@ -10,6 +11,8 @@ from Campaign.models import Campaign
 from EvalData.models import DirectAssessmentResult
 from EvalData.models import DirectAssessmentTask
 
+DEBUG = True
+
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
@@ -20,6 +23,7 @@ class Command(BaseCommand):
             'campaign_name',
             type=str,
             help='Name of the campaign you want to process data for',
+            nargs='?',
         )
         parser.add_argument(
             '--csv-file',
@@ -32,6 +36,12 @@ class Command(BaseCommand):
             help='User IDs which should be ignored',
         )
         parser.add_argument(
+            '--task-type',
+            type=str,
+            default='Direct',
+            help='Task type, e.g. Document, default: Direct',
+        )
+        parser.add_argument(
             '--export-csv',
             action='store_true',
             help='Exports CSV data in machine readable format',
@@ -41,6 +51,12 @@ class Command(BaseCommand):
             type=float,
             default=0.5,
             help='Absolute z threshold below which CHK items are equal',
+        )
+        parser.add_argument(
+            '--p-value',
+            type=float,
+            default=0.0,
+            help='Prints user IDs who did not pass the quality control',
         )
         # TODO: add argument to specify batch user
 
@@ -54,12 +70,13 @@ class Command(BaseCommand):
         )
         export_csv = options['export_csv']
         chk_threshold = options['chk_threshold']
+        p_value = options['p_value']
 
         user_scores = defaultdict(list)
         if csv_file:
             if not export_csv:
                 _msg = 'Processing annotations in file {0}\n\n'.format(csv_file)
-                self.stdout.write(_msg)
+                self.stderr.write(_msg)
 
             # Need to load data from CSV file and bring into same
             # format as would have been produced by the call to
@@ -78,7 +95,11 @@ class Command(BaseCommand):
                         continue
 
                     _system_id = csv_line[1]
-                    _segment_id = csv_line[2]
+                    if options['task_type'] == 'Document':
+                        # segment ID + document ID
+                        _segment_id = csv_line[2] + ':' + csv_line[7]
+                    else:
+                        _segment_id = csv_line[2]
                     _type = csv_line[3]
                     _src = csv_line[4]
                     _tgt = csv_line[5]
@@ -153,6 +174,15 @@ class Command(BaseCommand):
 
         user_scores = user_z_scores
 
+        if DEBUG:
+            _msg = "Computed standardized scores for {} users\n".format(
+                len(user_scores)
+            )
+            sys.stderr.write(_msg)
+            _k = list(user_scores.keys())[0]
+            sys.stderr.write("  Example: {}\n\n".format(user_scores[_k][0]))
+            _debug = 0
+
         metrics = defaultdict(list)
         for key, values in user_scores.items():
             _sorted = [(x[3], x[2]) for x in values]
@@ -170,21 +200,26 @@ class Command(BaseCommand):
                 _fourScore = x[3]  # min(int(x[3]/25.) + 1, 4)
                 _scores[_key].append((_fourScore, x[2]))
 
+            if DEBUG and _debug == 0:
+                sys.stderr.write("User: {}\n".format(key))
+                sys.stderr.write("  Has {} scores\n".format(len(_scores)))
+                if _scores:
+                    _k = list(_scores.keys())[0]
+                    _msg = "  Example BAD/REF: {} => {}\n".format(_k, _scores[_k])
+                    sys.stderr.write(_msg)
+                _debug += 1
+
             _x = []
             _y = []
             _lower_refs = 0
             _upper_refs = 0
             for item in _scores.items():
-                # print(item[0])
                 if len(item[1]) == 2:
                     _data = item[1]
                     _data.sort(key=lambda x: x[1])
-                    # print(_data)
                     if _data[0][1] == 'BAD' and _data[1][1] == 'REF':
                         _x.append(_data[0][0])
                         _y.append(_data[1][0])
-                    # else:
-                    #     print(_data)
                 continue
 
                 if item[0] > _median_score:
@@ -204,16 +239,20 @@ class Command(BaseCommand):
                 _fourScore = x[3]  # min(int(x[3]/25.) + 1, 4)
                 _scores[_key].append((_fourScore, x[2]))
 
+            if DEBUG and _debug == 1:
+                _msg = "  Example TGT/CHK: {} => {}\n".format(_k, _scores[_k])
+                sys.stderr.write(_msg)
+                _debug += 1
+
             _potential = 0
             _matches = 0
             _deltas = []
             _x = []
             _y = []
             for item in _scores.items():
-                if len(item[1]) == 2:
+                if len(item[1]) >= 2:
                     _data = item[1]
                     _data.sort(key=lambda x: x[1])
-                    # print(_data)
                     _x.append(_data[0][0])
                     _y.append(_data[1][0])
 
@@ -236,15 +275,29 @@ class Command(BaseCommand):
                 _key = '{0}-{1}'.format(x[0], x[1])
                 _scores[_key].append((x[3], x[2]))
 
+            if DEBUG and _debug == 2:
+                _msg = "  Example TGT/BAD: {} => {}\n\n".format(_k, _scores[_k])
+                sys.stderr.write(_msg)
+                _debug += 1
             deltas = []
             _x = []
             _y = []
             for item in _scores.items():
-                if len(item[1]) == 2:
+                if len(item[1]) >= 2:
                     _data = item[1]
                     _data.sort(key=lambda x: x[1])
-                    _x.append(_data[0][0])
-                    _y.append(_data[1][0])
+                    if _data[0][1] == 'BAD' and _data[1][1] == 'TGT':
+                        _x.append(_data[0][0])
+                        _y.append(_data[1][0])
+                        # Take average of TGT scores
+                        # avg_y = sum(pair[0] for pair in _data[1:]) / float(len(_data[1:]))
+                        # _y.append(avg_y)
+                        if DEBUG and _debug == 3:
+                            sys.stderr.write(f"  Item: {item}\n")
+                            sys.stderr.write(f"  Data sorted: {_data}\n")
+                            sys.stderr.write(f"    x: {_x}\n")
+                            sys.stderr.write(f"    y: {_y}\n")
+                            _debug += 1
                     deltas.append(_data[0][0] - _data[1][0])
 
             # metrics[key].append(deltas)
@@ -274,9 +327,12 @@ class Command(BaseCommand):
                     _y.append(_i[1])
                     _deltas.append(_i[0] - _i[1])
 
-                t, pvalue = stats.mannwhitneyu(_x, _y, alternative='less')
-                # t, pvalue = stats.wilcoxon(_deltas, correction=True)
-                metric1 = pvalue
+                if len(_x) == 0:
+                    matric1 = 1.0
+                else:
+                    t, pvalue = stats.mannwhitneyu(_x, _y, alternative='less')
+                    # t, pvalue = stats.wilcoxon(_deltas, correction=True)
+                    metric1 = pvalue
 
                 _x = []
                 _y = []
@@ -284,9 +340,12 @@ class Command(BaseCommand):
                     _x.append(_i[0])
                     _y.append(_i[1])
 
-                t, pvalue = stats.mannwhitneyu(_x, _y, alternative='two-sided')
-                #                t, pvalue = stats.wilcoxon(value[1], correction=True)
-                metric2 = pvalue
+                # if len(_x) == 0:
+                # matric2 = 1.0
+                # else:
+                # t, pvalue = stats.mannwhitneyu(_x, _y, alternative='two-sided')
+                # # t, pvalue = stats.wilcoxon(value[1], correction=True)
+                # metric2 = pvalue
 
                 _x = []
                 _y = []
@@ -294,19 +353,29 @@ class Command(BaseCommand):
                     _x.append(_i[0])
                     _y.append(_i[1])
 
-                t, pvalue = stats.mannwhitneyu(_x, _y, alternative='less')
-                # t, pvalue = stats.wilcoxon(value[2], correction=True)
-                metric3 = pvalue
+                if len(_x) == 0:
+                    metric3 = 1.0
+                elif all([_x[i] == _y[i] for i in range(len(_x))]):
+                    metric3 = 1.0
+                else:
+                    t, pvalue = stats.mannwhitneyu(_x, _y, alternative='less')
+                    # t, pvalue = stats.wilcoxon(_x, _y, correction=True)
+                    metric3 = pvalue
 
             except ImportError:
+                sys.stderr.write("NO SCIPY!")
                 pass
 
             if not export_csv:
-                print(
-                    "{0}\t{1:.5f}\t{2:.5f}\t{3:f}\t{4:3d}".format(
-                        key, metric1, metric2, metric3, metric4
+                if p_value > 0:
+                    if metric1 >= p_value or metric2 >= p_value or metric3 >= p_value:
+                        print(key[8:])
+                else:
+                    print(
+                        "{0}\t{1:.5f}\t{2:.5f}\t{3:f}\t{4:3d}".format(
+                            key, metric1, metric2, metric3, metric4
+                        )
                     )
-                )
 
             else:
                 _data = (
@@ -321,4 +390,4 @@ class Command(BaseCommand):
                 print(_line)
 
         if not export_csv:
-            print('\nExcluded IDs: {0}\n'.format(', '.join(exclude_ids)))
+            sys.stderr.write('\nExcluded IDs: {0}\n'.format(', '.join(exclude_ids)))

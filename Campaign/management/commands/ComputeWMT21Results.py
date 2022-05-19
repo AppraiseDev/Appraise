@@ -25,6 +25,8 @@ LANGUAGE_CODES = {
     'hau': 'ha',
     'jpn': 'ja',
     'rus': 'ru',
+    'aeb': 'ae',
+    'spa': 'es',
 }
 
 
@@ -647,7 +649,7 @@ class Command(BaseCommand):
                         (
                             pair,
                             systemID[:51].replace('_', '\_'),
-                            rank,
+                            ranks,
                             '{0:.1f}'.format(rScore),
                             '{0:.3f}'.format(zScore),
                         )
