@@ -133,6 +133,12 @@ class Command(BaseCommand):
             help='User IDs which should be ignored',
         )
         parser.add_argument(
+            '--task-type',
+            type=str,
+            default='Direct',
+            help='Task type, e.g. Document, default: Direct',
+        )
+        parser.add_argument(
             '--no-sigtest',
             action='store_true',
             help='Do not run significance testing',
@@ -294,7 +300,10 @@ class Command(BaseCommand):
             for system_item in language_data:
                 user_id = system_item[0]
                 system_id = system_item[1]
-                segment_id = system_item[2]
+                if options['task_type'] == 'Document':
+                    segment_id = system_item[2] + ':' + system_item[7]
+                else:
+                    segment_id = system_item[2]
                 raw_score = system_item[6]
 
                 z_n = raw_score - user_means[user_id]
