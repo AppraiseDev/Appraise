@@ -208,6 +208,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'chv': 'Chuvash (Чӑвашла)',
     'lin': 'Lingala (Lingála)',
     'lug': 'Luganda (Oluganda)',
+    'sgg': 'Swiss-German Sign Language (Deutschschweizer Gebärdensprache (DSGS))',
 }
 
 # Ensure that all languages have a corresponding group.
