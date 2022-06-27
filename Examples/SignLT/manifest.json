@@ -1,0 +1,15 @@
+{
+    "CAMPAIGN_URL": "http://127.0.0.1:8000/dashboard/sso/",
+    "CAMPAIGN_NAME": "example11signlt",
+    "CAMPAIGN_KEY": "c11",
+    "CAMPAIGN_NO": 11,
+    "REDUNDANCY": 1,
+
+    "TASKS_TO_ANNOTATORS": [
+        ["sgg", "deu", "uniform",  1, 1],
+        ["deu", "sgg", "uniform",  1, 1]
+    ],
+
+    "TASK_TYPE": "Document",
+    "TASK_OPTIONS": "SQM;WMT22SignLT"
+}

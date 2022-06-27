@@ -211,6 +211,9 @@ LANGUAGE_CODES_AND_NAMES = {
     'sgg': 'Swiss-German Sign Language (Deutschschweizer Gebärdensprache (DSGS))',
 }
 
+# All sign language codes
+SIGN_LANGUAGE_CODES = set([LANGUAGE_CODES_AND_NAMES['sgg']])
+
 # Ensure that all languages have a corresponding group.
 try:
     for code in LANGUAGE_CODES_AND_NAMES:

@@ -36,6 +36,9 @@
 .toggleable { display:none; }
 .toggleable.active { display:block; }
 
+.toggleable-reverse { display:block; }
+.active .toggleable-reverse { display:none; }
+
 .target-box .row { padding-top:0; }
 .target-box.active { display:block; }
 
@@ -332,7 +335,7 @@ function submit_form(e) {
 
                 _show_error_box(item_box,
                     'An unrecognized error has occured. ' +
-                    'Please reload the page or try again in a moment.' +
+                    'Please reload the page or try again in a moment. ' +
                     'Also, make sure you use a relatively modern browser.'
                 );
             },
@@ -511,7 +514,13 @@ function _show_error_box(item_box, msg) {
                 <div class="col-sm-6">
                     <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
                     <span title="Source sentence #{{ item.itemID|add:"1" }}">
+                        {% if source_item_type == 'video' %}
+                        <iframe class="toggleable" width="auto" height="auto" src="{{ item.sourceText }}"
+                                frameborder="0" allowfullscreen></iframe>
+                        <p class="toggleable-reverse"><i>&lt;Video is hidden. Click to expand.&gt;</i></p>
+                        {% else %}
                         <p>{{ item.sourceText }}</p>
+                        {% endif %}
                         <!--
                             <small class="">- {{ reference_label }}</small>
                         -->
@@ -519,7 +528,13 @@ function _show_error_box(item_box, msg) {
                 </div>
                 <div class="col-sm-5">
                     <span title="Candidate translation of source sentence #{{ item.itemID|add:"1" }}">
+                        {% if target_item_type == 'video' %}
+                        <iframe class="toggleable" width="auto" height="auto" src="{{ item.targetText }}"
+                                frameborder="0" allowfullscreen></iframe>
+                        <p class="toggleable-reverse"><i>&lt;Video is hidden. Click to expand.&gt;</i></p>
+                        {% else %}
                         <p><strong>{{item.targetText|safe}}</strong></p>
+                        {% endif %}
                     </span>
                 </div>
                 <div class="col-sm-1">
