@@ -16,23 +16,14 @@ from django.http import HttpResponse
 from Appraise.utils import _get_logger
 from Campaign.utils import _get_campaign_instance
 from EvalData.models import DataAssessmentResult
-from EvalData.models import DirectAssessmentContextResult
-from EvalData.models import DirectAssessmentDocumentResult
-from EvalData.models import DirectAssessmentResult
-from EvalData.models import MultiModalAssessmentResult
+from EvalData.models import PairwiseAssessmentDocumentResult
 from EvalData.models import PairwiseAssessmentResult
 from EvalData.models import seconds_to_timedelta
+from EvalData.models import TASK_DEFINITIONS
 
 # pylint: disable=import-error
 
-RESULT_TYPE_BY_CLASS_NAME = {
-    'DataAssessmentTask': DataAssessmentResult,
-    'DirectAssessmentTask': DirectAssessmentResult,
-    'DirectAssessmentContextTask': DirectAssessmentContextResult,
-    'DirectAssessmentDocumentTask': DirectAssessmentDocumentResult,
-    'MultiModalAssessmentTask': MultiModalAssessmentResult,
-    'PairwiseAssessmentTask': PairwiseAssessmentResult,
-}
+RESULT_TYPE_BY_CLASS_NAME = {tup[1].__name__: tup[2] for tup in TASK_DEFINITIONS}
 
 LOGGER = _get_logger(name=__name__)
 
@@ -79,7 +70,10 @@ def campaign_status(request, campaign_name, sort_key=2):
                 createdBy=user, completed=True, task__campaign=campaign.id
             )
 
-            if result_type is PairwiseAssessmentResult:
+            if (
+                result_type is PairwiseAssessmentResult
+                or result_type is PairwiseAssessmentDocumentResult
+            ):
                 _data = _data.values_list(
                     'start_time',
                     'end_time',

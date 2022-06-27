@@ -12,19 +12,19 @@
   </table>
 </div>
 <div class="col-sm-12">
-  <div id="slider{{ sliderid }}" class="slider" style="margin-top:10px;"></div>
-  <table style="color:#777; margin-top:1ex; font-size:x-small; width:100%;">
+  <div id="slider{{ slidernum }}{{ sliderid }}" class="slider slider{{ slidernum }}" style="margin-top:10px;"></div>
+  <table class="sqm-labels" style="color:#777; margin-top:1ex; font-size:x-small; width:100%;">
     <tr>
       {% if speech %}
-      <td class="col-xs-2" style="vertical-align:top;text-align:left;padding-left:0;">0: No meaning preserved</td>
-      <td class="col-xs-4" style="vertical-align:top;text-align:center;">2: Some meaning preserved</td>
-      <td class="col-xs-4" style="vertical-align:top;text-align:center;">4: Most meaning preserved</td>
-      <td class="col-xs-2" style="vertical-align:top;text-align:right;padding-right:0;">6: Perfect meaning</td>
+      <td class="sqm-label sqm-label-first col-xs-2" style="vertical-align:top;text-align:left;padding-left:0;">0: No meaning preserved</td>
+      <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">2: Some meaning preserved</td>
+      <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">4: Most meaning preserved</td>
+      <td class="sqm-label sqm-label-last col-xs-2" style="vertical-align:top;text-align:right;padding-right:0;">6: Perfect meaning</td>
       {% else %}
-      <td class="col-xs-2" style="vertical-align:top;text-align:left;padding-left:0;">0: Nonsense/ No meaning preserved</td>
-      <td class="col-xs-4" style="vertical-align:top;text-align:center;">2: Some meaning preserved</td>
-      <td class="col-xs-4" style="vertical-align:top;text-align:center;">4: Most meaning preserved and few grammar mistakes</td>
-      <td class="col-xs-2" style="vertical-align:top;text-align:right;padding-right:0;">6: Perfect meaning and grammar</td>
+      <td class="sqm-label sqm-label-first col-xs-2" style="vertical-align:top;text-align:left;padding-left:0;">0: Nonsense/ No meaning preserved</td>
+      <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">2: Some meaning preserved</td>
+      <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">4: Most meaning preserved and few grammar mistakes</td>
+      <td class="sqm-label sqm-label-last col-xs-2" style="vertical-align:top;text-align:right;padding-right:0;">6: Perfect meaning and grammar</td>
       {% endif %}
     </tr>
   </table>

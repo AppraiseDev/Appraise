@@ -6,27 +6,9 @@ from django.core.management.base import BaseCommand
 from django.core.management.base import CommandError
 
 from Campaign.models import Campaign
-from EvalData.models import DataAssessmentResult
-from EvalData.models import DataAssessmentTask
-from EvalData.models import DirectAssessmentContextResult
-from EvalData.models import DirectAssessmentContextTask
-from EvalData.models import DirectAssessmentDocumentResult
-from EvalData.models import DirectAssessmentDocumentTask
-from EvalData.models import DirectAssessmentResult
-from EvalData.models import DirectAssessmentTask
-from EvalData.models import MultiModalAssessmentResult
-from EvalData.models import MultiModalAssessmentTask
-from EvalData.models import PairwiseAssessmentResult
-from EvalData.models import PairwiseAssessmentTask
+from EvalData.models import TASK_DEFINITIONS
 
-CAMPAIGN_TASK_TYPES = (
-    (DataAssessmentTask, DataAssessmentResult),
-    (DirectAssessmentTask, DirectAssessmentResult),
-    (DirectAssessmentContextTask, DirectAssessmentContextResult),
-    (DirectAssessmentDocumentTask, DirectAssessmentDocumentResult),
-    (MultiModalAssessmentTask, MultiModalAssessmentResult),
-    (PairwiseAssessmentTask, PairwiseAssessmentResult),
-)
+CAMPAIGN_TASK_PAIRS = {(tup[1], tup[2]) for tup in TASK_DEFINITIONS}
 
 
 class Command(BaseCommand):
@@ -60,7 +42,7 @@ class Command(BaseCommand):
 
         csv_writer = csv.writer(sys.stdout, quoting=csv.QUOTE_MINIMAL)
         system_scores = []
-        for task_cls, result_cls in CAMPAIGN_TASK_TYPES:
+        for task_cls, result_cls in CAMPAIGN_TASK_PAIRS:
             qs_name = task_cls.__name__.lower()
             qs_attr = 'evaldata_{0}_campaign'.format(qs_name)
             qs_obj = getattr(campaign, qs_attr, None)

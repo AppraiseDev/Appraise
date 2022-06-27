@@ -18,6 +18,7 @@ from EvalData.models import DirectAssessmentContextResult
 from EvalData.models import DirectAssessmentDocumentResult
 from EvalData.models import DirectAssessmentResult
 from EvalData.models import MultiModalAssessmentResult
+from EvalData.models import PairwiseAssessmentDocumentResult
 from EvalData.models import PairwiseAssessmentResult
 from EvalData.models import RESULT_TYPES
 
@@ -70,7 +71,10 @@ def run_quality_control(username):
     if result_type is None:  # No items are completed yet
         return None
 
-    if result_type is PairwiseAssessmentResult:
+    if (
+        result_type is PairwiseAssessmentResult
+        or result_type is PairwiseAssessmentDocumentResult
+    ):
         _data = _data.values_list(
             'start_time',
             'end_time',
