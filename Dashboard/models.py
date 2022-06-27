@@ -206,6 +206,8 @@ LANGUAGE_CODES_AND_NAMES = {
     'pus': 'Pashto (پښتو)',
     'lzh': 'Classical Chinese (文言文)',
     'chv': 'Chuvash (Чӑвашла)',
+    'lin': 'Lingala (Lingála)',
+    'lug': 'Luganda (Oluganda)',
 }
 
 # Ensure that all languages have a corresponding group.
