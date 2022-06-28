@@ -20,4 +20,5 @@ appraise.log
 *.sw[po]
 
 .venv
-db.sqlite3
+venv
+db.sqlite3*

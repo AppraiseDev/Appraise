@@ -14,6 +14,7 @@ from django.utils.timezone import utc
 from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Campaign.models import Campaign
+from Dashboard.models import SIGN_LANGUAGE_CODES
 from EvalData.models import DataAssessmentResult
 from EvalData.models import DataAssessmentTask
 from EvalData.models import DirectAssessmentContextResult
@@ -801,6 +802,10 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         LOGGER.info('No current item detected, redirecting to dashboard')
         return redirect('dashboard')
 
+    # By default, source and target items are text segments
+    source_item_type = 'text'
+    target_item_type = 'text'
+
     # Get item scores from the latest corresponding results
     block_scores = []
     _prev_item = None
@@ -865,11 +870,24 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     ]
 
     speech_translation = 'speechtranslation' in campaign_opts
+    sign_translation = 'signlt' in campaign_opts
 
     use_sqm = 'sqm' in campaign_opts
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
         document_question_texts = document_question_texts[:1]
+
+    if 'wmt22signlt' in campaign_opts:
+        sign_translation = True
+
+    if sign_translation:
+        # For sign languages, source or target segments are videos
+        if source_language in SIGN_LANGUAGE_CODES:
+            source_item_type = 'video'
+            reference_label = 'Source video'
+        if target_language in SIGN_LANGUAGE_CODES:
+            target_item_type = 'video'
+            candidate_label = 'Candidate translation (video)'
 
     # Special instructions for IWSLT 2022 dialect task
     if 'iwslt2022dialectsrc' in campaign_opts:
@@ -888,9 +906,10 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             'not so strict.</li>',
         ]
         if current_task.marketSourceLanguageCode() == "aeb":
-            priming_question_texts[
-                -1
-            ] += '<li>The original source is Tunisian Arabic speech. There may be some variation in the transcription.</li>'
+            priming_question_texts[-1] += (
+                '<li>The original source is Tunisian Arabic speech. '
+                + 'There may be some variation in the transcription.</li>'
+            )
         priming_question_texts[-1] += '</ul>'
 
     # Special instructions for IWSLT 2022 isometric task
@@ -899,10 +918,13 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             'Please take into consideration the following aspects when assessing the translation quality:',
             '<ul>'
             '<li>The source texts come from transcribed video content published on YouTube.</li>'
-            '<li>Transcribed sentences have been split into segments based on pauses in the audio. It may happen that a single source sentence is split into multiple segments.</li>'
-            '<li>Please score each segment (including very short segments) individually with regard to the source segment and the surrounding context.</li>'
+            '<li>Transcribed sentences have been split into segments based on pauses in the audio. '
+            'It may happen that a single source sentence is split into multiple segments.</li>'
+            '<li>Please score each segment (including very short segments) individually with regard to '
+            'the source segment and the surrounding context.</li>'
             '<li>Take into account both grammar and meaning when scoring the segments.</li>'
-            '<li>Please pay attention to issues like repeated or new content in the candidate translation, which is not present in the source text.</li>'
+            '<li>Please pay attention to issues like repeated or new content in the candidate '
+            'translation, which is not present in the source text.</li>'
             '</ul>',
         ]
 
@@ -918,6 +940,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'items_left_in_block': len(block_items) - completed_items_in_block,
         'source_language': source_language,
         'target_language': target_language,
+        'source_item_type': source_item_type,
+        'target_item_type': target_item_type,
         'debug_times': (t2 - t1, t3 - t2, t4 - t3, t4 - t1),
         'template_debug': 'debug' in request.GET,
         'campaign': campaign.campaignName,
@@ -925,6 +949,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'trusted_user': current_task.is_trusted_user(request.user),
         'sqm': use_sqm,
         'speech': speech_translation,
+        'signlt': sign_translation,
     }
 
     if ajax:
