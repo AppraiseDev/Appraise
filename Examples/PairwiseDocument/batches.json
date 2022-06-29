@@ -8,19 +8,21 @@
         "isCompleteDocument": false,
         "itemID": 0,
         "itemType": "TGT",
-        "segmentContextLeft": "",
+        "segmentContextLeft": "Macedonians go to polls in referendum on changing country's name \nVoters will vote Sunday on whether to change their country's name to the \"Republic of North Macedonia.\"",
         "segmentID": "newstest2019-ende-src.en.sgm",
         "segmentText": "Macedonians go to polls in referendum on changing country's name",
         "targets": [
           {
             "_itemAll": 0,
             "_target": 0,
+            "targetContextLeft": "Mazedonier gehen an die Urnen in Referendum \u00fcber die \u00c4nderung des Namens des Landes \nDie W\u00e4hler werden am Sonntag dar\u00fcber abstimmen, ob sie den Namen ihres Landes in \u201eRepublik Nordmakedonien\u201c \u00e4ndern wollen.",
             "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.sgm-fakeSystemA",
             "targetText": "Mazedonier gehen an die Urnen in Referendum \u00fcber die \u00c4nderung des Namens des Landes"
           },
           {
             "_itemAll": 1,
             "_target": 1,
+            "targetContextLeft": "Mazedonier in Referendum \u00fcber die \u00c4nderung des Namens des Landes \nDie W\u00e4hler werden am Sonntag dar\u00fcber abstimmen, ob sie den Namen ihres Landes in \u201eRepublik Nordmakedonien\u201c \u00e4ndern wollen.",
             "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.sgm-fakeSystemB",
             "targetText": "Mazedonier Namens die an Urnen in Referendum \u00fcber die \u00c4nderung des Namens des Landes"
           }
@@ -34,7 +36,6 @@
         "isCompleteDocument": false,
         "itemID": 1,
         "itemType": "TGT",
-        "segmentContextLeft": "Macedonians go to polls in referendum on changing country's name",
         "segmentID": "newstest2019-ende-src.en.sgm",
         "segmentText": "Voters will vote Sunday on whether to change their country's name to the \"Republic of North Macedonia.\"",
         "targets": [
@@ -60,7 +61,6 @@
         "isCompleteDocument": false,
         "itemID": 2,
         "itemType": "TGT",
-        "segmentContextLeft": "Macedonians go to polls in referendum on changing country's name Voters will vote Sunday on whether to change their country's name to the \"Republic of North Macedonia.\"",
         "segmentID": "newstest2019-ende-src.en.sgm",
         "segmentText": "The popular vote was set up in a bid to resolve a decades-long dispute with neighboring Greece, which has its own province called Macedonia.",
         "targets": [
@@ -164,18 +164,21 @@
         "isCompleteDocument": true,
         "itemID": "6",
         "itemType": "TGT",
+        "segmentContextLeft": "Macedonian President Gjorge Ivanov, an opponent of the plebiscite on the name change, has said he will disregard the vote.",
         "segmentID": "newstest2019-ende-src.en.sgm",
         "segmentText": "Macedonians go to polls in referendum on changing country's name Voters will vote Sunday on whether to change their country's name to the \"Republic of North Macedonia.\" The popular vote was set up in a bid to resolve a decades-long dispute with neighboring Greece, which has its own province called Macedonia. Athens has long insisted that its northern neighbor's name represents a claim on its territory and has repeatedly objected to its membership bids for the EU and NATO. Macedonian President Gjorge Ivanov, an opponent of the plebiscite on the name change, has said he will disregard the vote. However, supporters of the referendum, including Prime Minister Zoran Zaev, argue that the name change is simply the price to pay to join the EU and NATO.",
         "targets": [
           {
             "_itemAll": 12,
             "_target": 0,
+            "targetContextLeft": "Die Bef\u00fcrworter Referendums, Premierminister darunter Zoran Zaev, argumentieren jedoch, dass die Namens\u00e4nderung lediglich der Preis sei, den man f\u00fcr Beitritt zur EU und zur NATO zahlen m\u00fcsse.",
             "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.sgm-fakeSystemA",
             "targetText": "Mazedonier gehen an die Urnen in Referendum \u00fcber die \u00c4nderung des Namens des Landes Die W\u00e4hler werden am Sonntag dar\u00fcber abstimmen, ob sie den Namen ihres Landes in \u201eRepublik Nordmakedonien\u201c \u00e4ndern wollen. Die Volksabstimmung wurde ins Leben gerufen, um einen jahrzehntelangen Streit mit dem benachbarten Griechenland zu l\u00f6sen, das eine eigene Provinz namens Mazedonien hat. Athen besteht seit langem darauf, dass der Name seines n\u00f6rdlichen Nachbarn einen Anspruch auf sein Territorium darstellt, und hat wiederholt Einw\u00e4nde gegen seine Beitrittsgesuche f\u00fcr die EU und die NATO erhoben. Der mazedonische Pr\u00e4sident Gjorge Ivanov, ein Gegner der Volksabstimmung \u00fcber die Namens\u00e4nderung, hat erkl\u00e4rt, er werde die Abstimmung missachten. Die Bef\u00fcrworter des Referendums, darunter Premierminister Zoran Zaev, argumentieren jedoch, dass die Namens\u00e4nderung lediglich der Preis sei, den man f\u00fcr den Beitritt zur EU und zur NATO zahlen m\u00fcsse."
           },
           {
             "_itemAll": 13,
             "_target": 1,
+            "targetContextLeft": "Die Bef\u00fcrworter Referendums, Premierminister darunter Zoran Zaev, argumentieren jedoch, dass die Namens\u00e4nderung lediglich der Preis sei, den man f\u00fcr Beitritt zur EU und zur NATO zahlen m\u00fcsse.",
             "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.sgm-fakeSystemB",
             "targetText": "Mazedonier gehen an die Urnen in Referendum die \u00c4nderung des namens des Landes Die W\u00e4hler werden am Sonntag dar\u00fcber abstimmen, ob sie den Namen ihres Landes in \u201eRepublik Nordmakedonien\u201c wollen. Die Volksabstimmung wurde ins Leben gerufen, um einen jahrzehntelangen Streit mit dem benachbarten Griechenland zu l\u00f6sen, das eine eigene Provinz namens Mazedonien hat. Athen besteht seit langem darauf, dass der Name seines n\u00f6rdlichen Nachbarn einen Anspruch auf sein Territorium darstellt, und hat wiederholt Einw\u00e4nde gegen seine Beitrittsgesuche f\u00fcr die EU und die NATO erhoben. Der mazedonische Pr\u00e4sident Gjorge Ivanov, ein Gegner der Volksabstimmung \u00fcber die Namens\u00e4nderung, hat erkl\u00e4rt, er werde die Abstimmung missachten. Die Bef\u00fcrworter des Referendums, Premierminister darunter Zoran Zaev, argumentieren jedoch, dass die Namens\u00e4nderung lediglich EU der Preis sei, den man f\u00fcr den Beitritt zur EU und zur NATO zahlen m\u00fcsse."
           }

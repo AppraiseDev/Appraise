@@ -10,5 +10,5 @@
     ],
 
     "TASK_TYPE": "PairwiseDocument",
-    "TASK_OPTIONS": "SQM"
+    "TASK_OPTIONS": "SQM;StaticContext"
 }

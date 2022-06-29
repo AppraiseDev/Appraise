@@ -1957,6 +1957,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
 
     campaign_opts = (campaign.campaignOptions or "").lower()
     use_sqm = 'sqm' in campaign_opts
+    static_context = 'staticcontext' in campaign_opts
 
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
@@ -1980,6 +1981,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
         'sqm': use_sqm,
+        'static_context': static_context,
     }
 
     if ajax:

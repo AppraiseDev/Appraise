@@ -437,19 +437,25 @@ class PairwiseAssessmentDocumentTask(BaseMetadata):
                 # TODO: check if 'targets' is empty or has more elements than 2
                 item_tgt1_idx = item_targets[0]['targetID']
                 item_tgt1_txt = item_targets[0]['targetText']
+                item_tgt1_ctx = item_targets[0].get('targetContextLeft', '')
                 item_tgt2_idx = None
                 item_tgt2_txt = None
+                item_tgt2_ctx = None
                 if len(item_targets) > 1:
                     item_tgt2_idx = item_targets[1]['targetID']
                     item_tgt2_txt = item_targets[1]['targetText']
+                    item_tgt2_ctx = item_targets[1].get('targetContextLeft', '')
 
                 new_item = TextSegmentWithTwoTargetsWithContext(
                     segmentID=item['segmentID'],
                     segmentText=item['segmentText'],
+                    contextLeft=item.get('segmentContextLeft', ''),
                     target1ID=item_tgt1_idx,
                     target1Text=item_tgt1_txt,
+                    target1ContextLeft=item_tgt1_ctx,
                     target2ID=item_tgt2_idx,
                     target2Text=item_tgt2_txt,
+                    target2ContextLeft=item_tgt2_ctx,
                     createdBy=batch_user,
                     itemID=item['itemID'],
                     itemType=item['itemType'],
