@@ -11,7 +11,7 @@
 .slider-box .slider-grid { font-size:14px; width:100%; color:#777; }
 
 .quotelike { border-left: 5px solid #eee; }
-.quotelike .row { font-size: 16px; margin: 0; padding: 10px 20px; }
+.quotelike .row, .pseudoquotelike .row { font-size: 16px; margin: 0; padding: 10px 20px; }
 .quotelike.active { background-color: #f7f7f7; }
 
 .question-box { margin-bottom:10px; }
@@ -24,6 +24,8 @@
 .item-odd { }
 .item-even { background-color:#f8f8f8; }
 .item-box:last-of-type { background-color:inherit; }
+
+.item-static-content p { opacity:0.5; font-style:italic; }
 
 /*.source-box { margin-bottom:10px; }*/
 .source-box-hoverable:hover { background: #f5f5f5; cursor: pointer; }
@@ -42,6 +44,7 @@
 .target-box .row { padding-top:0; }
 .target-box.active { display:block; }
 
+.segment-label { display:block; font-size:small; font-style:italic; }
 .system-label { display:none; }
 
 .action-box  { width: 100%; }
@@ -486,7 +489,37 @@ function _show_error_box(item_box, msg) {
     </div>
 </div>
 
+
 {% for item,scores in items %}
+
+{% if static_context %}
+{% if forloop.counter == 1 or item.isCompleteDocument %}
+{% if item.sourceContextLeft or item.targetContextLeft %}
+<div class="item-box item-odd item-static-content pseudoquotelike">
+        <div class="source-box">
+            <div class="row">
+                <div class="col-sm-6">
+                    <span title="Source static context">
+                        <p>{{ item.sourceContextLeft|linebreaks }}</p>
+                        {% if item.sourceContextLeft %}
+                        <small class="segment-label">- Additional source context</small>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="col-sm-5">
+                    <span title="Static context of the candidate translation">
+                        <p><strong>{{ item.targetContextLeft|linebreaks }}</strong></p>
+                        {% if item.targetContextLeft %}
+                        <small class="segment-label">- Additional target context</small>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+</div>
+{% endif %}
+{% endif %}
+{% endif %}
 
 <div id="item-{{ item.itemID }}"
      class="item-box item-{% cycle 'odd' 'even' %}
