@@ -22,7 +22,7 @@
 .half-slider .slider { margin-top:5px !important; }
 
 .quotelike { border-left: 5px solid #eee; }
-.quotelike .row { font-size: 16px; margin: 0; padding: 10px 20px; }
+.quotelike .row, .pseudoquotelike .row { font-size: 16px; margin: 0; padding: 10px 20px; }
 .quotelike.active { background-color: #f7f7f7; }
 
 .question-box { margin-bottom:10px; }
@@ -35,6 +35,8 @@
 .item-odd { }
 .item-even { background-color:#f8f8f8; }
 .item-box:last-of-type { background-color:inherit; }
+
+.item-static-content p { opacity:0.5; font-style:italic; }
 
 .source-box-hoverable:hover { background: #f5f5f5; cursor: pointer; }
 .source-btn-toggle { float: right; padding-right:10px; }
@@ -516,6 +518,43 @@ function _show_error_box(item_box, msg) {
 </div>
 
 {% for item,scores in items %}
+
+{% if static_context %}
+{% if forloop.counter == 1 or item.isCompleteDocument %}
+{% if item.contextLeft or item.target1ContextLeft or item.target2ContextLeft %}
+<div class="item-box item-odd item-static-content pseudoquotelike">
+        <div class="source-box">
+            <div class="row">
+                <div class="col-sm-3">
+                    <span title="Source static context">
+                        <p>{{ item.contextLeft|linebreaks }}</p>
+                        {% if item.contextLeft %}
+                        <small class="segment-label">- Additional source context</small>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="col-sm-4">
+                    <span title="Static context of the candidate translation">
+                        <p><strong>{{ item.target1ContextLeft|linebreaks }}</strong></p>
+                        {% if item.target1ContextLeft %}
+                        <small class="segment-label">- Additional target context A</small>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="col-sm-4">
+                    <span title="Static context of the candidate translation">
+                        <p><strong>{{ item.target2ContextLeft|linebreaks }}</strong></p>
+                        {% if item.target2ContextLeft %}
+                        <small class="segment-label">- Additional target context B</small>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+</div>
+{% endif %}
+{% endif %}
+{% endif %}
 
 <div id="item-{{ item.itemID }}"
      class="item-box item-{% cycle 'odd' 'even' %}

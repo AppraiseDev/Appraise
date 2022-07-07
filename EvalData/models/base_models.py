@@ -638,12 +638,21 @@ class TextSegmentWithTwoTargets(TextSegment):
         verbose_name=_('Text (2)'),
     )
 
+    # Source sentence context
     contextLeft = models.TextField(
         blank=True, null=True, verbose_name=_('Context (left)')
     )
 
     contextRight = models.TextField(
         blank=True, null=True, verbose_name=_('Context (right)')
+    )
+
+    target1ContextLeft = models.TextField(
+        blank=True, null=True, verbose_name=_('Target context (1)')
+    )
+
+    target2ContextLeft = models.TextField(
+        blank=True, null=True, verbose_name=_('Target context (2)')
     )
 
     def has_context(self):

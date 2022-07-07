@@ -670,7 +670,6 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                 if current_item.itemID == int(item_id) and current_item.id == int(
                     task_id
                 ):
-
                     utc_now = datetime.utcnow().replace(tzinfo=utc)
                     # pylint: disable=E1101
                     DirectAssessmentDocumentResult.objects.create(
@@ -871,14 +870,12 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     speech_translation = 'speechtranslation' in campaign_opts
     sign_translation = 'signlt' in campaign_opts
+    static_context = 'staticcontext' in campaign_opts
 
     use_sqm = 'sqm' in campaign_opts
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
         document_question_texts = document_question_texts[:1]
-
-    if 'wmt22signlt' in campaign_opts:
-        sign_translation = True
 
     if sign_translation:
         # For sign languages, source or target segments are videos
@@ -950,6 +947,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'sqm': use_sqm,
         'speech': speech_translation,
         'signlt': sign_translation,
+        'static_context': static_context,
     }
 
     if ajax:
@@ -1959,6 +1957,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
 
     campaign_opts = (campaign.campaignOptions or "").lower()
     use_sqm = 'sqm' in campaign_opts
+    static_context = 'staticcontext' in campaign_opts
 
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
@@ -1982,6 +1981,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
         'sqm': use_sqm,
+        'static_context': static_context,
     }
 
     if ajax:
