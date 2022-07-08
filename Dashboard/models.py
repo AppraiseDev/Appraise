@@ -19,7 +19,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'zho': 'Chinese (中文)',
     'eng': 'English',
     'fin': 'Finnish (suomi)',
-    'deu': 'German (deutsch)',
+    'deu': 'German (Deutsch)',
     'lav': 'Latvian (latviešu)',
     'rus': 'Russian (русский)',
     'trk': 'Turkish (Türkçe)',
