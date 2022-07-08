@@ -463,7 +463,7 @@ function _show_error_box(item_box, msg) {
             <p>{{text|safe}}</p>
             {% endfor %}
             {% if sqm %}
-              {% with speech=speech %}
+              {% with speech=speech signlt=signlt %}
               {% include 'EvalView/_sqm_instructions.html' %}
               {% endwith %}
             {% endif %}
@@ -579,7 +579,7 @@ function _show_error_box(item_box, msg) {
         <div class="target-box toggleable" >
             <div class="row">
             {% if sqm %}
-                {% with sliderid=item.itemID speech=speech %}
+                {% with sliderid=item.itemID speech=speech signlt=signlt %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}

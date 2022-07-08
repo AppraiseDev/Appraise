@@ -7,6 +7,11 @@
       <li><strong>2: Some meaning preserved</strong>: The translation preserves some of the meaning of the source but misses significant parts. The narrative is hard to follow due to fundamental errors.</li>
       <li><strong>4: Most meaning preserved</strong>: The translation retains most of the meaning of the source. It may have some minor mistakes or contextual inconsistencies.</li>
       <li><strong>6: Perfect meaning</strong>: The meaning of the translation is completely consistent with the source and the surrounding context (if applicable).</li>
+      {% elif signlt %}
+      <li><strong>0: Nonsense/No meaning preserved</strong>: Nearly all information is lost between the translation and source. Naturalness of motion is irrelevant.</li>
+      <li><strong>2: Some Meaning Preserved</strong>: The translation preserves some of the meaning of the source but misses significant parts. The narrative is hard to follow due to fundamental errors. Naturalness of motion may be poor.</li>
+      <li><strong>4: Most Meaning Preserved and Acceptable Natural Motion</strong>: The translation retains most of the meaning of the source. It may have some minor mistakes, or contextual inconsistencies or some lack of naturalness in motion.</li>
+      <li><strong>6: Perfect Meaning and Naturalness</strong>: The meaning of the translation is completely consistent with the source and the surrounding context. Naturalness of motion is good.</li>
       {% else %}
       <li><strong>0: Nonsense/No meaning preserved</strong>: Nearly all information is lost between the translation and source. Grammar is irrelevant.</li>
       <li><strong>2: Some meaning preserved</strong>: The translation preserves some of the meaning of the source but misses significant parts. The narrative is hard to follow due to fundamental errors. Grammar may be poor.</li>
