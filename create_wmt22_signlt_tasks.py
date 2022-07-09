@@ -197,6 +197,7 @@ def unwrap_xml(
 
     return src_lang, src_docs, ref_lang, ref_docs, hyp_lang, hyp_docs
 
+
 def chop_docs(orig_src_docs, orig_ref_docs, orig_hyp_docs, max_length=10):
     """
     Split documents into chunks of max_length size.
@@ -205,7 +206,9 @@ def chop_docs(orig_src_docs, orig_ref_docs, orig_hyp_docs, max_length=10):
     src_prev = OrderedDict()
     src_next = OrderedDict()
     for doc_id, segs in orig_src_docs.items():
-        for chunk_id, (chunk, prev_ctx, next_ctx) in enumerate(_split_list(segs, max_length)):
+        for chunk_id, (chunk, prev_ctx, next_ctx) in enumerate(
+            _split_list(segs, max_length)
+        ):
             src_docs[f"{doc_id}.{chunk_id}"] = list(chunk)
             src_prev[f"{doc_id}.{chunk_id}"] = list(prev_ctx)
             src_next[f"{doc_id}.{chunk_id}"] = list(next_ctx)
@@ -218,10 +221,16 @@ def chop_docs(orig_src_docs, orig_ref_docs, orig_hyp_docs, max_length=10):
         hyp_prev[REFERENCE_AS_SYSTEM_PREFIX + translator] = OrderedDict()
         hyp_next[REFERENCE_AS_SYSTEM_PREFIX + translator] = OrderedDict()
         for doc_id, segs in orig_ref_docs[translator].items():
-            for chunk_id, (chunk, prev_ctx, next_ctx) in enumerate(_split_list(segs, max_length)):
+            for chunk_id, (chunk, prev_ctx, next_ctx) in enumerate(
+                _split_list(segs, max_length)
+            ):
                 ref_docs[translator][f"{doc_id}.{chunk_id}"] = list(chunk)
-                hyp_prev[REFERENCE_AS_SYSTEM_PREFIX + translator][f"{doc_id}.{chunk_id}"] = list(prev_ctx)
-                hyp_next[REFERENCE_AS_SYSTEM_PREFIX + translator][f"{doc_id}.{chunk_id}"] = list(next_ctx)
+                hyp_prev[REFERENCE_AS_SYSTEM_PREFIX + translator][
+                    f"{doc_id}.{chunk_id}"
+                ] = list(prev_ctx)
+                hyp_next[REFERENCE_AS_SYSTEM_PREFIX + translator][
+                    f"{doc_id}.{chunk_id}"
+                ] = list(next_ctx)
 
     hyp_docs = OrderedDict()
     for system in orig_hyp_docs:
@@ -229,7 +238,9 @@ def chop_docs(orig_src_docs, orig_ref_docs, orig_hyp_docs, max_length=10):
         hyp_prev[system] = OrderedDict()
         hyp_next[system] = OrderedDict()
         for doc_id, segs in orig_hyp_docs[system].items():
-            for chunk_id, (chunk, prev_ctx, next_ctx) in enumerate(_split_list(segs, max_length)):
+            for chunk_id, (chunk, prev_ctx, next_ctx) in enumerate(
+                _split_list(segs, max_length)
+            ):
                 hyp_docs[system][f"{doc_id}.{chunk_id}"] = list(chunk)
                 hyp_prev[system][f"{doc_id}.{chunk_id}"] = list(prev_ctx)
                 hyp_next[system][f"{doc_id}.{chunk_id}"] = list(next_ctx)
@@ -242,8 +253,8 @@ def chop_docs(orig_src_docs, orig_ref_docs, orig_hyp_docs, max_length=10):
 def _split_list(list_a, chunk_size):
     for i in range(0, len(list_a), chunk_size):
         prev_context = list_a[0:i]
-        next_context = list_a[i + chunk_size:]
-        yield list_a[i:i + chunk_size], prev_context, next_context
+        next_context = list_a[i + chunk_size :]
+        yield list_a[i : i + chunk_size], prev_context, next_context
 
 
 def _create_bad_ref(seg_text: str, ref_text: str, character_based: bool = False) -> str:
@@ -417,7 +428,7 @@ if __name__ == "__main__":
     seed(RND_SEED)
 
     print(f'Quality control={CONTROLS}')
-    if not CONTROLS or TGT_LANG == 'sgg': # no BAD refs if the target size has videos
+    if not CONTROLS or TGT_LANG == 'sgg':  # no BAD refs if the target size has videos
         REQUIRED_SEGS = 100
     else:
         REQUIRED_SEGS = 88
