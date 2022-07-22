@@ -203,6 +203,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'lzh': 'Classical Chinese (文言文)',
     'lin': 'Lingala (Lingála)',
     'lug': 'Luganda (Oluganda)',
+    'liv': 'Livonian (līvõ kēļ)',
 }
 
 # Ensure that all languages have a corresponding group.
