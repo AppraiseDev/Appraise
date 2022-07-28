@@ -22,7 +22,6 @@ from lxml import etree
 MAX_TASK_SIZE = 100  # No support for tasks over 100 items
 MAX_DOC_LENGTH = 70  # We do not support documents longer than 70 segments
 
-
 MISSING_TRANSLATION_MESSAGE = ("NO TRANSLATION AVAILABLE",)
 DEFAULT_TRANSLATOR = "DEFAULT"
 # If False, documents with control items will be very last ones in each batch
@@ -324,14 +323,17 @@ def _create_bad_ref(seg_text: str, ref_text: str, character_based: bool = False)
     # or final, so positions 0 and (seg_len - bad_len -1) are invalid
     # and we use an embedded bad_pos in [1, (seg_len - bad_len - 1)].
     # This happens for all seg_len > 3.
-    bad_pos = 1
-    _xs = max(1, seg_len - bad_len - 1)
-    bad_pos = choice([x + 1 for x in range(_xs)])
+    bad_pos = 0
+    if seg_len - bad_len > 0:
+        bad_pos = choice(range(seg_len - bad_len))
 
-    ref_pos = 1
+    elif seg_len > 3:
+        _xs = max(1, seg_len - bad_len - 1)
+        bad_pos = choice([x + 1 for x in range(_xs)])
+
+    ref_pos = 0
     if ref_len - bad_len > 0:
-        _xs = max(1, ref_len - bad_len - 1)
-        ref_pos = choice(range(_xs))
+        ref_pos = choice(range(ref_len - bad_len))
 
     bad_data = (
         seg_data[:bad_pos]
@@ -423,15 +425,14 @@ if __name__ == "__main__":
 
     ENC = 'utf-8'
 
-    RND_SEED = 1234567
-    # RND_SEED = 11111
+    RND_SEED = 123456
     seed(RND_SEED)
 
     print(f'Quality control={CONTROLS}')
     if not CONTROLS or TGT_LANG == 'sgg':  # no BAD refs if the target size has videos
-        REQUIRED_SEGS = 100
+        REQUIRED_SEGS = 80
     else:
-        REQUIRED_SEGS = 88
+        REQUIRED_SEGS = 100
     print(f'Setting REQUIRED_SEGS={REQUIRED_SEGS}')
 
     SYS_DOCS: Dict[str, Dict[str, List[Tuple[str, str]]]] = OrderedDict()
@@ -490,7 +491,7 @@ if __name__ == "__main__":
             doc_len = len(SYS_DOCS[sys_id][doc_id])
 
             # We do not support documents longer than 70 segments.
-            if doc_len > MAX_SEGS:
+            if doc_len > MAX_DOC_LENGTH:
                 print("!!! DOCUMENT TOO LONG:", doc_id)
                 continue
 
@@ -733,18 +734,7 @@ if __name__ == "__main__":
                 # Do not generate any BAD items if QC is disabled
                 if CONTROLS and isControl:
                     randomCoinFlip = choice(
-                        [
-                            False,
-                            False,
-                            False,
-                            True,
-                            True,
-                            True,
-                            True,
-                            True,
-                            True,
-                            True,
-                        ]  # 7:3 chance
+                        [False, False, True, True, True]  # 60:40 chance
                     )
                     if randomCoinFlip:
                         target_text = item_bad
