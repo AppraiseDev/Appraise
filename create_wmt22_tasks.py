@@ -1,5 +1,7 @@
 # pylint: disable=C0103,C0111,C0330,E1101
 import sys
+import argparse
+
 from collections import OrderedDict
 from copy import deepcopy
 from glob import iglob
@@ -405,26 +407,82 @@ def create_bad_refs(
     return bad_docs
 
 
+def parse_cmd_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-f",
+        "--xml-file",
+        help="path to .xml file with sources, references and system outputs",
+        required=True,
+    )
+    parser.add_argument(
+        "-o",
+        "--output-prefix",
+        help="prefix for .csv and .json output files",
+        required=True,
+    )
+    parser.add_argument(
+        "-s",
+        "--src-lang",
+        help="ISO code for source language for Appraise",
+        required=True,
+    )
+    parser.add_argument(
+        "-t",
+        "--tgt-lang",
+        help="ISO code for target language for Appraise",
+        required=True,
+    )
+    parser.add_argument(
+        "-c",
+        "--char-based",
+        help="target language is character-based",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--no-qc",
+        help="do not generate BAD references as quality control items",
+        action="store_true",
+    )
+    parser.add_argument("--max-tasks", help="maximum number of tasks", type=int)
+    parser.add_argument(
+        "--max-segs",
+        help="maximum number of sentences per document",
+        type=int,
+        default=MAX_DOC_LENGTH,
+    )
+    args = parser.parse_args()
+    return (
+        args.xml_file,
+        args.output_prefix,
+        args.src_lang,
+        args.tgt_lang,
+        args.char_based,
+        not args.no_qc,
+        args.max_tasks,
+        args.max_segs,
+    )
+
+
 if __name__ == "__main__":
-    if len(sys.argv) < 8:
-        print('Example usage:')
-        print(
-            f'  {sys.argv[0]} newstest2021.en-de.all.xml batches.en-de enu deu 50 True False'
-        )
-        exit()
+    """
+    Example usage:
+    python3 create_wmt22_tasks.py -f newstest2021.en-de.all.xml -o batches.en-de -s enu -t deu -m 50
+    """
 
-    XML_FILE = sys.argv[1]  # Path to .xml file with sources, references and outputs
-    OUT_NAME = sys.argv[2]  # Prefix for .csv and .json output files
-    SRC_LANG = sys.argv[3]  # Code for source language, e.g. eng
-    TGT_LANG = sys.argv[4]  # Code for target language, e.g. deu
-    TASK_MAX = int(sys.argv[5])  # Maximum number of tasks
-    CONTROLS = sys.argv[6].lower() not in ['', '0', 'false', 'off']  # Generate QC items
-    CHARLANG = sys.argv[7].lower() in ['1', 'true', 'on']  # Character-based
-    MAX_SEGS = int(sys.argv[8]) if len(sys.argv) > 8 else MAX_DOC_LENGTH
+    (
+        XML_FILE,
+        OUT_NAME,
+        SRC_LANG,
+        TGT_LANG,
+        CHARLANG,
+        CONTROLS,
+        TASK_MAX,
+        MAX_SEGS,
+    ) = parse_cmd_args()
+
     print(f'Character based={CHARLANG}')
-
     ENC = 'utf-8'
-
     RND_SEED = 123456
     seed(RND_SEED)
 
