@@ -868,11 +868,16 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'in {1} (left column)? '.format(target_language, source_language),
     ]
 
-    speech_translation = 'speechtranslation' in campaign_opts
     sign_translation = 'signlt' in campaign_opts
+    speech_translation = 'speechtranslation' in campaign_opts
     static_context = 'staticcontext' in campaign_opts
-
     use_sqm = 'sqm' in campaign_opts
+
+    if 'wmt22signlt' in campaign_opts:
+        sign_translation = True
+        static_context = True
+        use_sqm = True
+
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
         document_question_texts = document_question_texts[:1]
@@ -885,6 +890,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         if target_language in SIGN_LANGUAGE_CODES:
             target_item_type = 'video'
             candidate_label = 'Candidate translation (video)'
+        else:
+            sign_translation = False  # disable sign-specific SQM instructions
 
     # Special instructions for IWSLT 2022 dialect task
     if 'iwslt2022dialectsrc' in campaign_opts:
