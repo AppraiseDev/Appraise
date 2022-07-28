@@ -209,6 +209,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'lin': 'Lingala (Lingála)',
     'lug': 'Luganda (Oluganda)',
     'sgg': 'Swiss-German Sign Language (Deutschschweizer Gebärdensprache (DSGS))',
+    'liv': 'Livonian (līvõ kēļ)',
 }
 
 # All sign language codes
