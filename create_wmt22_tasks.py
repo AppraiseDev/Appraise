@@ -444,12 +444,23 @@ def parse_cmd_args():
         help="do not generate BAD references as quality control items",
         action="store_true",
     )
-    parser.add_argument("--max-tasks", help="maximum number of tasks", type=int)
+    parser.add_argument(
+        "--max-tasks",
+        help="maximum number of tasks to generate, default: 100",
+        type=int,
+        default=100,
+    )
     parser.add_argument(
         "--max-segs",
         help="maximum number of sentences per document",
         type=int,
         default=MAX_DOC_LENGTH,
+    )
+    parser.add_argument(
+        "--rng-seed",
+        help="seed for random number generator",
+        type=int,
+        default=123456,
     )
     args = parser.parse_args()
     return (
@@ -461,6 +472,7 @@ def parse_cmd_args():
         not args.no_qc,
         args.max_tasks,
         args.max_segs,
+        args.rng_seed,
     )
 
 
@@ -479,18 +491,18 @@ if __name__ == "__main__":
         CONTROLS,
         TASK_MAX,
         MAX_SEGS,
+        RND_SEED,
     ) = parse_cmd_args()
 
     print(f'Character based={CHARLANG}')
     ENC = 'utf-8'
-    RND_SEED = 123456
     seed(RND_SEED)
 
     print(f'Quality control={CONTROLS}')
     if not CONTROLS or TGT_LANG == 'sgg':  # no BAD refs if the target size has videos
-        REQUIRED_SEGS = 80
-    else:
         REQUIRED_SEGS = 100
+    else:
+        REQUIRED_SEGS = 80
     print(f'Setting REQUIRED_SEGS={REQUIRED_SEGS}')
 
     SYS_DOCS: Dict[str, Dict[str, List[Tuple[str, str]]]] = OrderedDict()
