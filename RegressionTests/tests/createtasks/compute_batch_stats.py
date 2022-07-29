@@ -35,16 +35,21 @@ def main():
                 target_id = item["targetID"]
                 doc_id = item["documentID"]
                 item_id = item["itemID"]
-                targets[target_id].append(doc_id)
+                targets[target_id].append((doc_id, item_type))
 
         print(f"Task {i}: {len(bad_items)} BAD items in {len(set(bad_items))} doc(s)")
 
-    for system, docids in targets.items():
+    for system, docids_and_itypes in targets.items():
+        docids = [p[0] for p in docids_and_itypes]
         uniq_docids = sorted(list(set(docids)))
         print(f"System {system}")
         print(f"  will be evaluated on {len(uniq_docids)} unique docs: {' '.join(str(d) for d in uniq_docids)}")
-        counts = [count for _, count in Counter(docids).most_common()]
-        print(f"  items per documents: {Counter(counts).most_common()}")
+        for docid in uniq_docids:
+            count_tgt = sum(1 for _docid, _itype in docids_and_itypes if _docid == docid and _itype == "TGT")
+            count_bad = sum(1 for _docid, _itype in docids_and_itypes if _docid == docid and _itype == "BAD")
+            print(f"    {docid} occurs {docids.count(docid)} times: {count_tgt} regular docs + {count_bad} with a BAD item")
+        # counts = [count for _, count in Counter(docids).most_common()]
+        # print(f"  (#repeats, #documents): {Counter(counts).most_common()}")
 
     print(f"Total number of tasks: {len(tasks):,}")
     print(f"Total number of segment items: {items_count:,}")

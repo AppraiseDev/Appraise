@@ -3,12 +3,13 @@
 # Exit on error
 set -eo pipefail
 
-prefix=wmt21_baseline
+prefix=wmt22_selected
 
 rm -f $prefix*.{log,csv,json,stats,diff}
 
 $APPRAISE_PYTHON $APPRAISE_ROOT/create_wmt22_tasks.py \
-    -f newstest2021.de-fr.example.xml -o $prefix -s deu -t fra --rng-seed 1111 \
+    -f newstest2021.de-fr.example.xml -o $prefix -s deu -t fra --rng-seed 2222 \
+    --selected-docs selected_docids.tsv \
     | tee $prefix.full.log
 
 test -s $prefix.full.log

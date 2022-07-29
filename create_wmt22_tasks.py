@@ -246,10 +246,88 @@ def chop_docs(orig_src_docs, orig_ref_docs, orig_hyp_docs, max_length=10):
                 hyp_prev[system][f"{doc_id}.{chunk_id}"] = list(prev_ctx)
                 hyp_next[system][f"{doc_id}.{chunk_id}"] = list(next_ctx)
 
-    print(src_prev)
-
+    # print(src_prev)
     return src_docs, ref_docs, hyp_docs, src_prev, src_next, hyp_prev, hyp_next
 
+
+def select_docs(orig_src_docs, orig_ref_docs, orig_hyp_docs, tsv_file):
+    """
+    Extract preselected segments from given documents and corresponding contexts.
+    """
+    selected_docs = []
+    print("Selecting the following documents only:")
+    with open(tsv_file, "r", encoding="utf8") as tsv:
+        for line in tsv:
+            _docid, _segid_first, _segid_last = line.strip().split()
+            selected_docs.append((_docid, int(_segid_first), int(_segid_last)))
+            print(f"  {selected_docs[-1]}")
+
+    src_docs = OrderedDict()
+    src_prev = OrderedDict()
+    src_next = OrderedDict()
+    for doc_id, seg_id_1, seg_id_2 in selected_docs:
+        if doc_id not in orig_src_docs:
+            print(f"Error: the selected document {doc_id} not found in the XML file/src")
+            exit()
+        segs = orig_src_docs[doc_id]
+        chunk = segs[seg_id_1 - 1:seg_id_2]
+        prev_ctx = segs[0:seg_id_1 - 1]
+        next_ctx = segs[seg_id_2:]
+        chunk_id = f"#{seg_id_1}-{seg_id_2}"
+
+        src_docs[f"{doc_id}{chunk_id}"] = chunk
+        src_prev[f"{doc_id}{chunk_id}"] = prev_ctx
+        src_next[f"{doc_id}{chunk_id}"] = next_ctx
+
+    ref_docs = OrderedDict()
+    hyp_prev = OrderedDict()
+    hyp_next = OrderedDict()
+    for translator in orig_ref_docs:
+        ref_docs[translator] = OrderedDict()
+        hyp_prev[REFERENCE_AS_SYSTEM_PREFIX + translator] = OrderedDict()
+        hyp_next[REFERENCE_AS_SYSTEM_PREFIX + translator] = OrderedDict()
+
+        for doc_id, seg_id_1, seg_id_2 in selected_docs:
+            if doc_id not in orig_ref_docs[translator]:
+                print(f"Error: the selected document {doc_id} not found in the XML file/ref")
+                exit()
+
+            segs = orig_ref_docs[translator][doc_id]
+            chunk = segs[seg_id_1 - 1:seg_id_2]
+            prev_ctx = segs[0:seg_id_1 - 1]
+            next_ctx = segs[seg_id_2:]
+            chunk_id = f"#{seg_id_1}-{seg_id_2}"
+
+            ref_docs[translator][f"{doc_id}{chunk_id}"] = chunk
+            hyp_prev[REFERENCE_AS_SYSTEM_PREFIX + translator][
+                f"{doc_id}{chunk_id}"
+            ] = prev_ctx
+            hyp_next[REFERENCE_AS_SYSTEM_PREFIX + translator][
+                f"{doc_id}{chunk_id}"
+            ] = next_ctx
+
+    hyp_docs = OrderedDict()
+    for system in orig_hyp_docs:
+        hyp_docs[system] = OrderedDict()
+        hyp_prev[system] = OrderedDict()
+        hyp_next[system] = OrderedDict()
+
+        for doc_id, seg_id_1, seg_id_2 in selected_docs:
+            if doc_id not in orig_hyp_docs[system]:
+                print(f"Error: the selected document {doc_id} not found in the XML file/hyp")
+                exit()
+
+            segs = orig_hyp_docs[system][doc_id]
+            chunk = segs[seg_id_1 - 1:seg_id_2]
+            prev_ctx = segs[0:seg_id_1 - 1]
+            next_ctx = segs[seg_id_2:]
+            chunk_id = f"#{seg_id_1}-{seg_id_2}"
+
+            hyp_docs[system][f"{doc_id}{chunk_id}"] = chunk
+            hyp_prev[system][f"{doc_id}{chunk_id}"] = prev_ctx
+            hyp_next[system][f"{doc_id}{chunk_id}"] = next_ctx
+
+    return src_docs, ref_docs, hyp_docs, src_prev, src_next, hyp_prev, hyp_next
 
 def _split_list(list_a, chunk_size):
     for i in range(0, len(list_a), chunk_size):
@@ -462,6 +540,10 @@ def parse_cmd_args():
         type=int,
         default=123456,
     )
+    parser.add_argument(
+        "--selected-docs",
+        help="path to a file with preselected documents; format: docid segid1 segid2",
+    )
     args = parser.parse_args()
     return (
         args.xml_file,
@@ -473,6 +555,7 @@ def parse_cmd_args():
         args.max_tasks,
         args.max_segs,
         args.rng_seed,
+        args.selected_docs,
     )
 
 
@@ -492,6 +575,7 @@ if __name__ == "__main__":
         TASK_MAX,
         MAX_SEGS,
         RND_SEED,
+        SELECTED,
     ) = parse_cmd_args()
 
     print(f'Character based={CHARLANG}')
@@ -512,6 +596,11 @@ if __name__ == "__main__":
         XML_FILE, encoding=ENC
     )
 
+    if SELECTED:
+        docs_tuple = select_docs(SRC_DOCS, REF_DOCS, SYS_DOCS, SELECTED)
+    else:
+        docs_tuple = chop_docs(SRC_DOCS, REF_DOCS, SYS_DOCS, MAX_SEGS)
+
     (
         SRC_DOCS,
         REF_DOCS,
@@ -520,7 +609,7 @@ if __name__ == "__main__":
         SRC_NEXT,
         SYS_PREV,
         SYS_NEXT,
-    ) = chop_docs(SRC_DOCS, REF_DOCS, SYS_DOCS, MAX_SEGS)
+    ) = docs_tuple
 
     # This reference will be used for generating BAD items
     REF_ID = sorted(list(REF_DOCS.keys()))[0]
