@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-
 import argparse
 import json
 import sys
-
-from collections import defaultdict
 from collections import Counter
+from collections import defaultdict
 
 
 def main():

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-
 import argparse
 import copy
-import lxml.etree as ET
 import sys
+
+import lxml.etree as ET
 
 
 def main():
