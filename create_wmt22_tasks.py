@@ -267,11 +267,13 @@ def select_docs(orig_src_docs, orig_ref_docs, orig_hyp_docs, tsv_file):
     src_next = OrderedDict()
     for doc_id, seg_id_1, seg_id_2 in selected_docs:
         if doc_id not in orig_src_docs:
-            print(f"Error: the selected document {doc_id} not found in the XML file/src")
+            print(
+                f"Error: the selected document {doc_id} not found in the XML file/src"
+            )
             exit()
         segs = orig_src_docs[doc_id]
-        chunk = segs[seg_id_1 - 1:seg_id_2]
-        prev_ctx = segs[0:seg_id_1 - 1]
+        chunk = segs[seg_id_1 - 1 : seg_id_2]
+        prev_ctx = segs[0 : seg_id_1 - 1]
         next_ctx = segs[seg_id_2:]
         chunk_id = f"#{seg_id_1}-{seg_id_2}"
 
@@ -289,12 +291,14 @@ def select_docs(orig_src_docs, orig_ref_docs, orig_hyp_docs, tsv_file):
 
         for doc_id, seg_id_1, seg_id_2 in selected_docs:
             if doc_id not in orig_ref_docs[translator]:
-                print(f"Error: the selected document {doc_id} not found in the XML file/ref")
+                print(
+                    f"Error: the selected document {doc_id} not found in the XML file/ref"
+                )
                 exit()
 
             segs = orig_ref_docs[translator][doc_id]
-            chunk = segs[seg_id_1 - 1:seg_id_2]
-            prev_ctx = segs[0:seg_id_1 - 1]
+            chunk = segs[seg_id_1 - 1 : seg_id_2]
+            prev_ctx = segs[0 : seg_id_1 - 1]
             next_ctx = segs[seg_id_2:]
             chunk_id = f"#{seg_id_1}-{seg_id_2}"
 
@@ -314,12 +318,14 @@ def select_docs(orig_src_docs, orig_ref_docs, orig_hyp_docs, tsv_file):
 
         for doc_id, seg_id_1, seg_id_2 in selected_docs:
             if doc_id not in orig_hyp_docs[system]:
-                print(f"Error: the selected document {doc_id} not found in the XML file/hyp")
+                print(
+                    f"Error: the selected document {doc_id} not found in the XML file/hyp"
+                )
                 exit()
 
             segs = orig_hyp_docs[system][doc_id]
-            chunk = segs[seg_id_1 - 1:seg_id_2]
-            prev_ctx = segs[0:seg_id_1 - 1]
+            chunk = segs[seg_id_1 - 1 : seg_id_2]
+            prev_ctx = segs[0 : seg_id_1 - 1]
             next_ctx = segs[seg_id_2:]
             chunk_id = f"#{seg_id_1}-{seg_id_2}"
 
@@ -328,6 +334,7 @@ def select_docs(orig_src_docs, orig_ref_docs, orig_hyp_docs, tsv_file):
             hyp_next[system][f"{doc_id}{chunk_id}"] = next_ctx
 
     return src_docs, ref_docs, hyp_docs, src_prev, src_next, hyp_prev, hyp_next
+
 
 def _split_list(list_a, chunk_size):
     for i in range(0, len(list_a), chunk_size):

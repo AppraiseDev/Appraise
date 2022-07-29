@@ -12,7 +12,6 @@ def main():
     args = parse_user_args()
     tasks = json.load(args.json_file)
 
-
     items_count = 0
     items_by_type = defaultdict(int)
     doc_items_count = 0
@@ -43,11 +42,23 @@ def main():
         docids = [p[0] for p in docids_and_itypes]
         uniq_docids = sorted(list(set(docids)))
         print(f"System {system}")
-        print(f"  will be evaluated on {len(uniq_docids)} unique docs: {' '.join(str(d) for d in uniq_docids)}")
+        print(
+            f"  will be evaluated on {len(uniq_docids)} unique docs: {' '.join(str(d) for d in uniq_docids)}"
+        )
         for docid in uniq_docids:
-            count_tgt = sum(1 for _docid, _itype in docids_and_itypes if _docid == docid and _itype == "TGT")
-            count_bad = sum(1 for _docid, _itype in docids_and_itypes if _docid == docid and _itype == "BAD")
-            print(f"    {docid} occurs {docids.count(docid)} times: {count_tgt} regular docs + {count_bad} with a BAD item")
+            count_tgt = sum(
+                1
+                for _docid, _itype in docids_and_itypes
+                if _docid == docid and _itype == "TGT"
+            )
+            count_bad = sum(
+                1
+                for _docid, _itype in docids_and_itypes
+                if _docid == docid and _itype == "BAD"
+            )
+            print(
+                f"    {docid} occurs {docids.count(docid)} times: {count_tgt} regular docs + {count_bad} with a BAD item"
+            )
         # counts = [count for _, count in Counter(docids).most_common()]
         # print(f"  (#repeats, #documents): {Counter(counts).most_common()}")
 
@@ -58,12 +69,13 @@ def main():
         print(f" {itype} items: {count:,} = {perc:.1%}")
     print(f"Total number of document items: {doc_items_count:,}")
 
-
     print("Done")
 
 
 def parse_user_args():
-    parser = argparse.ArgumentParser(description='Prints statistics for a single JSON batches file.')
+    parser = argparse.ArgumentParser(
+        description='Prints statistics for a single JSON batches file.'
+    )
     parser.add_argument(
         'json_file',
         help='JSON batches',
