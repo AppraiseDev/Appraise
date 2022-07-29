@@ -1,4 +1,5 @@
 # pylint: disable=C0103,C0111,C0330,E1101
+import argparse
 import sys
 from collections import OrderedDict
 from copy import deepcopy
@@ -21,7 +22,6 @@ from lxml import etree
 
 MAX_TASK_SIZE = 100  # No support for tasks over 100 items
 MAX_DOC_LENGTH = 70  # We do not support documents longer than 70 segments
-
 
 MISSING_TRANSLATION_MESSAGE = ("NO TRANSLATION AVAILABLE",)
 DEFAULT_TRANSLATOR = "DEFAULT"
@@ -245,7 +245,92 @@ def chop_docs(orig_src_docs, orig_ref_docs, orig_hyp_docs, max_length=10):
                 hyp_prev[system][f"{doc_id}.{chunk_id}"] = list(prev_ctx)
                 hyp_next[system][f"{doc_id}.{chunk_id}"] = list(next_ctx)
 
-    print(src_prev)
+    # print(src_prev)
+    return src_docs, ref_docs, hyp_docs, src_prev, src_next, hyp_prev, hyp_next
+
+
+def select_docs(orig_src_docs, orig_ref_docs, orig_hyp_docs, tsv_file):
+    """
+    Extract preselected segments from given documents and corresponding contexts.
+    """
+    selected_docs = []
+    print("Selecting the following documents only:")
+    with open(tsv_file, "r", encoding="utf8") as tsv:
+        for line in tsv:
+            _docid, _segid_first, _segid_last = line.strip().split()
+            selected_docs.append((_docid, int(_segid_first), int(_segid_last)))
+            print(f"  {selected_docs[-1]}")
+
+    src_docs = OrderedDict()
+    src_prev = OrderedDict()
+    src_next = OrderedDict()
+    for doc_id, seg_id_1, seg_id_2 in selected_docs:
+        if doc_id not in orig_src_docs:
+            print(
+                f"Error: the selected document {doc_id} not found in the XML file/src"
+            )
+            exit()
+        segs = orig_src_docs[doc_id]
+        chunk = segs[seg_id_1 - 1 : seg_id_2]
+        prev_ctx = segs[0 : seg_id_1 - 1]
+        next_ctx = segs[seg_id_2:]
+        chunk_id = f"#{seg_id_1}-{seg_id_2}"
+
+        src_docs[f"{doc_id}{chunk_id}"] = chunk
+        src_prev[f"{doc_id}{chunk_id}"] = prev_ctx
+        src_next[f"{doc_id}{chunk_id}"] = next_ctx
+
+    ref_docs = OrderedDict()
+    hyp_prev = OrderedDict()
+    hyp_next = OrderedDict()
+    for translator in orig_ref_docs:
+        ref_docs[translator] = OrderedDict()
+        hyp_prev[REFERENCE_AS_SYSTEM_PREFIX + translator] = OrderedDict()
+        hyp_next[REFERENCE_AS_SYSTEM_PREFIX + translator] = OrderedDict()
+
+        for doc_id, seg_id_1, seg_id_2 in selected_docs:
+            if doc_id not in orig_ref_docs[translator]:
+                print(
+                    f"Error: the selected document {doc_id} not found in the XML file/ref"
+                )
+                exit()
+
+            segs = orig_ref_docs[translator][doc_id]
+            chunk = segs[seg_id_1 - 1 : seg_id_2]
+            prev_ctx = segs[0 : seg_id_1 - 1]
+            next_ctx = segs[seg_id_2:]
+            chunk_id = f"#{seg_id_1}-{seg_id_2}"
+
+            ref_docs[translator][f"{doc_id}{chunk_id}"] = chunk
+            hyp_prev[REFERENCE_AS_SYSTEM_PREFIX + translator][
+                f"{doc_id}{chunk_id}"
+            ] = prev_ctx
+            hyp_next[REFERENCE_AS_SYSTEM_PREFIX + translator][
+                f"{doc_id}{chunk_id}"
+            ] = next_ctx
+
+    hyp_docs = OrderedDict()
+    for system in orig_hyp_docs:
+        hyp_docs[system] = OrderedDict()
+        hyp_prev[system] = OrderedDict()
+        hyp_next[system] = OrderedDict()
+
+        for doc_id, seg_id_1, seg_id_2 in selected_docs:
+            if doc_id not in orig_hyp_docs[system]:
+                print(
+                    f"Error: the selected document {doc_id} not found in the XML file/hyp"
+                )
+                exit()
+
+            segs = orig_hyp_docs[system][doc_id]
+            chunk = segs[seg_id_1 - 1 : seg_id_2]
+            prev_ctx = segs[0 : seg_id_1 - 1]
+            next_ctx = segs[seg_id_2:]
+            chunk_id = f"#{seg_id_1}-{seg_id_2}"
+
+            hyp_docs[system][f"{doc_id}{chunk_id}"] = chunk
+            hyp_prev[system][f"{doc_id}{chunk_id}"] = prev_ctx
+            hyp_next[system][f"{doc_id}{chunk_id}"] = next_ctx
 
     return src_docs, ref_docs, hyp_docs, src_prev, src_next, hyp_prev, hyp_next
 
@@ -324,14 +409,17 @@ def _create_bad_ref(seg_text: str, ref_text: str, character_based: bool = False)
     # or final, so positions 0 and (seg_len - bad_len -1) are invalid
     # and we use an embedded bad_pos in [1, (seg_len - bad_len - 1)].
     # This happens for all seg_len > 3.
-    bad_pos = 1
-    _xs = max(1, seg_len - bad_len - 1)
-    bad_pos = choice([x + 1 for x in range(_xs)])
+    bad_pos = 0
+    if seg_len - bad_len > 0:
+        bad_pos = choice(range(seg_len - bad_len))
 
-    ref_pos = 1
+    elif seg_len > 3:
+        _xs = max(1, seg_len - bad_len - 1)
+        bad_pos = choice([x + 1 for x in range(_xs)])
+
+    ref_pos = 0
     if ref_len - bad_len > 0:
-        _xs = max(1, ref_len - bad_len - 1)
-        ref_pos = choice(range(_xs))
+        ref_pos = choice(range(ref_len - bad_len))
 
     bad_data = (
         seg_data[:bad_pos]
@@ -403,35 +491,108 @@ def create_bad_refs(
     return bad_docs
 
 
+def parse_cmd_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-f",
+        "--xml-file",
+        help="path to .xml file with sources, references and system outputs",
+        required=True,
+    )
+    parser.add_argument(
+        "-o",
+        "--output-prefix",
+        help="prefix for .csv and .json output files",
+        required=True,
+    )
+    parser.add_argument(
+        "-s",
+        "--src-lang",
+        help="ISO code for source language for Appraise",
+        required=True,
+    )
+    parser.add_argument(
+        "-t",
+        "--tgt-lang",
+        help="ISO code for target language for Appraise",
+        required=True,
+    )
+    parser.add_argument(
+        "-c",
+        "--char-based",
+        help="target language is character-based",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--no-qc",
+        help="do not generate BAD references as quality control items",
+        action="store_true",
+    )
+    parser.add_argument(
+        "--max-tasks",
+        help="maximum number of tasks to generate, default: 100",
+        type=int,
+        default=100,
+    )
+    parser.add_argument(
+        "--max-segs",
+        help="maximum number of sentences per document",
+        type=int,
+        default=MAX_DOC_LENGTH,
+    )
+    parser.add_argument(
+        "--rng-seed",
+        help="seed for random number generator",
+        type=int,
+        default=123456,
+    )
+    parser.add_argument(
+        "--selected-docs",
+        help="path to a file with preselected documents; format: docid segid1 segid2",
+    )
+    args = parser.parse_args()
+    return (
+        args.xml_file,
+        args.output_prefix,
+        args.src_lang,
+        args.tgt_lang,
+        args.char_based,
+        not args.no_qc,
+        args.max_tasks,
+        args.max_segs,
+        args.rng_seed,
+        args.selected_docs,
+    )
+
+
 if __name__ == "__main__":
-    if len(sys.argv) < 8:
-        print('Example usage:')
-        print(
-            f'  {sys.argv[0]} newstest2021.en-de.all.xml batches.en-de enu deu 50 True False'
-        )
-        exit()
+    """
+    Example usage:
+    python3 create_wmt22_tasks.py -f newstest2021.en-de.all.xml -o batches.en-de -s enu -t deu -m 50
+    """
 
-    XML_FILE = sys.argv[1]  # Path to .xml file with sources, references and outputs
-    OUT_NAME = sys.argv[2]  # Prefix for .csv and .json output files
-    SRC_LANG = sys.argv[3]  # Code for source language, e.g. eng
-    TGT_LANG = sys.argv[4]  # Code for target language, e.g. deu
-    TASK_MAX = int(sys.argv[5])  # Maximum number of tasks
-    CONTROLS = sys.argv[6].lower() not in ['', '0', 'false', 'off']  # Generate QC items
-    CHARLANG = sys.argv[7].lower() in ['1', 'true', 'on']  # Character-based
-    MAX_SEGS = int(sys.argv[8]) if len(sys.argv) > 8 else MAX_DOC_LENGTH
+    (
+        XML_FILE,
+        OUT_NAME,
+        SRC_LANG,
+        TGT_LANG,
+        CHARLANG,
+        CONTROLS,
+        TASK_MAX,
+        MAX_SEGS,
+        RND_SEED,
+        SELECTED,
+    ) = parse_cmd_args()
+
     print(f'Character based={CHARLANG}')
-
     ENC = 'utf-8'
-
-    RND_SEED = 1234567
-    # RND_SEED = 11111
     seed(RND_SEED)
 
     print(f'Quality control={CONTROLS}')
     if not CONTROLS or TGT_LANG == 'sgg':  # no BAD refs if the target size has videos
         REQUIRED_SEGS = 100
     else:
-        REQUIRED_SEGS = 88
+        REQUIRED_SEGS = 80
     print(f'Setting REQUIRED_SEGS={REQUIRED_SEGS}')
 
     SYS_DOCS: Dict[str, Dict[str, List[Tuple[str, str]]]] = OrderedDict()
@@ -441,6 +602,11 @@ if __name__ == "__main__":
         XML_FILE, encoding=ENC
     )
 
+    if SELECTED:
+        docs_tuple = select_docs(SRC_DOCS, REF_DOCS, SYS_DOCS, SELECTED)
+    else:
+        docs_tuple = chop_docs(SRC_DOCS, REF_DOCS, SYS_DOCS, MAX_SEGS)
+
     (
         SRC_DOCS,
         REF_DOCS,
@@ -449,7 +615,7 @@ if __name__ == "__main__":
         SRC_NEXT,
         SYS_PREV,
         SYS_NEXT,
-    ) = chop_docs(SRC_DOCS, REF_DOCS, SYS_DOCS, MAX_SEGS)
+    ) = docs_tuple
 
     # This reference will be used for generating BAD items
     REF_ID = sorted(list(REF_DOCS.keys()))[0]
@@ -490,7 +656,7 @@ if __name__ == "__main__":
             doc_len = len(SYS_DOCS[sys_id][doc_id])
 
             # We do not support documents longer than 70 segments.
-            if doc_len > MAX_SEGS:
+            if doc_len > MAX_DOC_LENGTH:
                 print("!!! DOCUMENT TOO LONG:", doc_id)
                 continue
 
@@ -733,18 +899,7 @@ if __name__ == "__main__":
                 # Do not generate any BAD items if QC is disabled
                 if CONTROLS and isControl:
                     randomCoinFlip = choice(
-                        [
-                            False,
-                            False,
-                            False,
-                            True,
-                            True,
-                            True,
-                            True,
-                            True,
-                            True,
-                            True,
-                        ]  # 7:3 chance
+                        [False, False, True, True, True]  # 60:40 chance
                     )
                     if randomCoinFlip:
                         target_text = item_bad
