@@ -948,9 +948,9 @@ if __name__ == "__main__":
             src_ctx = []
             tgt_ctx = []
             if SRC_LANG != 'sgg':
-                src_ctx = [txt for _, txt in SRC_PREV[doc_id]][:5]
+                src_ctx = [txt for _, txt in SRC_NEXT[doc_id]][:5]
             if TGT_LANG != 'sgg':
-                tgt_ctx = [txt for _, txt in SYS_PREV[sys_id][doc_id]][:5]
+                tgt_ctx = [txt for _, txt in SYS_NEXT[sys_id][doc_id]][:5]
 
             obj = OrderedDict()
             obj['_item'] = _item
