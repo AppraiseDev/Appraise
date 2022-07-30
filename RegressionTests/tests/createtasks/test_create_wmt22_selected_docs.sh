@@ -9,7 +9,7 @@ rm -f $prefix*.{log,csv,json,stats,diff}
 
 $APPRAISE_PYTHON $APPRAISE_ROOT/create_wmt22_tasks.py \
     -f newstest2021.de-fr.example.xml -o $prefix -s deu -t fra --rng-seed 2222 \
-    --selected-docs selected_docids.tsv \
+    --selected-docs selected_docids.tsv --static-context 5 \
     | tee $prefix.full.log
 
 test -s $prefix.full.log
