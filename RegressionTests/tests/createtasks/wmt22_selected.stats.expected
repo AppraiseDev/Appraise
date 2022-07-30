@@ -5,68 +5,73 @@ Task 3: 6 BAD items in 2 doc(s)
 Task 4: 15 BAD items in 3 doc(s)
 Task 5: 12 BAD items in 2 doc(s)
 System Online-W
-  will be evaluated on 10 unique docs: bild.254846#1-5 epochtimes.de.56046#1-10 epochtimes.de.56046#10-19 epochtimes.de.56046#5-14 handelsblatt.com.292800#4-13 kurier.at.204564#1-9 ln-online.de.149803#21-30 ln-online.de.149803#8-17 mittelbayerische.de.307175#2-11 rt-german.14747#1-10
-    bild.254846#1-5 occurs 5 times: 5 regular docs + 0 with a BAD item
-    epochtimes.de.56046#1-10 occurs 10 times: 10 regular docs + 0 with a BAD item
-    epochtimes.de.56046#10-19 occurs 10 times: 10 regular docs + 0 with a BAD item
-    epochtimes.de.56046#5-14 occurs 10 times: 10 regular docs + 0 with a BAD item
-    handelsblatt.com.292800#4-13 occurs 11 times: 10 regular docs + 1 with a BAD item
-    kurier.at.204564#1-9 occurs 18 times: 12 regular docs + 6 with a BAD item
-    ln-online.de.149803#21-30 occurs 10 times: 10 regular docs + 0 with a BAD item
-    ln-online.de.149803#8-17 occurs 10 times: 10 regular docs + 0 with a BAD item
-    mittelbayerische.de.307175#2-11 occurs 14 times: 13 regular docs + 1 with a BAD item
-    rt-german.14747#1-10 occurs 10 times: 10 regular docs + 0 with a BAD item
+  will be evaluated on 10/10 unique docs
+  Doc IDs: bild.254846#1-5 epochtimes.de.56046#1-10 epochtimes.de.56046#10-19 epochtimes.de.56046#5-14 handelsblatt.com.292800#4-13 kurier.at.204564#1-9 ln-online.de.149803#21-30 ln-online.de.149803#8-17 mittelbayerische.de.307175#2-11 rt-german.14747#1-10
+    bild.254846#1-5	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046#1-10	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046#10-19	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046#5-14	appears 1 times: 1 TGTs + 0 BADs
+    handelsblatt.com.292800#4-13	appears 2 times: 1 TGTs + 1 BADs
+    kurier.at.204564#1-9	appears 2 times: 1 TGTs + 1 BADs
+    ln-online.de.149803#21-30	appears 1 times: 1 TGTs + 0 BADs
+    ln-online.de.149803#8-17	appears 1 times: 1 TGTs + 0 BADs
+    mittelbayerische.de.307175#2-11	appears 2 times: 1 TGTs + 1 BADs
+    rt-german.14747#1-10	appears 1 times: 1 TGTs + 0 BADs
 System Online-Y
-  will be evaluated on 10 unique docs: bild.254846#1-5 epochtimes.de.56046#1-10 epochtimes.de.56046#10-19 epochtimes.de.56046#5-14 handelsblatt.com.292800#4-13 kurier.at.204564#1-9 ln-online.de.149803#21-30 ln-online.de.149803#8-17 mittelbayerische.de.307175#2-11 rt-german.14747#1-10
-    bild.254846#1-5 occurs 5 times: 5 regular docs + 0 with a BAD item
-    epochtimes.de.56046#1-10 occurs 10 times: 10 regular docs + 0 with a BAD item
-    epochtimes.de.56046#10-19 occurs 10 times: 10 regular docs + 0 with a BAD item
-    epochtimes.de.56046#5-14 occurs 20 times: 13 regular docs + 7 with a BAD item
-    handelsblatt.com.292800#4-13 occurs 10 times: 10 regular docs + 0 with a BAD item
-    kurier.at.204564#1-9 occurs 15 times: 12 regular docs + 3 with a BAD item
-    ln-online.de.149803#21-30 occurs 20 times: 15 regular docs + 5 with a BAD item
-    ln-online.de.149803#8-17 occurs 10 times: 10 regular docs + 0 with a BAD item
-    mittelbayerische.de.307175#2-11 occurs 20 times: 16 regular docs + 4 with a BAD item
-    rt-german.14747#1-10 occurs 20 times: 16 regular docs + 4 with a BAD item
+  will be evaluated on 10/10 unique docs
+  Doc IDs: bild.254846#1-5 epochtimes.de.56046#1-10 epochtimes.de.56046#10-19 epochtimes.de.56046#5-14 handelsblatt.com.292800#4-13 kurier.at.204564#1-9 ln-online.de.149803#21-30 ln-online.de.149803#8-17 mittelbayerische.de.307175#2-11 rt-german.14747#1-10
+    bild.254846#1-5	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046#1-10	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046#10-19	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046#5-14	appears 2 times: 1 TGTs + 1 BADs
+    handelsblatt.com.292800#4-13	appears 1 times: 1 TGTs + 0 BADs
+    kurier.at.204564#1-9	appears 2 times: 1 TGTs + 1 BADs
+    ln-online.de.149803#21-30	appears 2 times: 1 TGTs + 1 BADs
+    ln-online.de.149803#8-17	appears 1 times: 1 TGTs + 0 BADs
+    mittelbayerische.de.307175#2-11	appears 2 times: 1 TGTs + 1 BADs
+    rt-german.14747#1-10	appears 2 times: 1 TGTs + 1 BADs
 System translator-A
-  will be evaluated on 10 unique docs: bild.254846#1-5 epochtimes.de.56046#1-10 epochtimes.de.56046#10-19 epochtimes.de.56046#5-14 handelsblatt.com.292800#4-13 kurier.at.204564#1-9 ln-online.de.149803#21-30 ln-online.de.149803#8-17 mittelbayerische.de.307175#2-11 rt-german.14747#1-10
-    bild.254846#1-5 occurs 5 times: 5 regular docs + 0 with a BAD item
-    epochtimes.de.56046#1-10 occurs 10 times: 10 regular docs + 0 with a BAD item
-    epochtimes.de.56046#10-19 occurs 10 times: 10 regular docs + 0 with a BAD item
-    epochtimes.de.56046#5-14 occurs 20 times: 16 regular docs + 4 with a BAD item
-    handelsblatt.com.292800#4-13 occurs 20 times: 11 regular docs + 9 with a BAD item
-    kurier.at.204564#1-9 occurs 9 times: 9 regular docs + 0 with a BAD item
-    ln-online.de.149803#21-30 occurs 10 times: 10 regular docs + 0 with a BAD item
-    ln-online.de.149803#8-17 occurs 20 times: 16 regular docs + 4 with a BAD item
-    mittelbayerische.de.307175#2-11 occurs 20 times: 17 regular docs + 3 with a BAD item
-    rt-german.14747#1-10 occurs 10 times: 10 regular docs + 0 with a BAD item
+  will be evaluated on 10/10 unique docs
+  Doc IDs: bild.254846#1-5 epochtimes.de.56046#1-10 epochtimes.de.56046#10-19 epochtimes.de.56046#5-14 handelsblatt.com.292800#4-13 kurier.at.204564#1-9 ln-online.de.149803#21-30 ln-online.de.149803#8-17 mittelbayerische.de.307175#2-11 rt-german.14747#1-10
+    bild.254846#1-5	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046#1-10	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046#10-19	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046#5-14	appears 2 times: 1 TGTs + 1 BADs
+    handelsblatt.com.292800#4-13	appears 2 times: 1 TGTs + 1 BADs
+    kurier.at.204564#1-9	appears 1 times: 1 TGTs + 0 BADs
+    ln-online.de.149803#21-30	appears 1 times: 1 TGTs + 0 BADs
+    ln-online.de.149803#8-17	appears 2 times: 1 TGTs + 1 BADs
+    mittelbayerische.de.307175#2-11	appears 2 times: 1 TGTs + 1 BADs
+    rt-german.14747#1-10	appears 1 times: 1 TGTs + 0 BADs
 System Online-B
-  will be evaluated on 10 unique docs: bild.254846#1-5 epochtimes.de.56046#1-10 epochtimes.de.56046#10-19 epochtimes.de.56046#5-14 handelsblatt.com.292800#4-13 kurier.at.204564#1-9 ln-online.de.149803#21-30 ln-online.de.149803#8-17 mittelbayerische.de.307175#2-11 rt-german.14747#1-10
-    bild.254846#1-5 occurs 5 times: 5 regular docs + 0 with a BAD item
-    epochtimes.de.56046#1-10 occurs 10 times: 10 regular docs + 0 with a BAD item
-    epochtimes.de.56046#10-19 occurs 10 times: 10 regular docs + 0 with a BAD item
-    epochtimes.de.56046#5-14 occurs 10 times: 10 regular docs + 0 with a BAD item
-    handelsblatt.com.292800#4-13 occurs 10 times: 10 regular docs + 0 with a BAD item
-    kurier.at.204564#1-9 occurs 9 times: 9 regular docs + 0 with a BAD item
-    ln-online.de.149803#21-30 occurs 10 times: 10 regular docs + 0 with a BAD item
-    ln-online.de.149803#8-17 occurs 10 times: 10 regular docs + 0 with a BAD item
-    mittelbayerische.de.307175#2-11 occurs 10 times: 10 regular docs + 0 with a BAD item
-    rt-german.14747#1-10 occurs 10 times: 10 regular docs + 0 with a BAD item
+  will be evaluated on 10/10 unique docs
+  Doc IDs: bild.254846#1-5 epochtimes.de.56046#1-10 epochtimes.de.56046#10-19 epochtimes.de.56046#5-14 handelsblatt.com.292800#4-13 kurier.at.204564#1-9 ln-online.de.149803#21-30 ln-online.de.149803#8-17 mittelbayerische.de.307175#2-11 rt-german.14747#1-10
+    bild.254846#1-5	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046#1-10	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046#10-19	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046#5-14	appears 1 times: 1 TGTs + 0 BADs
+    handelsblatt.com.292800#4-13	appears 1 times: 1 TGTs + 0 BADs
+    kurier.at.204564#1-9	appears 1 times: 1 TGTs + 0 BADs
+    ln-online.de.149803#21-30	appears 1 times: 1 TGTs + 0 BADs
+    ln-online.de.149803#8-17	appears 1 times: 1 TGTs + 0 BADs
+    mittelbayerische.de.307175#2-11	appears 1 times: 1 TGTs + 0 BADs
+    rt-german.14747#1-10	appears 1 times: 1 TGTs + 0 BADs
 System Online-A
-  will be evaluated on 10 unique docs: bild.254846#1-5 epochtimes.de.56046#1-10 epochtimes.de.56046#10-19 epochtimes.de.56046#5-14 handelsblatt.com.292800#4-13 kurier.at.204564#1-9 ln-online.de.149803#21-30 ln-online.de.149803#8-17 mittelbayerische.de.307175#2-11 rt-german.14747#1-10
-    bild.254846#1-5 occurs 5 times: 5 regular docs + 0 with a BAD item
-    epochtimes.de.56046#1-10 occurs 10 times: 10 regular docs + 0 with a BAD item
-    epochtimes.de.56046#10-19 occurs 10 times: 10 regular docs + 0 with a BAD item
-    epochtimes.de.56046#5-14 occurs 10 times: 10 regular docs + 0 with a BAD item
-    handelsblatt.com.292800#4-13 occurs 20 times: 12 regular docs + 8 with a BAD item
-    kurier.at.204564#1-9 occurs 9 times: 9 regular docs + 0 with a BAD item
-    ln-online.de.149803#21-30 occurs 10 times: 10 regular docs + 0 with a BAD item
-    ln-online.de.149803#8-17 occurs 20 times: 15 regular docs + 5 with a BAD item
-    mittelbayerische.de.307175#2-11 occurs 10 times: 10 regular docs + 0 with a BAD item
-    rt-german.14747#1-10 occurs 20 times: 19 regular docs + 1 with a BAD item
+  will be evaluated on 10/10 unique docs
+  Doc IDs: bild.254846#1-5 epochtimes.de.56046#1-10 epochtimes.de.56046#10-19 epochtimes.de.56046#5-14 handelsblatt.com.292800#4-13 kurier.at.204564#1-9 ln-online.de.149803#21-30 ln-online.de.149803#8-17 mittelbayerische.de.307175#2-11 rt-german.14747#1-10
+    bild.254846#1-5	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046#1-10	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046#10-19	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046#5-14	appears 1 times: 1 TGTs + 0 BADs
+    handelsblatt.com.292800#4-13	appears 2 times: 1 TGTs + 1 BADs
+    kurier.at.204564#1-9	appears 1 times: 1 TGTs + 0 BADs
+    ln-online.de.149803#21-30	appears 1 times: 1 TGTs + 0 BADs
+    ln-online.de.149803#8-17	appears 2 times: 1 TGTs + 1 BADs
+    mittelbayerische.de.307175#2-11	appears 1 times: 1 TGTs + 0 BADs
+    rt-german.14747#1-10	appears 2 times: 1 TGTs + 1 BADs
 Total number of tasks: 6
 Total number of segment items: 600
- BAD items: 65 = 10.8%
- TGT items: 535 = 89.2%
+  BAD items: 65 = 10.8%
+  TGT items: 535 = 89.2%
 Total number of document items: 65
 Done
