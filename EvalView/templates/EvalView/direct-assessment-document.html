@@ -463,7 +463,7 @@ function _show_error_box(item_box, msg) {
             <p>{{text|safe}}</p>
             {% endfor %}
             {% if sqm %}
-              {% with speech=speech signlt=signlt %}
+              {% with speech=speech signlt=signlt mono=monolingual %}
               {% include 'EvalView/_sqm_instructions.html' %}
               {% endwith %}
             {% endif %}
@@ -497,6 +497,7 @@ function _show_error_box(item_box, msg) {
 <div class="item-box item-odd item-static-content pseudoquotelike">
         <div class="source-box">
             <div class="row">
+                {% if not monolingual %}
                 <div class="col-sm-6">
                     <span title="Source static context">
                         <p>{{ item.sourceContextLeft|linebreaks }}</p>
@@ -513,6 +514,16 @@ function _show_error_box(item_box, msg) {
                         {% endif %}
                     </span>
                 </div>
+                {% else %}
+                <div class="col-sm-11">
+                    <span title="Static context">
+                        <p>{{ item.targetContextLeft|linebreaks }}</p>
+                        {% if item.targetContextLeft %}
+                        <small class="segment-label">- Additional context</small>
+                        {% endif %}
+                    </span>
+                </div>
+                {% endif %}
             </div>
         </div>
 </div>
@@ -543,6 +554,7 @@ function _show_error_box(item_box, msg) {
 
         <div class="source-box source-box-hoverable">
             <div class="row">
+                {% if not monolingual %}
                 <div class="col-sm-6">
                     <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
                     <span title="Source sentence #{{ item.itemID|add:"1" }}">
@@ -553,12 +565,13 @@ function _show_error_box(item_box, msg) {
                         {% else %}
                         <p>{{ item.sourceText }}</p>
                         {% endif %}
-                        <!--
-                            <small class="">- {{ reference_label }}</small>
-                        -->
                     </span>
                 </div>
-                <div class="col-sm-5">
+                {% endif %}
+                <div class="{% if not monolingual %}col-sm-5{% else %}col-sm-11{% endif %}">
+                  {% if monolingual %}
+                    <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
+                  {% endif %}
                     <span title="Candidate translation of source sentence #{{ item.itemID|add:"1" }}">
                         {% if target_item_type == 'video' %}
                         <iframe class="toggleable" width="auto" height="auto" src="{{ item.targetText }}"
@@ -579,7 +592,7 @@ function _show_error_box(item_box, msg) {
         <div class="target-box toggleable" >
             <div class="row">
             {% if sqm %}
-                {% with sliderid=item.itemID speech=speech signlt=signlt %}
+                {% with sliderid=item.itemID speech=speech signlt=signlt mono=monolingual %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
@@ -618,7 +631,9 @@ function _show_error_box(item_box, msg) {
                     <p>{{text|safe}}</p>
                     {% endfor %}
                     {% if sqm %}
-                    {% include 'EvalView/_sqm_instructions.html' %}
+                      {% with speech=speech signlt=signlt mono=monolingual %}
+                      {% include 'EvalView/_sqm_instructions.html' %}
+                      {% endwith %}
                     {% endif %}
                 </div>
             </div>
@@ -627,7 +642,7 @@ function _show_error_box(item_box, msg) {
         <div class="target-box document-box quotelike">
             <div class="row">
             {% if sqm %}
-                {% with sliderid=item.itemID speech=speech %}
+                {% with sliderid=item.itemID speech=speech mono=monolingual%}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
