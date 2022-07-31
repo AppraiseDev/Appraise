@@ -550,6 +550,12 @@ def parse_cmd_args():
         "--selected-docs",
         help="path to a file with preselected documents; format: docid segid1 segid2",
     )
+    parser.add_argument(
+        "--static-context",
+        help="number of preceding/succesive segments to show as a static context",
+        type=int,
+        default=MAX_DOC_LENGTH,  # a large number should use all available segments
+    )
     args = parser.parse_args()
     return (
         args.xml_file,
@@ -562,6 +568,7 @@ def parse_cmd_args():
         args.max_segs,
         args.rng_seed,
         args.selected_docs,
+        args.static_context,
     )
 
 
@@ -582,6 +589,7 @@ if __name__ == "__main__":
         MAX_SEGS,
         RND_SEED,
         SELECTED,
+        CTX_SIZE,
     ) = parse_cmd_args()
 
     print(f'Character based={CHARLANG}')
@@ -910,9 +918,11 @@ if __name__ == "__main__":
                 tgt_ctx = []
                 if seg_counter == 0:
                     if SRC_LANG != 'sgg':
-                        src_ctx = [txt for _, txt in SRC_PREV[doc_id]][-5:]
+                        src_ctx = [txt for _, txt in SRC_PREV[doc_id]][-CTX_SIZE:]
                     if TGT_LANG != 'sgg':
-                        tgt_ctx = [txt for _, txt in SYS_PREV[sys_id][doc_id]][-5:]
+                        tgt_ctx = [txt for _, txt in SYS_PREV[sys_id][doc_id]][
+                            -CTX_SIZE:
+                        ]
 
                 obj: Dict[str, Any] = OrderedDict()
                 obj['_item'] = _item
@@ -948,9 +958,9 @@ if __name__ == "__main__":
             src_ctx = []
             tgt_ctx = []
             if SRC_LANG != 'sgg':
-                src_ctx = [txt for _, txt in SRC_PREV[doc_id]][:5]
+                src_ctx = [txt for _, txt in SRC_NEXT[doc_id]][:CTX_SIZE]
             if TGT_LANG != 'sgg':
-                tgt_ctx = [txt for _, txt in SYS_PREV[sys_id][doc_id]][:5]
+                tgt_ctx = [txt for _, txt in SYS_NEXT[sys_id][doc_id]][:CTX_SIZE]
 
             obj = OrderedDict()
             obj['_item'] = _item

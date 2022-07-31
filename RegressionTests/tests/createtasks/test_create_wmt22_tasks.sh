@@ -16,12 +16,11 @@ test -s $prefix.csv
 test -s $prefix.json
 
 grep -P ">>>|Total" < $prefix.full.log > $prefix.log
+$APPRAISE_PYTHON compute_batch_stats.py < $prefix.json > $prefix.stats
 
 diff $prefix.log.expected $prefix.log | tee $prefix.log.diff
 diff $prefix.csv.expected $prefix.csv | tee $prefix.csv.diff
 diff $prefix.json.expected $prefix.json | tee $prefix.json.diff
-
-$APPRAISE_PYTHON compute_batch_stats.py < $prefix.json > $prefix.stats
 diff $prefix.stats.expected $prefix.stats | tee $prefix.stats.diff
 
 # Exit with success code
