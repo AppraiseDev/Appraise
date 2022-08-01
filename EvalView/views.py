@@ -897,6 +897,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             'Please score the overall document quality (you can score '
             'the whole document only after scoring all individual sentences first).',
         ]
+        candidate_label = None
 
     if sign_translation:
         # For sign languages, source or target segments are videos
@@ -1992,7 +1993,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     if monolingual_task:
         source_language = None
         priming_question_texts = [
-            'Below you see multiple documents, each with {0} sentences in {1}. '
+            'Below you see two documents, each with {0} sentences in {1}. '
             'Score each sentence in both documents in their respective document context. '
             'You may revisit already scored sentences and update their scores at any time '
             'by clicking at a source text.'.format(
@@ -2004,6 +2005,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             'the whole document only after scoring all individual sentences from all '
             'documents first).',
         ]
+        candidate1_label = 'Sentence A'
+        candidate2_label = 'Sentence B'
 
     # A part of context used in responses to both Ajax and standard POST
     # requests
