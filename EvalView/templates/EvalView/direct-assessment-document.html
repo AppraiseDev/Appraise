@@ -93,6 +93,11 @@ jQuery.fn.clickToggle = function(a, b) {
 };
 
 $(document).ready(function() {
+    // Set Bootstrap version for the bootstrap-select plugin
+    $.fn.selectpicker.Constructor.BootstrapVersion = '3';
+    $.fn.selectpicker.Constructor.DEFAULTS.display = 'static';
+    $('.selectpicker').selectpicker();
+
     // This sets the same starting time for all items, but it is set again when
     // an item is expanded by clicking on it.
     $('input[name="start_timestamp"]').val(Date.now()/1000.0);
@@ -428,6 +433,8 @@ function _show_error_box(item_box, msg) {
 
 -->
 </script>
+<link rel="stylesheet" href="{% static 'EvalView/css/bootstrap-select.min.css' %}">
+<script src="{% static 'EvalView/js/bootstrap-select.min.js' %}"></script>
 
 {% endblock %}
 
@@ -602,6 +609,18 @@ function _show_error_box(item_box, msg) {
                 {% endwith %}
             {% endif %}
             </div>
+
+            {% if errortypes %}
+            <div class="row">
+            <div class="col-sm-12">
+              <select class="selectpicker" multiple data-width="100%" title="Specify translation errors found in this candidate translation">
+                {% for error_type in errortypes %}
+                <option>{{ error_type.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            </div>
+            {% endif %}
 
             <table class="row action-box">
                 <tr>
