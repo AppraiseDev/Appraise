@@ -613,9 +613,9 @@ function _show_error_box(item_box, msg) {
             {% if errortypes %}
             <div class="row">
             <div class="col-sm-12">
-              <select class="selectpicker" multiple data-width="100%" title="Specify translation errors found in this candidate translation">
+              <select class="selectpicker" multiple data-width="100%" data-actions-box="true" title="Specify translation errors found in this candidate translation">
                 {% for error_type in errortypes %}
-                <option>{{ error_type.name }}</option>
+                <option data-subtext=": {{ error_type.description }}">{{ error_type.name }}</option>
                 {% endfor %}
               </select>
             </div>
