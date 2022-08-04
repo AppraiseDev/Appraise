@@ -498,7 +498,9 @@ function _show_error_box(item_box, msg) {
             <p>{{text|safe}}</p>
             {% endfor %}
             {% if sqm %}
+            {% with mono=monolingual %}
             {% include 'EvalView/_sqm_instructions.html' %}
+            {% endwith %}
             {% endif %}
         </div>
     </div>
@@ -525,6 +527,7 @@ function _show_error_box(item_box, msg) {
 <div class="item-box item-odd item-static-content pseudoquotelike">
         <div class="source-box">
             <div class="row">
+                {% if not monolingual %}
                 <div class="col-sm-3">
                     <span title="Source static context">
                         <p>{{ item.contextLeft|linebreaks }}</p>
@@ -549,6 +552,24 @@ function _show_error_box(item_box, msg) {
                         {% endif %}
                     </span>
                 </div>
+                {% else %}
+                <div class="col-sm-6">
+                    <span title="Static context of the first document">
+                        <p><strong>{{ item.target1ContextLeft|linebreaks }}</strong></p>
+                        {% if item.target1ContextLeft %}
+                        <small class="segment-label">- Additional context A</small>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="col-sm-6">
+                    <span title="Static context of the second translation">
+                        <p><strong>{{ item.target2ContextLeft|linebreaks }}</strong></p>
+                        {% if item.target2ContextLeft %}
+                        <small class="segment-label">- Additional context B</small>
+                        {% endif %}
+                    </span>
+                </div>
+                {% endif %}
             </div>
         </div>
 </div>
@@ -581,20 +602,27 @@ function _show_error_box(item_box, msg) {
 
         <div class="source-box-hoverable">
             <div class="row">
+                {% if not monolingual %}
                 <div class="source-box col-sm-3">
                     <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
                     <span title="Source sentence #{{ item.itemID|add:"1" }}">
                         <p>{{ item.segmentText }}<small class="segment-label">- {{ reference_label }}</small></p>
                     </span>
                 </div>
-                <div class="col-sm-4">
+                {% else %}
+                <div class="source-box col-sm-1">
+                    <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
+                </div>
+                {% endif %}
+
+                <div class="{% if monolingual %}col-sm-5{% else %}col-sm-4{% endif %}">
                     <span title="Candidate translation A of source sentence #{{ item.itemID|add:"1" }}">
                         <p class="source-box candidate-text"><strong>{{scores.candidate1_text|safe}}</strong><small class="segment-label">- {{ candidate1_label }}</small></p>
                     </span>
 
             <div class="row half-slider target-box toggleable">
             {% if sqm %}
-                {% with sliderid=item.itemID slidernum=1 %}
+                {% with sliderid=item.itemID slidernum=1 mono=monolingual %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
@@ -605,14 +633,14 @@ function _show_error_box(item_box, msg) {
             </div>
 
                 </div>
-                <div class="col-sm-4">
+                <div class="{% if monolingual %}col-sm-5{% else %}col-sm-4{% endif %}">
                     <span title="Candidate translation B of source sentence #{{ item.itemID|add:"1" }}">
                         <p class="source-box candidate-text"><strong>{{scores.candidate2_text|safe}}</strong><small class="segment-label">- {{ candidate2_label }}</small></p>
                     </span>
 
             <div class="row half-slider target-box toggleable">
             {% if sqm %}
-                {% with sliderid=item.itemID slidernum=2 %}
+                {% with sliderid=item.itemID slidernum=2 mono=monolingual %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
@@ -642,7 +670,7 @@ function _show_error_box(item_box, msg) {
             <div class="row">
             <div class="col-sm-6">
             {% if sqm %}
-                {% with sliderid=item.itemID %}
+                {% with sliderid=item.itemID mono=monolingual %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
@@ -653,7 +681,7 @@ function _show_error_box(item_box, msg) {
             </div>
             <div class="col-sm-6">
             {% if sqm %}
-                {% with sliderid=item.itemID %}
+                {% with sliderid=item.itemID mono=monolingual %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
@@ -694,7 +722,9 @@ function _show_error_box(item_box, msg) {
                     <p>{{text|safe}}</p>
                     {% endfor %}
                     {% if sqm %}
+                    {% with mono=monolingual %}
                     {% include 'EvalView/_sqm_instructions.html' %}
+                    {% endwith %}
                     {% endif %}
                 </div>
             </div>
@@ -705,7 +735,7 @@ function _show_error_box(item_box, msg) {
             <div class="col-sm-6">
                 <small class="segment-label">{{ candidate1_label }}</small>
             {% if sqm %}
-                {% with sliderid=item.itemID slidernum=1 %}
+                {% with sliderid=item.itemID slidernum=1 mono=monolingual %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
@@ -717,7 +747,7 @@ function _show_error_box(item_box, msg) {
             <div class="col-sm-6">
                 <small class="segment-label">{{ candidate2_label }}</small>
             {% if sqm %}
-                {% with sliderid=item.itemID slidernum=2 %}
+                {% with sliderid=item.itemID slidernum=2 mono=monolingual %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}

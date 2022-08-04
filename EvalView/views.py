@@ -868,6 +868,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'in {1} (left column)? '.format(target_language, source_language),
     ]
 
+    monolingual_task = 'monolingual' in campaign_opts
     sign_translation = 'signlt' in campaign_opts
     speech_translation = 'speechtranslation' in campaign_opts
     static_context = 'staticcontext' in campaign_opts
@@ -881,6 +882,22 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
         document_question_texts = document_question_texts[:1]
+
+    if monolingual_task:
+        source_language = None
+        priming_question_texts = [
+            'Below you see a document with {0} sentences in {1}. '
+            'Score each sentence in the document context. '
+            'You may revisit already scored sentences and update their scores at any time '
+            'by clicking at a source text.'.format(
+                len(block_items) - 1, target_language
+            ),
+        ]
+        document_question_texts = [
+            'Please score the overall document quality (you can score '
+            'the whole document only after scoring all individual sentences first).',
+        ]
+        candidate_label = None
 
     if sign_translation:
         # For sign languages, source or target segments are videos
@@ -951,9 +968,11 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'campaign': campaign.campaignName,
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
+        # Task variations
         'sqm': use_sqm,
         'speech': speech_translation,
         'signlt': sign_translation,
+        'monolingual': monolingual_task,
         'static_context': static_context,
     }
 
@@ -1963,12 +1982,31 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     ]
 
     campaign_opts = (campaign.campaignOptions or "").lower()
+    monolingual_task = 'monolingual' in campaign_opts
     use_sqm = 'sqm' in campaign_opts
     static_context = 'staticcontext' in campaign_opts
 
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
         document_question_texts = document_question_texts[:1]
+
+    if monolingual_task:
+        source_language = None
+        priming_question_texts = [
+            'Below you see two documents, each with {0} sentences in {1}. '
+            'Score each sentence in both documents in their respective document context. '
+            'You may revisit already scored sentences and update their scores at any time '
+            'by clicking at a source text.'.format(
+                len(block_items) - 1, target_language
+            ),
+        ]
+        document_question_texts = [
+            'Please score the overall quality of each document (you can score '
+            'the whole document only after scoring all individual sentences from all '
+            'documents first).',
+        ]
+        candidate1_label = 'Sentence A'
+        candidate2_label = 'Sentence B'
 
     # A part of context used in responses to both Ajax and standard POST
     # requests
@@ -1987,6 +2025,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'campaign': campaign.campaignName,
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
+        'monolingual': monolingual_task,
         'sqm': use_sqm,
         'static_context': static_context,
     }
