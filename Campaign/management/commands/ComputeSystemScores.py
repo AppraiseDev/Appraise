@@ -1,10 +1,14 @@
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
+from collections import OrderedDict
 from json import loads
+
 from django.contrib.auth.models import User
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
 from Campaign.models import Campaign
-from EvalData.models import DirectAssessmentTask, DirectAssessmentResult
+from EvalData.models import DirectAssessmentResult
+from EvalData.models import DirectAssessmentTask
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
@@ -45,9 +49,7 @@ class Command(BaseCommand):
 
         normalized_scores = OrderedDict()
         if csv_file:
-            _msg = 'Processing annotations in file {0}\n\n'.format(
-                csv_file
-            )
+            _msg = 'Processing annotations in file {0}\n\n'.format(csv_file)
             self.stdout.write(_msg)
 
             # Need to load data from CSV file and bring into same
@@ -98,19 +100,13 @@ class Command(BaseCommand):
 
         else:
             # Identify Campaign instance for given name
-            campaign = Campaign.objects.filter(
-                campaignName=campaign_name
-            ).first()
+            campaign = Campaign.objects.filter(campaignName=campaign_name).first()
             if not campaign:
-                _msg = 'Failure to identify campaign {0}'.format(
-                    campaign_name
-                )
+                _msg = 'Failure to identify campaign {0}'.format(campaign_name)
                 self.stdout.write(_msg)
                 return
 
-            system_scores = DirectAssessmentResult.get_system_scores(
-                campaign.id
-            )
+            system_scores = DirectAssessmentResult.get_system_scores(campaign.id)
 
         # TODO: this should consider the chosen campaign, otherwise
         #   we will show systems across all possible campaigns...
@@ -132,9 +128,7 @@ class Command(BaseCommand):
                 averaged_score = sum(scores) / float(len(scores) or 1)
                 averaged_scores.append(averaged_score)
 
-            normalized_score = float(
-                sum(averaged_scores) / len(averaged_scores) or 1
-            )
+            normalized_score = float(sum(averaged_scores) / len(averaged_scores) or 1)
             normalized_scores[normalized_score] = (
                 key,
                 len(value),

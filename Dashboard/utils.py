@@ -6,20 +6,21 @@ See LICENSE for usage details
 from collections import defaultdict
 from datetime import datetime
 from hashlib import md5
-from math import floor, sqrt
-from scipy.stats import mannwhitneyu
+from math import floor
+from math import sqrt
 from uuid import UUID
 
+from scipy.stats import mannwhitneyu  # type: ignore
+
 from Appraise.settings import SECRET_KEY
-from EvalData.models import (
-    DataAssessmentResult,
-    DirectAssessmentResult,
-    DirectAssessmentContextResult,
-    DirectAssessmentDocumentResult,
-    MultiModalAssessmentResult,
-    PairwiseAssessmentResult,
-    RESULT_TYPES
-)
+from EvalData.models import DataAssessmentResult
+from EvalData.models import DirectAssessmentContextResult
+from EvalData.models import DirectAssessmentDocumentResult
+from EvalData.models import DirectAssessmentResult
+from EvalData.models import MultiModalAssessmentResult
+from EvalData.models import PairwiseAssessmentDocumentResult
+from EvalData.models import PairwiseAssessmentResult
+from EvalData.models import RESULT_TYPES
 
 # Maximum allowed p-value for the Wilcoxon rank-sum test
 MAX_WILCOXON_PVALUE = 0.010
@@ -61,9 +62,7 @@ def run_quality_control(username):
     _data = None
     result_type = None
     for _type in RESULT_TYPES:
-        _data = _type.objects.filter(
-            createdBy__username=username, completed=True
-        )
+        _data = _type.objects.filter(createdBy__username=username, completed=True)
         # Get the first result task type available: might not work in all scenarios
         if _data:
             result_type = _type
@@ -72,7 +71,10 @@ def run_quality_control(username):
     if result_type is None:  # No items are completed yet
         return None
 
-    if result_type is PairwiseAssessmentResult:
+    if (
+        result_type is PairwiseAssessmentResult
+        or result_type is PairwiseAssessmentDocumentResult
+    ):
         _data = _data.values_list(
             'start_time',
             'end_time',
@@ -100,9 +102,7 @@ def run_quality_control(username):
     _cs = _annotations - 1  # Corrected sample size for stdev.
     _user_stdev = 1
     if _cs > 0:
-        _user_stdev = sqrt(
-            sum(((x[2] - _user_mean) ** 2 / _cs) for x in _data)
-        )
+        _user_stdev = sqrt(sum(((x[2] - _user_mean) ** 2 / _cs) for x in _data))
 
     if int(_user_stdev) == 0:
         _user_stdev = 1

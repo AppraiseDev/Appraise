@@ -11,7 +11,8 @@ from django.core.files.base import File
 from django.core.management.base import CommandError
 from django.test import TestCase
 
-from Campaign.models import _validate_package_file, Campaign
+from Campaign.models import _validate_package_file
+from Campaign.models import Campaign
 
 
 class TestInitCampaign(TestCase):
@@ -125,16 +126,14 @@ class TestInitCampaign(TestCase):
                 'type, is 123',
             ),
             (
-                'BadTypeTasksToAnnotatorsItem/BadTypeTasksToAnnotators'
-                'Item.zip',
+                'BadTypeTasksToAnnotatorsItem/BadTypeTasksToAnnotators' 'Item.zip',
                 "manifest.json key 'TASKS_TO_ANNOTATORS' list item should "
                 "have <str, str, str, int, int> signature, is ['trk', 123, "
                 "'uniform', 18, 36]",
             ),
             (
                 'BadTypeURL/BadTypeURL.zip',
-                "manifest.json key 'CAMPAIGN_URL' should be string type, "
-                'is 123',
+                "manifest.json key 'CAMPAIGN_URL' should be string type, " 'is 123',
             ),
             (
                 'ValidManifest/ValidManifest.zip',
@@ -142,8 +141,7 @@ class TestInitCampaign(TestCase):
                 'least one batch JSON archive file',
             ),
             (
-                'ValidManifestNotEnoughBatches/ValidManifestNotEnough'
-                'Batches.zip',
+                'ValidManifestNotEnoughBatches/ValidManifestNotEnough' 'Batches.zip',
                 "Invalid package file 'ValidManifestNotEnoughBatches.zip' -- "
                 'wrong number of batches (1 != 9)',
             ),

@@ -5,16 +5,21 @@ See LICENSE for usage details
 """
 # pylint: disable=C0103
 from collections import defaultdict
-from csv import DictWriter, DictReader
+from csv import DictReader
+from csv import DictWriter
 from datetime import datetime
 from hashlib import md5
-from os.path import abspath, basename, exists
+from os.path import abspath
+from os.path import basename
+from os.path import exists
 
-# pylint: disable=import-error,unused-import
 from django.contrib.auth.models import Group
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
 from Dashboard.models import UserInviteToken
+
+# pylint: disable=import-error,unused-import
 
 
 INFO_MSG = 'INFO: '
@@ -72,9 +77,7 @@ class Command(BaseCommand):
                     WARNING_MSG, group_name
                 )
                 self.stdout.write(_msg)
-                self.stdout.write(
-                    '      You can use --create-group to create it.'
-                )
+                self.stdout.write('      You can use --create-group to create it.')
                 self.stdout.write('\n[FAIL]\n\n')
                 return
 
@@ -86,9 +89,7 @@ class Command(BaseCommand):
                 WARNING_MSG, number_of_tokens
             )
             self.stdout.write(_msg)
-            self.stdout.write(
-                '      You can request creation of up to 50 tokens.'
-            )
+            self.stdout.write('      You can request creation of up to 50 tokens.')
             self.stdout.write('\n[FAIL]\n\n')
             return
 
@@ -111,18 +112,14 @@ class Command(BaseCommand):
             new_token.save()
 
             tokens.append(new_token.token)
-            self.stdout.write(
-                '           token: {0}'.format(new_token.token)
-            )
+            self.stdout.write('           token: {0}'.format(new_token.token))
 
         if output_file is not None:
             csv_fields = ('key', 'value')
             csv_data = defaultdict(set)
 
             if exists(output_file):
-                with open(
-                    output_file, mode='r', encoding='utf-8'
-                ) as in_file:
+                with open(output_file, mode='r', encoding='utf-8') as in_file:
                     csv_reader = DictReader(in_file, csv_fields)
                     for csv_line in csv_reader:
                         if (
@@ -140,14 +137,12 @@ class Command(BaseCommand):
                 # 3. 'group_password' --> set({group_password})
                 invalid_csv_file = False
 
-                if not 'key' in csv_data.keys() or csv_data['key'] != {
-                    'value'
-                }:
+                if not 'key' in csv_data.keys() or csv_data['key'] != {'value'}:
                     invalid_csv_file = True
 
-                if not 'group_name' in csv_data.keys() or csv_data[
-                    'group_name'
-                ] != {group_name}:
+                if not 'group_name' in csv_data.keys() or csv_data['group_name'] != {
+                    group_name
+                }:
                     invalid_csv_file = True
 
                 if not 'group_password' in csv_data.keys() or csv_data[

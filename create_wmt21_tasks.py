@@ -1,12 +1,20 @@
 # pylint: disable=C0103,C0111,C0330,E1101
 import sys
-
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
+from collections import OrderedDict
 from glob import iglob
 from json import dumps as json_dumps
-from os.path import basename, join
-from random import choice, randint, seed, shuffle
-from typing import Any, Dict, List, Text, Tuple
+from os.path import basename
+from os.path import join
+from random import choice
+from random import randint
+from random import seed
+from random import shuffle
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Text
+from typing import Tuple
 
 from lxml import etree
 
@@ -497,7 +505,7 @@ if __name__ == "__main__":
             while pad_size > 0:
                 print(f'pad_size: {pad_size}')
                 print(f'pad_pos: {pad_pos}')
-                pad_data.append(tuple(list(pad_data[pad_pos]) + [True]))
+                pad_data.append(tuple(list(pad_data[pad_pos]) + [True]))  # type: ignore
                 print(pad_data[-1])
                 pad_size -= pad_data[-1][0]
                 pad_pos = (pad_pos + 1) % task_docs
@@ -527,7 +535,7 @@ if __name__ == "__main__":
 
         for _doc in task:
             _data = [str(task_id)]
-            for x in _doc:
+            for x in _doc:  # type: ignore
                 _data.append(str(x))
 
             if _data[-1] != 'True':
@@ -557,14 +565,14 @@ if __name__ == "__main__":
 
         source_id = basename(XML_FILE)
 
-        items_data = []  # It keeps items grouped into document
+        items_data: List[List[Dict[str, Any]]] = []  # Keeps items grouped into document
         _item = 0
         doc_counter = 0
         for doc_data in task:
             items_data.append([])  # Add a new bucket for items from this documents
             has_control_item = False
 
-            doc_len, doc_id, sys_id, *rest = doc_data
+            doc_len, doc_id, sys_id, *rest = doc_data  # type: ignore
 
             isControl = rest is not None and rest
 
@@ -689,9 +697,7 @@ if __name__ == "__main__":
         json_file_name = f'{OUT_NAME}.json'
         with open(json_file_name, mode='w', encoding='utf8') as out_file:
             sys.stdout.write(
-                'Creating {0}, batch no. {1} ... '.format(
-                    json_file_name, batch_id + 1, ending=''
-                )
+                'Creating {0}, batch no. {1} ... '.format(json_file_name, batch_id + 1),
             )
             out_file.write(str(json_text))
             sys.stdout.write('OK\n')

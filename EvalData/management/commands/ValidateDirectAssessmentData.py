@@ -7,11 +7,10 @@ See LICENSE for usage details
 from collections import defaultdict
 from json import load
 
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
+
 # pylint: disable=E0401,W0611
-from django.core.management.base import (
-    BaseCommand,
-    CommandError,
-)
 
 
 class Command(BaseCommand):
@@ -23,21 +22,26 @@ class Command(BaseCommand):
 
     Specify --max-batches N to only load data from the first N batches.
     """
+
     help = 'Validates Direct Assessment JSON data files'
 
     # pylint: disable=C0330,no-self-use
     def add_arguments(self, parser):
         parser.add_argument(
-          'json_file', type=str,
-          help='JSON file containing direct assessment data'
+            'json_file',
+            type=str,
+            help='JSON file containing direct assessment data',
         )
         parser.add_argument(
-          'required_systems', type=int,
-          help='Defines the required number of systems per segment'
+            'required_systems',
+            type=int,
+            help='Defines the required number of systems per segment',
         )
         parser.add_argument(
-          '--max-batches', type=int, default=-1,
-          help='Specifies max number of batches to create'
+            '--max-batches',
+            type=int,
+            default=-1,
+            help='Specifies max number of batches to create',
         )
 
     def handle(self, *args, **options):
@@ -45,7 +49,8 @@ class Command(BaseCommand):
 
         # Load system IDs and organise by segment ID.
         system_ids_by_segment = Command._load_ids_from_json_file(
-          options['json_file'], options['max_batches'])
+            options['json_file'], options['max_batches']
+        )
 
         # Loop over all segments and identify those where less than the
         # number of required systems are available.
@@ -63,9 +68,11 @@ class Command(BaseCommand):
             else:
                 all_systems = system_ids
 
-        print("Encountered {0} validation errors for {1} segments".format(
-          len(errors), len(system_ids_by_segment.keys())))
-
+        print(
+            "Encountered {0} validation errors for {1} segments".format(
+                len(errors), len(system_ids_by_segment.keys())
+            )
+        )
 
     @staticmethod
     def _load_ids_from_json_file(json_file, max_batches):

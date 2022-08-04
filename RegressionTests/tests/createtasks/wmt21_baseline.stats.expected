@@ -1,0 +1,111 @@
+Task 0: 14 BAD items in 1 doc(s)
+Task 1: 11 BAD items in 2 doc(s)
+Task 2: 11 BAD items in 1 doc(s)
+Task 3: 12 BAD items in 1 doc(s)
+Task 4: 12 BAD items in 2 doc(s)
+Task 5: 12 BAD items in 2 doc(s)
+Task 6: 15 BAD items in 2 doc(s)
+Task 7: 12 BAD items in 2 doc(s)
+Task 8: 11 BAD items in 2 doc(s)
+Task 9: 16 BAD items in 2 doc(s)
+Task 10: 10 BAD items in 1 doc(s)
+Task 11: 11 BAD items in 1 doc(s)
+Task 12: 11 BAD items in 1 doc(s)
+Task 13: 16 BAD items in 1 doc(s)
+Task 14: 13 BAD items in 1 doc(s)
+System Online-W
+  will be evaluated on 15/15 unique docs
+  Doc IDs: abendzeitung-muenchen.de.275234.0 bild.254846.0 epochtimes.de.56046.0 faz.79571.0 handelsblatt.com.292800.0 haz.de.150673.0 kurier.at.204564.0 ln-online.de.149803.0 mittelbayerische.de.307175.0 mt-online.de.23946.0 nzz.ch.79514.0 oberpfalznetz.de.99395.0 pnp.de.390035.0 rt-german.14747.0 salzburg.com.306596.0
+    abendzeitung-muenchen.de.275234.0	appears 2 times: 1 TGTs + 1 BADs
+    bild.254846.0	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046.0	appears 1 times: 1 TGTs + 0 BADs
+    faz.79571.0	appears 2 times: 1 TGTs + 1 BADs
+    handelsblatt.com.292800.0	appears 1 times: 1 TGTs + 0 BADs
+    haz.de.150673.0	appears 1 times: 1 TGTs + 0 BADs
+    kurier.at.204564.0	appears 1 times: 1 TGTs + 0 BADs
+    ln-online.de.149803.0	appears 1 times: 1 TGTs + 0 BADs
+    mittelbayerische.de.307175.0	appears 1 times: 1 TGTs + 0 BADs
+    mt-online.de.23946.0	appears 2 times: 1 TGTs + 1 BADs
+    nzz.ch.79514.0	appears 2 times: 1 TGTs + 1 BADs
+    oberpfalznetz.de.99395.0	appears 1 times: 1 TGTs + 0 BADs
+    pnp.de.390035.0	appears 1 times: 1 TGTs + 0 BADs
+    rt-german.14747.0	appears 1 times: 1 TGTs + 0 BADs
+    salzburg.com.306596.0	appears 1 times: 1 TGTs + 0 BADs
+System Online-A
+  will be evaluated on 15/15 unique docs
+  Doc IDs: abendzeitung-muenchen.de.275234.0 bild.254846.0 epochtimes.de.56046.0 faz.79571.0 handelsblatt.com.292800.0 haz.de.150673.0 kurier.at.204564.0 ln-online.de.149803.0 mittelbayerische.de.307175.0 mt-online.de.23946.0 nzz.ch.79514.0 oberpfalznetz.de.99395.0 pnp.de.390035.0 rt-german.14747.0 salzburg.com.306596.0
+    abendzeitung-muenchen.de.275234.0	appears 1 times: 1 TGTs + 0 BADs
+    bild.254846.0	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046.0	appears 1 times: 1 TGTs + 0 BADs
+    faz.79571.0	appears 1 times: 1 TGTs + 0 BADs
+    handelsblatt.com.292800.0	appears 1 times: 1 TGTs + 0 BADs
+    haz.de.150673.0	appears 1 times: 1 TGTs + 0 BADs
+    kurier.at.204564.0	appears 2 times: 1 TGTs + 1 BADs
+    ln-online.de.149803.0	appears 2 times: 1 TGTs + 1 BADs
+    mittelbayerische.de.307175.0	appears 2 times: 1 TGTs + 1 BADs
+    mt-online.de.23946.0	appears 2 times: 1 TGTs + 1 BADs
+    nzz.ch.79514.0	appears 2 times: 1 TGTs + 1 BADs
+    oberpfalznetz.de.99395.0	appears 1 times: 1 TGTs + 0 BADs
+    pnp.de.390035.0	appears 1 times: 1 TGTs + 0 BADs
+    rt-german.14747.0	appears 2 times: 1 TGTs + 1 BADs
+    salzburg.com.306596.0	appears 1 times: 1 TGTs + 0 BADs
+System Online-B
+  will be evaluated on 15/15 unique docs
+  Doc IDs: abendzeitung-muenchen.de.275234.0 bild.254846.0 epochtimes.de.56046.0 faz.79571.0 handelsblatt.com.292800.0 haz.de.150673.0 kurier.at.204564.0 ln-online.de.149803.0 mittelbayerische.de.307175.0 mt-online.de.23946.0 nzz.ch.79514.0 oberpfalznetz.de.99395.0 pnp.de.390035.0 rt-german.14747.0 salzburg.com.306596.0
+    abendzeitung-muenchen.de.275234.0	appears 1 times: 1 TGTs + 0 BADs
+    bild.254846.0	appears 2 times: 1 TGTs + 1 BADs
+    epochtimes.de.56046.0	appears 1 times: 1 TGTs + 0 BADs
+    faz.79571.0	appears 1 times: 1 TGTs + 0 BADs
+    handelsblatt.com.292800.0	appears 1 times: 1 TGTs + 0 BADs
+    haz.de.150673.0	appears 1 times: 1 TGTs + 0 BADs
+    kurier.at.204564.0	appears 1 times: 1 TGTs + 0 BADs
+    ln-online.de.149803.0	appears 2 times: 2 TGTs + 0 BADs
+    mittelbayerische.de.307175.0	appears 2 times: 1 TGTs + 1 BADs
+    mt-online.de.23946.0	appears 1 times: 1 TGTs + 0 BADs
+    nzz.ch.79514.0	appears 1 times: 1 TGTs + 0 BADs
+    oberpfalznetz.de.99395.0	appears 1 times: 1 TGTs + 0 BADs
+    pnp.de.390035.0	appears 1 times: 1 TGTs + 0 BADs
+    rt-german.14747.0	appears 1 times: 1 TGTs + 0 BADs
+    salzburg.com.306596.0	appears 1 times: 1 TGTs + 0 BADs
+System Online-Y
+  will be evaluated on 15/15 unique docs
+  Doc IDs: abendzeitung-muenchen.de.275234.0 bild.254846.0 epochtimes.de.56046.0 faz.79571.0 handelsblatt.com.292800.0 haz.de.150673.0 kurier.at.204564.0 ln-online.de.149803.0 mittelbayerische.de.307175.0 mt-online.de.23946.0 nzz.ch.79514.0 oberpfalznetz.de.99395.0 pnp.de.390035.0 rt-german.14747.0 salzburg.com.306596.0
+    abendzeitung-muenchen.de.275234.0	appears 1 times: 1 TGTs + 0 BADs
+    bild.254846.0	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046.0	appears 1 times: 1 TGTs + 0 BADs
+    faz.79571.0	appears 2 times: 1 TGTs + 1 BADs
+    handelsblatt.com.292800.0	appears 1 times: 1 TGTs + 0 BADs
+    haz.de.150673.0	appears 1 times: 1 TGTs + 0 BADs
+    kurier.at.204564.0	appears 2 times: 1 TGTs + 1 BADs
+    ln-online.de.149803.0	appears 1 times: 1 TGTs + 0 BADs
+    mittelbayerische.de.307175.0	appears 1 times: 1 TGTs + 0 BADs
+    mt-online.de.23946.0	appears 3 times: 2 TGTs + 1 BADs
+    nzz.ch.79514.0	appears 1 times: 1 TGTs + 0 BADs
+    oberpfalznetz.de.99395.0	appears 1 times: 1 TGTs + 0 BADs
+    pnp.de.390035.0	appears 1 times: 1 TGTs + 0 BADs
+    rt-german.14747.0	appears 2 times: 1 TGTs + 1 BADs
+    salzburg.com.306596.0	appears 2 times: 1 TGTs + 1 BADs
+System translator-A
+  will be evaluated on 15/15 unique docs
+  Doc IDs: abendzeitung-muenchen.de.275234.0 bild.254846.0 epochtimes.de.56046.0 faz.79571.0 handelsblatt.com.292800.0 haz.de.150673.0 kurier.at.204564.0 ln-online.de.149803.0 mittelbayerische.de.307175.0 mt-online.de.23946.0 nzz.ch.79514.0 oberpfalznetz.de.99395.0 pnp.de.390035.0 rt-german.14747.0 salzburg.com.306596.0
+    abendzeitung-muenchen.de.275234.0	appears 2 times: 1 TGTs + 1 BADs
+    bild.254846.0	appears 1 times: 1 TGTs + 0 BADs
+    epochtimes.de.56046.0	appears 1 times: 1 TGTs + 0 BADs
+    faz.79571.0	appears 2 times: 1 TGTs + 1 BADs
+    handelsblatt.com.292800.0	appears 1 times: 1 TGTs + 0 BADs
+    haz.de.150673.0	appears 2 times: 1 TGTs + 1 BADs
+    kurier.at.204564.0	appears 1 times: 1 TGTs + 0 BADs
+    ln-online.de.149803.0	appears 2 times: 1 TGTs + 1 BADs
+    mittelbayerische.de.307175.0	appears 1 times: 1 TGTs + 0 BADs
+    mt-online.de.23946.0	appears 2 times: 1 TGTs + 1 BADs
+    nzz.ch.79514.0	appears 1 times: 1 TGTs + 0 BADs
+    oberpfalznetz.de.99395.0	appears 1 times: 1 TGTs + 0 BADs
+    pnp.de.390035.0	appears 2 times: 1 TGTs + 1 BADs
+    rt-german.14747.0	appears 2 times: 1 TGTs + 1 BADs
+    salzburg.com.306596.0	appears 1 times: 1 TGTs + 0 BADs
+Total number of tasks: 15
+Total number of segment items: 1,500
+  TGT items: 1,313 = 87.5%
+  BAD items: 187 = 12.5%
+Total number of document items: 101
+Done

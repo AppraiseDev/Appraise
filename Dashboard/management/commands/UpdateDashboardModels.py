@@ -6,12 +6,15 @@ See LICENSE for usage details
 # pylint: disable=C0103,W0611
 from os.path import basename
 
-# pylint: disable=import-error
 from django.contrib.auth.models import Group
-from django.core.management.base import BaseCommand, CommandError
-from django.db.utils import OperationalError, ProgrammingError
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
+from django.db.utils import OperationalError
+from django.db.utils import ProgrammingError
 
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
+
+# pylint: disable=import-error
 
 
 INFO_MSG = 'INFO: '

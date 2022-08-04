@@ -1,0 +1,14 @@
+{
+    "CAMPAIGN_URL": "http://127.0.0.1:8000/dashboard/sso/",
+    "CAMPAIGN_NAME": "example7sqm",
+    "CAMPAIGN_KEY": "c7",
+    "CAMPAIGN_NO": 7,
+    "REDUNDANCY": 1,
+
+    "TASKS_TO_ANNOTATORS": [
+        ["eng", "deu", "uniform",  1, 1]
+    ],
+
+    "TASK_TYPE": "Pairwise",
+    "TASK_OPTIONS": "SQM"
+}

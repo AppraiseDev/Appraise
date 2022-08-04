@@ -1,0 +1,242 @@
+{% extends "Dashboard/base.html" %}
+{% load static %}
+
+{% block head %}
+<style>
+.slider .ui-slider-range { background: #729fcf; }
+.slider .ui-slider-handle { border-color: #729fcf; }
+.slider { margin-top: 10px; }
+
+.quotelike {
+  border-left: 5px solid #eee;
+  font-size: 16px;
+  margin: 0 0 20px;
+  padding: 10px 20px;
+}
+.quotelike-author { color: #777; font-size: 80%; line-height: 1.4; }
+.quotelike-author:before { content: '\2014 \00A0'; }
+.context-sentences p { color: #555; margin-bottom: 10px; line-height: 1.3; }
+.priming-question { font-size: 130%; margin-bottom: 20px; }
+.candidate-text.active .diff { background: #ff06; }
+
+small.padleft { padding-left: 20px; }
+small.padright { padding-right: 20px; }
+
+[data-pseudo-content]::before,
+[data-pseudo-content--before]::before,
+[data-pseudo-content--after]::after {
+  content: attr(data-pseudo-content);
+  font-weight:bold;
+}
+</style>
+
+<link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}">
+<script src="{% static 'EvalView/js/jquery-ui.min.js' %}"></script>
+<script src="{% static 'EvalView/js/js.cookie-2.2.1.min.js' %}"></script>
+<script>
+<!--
+String.prototype.rot13 = function() {
+  return this.replace(/[a-zA-Z]/g, function(c) {
+    return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
+  });
+};
+
+$(document).ready(function() {
+  $('input[name="start_timestamp"]').val(Date.now()/1000.0);
+
+  $('#slider').slider({orientation: "horizontal", range: "min", change: update_score});
+  $('input[name="score"]').val(-1);
+
+  $('#slider2').slider({orientation: "horizontal", range: "min", change: update_score2});
+  $('input[name="score2"]').val(-1);
+
+  if (Cookies.get('show-context') == 'yes') {
+    $('.context-sentences').show();
+    $('#reference-label').hide();
+  }
+
+  if (Cookies.get('show-diff') != 'no') {
+    $('.candidate-text').addClass('active');
+  }
+
+  // make the first slider active, so that the score can be changed using left/right keys
+  $('#slider .ui-slider-handle').focus();
+});
+
+function toggle_context()
+{
+    var isHidden = $('.context-sentences').first().is(':hidden') ? 'yes' : 'no';
+    $('.context-sentences').toggle(200);
+    $('#reference-label').toggle();
+    Cookies.set('show-context', isHidden, { sameSite: 'strict' });
+}
+
+function toggle_diff()
+{
+    var isActive = $('.candidate-text').first().hasClass('active');
+    if (isActive) {
+        $('.candidate-text').removeClass('active');
+    } else {
+        $('.candidate-text').addClass('active');
+    }
+    Cookies.set('show-diff', isActive ? 'no' : 'yes', { sameSite: 'strict' });
+}
+
+function add_end_timestamp()
+{
+  $('input[name="end_timestamp"]').val(Date.now()/1000.0);
+}
+
+function reset_form()
+{
+  $('input[name="start_timestamp"]').val(Date.now()/1000.0);
+  $('#slider').slider('option', 'value', 0);
+  $('#slider2').slider('option', 'value', 0);
+  $('input[name="score"]').val(-1);
+  $('input[name="score2"]').val(-1);
+}
+
+function validate_form()
+{
+  var score1 = $('input[name="score"]');
+  var score2 = $('input[name="score2"]');
+  if (score1.val() == -1 || (score2.length && score2.val() == -1))
+  {
+    alert('Please score all candidate sentences. Thanks!');
+    return false;
+  }
+
+  return true;
+}
+
+function update_score()
+{
+  var new_score = $('#slider').slider('value');
+  $('input[name="score"]').val(new_score);
+}
+
+function update_score2()
+{
+  var new_score = $('#slider2').slider('value');
+  $('input[name="score2"]').val(new_score);
+}
+
+function match_sliders()
+{
+  var score1 = $('input[name="score"]').val();
+  $('#slider2').slider('option', 'value', score1);
+}
+-->
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+<form action="{{action_url}}" method="post" onsubmit="javascript:add_end_timestamp();">
+{% csrf_token %}
+
+<div class="alert alert-info">
+  <table style="width:100%">
+  <tr>
+    <td style="width:33%;text-align:left;">
+      <strong id="task_progress">{% if trusted_user %}<span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span> {% endif %}{{completed_blocks}}/10 blocks, {{items_left_in_block}} items left in block</strong>
+    </td>
+    <td style="width:33%;text-align:center;">
+      <strong>{{campaign}} #{{datask_id}}:Segment #{{item_id}}</strong>
+    </td>
+    <td style="width:33%;text-align:right;">
+      <strong>{% if source_language %}{{source_language}} &rarr; {% endif %}{{target_language}}</strong>
+    </td>
+  </tr>
+  </table>
+</div>
+
+<div class="row quotelike">
+<div class="col-sm-12">
+    <div class="context-sentences" style="display: none">
+    {% if context_left %}
+        <p><small>{{context_left|safe}}</small></p>
+    {% endif %}
+    </div>
+
+    <p><strong>{{reference_text|escape}}</strong></p>
+    <p class="quotelike-author" id="reference-label">{{reference_label}}</p>
+
+    <div class="context-sentences" style="display: none">
+    {% if context_right %}
+        <p><small>{{context_right|safe}}</small></p>
+    {% endif %}
+    </div>
+</div>
+</div>
+
+<div class="row">
+    <div class="col-sm-12">
+        <p class="priming-question">{{priming_question_text|safe}}</p>
+    </div>
+</div>
+
+<input name="end_timestamp" type="hidden" value="" />
+<input name="item_id" type="hidden" value="{{item_id}}" />
+<input name="task_id" type="hidden" value="{{task_id}}" />
+<input name="start_timestamp" type="hidden" value="" />
+<input name="score" type="hidden" value="-1" />
+{% if candidate2_text %}
+<input name="score2" type="hidden" value="-1" />
+{% endif %}
+
+<div class="row quotelike">
+    <div class="col-sm-12">
+        <p class="candidate-text"><strong>{{candidate_text|safe}}</strong></p>
+    </div>
+    {% with sliderid='' %}
+    {% include 'EvalView/_sqm_slider.html' %}
+    {% endwith %}
+</div>
+
+{% if candidate2_text %}
+
+<div class="row quotelike">
+    <div class="col-sm-12">
+        <p class="candidate-text"><strong>{{candidate2_text|safe}}</strong></p>
+    </div>
+    {% with sliderid='2' %}
+    {% include 'EvalView/_sqm_slider.html' %}
+    {% endwith %}
+</div>
+{% endif %}
+
+<div class="actions">
+  <table style="width:100%">
+  <tr>
+    <td style="width:50%;text-align:left;">
+      <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn"
+              title="Reset the slider(s). Access key: '2'"><i class="icon-repeat"></i> Reset</button>
+      {% if candidate2_text %}
+      <button onclick="javascript:toggle_diff();" accesskey="4" type="button" class="btn"
+              title="Show or hide highlighted differences between segments. Access key: '4'">Show/Hide diff.</button>
+      {% endif %}
+      {% if context_left or context_right %}
+      <button onclick="javascript:toggle_context();" accesskey="5" type="button" class="btn"
+              title="Show or hide the context. Access key: '5'">Show/Hide context</button>
+      {% endif %}
+    </td>
+    <td style="width:50%;text-align:right;">
+      {% if candidate2_text %}
+      <button onclick="javascript:match_sliders();" accesskey="3" type="button" class="btn"
+              title="Match the second slider with the first one. Access key: '3'">Match sliders</button>
+      {% endif %}
+      <button class="btn btn-primary" name="submit_button" accesskey="1" type="submit" value="SUBMIT" onclick="javascript:return validate_form();"
+              title="Submit score(s). Access key: '1'"><i class="icon-ok-sign icon-white"></i> Submit</button>
+    </td>
+  </tr>
+  </table>
+</div>
+
+<br/>
+{% include 'EvalView/_sqm_instructions.html' %}
+
+</form>
+
+{% endblock %}

@@ -3,7 +3,8 @@
 from __future__ import unicode_literals
 
 from django.conf import settings
-from django.db import migrations, models
+from django.db import migrations
+from django.db import models
 
 
 class Migration(migrations.Migration):
@@ -16,96 +17,139 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='directassessmentresult',
             name='activated',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Activated?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Activated?'
+            ),
         ),
         migrations.AlterField(
             model_name='directassessmentresult',
             name='completed',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Completed?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Completed?'
+            ),
         ),
         migrations.AlterField(
             model_name='directassessmentresult',
             name='retired',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Retired?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Retired?'
+            ),
         ),
         migrations.AlterField(
             model_name='directassessmenttask',
             name='activated',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Activated?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Activated?'
+            ),
         ),
         migrations.AlterField(
             model_name='directassessmenttask',
             name='assignedTo',
-            field=models.ManyToManyField(blank=True, help_text='(users working on this task)', related_name='evaldata_directassessmenttask_assignedTo', related_query_name='evaldata_directassessmenttasks', to=settings.AUTH_USER_MODEL, verbose_name='Assigned to'),
+            field=models.ManyToManyField(
+                blank=True,
+                help_text='(users working on this task)',
+                related_name='evaldata_directassessmenttask_assignedTo',
+                related_query_name='evaldata_directassessmenttasks',
+                to=settings.AUTH_USER_MODEL,
+                verbose_name='Assigned to',
+            ),
         ),
         migrations.AlterField(
             model_name='directassessmenttask',
             name='completed',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Completed?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Completed?'
+            ),
         ),
         migrations.AlterField(
             model_name='directassessmenttask',
             name='retired',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Retired?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Retired?'
+            ),
         ),
         migrations.AlterField(
             model_name='market',
             name='activated',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Activated?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Activated?'
+            ),
         ),
         migrations.AlterField(
             model_name='market',
             name='completed',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Completed?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Completed?'
+            ),
         ),
         migrations.AlterField(
             model_name='market',
             name='retired',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Retired?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Retired?'
+            ),
         ),
         migrations.AlterField(
             model_name='metadata',
             name='activated',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Activated?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Activated?'
+            ),
         ),
         migrations.AlterField(
             model_name='metadata',
             name='completed',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Completed?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Completed?'
+            ),
         ),
         migrations.AlterField(
             model_name='metadata',
             name='retired',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Retired?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Retired?'
+            ),
         ),
         migrations.AlterField(
             model_name='textpair',
             name='activated',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Activated?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Activated?'
+            ),
         ),
         migrations.AlterField(
             model_name='textpair',
             name='completed',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Completed?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Completed?'
+            ),
         ),
         migrations.AlterField(
             model_name='textpair',
             name='retired',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Retired?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Retired?'
+            ),
         ),
         migrations.AlterField(
             model_name='textsegment',
             name='activated',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Activated?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Activated?'
+            ),
         ),
         migrations.AlterField(
             model_name='textsegment',
             name='completed',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Completed?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Completed?'
+            ),
         ),
         migrations.AlterField(
             model_name='textsegment',
             name='retired',
-            field=models.BooleanField(db_index=True, default=False, verbose_name='Retired?'),
+            field=models.BooleanField(
+                db_index=True, default=False, verbose_name='Retired?'
+            ),
         ),
     ]

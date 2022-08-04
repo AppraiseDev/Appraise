@@ -11,15 +11,15 @@
 4. Create environment for the project, activate it, and install Python
    requirements:
 
-        virtualenv ~/.virtualenv/django2 -p python3
-        source ~/.virtualenv/django2/bin/activate
+        virtualenv venv -p python3
+        source ./venv/bin/activate
         pip3 install -r requirements.txt
 
 5. Create database, the first super user, and collect static files:
 
         python manage.py migrate
         python manage.py createsuperuser
-        python manage.py collectstatic
+        python manage.py collectstatic --no-post-process
 
     Follow instructions on your screen; do not leave the password empty.
 

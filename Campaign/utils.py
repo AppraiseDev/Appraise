@@ -3,25 +3,25 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
+from collections import OrderedDict
 from hashlib import md5
-from json import JSONDecodeError, load
+from json import JSONDecodeError
+from json import load
 
 from django.contrib.auth.models import User
 from django.core.management.base import CommandError
 
-from Campaign.models import Campaign, CampaignTeam
-from Dashboard.models import (
-    LANGUAGE_CODES_AND_NAMES,
-    validate_language_code,
-)
-from EvalData.models import (
-    CAMPAIGN_TASK_TYPES,
-    Market,
-    Metadata,
-    ObjectID,
-    TaskAgenda,
-)
+from Campaign.models import Campaign
+from Campaign.models import CampaignTeam
+from Dashboard.models import LANGUAGE_CODES_AND_NAMES
+from Dashboard.models import validate_language_code
+from EvalData.models import CAMPAIGN_TASK_TYPES
+from EvalData.models import Market
+from EvalData.models import Metadata
+from EvalData.models import ObjectID
+from EvalData.models import TaskAgenda
+
 
 def _create_uniform_task_map(annotators, tasks, redudancy):
     """
@@ -311,7 +311,13 @@ def _map_tasks_to_users_by_market(tasks, usernames, context):
             raise CommandError(_msg)
 
         for user, tasks_for_user in zip(users.order_by('id'), _tasks_map):
-            print('Mapping task(s) to user:', source_code, target_code, user, tasks_for_user)
+            print(
+                'Mapping task(s) to user:',
+                source_code,
+                target_code,
+                user,
+                tasks_for_user,
+            )
             for task_id in tasks_for_user:
                 tasks_to_users_map[key].append((_tasks_for_current_key[task_id], user))
 
@@ -331,7 +337,12 @@ def _process_campaign_agendas(usernames, context, only_activated=True):
     Raises:
     - CommandError in case of missing required key.
     """
-    required_keys = ('CAMPAIGN_NO', 'REDUNDANCY', 'TASKS_TO_ANNOTATORS', 'TASK_TYPE')
+    required_keys = (
+        'CAMPAIGN_NO',
+        'REDUNDANCY',
+        'TASKS_TO_ANNOTATORS',
+        'TASK_TYPE',
+    )
     _validate_required_keys(context, required_keys)
 
     # Get Campaign instance for campaign name

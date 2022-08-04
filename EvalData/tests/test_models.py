@@ -3,13 +3,11 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from Campaign.models import Campaign
-from EvalData.models import (
-    Market,
-    Metadata,
-    ObjectID,
-    TaskAgenda,
-    TextSegment,
-)
+from EvalData.models import Market
+from EvalData.models import Metadata
+from EvalData.models import ObjectID
+from EvalData.models import TaskAgenda
+from EvalData.models import TextSegment
 
 
 class TaskAgendaTests(TestCase):
@@ -34,9 +32,8 @@ class TaskAgendaTests(TestCase):
         )
 
         non_existing_task = 'does-not-exist'
-        expected_message = (
-            'Invalid task {0!r} not ObjectID '
-            'instance'.format(non_existing_task)
+        expected_message = 'Invalid task {0!r} not ObjectID ' 'instance'.format(
+            non_existing_task
         )
         with self.assertRaisesMessage(ValueError, expected_message):
             agenda.complete_open_task(non_existing_task)
@@ -150,17 +147,13 @@ class TextSegmentTests(TestCase):
         """
         Test that valid instance has createdBy set.
         """
-        self.assertTrue(
-            hasattr(TextSegmentTests.valid_textsegment, 'createdBy')
-        )
+        self.assertTrue(hasattr(TextSegmentTests.valid_textsegment, 'createdBy'))
 
     def test_valid_instance_has_datecreated(self):
         """
         Test that valid instance has dateCreated set.
         """
-        self.assertTrue(
-            hasattr(TextSegmentTests.valid_textsegment, 'dateCreated')
-        )
+        self.assertTrue(hasattr(TextSegmentTests.valid_textsegment, 'dateCreated'))
 
     def test_cannot_use_negative_integer_as_id(self):
         """

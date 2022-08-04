@@ -4,16 +4,21 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=W0611
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
+from collections import OrderedDict
 from datetime import datetime
 from glob import iglob
-from os import makedirs, path
+from os import makedirs
+from os import path
 from os.path import basename
-from random import seed, shuffle
+from random import seed
+from random import shuffle
 from shutil import copyfile
 from sys import exit as sys_exit
 from traceback import format_exc
-from django.core.management.base import BaseCommand, CommandError
+
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
 INFO_MSG = 'INFO: '
 
@@ -26,21 +31,22 @@ class Command(BaseCommand):
 
     # pylint: disable=C0330
     def add_arguments(self, parser):
+        parser.add_argument('source_path', type=str, help='Path to source text folder')
         parser.add_argument(
-          'source_path', type=str,
-          help='Path to source text folder'
+            'target_path',
+            type=str,
+            help='Path to bad reference text folder',
         )
         parser.add_argument(
-          'target_path', type=str,
-          help='Path to bad reference text folder'
+            '--filter-expr',
+            type=str,
+            default='*',
+            help='Filter expression for file names',
         )
         parser.add_argument(
-          '--filter-expr', type=str, default='*',
-          help='Filter expression for file names'
-        )
-        parser.add_argument(
-          '--unicode', action='store_true',
-          help='Expects text files in Unicode encoding'
+            '--unicode',
+            action='store_true',
+            help='Expects text files in Unicode encoding',
         )
 
     def handle(self, *args, **options):
@@ -61,9 +67,7 @@ class Command(BaseCommand):
 
         if not path.exists(target_path):
             try:
-                _msg = '{0}Creating target path {1} ... '.format(
-                  INFO_MSG, target_path
-                )
+                _msg = '{0}Creating target path {1} ... '.format(INFO_MSG, target_path)
                 self.stdout.write(_msg, ending='')
                 makedirs(target_path)
                 self.stdout.write('OK')
@@ -80,20 +84,24 @@ class Command(BaseCommand):
                 continue
 
             if '+' in basename(source_file):
-                print('Cannot use source files with + in names ' \
-                  'as this breaks multi-system meta systems:\n' \
-                  '{0}'.format(source_file))
+                print(
+                    'Cannot use source files with + in names '
+                    'as this breaks multi-system meta systems:\n'
+                    '{0}'.format(source_file)
+                )
                 sys_exit(-1)
 
             _msg = '{0}Creating ids file for source file {1} ... '.format(
-              INFO_MSG, path.basename(source_file)
+                INFO_MSG, path.basename(source_file)
             )
             self.stdout.write(_msg, ending='')
 
             try:
                 # Compute target file path, which is a copy of the source file
                 target_file = Command._create_target_file_name(
-                  source_file, target_path, path.splitext(source_file)[1].strip('.')
+                    source_file,
+                    target_path,
+                    path.splitext(source_file)[1].strip('.'),
                 )
 
                 # If target file already exists, skip and continue
@@ -106,10 +114,10 @@ class Command(BaseCommand):
                 # If ids file already exists in source folder, copy to target
                 # pylint: disable=W0101
                 source_ids_file = Command._create_target_file_name(
-                  source_file, source_path
+                    source_file, source_path
                 )
                 target_ids_file = Command._create_target_file_name(
-                  source_file, target_path
+                    source_file, target_path
                 )
 
                 if path.exists(target_ids_file):
@@ -121,7 +129,9 @@ class Command(BaseCommand):
                 else:
                     # Otherwise, process file, creating bad refs and ids file
                     encoding = 'utf16' if unicode_enc else 'utf8'
-                    Command.create_ids_for_file(source_file, target_ids_file, encoding=encoding)
+                    Command.create_ids_for_file(
+                        source_file, target_ids_file, encoding=encoding
+                    )
 
                 self.stdout.write('OK')
 
@@ -132,9 +142,10 @@ class Command(BaseCommand):
 
         self.stdout.write('\n[DONE]\n\n')
 
-
     @staticmethod
-    def _create_target_file_name(source_file, target_path, file_ext=EXTENSION_FOR_IDS_FILES):
+    def _create_target_file_name(
+        source_file, target_path, file_ext=EXTENSION_FOR_IDS_FILES
+    ):
         # pylint: disable=W0612
         source_name, source_ext = path.splitext(path.basename(source_file))
         target_name = '{0}.{1}'.format(source_name, file_ext)

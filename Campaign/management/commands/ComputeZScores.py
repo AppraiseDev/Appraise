@@ -1,17 +1,23 @@
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
+from collections import OrderedDict
 from functools import cmp_to_key
 from json import loads
+from random import seed
+from random import shuffle
+
 from django.contrib.auth.models import User
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
 from Campaign.models import Campaign
-from EvalData.models import DirectAssessmentTask, DirectAssessmentResult
+from EvalData.models import DirectAssessmentResult
+from EvalData.models import DirectAssessmentTask
 
-from random import seed, shuffle
 
 def compute_mean(sample):
     """Computes sample mean"""
     return sum(sample) / float(len(sample) or 1)
+
 
 def permutation_test(pooled, a_size, b_size):
     shuffle(pooled)
@@ -20,6 +26,7 @@ def permutation_test(pooled, a_size, b_size):
     mean_a = compute_mean(new_a)
     mean_b = compute_mean(new_b)
     return mean_a - mean_b
+
 
 def permutation_test2(setA, setB):
     # print(len(setA), len(setB))
@@ -30,7 +37,9 @@ def permutation_test2(setA, setB):
     # print(t_sim, mean_a, mean_b)
     return t_sim
 
-import numpy as np  
+
+import numpy as np
+
 
 def myshuffle(setA, setB):
     new_a = []
@@ -46,12 +55,13 @@ def myshuffle(setA, setB):
 
     return (new_a, new_b)
 
+
 def ar(setA, setB, trials=1000, alpha=0.1):
     mean_a = compute_mean(setA)
     mean_b = compute_mean(setB)
     t_obs = abs(mean_a - mean_b)
 
-    #print("T_OBS: {0}".format(t_obs))
+    # print("T_OBS: {0}".format(t_obs))
 
     # pooled = setA + setB
 
@@ -67,18 +77,19 @@ def ar(setA, setB, trials=1000, alpha=0.1):
             by_chance += 1
         t_sims.append(t_sim)
 
-#        if t_sim<t_obs:
-#            inf = inf + 1
-#        elif t_sim>t_obs:
-#            sup = sup + 1
-#
-#    inf = inf / float(trials)
-#    sup = sup / float(trials)
-#
-#    p_value = round(min(inf, sup), 3)
-    #print(sum(t_sims) / float(trials))
+    #        if t_sim<t_obs:
+    #            inf = inf + 1
+    #        elif t_sim>t_obs:
+    #            sup = sup + 1
+    #
+    #    inf = inf / float(trials)
+    #    sup = sup / float(trials)
+    #
+    #    p_value = round(min(inf, sup), 3)
+    # print(sum(t_sims) / float(trials))
     p_value = float(by_chance + 1) / float(trials + 1)
     return t_obs, p_value
+
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
@@ -86,40 +97,49 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-          'campaign_name', type=str,
-          help='Name of the campaign you want to process data for'
+            'campaign_name',
+            type=str,
+            help='Name of the campaign you want to process data for',
         )
         parser.add_argument(
-          '--completed-only', action='store_true',
-          help='Include completed tasks only in the computation'
+            '--completed-only',
+            action='store_true',
+            help='Include completed tasks only in the computation',
         )
         parser.add_argument(
-          '--csv-file', type=str,
-          help='CSV file containing annotation data'
+            '--csv-file',
+            type=str,
+            help='CSV file containing annotation data',
         )
         parser.add_argument(
-          '--exclude-ids', type=str,
-          help='User IDs which should be ignored'
+            '--exclude-ids',
+            type=str,
+            help='User IDs which should be ignored',
         )
         parser.add_argument(
-          '--no-sigtest', action='store_true',
-          help='Do not run significance testing'
+            '--no-sigtest',
+            action='store_true',
+            help='Do not run significance testing',
         )
         parser.add_argument(
-          '--show-p-values', action='store_true',
-          help='Show p-values for significance testing'
+            '--show-p-values',
+            action='store_true',
+            help='Show p-values for significance testing',
         )
         parser.add_argument(
-          '--combo-systems', type=str,
-          help='Systems to combine into oracle system'
+            '--combo-systems',
+            type=str,
+            help='Systems to combine into oracle system',
         )
         parser.add_argument(
-          '--combo-refs', type=str,
-          help='References to combine into oracle system'
+            '--combo-refs',
+            type=str,
+            help='References to combine into oracle system',
         )
         parser.add_argument(
-          '--use-ar', action='store_true',
-          help='Use approximate randomization'
+            '--use-ar',
+            action='store_true',
+            help='Use approximate randomization',
         )
 
         # TODO: add argument to specify batch user
@@ -128,24 +148,31 @@ class Command(BaseCommand):
         campaign_name = options['campaign_name']
         completed_only = options['completed_only']
         csv_file = options['csv_file']
-        exclude_ids = [x.lower() for x in options['exclude_ids'].split(',')] \
-          if options['exclude_ids'] else []
+        exclude_ids = (
+            [x.lower() for x in options['exclude_ids'].split(',')]
+            if options['exclude_ids']
+            else []
+        )
         show_p_values = options['show_p_values']
 
-        combo_systems = options['combo_systems'].split(',') \
-          if options['combo_systems'] \
-          else (
-            'MSR_Redmond_20180212.txt',
-            'MSRA_ML_20180212.txt',
-            'MSRA_NLC_20180211.txt'
-          )
+        combo_systems = (
+            options['combo_systems'].split(',')
+            if options['combo_systems']
+            else (
+                'MSR_Redmond_20180212.txt',
+                'MSRA_ML_20180212.txt',
+                'MSRA_NLC_20180211.txt',
+            )
+        )
 
-        combo_refs = options['combo_refs'].split(',') \
-          if options['combo_refs'] \
-          else (
-            'Pactera-human-translation.txt',
-            'Unbabel-postedited.txt'
-          )
+        combo_refs = (
+            options['combo_refs'].split(',')
+            if options['combo_refs']
+            else (
+                'Pactera-human-translation.txt',
+                'Unbabel-postedited.txt',
+            )
+        )
 
         if csv_file:
             _msg = 'Processing annotations in file {0}\n\n'.format(csv_file)
@@ -160,6 +187,7 @@ class Command(BaseCommand):
             system_data = []
 
             import csv
+
             with open(csv_file) as input_file:
                 csv_reader = csv.reader(input_file)
                 for csv_line in csv_reader:
@@ -204,7 +232,7 @@ class Command(BaseCommand):
         # UserID, SystemID, SegmentID, Type, Source, Target, Score
 
         # print(len(system_data))
-        
+
         data_by_language_pair = defaultdict(list)
         for system_item in system_data:
             language_pair = system_item[4:6]
@@ -216,11 +244,11 @@ class Command(BaseCommand):
             system_raw_scores = defaultdict(list)
             for system_item in language_data:
                 user_scores[system_item[0]].append(system_item[6])
-            
+
             try:
                 a = len(user_scores['zhoeng2802'])
                 b = sum(user_scores['zhoeng2802'])
-                c = float(b)/a
+                c = float(b) / a
                 print(b, a, c)
 
             except ZeroDivisionError:
@@ -232,13 +260,14 @@ class Command(BaseCommand):
                 user_mean = sum(user_data) / float(len(user_data) or 1)
                 user_means[user_name] = user_mean
 
-                n = sum([(x - user_mean)**2 for x in user_data])
+                n = sum([(x - user_mean) ** 2 for x in user_data])
                 d = float((len(user_data) - 1) or 1)
                 s_squared = n / d
 
                 from math import sqrt
+
                 user_variances[user_name] = sqrt(s_squared)
-            
+
             # print(user_means['zhoeng2802'])
             # print(user_variances['zhoeng2802'])
             # print((63 - user_means['zhoeng2802']) / user_variances['zhoeng2802'])
@@ -249,15 +278,15 @@ class Command(BaseCommand):
                 segment_id = system_item[2]
                 raw_score = system_item[6]
 
-                z_n = (raw_score - user_means[user_id])
+                z_n = raw_score - user_means[user_id]
                 z_d = float(user_variances[user_id] or 1)
                 z_score = z_n / z_d
-                #if user_id == 'zhoeng2802' and segment_id == '625':
+                # if user_id == 'zhoeng2802' and segment_id == '625':
                 #    print(z_score, raw_score, user_means[user_id], z_n, z_d, user_id, system_id, segment_id)
 
                 system_z_scores[system_id].append((segment_id, z_score))
                 system_raw_scores[system_id].append((segment_id, raw_score))
-            
+
             combo_z_scores = defaultdict(list)
             combo_raw_scores = defaultdict(list)
 
@@ -341,14 +370,14 @@ class Command(BaseCommand):
                     averaged_raw_score = sum(scores) / float(len(scores) or 1)
                     averaged_raw_scores[key].append(averaged_raw_score)
 
-                    averaged_h_score = min(round(averaged_raw_score / 25.)+1, 4)
+                    averaged_h_score = min(round(averaged_raw_score / 25.0) + 1, 4)
                     averaged_h_scores[key].append(averaged_h_score)
 
             for key, value in system_z_scores.items():
                 scores_by_segment = defaultdict(list)
                 for segment_id, score in value:
                     scores_by_segment[segment_id].append(score)
-            
+
                 averaged_scores = []
                 for segment_id, scores in scores_by_segment.items():
                     averaged_score = sum(scores) / float(len(scores) or 1)
@@ -360,16 +389,18 @@ class Command(BaseCommand):
                 _h_scores = averaged_h_scores[key]
                 averaged_h_score = sum(_h_scores) / float(len(_h_scores) or 1)
 
-                normalized_score = sum(averaged_scores) / float(len(averaged_scores) or 1)
+                normalized_score = sum(averaged_scores) / float(
+                    len(averaged_scores) or 1
+                )
 
                 normalized_scores[normalized_score] = (
-                  key,
-                  len(value),
-                  normalized_score,
-                  averaged_raw_score,
-                  averaged_h_score
+                    key,
+                    len(value),
+                    normalized_score,
+                    averaged_raw_score,
+                    averaged_h_score,
                 )
-            
+
             for key in sorted(normalized_scores, reverse=True):
                 value = normalized_scores[key]
                 print('{0:03.2f} {1}'.format(key, value))
@@ -379,14 +410,15 @@ class Command(BaseCommand):
 
             # if scipy is available, perform sigtest for all pairs of systems
             try:
-                import scipy
-            
+                import scipy  # type: ignore
+
             except ImportError:
                 print("NO SCIPY")
                 continue
 
-            from scipy.stats import mannwhitneyu, bayes_mvs
+            from scipy.stats import mannwhitneyu, bayes_mvs  # type: ignore
             from itertools import combinations_with_replacement
+
             system_ids = []
             for key in sorted(normalized_scores, reverse=True):
                 data = normalized_scores[key]
@@ -412,7 +444,9 @@ class Command(BaseCommand):
                     # print(zScore)
                     sbsA[segmentID].append((segmentID, zScore))
                 for segmentID in sbsA.keys():
-                    average_z_score_for_segment = sum([x[1] for x in sbsA[segmentID]]) / float(len(sbsA[segmentID]))
+                    average_z_score_for_segment = sum(
+                        [x[1] for x in sbsA[segmentID]]
+                    ) / float(len(sbsA[segmentID]))
                     sysA_scores.append((segmentID, average_z_score_for_segment))
 
                 sysB_scores = []
@@ -424,14 +458,16 @@ class Command(BaseCommand):
                     zScore = x[1]
                     sbsB[segmentID].append((segmentID, zScore))
                 for segmentID in sbsB.keys():
-                    average_z_score_for_segment = sum([x[1] for x in sbsB[segmentID]]) / float(len(sbsB[segmentID]))
+                    average_z_score_for_segment = sum(
+                        [x[1] for x in sbsB[segmentID]]
+                    ) / float(len(sbsB[segmentID]))
                     sysB_scores.append((segmentID, average_z_score_for_segment))
-                
+
                 sysA_sorted = [x[1] for x in sorted(sysA_scores, key=lambda x: x[0])]
                 sysB_sorted = [x[1] for x in sorted(sysB_scores, key=lambda x: x[0])]
 
-#                sysA_scores = [x[1] for x in system_z_scores[sysA]]
-               # sysB_scores = [x[1] for x in system_z_scores[sysB]]
+                #                sysA_scores = [x[1] for x in system_z_scores[sysA]]
+                # sysB_scores = [x[1] for x in system_z_scores[sysB]]
                 # t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="two-sided")
 
                 if options['use_ar']:
@@ -440,7 +476,9 @@ class Command(BaseCommand):
                     else:
                         t_statistic, p_value = 0, 1
                 else:
-                    t_statistic, p_value = mannwhitneyu(sysA_sorted, sysB_sorted, alternative="greater")
+                    t_statistic, p_value = mannwhitneyu(
+                        sysA_sorted, sysB_sorted, alternative="greater"
+                    )
 
                 if options['use_ar']:
                     if p_value < p_level:
@@ -448,13 +486,29 @@ class Command(BaseCommand):
                             wins_for_system[sysA].append(sysB)
                 else:
                     if p_value < p_level:
-                       wins_for_system[sysA].append(sysB)
+                        wins_for_system[sysA].append(sysB)
 
                 if show_p_values:
                     if options['use_ar']:
-                        print('{0:>40}>{1:>40} {2:02.5f} {3:1.8f} {4}'.format(sysA, sysB, p_value, t_statistic, p_value < p_level))
+                        print(
+                            '{0:>40}>{1:>40} {2:02.5f} {3:1.8f} {4}'.format(
+                                sysA,
+                                sysB,
+                                p_value,
+                                t_statistic,
+                                p_value < p_level,
+                            )
+                        )
                     else:
-                        print('{0:>40}>{1:>40} {2:02.25f} {3:>10} {4}'.format(sysA, sysB, p_value, t_statistic, p_value < p_level))
+                        print(
+                            '{0:>40}>{1:>40} {2:02.25f} {3:>10} {4}'.format(
+                                sysA,
+                                sysB,
+                                p_value,
+                                t_statistic,
+                                p_value < p_level,
+                            )
+                        )
 
             sorted_by_wins = []
             for key, values in normalized_scores.items():
@@ -465,7 +519,9 @@ class Command(BaseCommand):
                 sorted_by_wins.append(tuple(data))
 
             print('-' * 80)
-            print('Wins                                         System ID  Z Score H Score  R Score')
+            print(
+                'Wins                                         System ID  Z Score H Score  R Score'
+            )
 
             def sort_by_wins_and_z_score(x, y):
                 if x[0] == y[0]:
@@ -481,8 +537,12 @@ class Command(BaseCommand):
                     return -1
 
             last_wins_count = None
-            for values in sorted(sorted_by_wins, key=cmp_to_key(sort_by_wins_and_z_score), reverse=True):
-                #values = normalized_scores[key]
+            for values in sorted(
+                sorted_by_wins,
+                key=cmp_to_key(sort_by_wins_and_z_score),
+                reverse=True,
+            ):
+                # values = normalized_scores[key]
                 wins = values[0]
                 better_than = values[1]
                 systemID = values[2]
@@ -495,7 +555,7 @@ class Command(BaseCommand):
                     print('-' * 80)
 
                 output = '{0:02d} {1:>51} {2:>+2.5f} {3:>1.5f} {4:>2.5f}'.format(
-                  wins, systemID[:51], zScore, hScore, rScore
+                    wins, systemID[:51], zScore, hScore, rScore
                 ).replace('+', ' ')
                 print(output)
 
@@ -508,23 +568,35 @@ class Command(BaseCommand):
             continue
 
             for sysX in system_ids:
-                #print(sysX)
+                # print(sysX)
                 sysX_scores = [x[1] for x in system_z_scores[sysX]]
-                #print(bayes_mvs(sysX_scores))
+                # print(bayes_mvs(sysX_scores))
 
             vsystems = defaultdict(list)
             for system_id in system_ids:
                 key = system_id[:4].upper()
                 vsystems[key].extend(system_z_scores[system_id])
 
-            for (sysA, sysB) in combinations_with_replacement(['GOOG','CAND','PROD'], 2):
+            for (sysA, sysB) in combinations_with_replacement(
+                ['GOOG', 'CAND', 'PROD'], 2
+            ):
                 sysA_scores = [x[1] for x in vsystems[sysA]]
                 sysB_scores = [x[1] for x in vsystems[sysB]]
                 # t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="two-sided")
-                t_statistic, p_value = mannwhitneyu(sysA_scores, sysB_scores, alternative="greater")
+                t_statistic, p_value = mannwhitneyu(
+                    sysA_scores, sysB_scores, alternative="greater"
+                )
                 if len(sysA_scores) > 200 and len(sysB_scores) > 200:
                     print(len(sysA_scores), len(sysB_scores))
-                    print('{0} > {1} {2:02.25f} {3:>10} {4}'.format(sysA, sysB, p_value, t_statistic, p_value < p_level))
+                    print(
+                        '{0} > {1} {2:02.25f} {3:>10} {4}'.format(
+                            sysA,
+                            sysB,
+                            p_value,
+                            t_statistic,
+                            p_value < p_level,
+                        )
+                    )
 
         # CHRIFE:
         # TEMPORARILY DISABLE PAIRWISE CMPS
@@ -544,18 +616,19 @@ class Command(BaseCommand):
             system_z_scores = defaultdict(list)
             for system_item in language_data:
                 user_scores[system_item[0]].append(system_item[6])
-            
+
             user_means = defaultdict(float)
             user_variances = defaultdict(float)
             for user_name, user_data in user_scores.items():
                 user_mean = sum(user_data) / float(len(user_data) or 1)
                 user_means[user_name] = user_mean
 
-                n = sum([(x - user_mean)**2 for x in user_data])
+                n = sum([(x - user_mean) ** 2 for x in user_data])
                 d = float((len(user_data) - 1) or 1)
                 s_squared = n / d
 
                 from math import sqrt
+
                 user_variances[user_name] = sqrt(s_squared)
 
             for system_item in language_data:
@@ -564,7 +637,7 @@ class Command(BaseCommand):
                 segment_id = system_item[2]
                 raw_score = system_item[6]
 
-                z_n = (raw_score - user_means[user_id])
+                z_n = raw_score - user_means[user_id]
                 z_d = float(user_variances[user_id] or 1)
                 z_score = z_n / z_d
 
@@ -576,21 +649,27 @@ class Command(BaseCommand):
                 print('{0}: {1}'.format(s, len(v)))
 
             for key, value in system_z_scores.items():
-#                if key.startswith('GOOG'):
-#                    continue
+                #                if key.startswith('GOOG'):
+                #                    continue
 
                 scores_by_segment = defaultdict(list)
                 for segment_id, score in value:
                     scores_by_segment[segment_id].append(score)
-            
+
                 averaged_scores = []
                 for segment_id, scores in scores_by_segment.items():
                     averaged_score = sum(scores) / float(len(scores) or 1)
                     averaged_scores.append(averaged_score)
 
-                normalized_score = sum(averaged_scores) / float(len(averaged_scores) or 1)
-                normalized_scores[normalized_score] = (key, len(value), normalized_score)
-            
+                normalized_score = sum(averaged_scores) / float(
+                    len(averaged_scores) or 1
+                )
+                normalized_scores[normalized_score] = (
+                    key,
+                    len(value),
+                    normalized_score,
+                )
+
             for key in sorted(normalized_scores, reverse=True):
                 value = normalized_scores[key]
                 print('{0:03.2f} {1}'.format(key, value))
@@ -609,18 +688,19 @@ class Command(BaseCommand):
             system_z_scores = defaultdict(list)
             for system_item in language_data:
                 user_scores[system_item[0]].append(system_item[6])
-            
+
             user_means = defaultdict(float)
             user_variances = defaultdict(float)
             for user_name, user_data in user_scores.items():
                 user_mean = sum(user_data) / float(len(user_data) or 1)
                 user_means[user_name] = user_mean
 
-                n = sum([(x - user_mean)**2 for x in user_data])
+                n = sum([(x - user_mean) ** 2 for x in user_data])
                 d = float((len(user_data) - 1) or 1)
                 s_squared = n / d
 
                 from math import sqrt
+
                 user_variances[user_name] = sqrt(s_squared)
 
             for system_item in language_data:
@@ -629,7 +709,7 @@ class Command(BaseCommand):
                 segment_id = system_item[2]
                 raw_score = system_item[6]
 
-                z_n = (raw_score - user_means[user_id])
+                z_n = raw_score - user_means[user_id]
                 z_d = float(user_variances[user_id] or 1)
                 z_score = z_n / z_d
 
@@ -644,15 +724,21 @@ class Command(BaseCommand):
                 scores_by_segment = defaultdict(list)
                 for segment_id, score in value:
                     scores_by_segment[segment_id].append(score)
-            
+
                 averaged_scores = []
                 for segment_id, scores in scores_by_segment.items():
                     averaged_score = sum(scores) / float(len(scores) or 1)
                     averaged_scores.append(averaged_score)
 
-                normalized_score = sum(averaged_scores) / float(len(averaged_scores) or 1)
-                normalized_scores[normalized_score] = (key, len(value), normalized_score)
-            
+                normalized_score = sum(averaged_scores) / float(
+                    len(averaged_scores) or 1
+                )
+                normalized_scores[normalized_score] = (
+                    key,
+                    len(value),
+                    normalized_score,
+                )
+
             for key in sorted(normalized_scores, reverse=True):
                 value = normalized_scores[key]
                 print('{0:03.2f} {1}'.format(key, value))
@@ -671,18 +757,19 @@ class Command(BaseCommand):
             system_z_scores = defaultdict(list)
             for system_item in language_data:
                 user_scores[system_item[0]].append(system_item[6])
-            
+
             user_means = defaultdict(float)
             user_variances = defaultdict(float)
             for user_name, user_data in user_scores.items():
                 user_mean = sum(user_data) / float(len(user_data) or 1)
                 user_means[user_name] = user_mean
 
-                n = sum([(x - user_mean)**2 for x in user_data])
+                n = sum([(x - user_mean) ** 2 for x in user_data])
                 d = float((len(user_data) - 1) or 1)
                 s_squared = n / d
 
                 from math import sqrt
+
                 user_variances[user_name] = sqrt(s_squared)
 
             for system_item in language_data:
@@ -691,7 +778,7 @@ class Command(BaseCommand):
                 segment_id = system_item[2]
                 raw_score = system_item[6]
 
-                z_n = (raw_score - user_means[user_id])
+                z_n = raw_score - user_means[user_id]
                 z_d = float(user_variances[user_id] or 1)
                 z_score = z_n / z_d
 
@@ -706,15 +793,21 @@ class Command(BaseCommand):
                 scores_by_segment = defaultdict(list)
                 for segment_id, score in value:
                     scores_by_segment[segment_id].append(score)
-            
+
                 averaged_scores = []
                 for segment_id, scores in scores_by_segment.items():
                     averaged_score = sum(scores) / float(len(scores) or 1)
                     averaged_scores.append(averaged_score)
 
-                normalized_score = sum(averaged_scores) / float(len(averaged_scores) or 1)
-                normalized_scores[normalized_score] = (key, len(value), normalized_score)
-            
+                normalized_score = sum(averaged_scores) / float(
+                    len(averaged_scores) or 1
+                )
+                normalized_scores[normalized_score] = (
+                    key,
+                    len(value),
+                    normalized_score,
+                )
+
             for key in sorted(normalized_scores, reverse=True):
                 value = normalized_scores[key]
                 print('{0:03.2f} {1}'.format(key, value))

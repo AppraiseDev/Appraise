@@ -2,33 +2,32 @@
 Campaign models.py
 """
 # pylint: disable=C0111,C0330,E1101
-from json import JSONDecodeError, loads
+from json import JSONDecodeError
+from json import loads
 from pathlib import Path
-from zipfile import ZipFile, is_zipfile
+from zipfile import is_zipfile
+from zipfile import ZipFile
 
-from django.db import models
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.db import models
 from django.utils.text import format_lazy as f
 from django.utils.translation import ugettext_lazy as _
 
 from Dashboard.models import validate_language_code
-from EvalData.models import (
-    AnnotationTaskRegistry,
-    BaseMetadata,
-    Market,
-    Metadata,
-    RESULT_TYPES
-)
+from EvalData.models import AnnotationTaskRegistry
+from EvalData.models import BaseMetadata
+from EvalData.models import Market
+from EvalData.models import Metadata
+from EvalData.models import RESULT_TYPES
 
 MAX_TEAMNAME_LENGTH = 250
 MAX_SMALLINTEGER_VALUE = 32767
-MAX_FILEFILED_SIZE = (
-    10
-)  # TODO: this does not get enforced currently; remove?
+MAX_FILEFILED_SIZE = 10  # TODO: this does not get enforced currently; remove?
 MAX_CAMPAIGNNAME_LENGTH = 250
 
 # TODO: _validate_task_json(task_json)
+
 
 def _validate_manifest_json(manifest_json):
     '''Validates manifest JSON data.
@@ -59,9 +58,7 @@ def _validate_manifest_json(manifest_json):
     for required_key in required_keys:
         if not required_key in manifest_data.keys():
             raise ValidationError(
-                'manifest.json should contain {0!r} key'.format(
-                    required_key
-                )
+                'manifest.json should contain {0!r} key'.format(required_key)
             )
 
     # Validate string types
@@ -144,12 +141,8 @@ def _validate_tasks_to_annotators_map(tasks_to_annotators, redundancy):
         source_code, target_code, mode, annotators, tasks = item
 
         # Vaidate correct item type signature: <str, str, str, int, int>
-        correct_types = [
-            isinstance(x, str) for x in (source_code, target_code, mode)
-        ]
-        correct_types.extend(
-            [isinstance(x, int) for x in (annotators, tasks)]
-        )
+        correct_types = [isinstance(x, str) for x in (source_code, target_code, mode)]
+        correct_types.extend([isinstance(x, int) for x in (annotators, tasks)])
         if not all(correct_types):
             raise ValidationError(
                 "manifest.json key 'TASKS_TO_ANNOTATORS' list "
@@ -286,9 +279,7 @@ class CampaignTeam(BaseMetadata):
     teamName = models.CharField(
         max_length=MAX_TEAMNAME_LENGTH,
         verbose_name=_('Team name'),
-        help_text=_(
-            f('(max. {value} characters)', value=MAX_TEAMNAME_LENGTH)
-        ),
+        help_text=_(f('(max. {value} characters)', value=MAX_TEAMNAME_LENGTH)),
     )
 
     owner = models.ForeignKey(
@@ -310,16 +301,12 @@ class CampaignTeam(BaseMetadata):
 
     requiredAnnotations = models.PositiveSmallIntegerField(
         verbose_name=_('Required annotations'),
-        help_text=_(
-            f('(value in range=[1,{value}])', value=MAX_SMALLINTEGER_VALUE)
-        ),
+        help_text=_(f('(value in range=[1,{value}])', value=MAX_SMALLINTEGER_VALUE)),
     )
 
     requiredHours = models.PositiveSmallIntegerField(
         verbose_name=_('Required hours'),
-        help_text=_(
-            f('(value in range=[1,{value}])', value=MAX_SMALLINTEGER_VALUE)
-        ),
+        help_text=_(f('(value in range=[1,{value}])', value=MAX_SMALLINTEGER_VALUE)),
     )
 
     # pylint: disable=C0111,R0903
@@ -349,7 +336,7 @@ class CampaignTeam(BaseMetadata):
         """
         return self.members.count()
 
-    teamMembers.short_description = '# of team members'
+    teamMembers.short_description = '# of team members'  # type: ignore
 
     # TODO: make it to be the minimum of:
     # - # of completed annotations / # required annotations; and
@@ -378,7 +365,7 @@ class CampaignTeam(BaseMetadata):
             completion = count_done / float(count_all)
         return '{:.2%}'.format(completion)
 
-    completionStatus.short_description = 'Completion status'
+    completionStatus.short_description = 'Completion status'  # type: ignore
 
 
 class CampaignData(BaseMetadata):
@@ -386,9 +373,7 @@ class CampaignData(BaseMetadata):
     Models a batch of campaign data.
     """
 
-    dataFile = models.FileField(
-        verbose_name=_('Data file'), upload_to='Batches'
-    )
+    dataFile = models.FileField(verbose_name=_('Data file'), upload_to='Batches')
 
     market = models.ForeignKey(
         Market, on_delete=models.PROTECT, verbose_name=_('Market')
@@ -452,9 +437,14 @@ class Campaign(BaseMetadata):
     campaignName = models.CharField(
         max_length=MAX_CAMPAIGNNAME_LENGTH,
         verbose_name=_('Campaign name'),
-        help_text=_(
-            f('(max. {value} characters)', value=MAX_CAMPAIGNNAME_LENGTH)
-        ),
+        help_text=_(f('(max. {value} characters)', value=MAX_CAMPAIGNNAME_LENGTH)),
+    )
+
+    # Field for task-specific options used by all tasks within this campaign
+    campaignOptions = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name=_('Campaign task-specific options'),
     )
 
     # Field for task-specific options used by all tasks within this campaign
@@ -534,12 +524,8 @@ class TrustedUser(models.Model):
 
     user = models.ForeignKey(User, models.PROTECT, verbose_name=_('User'))
 
-    campaign = models.ForeignKey(
-        Campaign, models.PROTECT, verbose_name=_('Campaign')
-    )
+    campaign = models.ForeignKey(Campaign, models.PROTECT, verbose_name=_('Campaign'))
 
     # TODO: decide whether this needs to be optimized.
     def __str__(self):
-        return 'trusted:{0}/{1}'.format(
-            self.user.username, self.campaign.campaignName
-        )
+        return 'trusted:{0}/{1}'.format(self.user.username, self.campaign.campaignName)

@@ -5,19 +5,14 @@ See LICENSE for usage details
 """
 # pylint: disable=C0330
 from datetime import datetime
-from django.contrib import admin, messages
+
+from django.contrib import admin
+from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.timezone import utc
-from .models import Market, Metadata, TextSegment, TextPair, TextPairWithImage
-from .models import TextPairWithContext, TextSegmentWithTwoTargets
-from .models import DataAssessmentTask, DataAssessmentResult
-from .models import DirectAssessmentTask, DirectAssessmentResult
-from .models import DirectAssessmentContextTask, DirectAssessmentContextResult
-from .models import DirectAssessmentDocumentTask, DirectAssessmentDocumentResult
-from .models import MultiModalAssessmentTask, MultiModalAssessmentResult
-from .models import PairwiseAssessmentTask, PairwiseAssessmentResult
-from .models import WorkAgenda, TaskAgenda
+
+from .models import *
 
 
 # TODO:chrife: find a way to use SELECT-based filtering widgets
@@ -25,15 +20,16 @@ class BaseMetadataAdmin(admin.ModelAdmin):
     """
     Model admin for abstract base metadata object model.
     """
-    list_display = [
-      'modifiedBy', 'dateModified'
-    ]
-    list_filter = [
-      'activated', 'completed', 'retired'
-    ]
+
+    list_display = ['modifiedBy', 'dateModified']
+    list_filter = ['activated', 'completed', 'retired']
     search_fields = [
-      'createdBy__username', 'activatedBy__username', 'completedBy__username',
-      'retiredBy__username', 'modifiedBy__username', '_str_name'
+        'createdBy__username',
+        'activatedBy__username',
+        'completedBy__username',
+        'retiredBy__username',
+        'modifiedBy__username',
+        '_str_name',
     ]
 
     # pylint: disable=C0111,R0903
@@ -41,10 +37,13 @@ class BaseMetadataAdmin(admin.ModelAdmin):
         abstract = True
 
     fieldsets = (
-        ('Advanced options', {
-            'classes': ('collapse',),
-            'fields': ('activated', 'completed', 'retired')
-        }),
+        (
+            'Advanced options',
+            {
+                'classes': ('collapse',),
+                'fields': ('activated', 'completed', 'retired'),
+            },
+        ),
     )
 
     def save_model(self, request, obj, form, change):
@@ -87,21 +86,33 @@ class MarketAdmin(BaseMetadataAdmin):
     """
     Model admin for Market instances.
     """
+
     list_display = [
-      '__str__', 'sourceLanguageCode', 'targetLanguageCode', 'domainName'
+        '__str__',
+        'sourceLanguageCode',
+        'targetLanguageCode',
+        'domainName',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'sourceLanguageCode', 'targetLanguageCode', 'domainName'
+        'sourceLanguageCode',
+        'targetLanguageCode',
+        'domainName',
     ] + BaseMetadataAdmin.list_filter
-    search_fields = [
-      'marketID'
-    ] + BaseMetadataAdmin.search_fields
+    search_fields = ['marketID'] + BaseMetadataAdmin.search_fields
 
-    fieldsets = (
-      (None, {
-        'fields': (['sourceLanguageCode', 'targetLanguageCode',
-          'domainName'])
-      }),
+    fieldsets = (  # type: ignore
+        (
+            None,
+            {
+                'fields': (
+                    [
+                        'sourceLanguageCode',
+                        'targetLanguageCode',
+                        'domainName',
+                    ]
+                )
+            },
+        ),
     ) + BaseMetadataAdmin.fieldsets
 
 
@@ -109,361 +120,535 @@ class MetadataAdmin(BaseMetadataAdmin):
     """
     Model admin for Metadata instances.
     """
+
     list_display = [
-      'market', 'corpusName', 'versionInfo', 'source'
+        'market',
+        'corpusName',
+        'versionInfo',
+        'source',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'market__marketID', 'corpusName', 'versionInfo'
+        'market__marketID',
+        'corpusName',
+        'versionInfo',
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      'market__marketID', 'corpusName', 'versionInfo', 'source'
+        'market__marketID',
+        'corpusName',
+        'versionInfo',
+        'source',
     ] + BaseMetadataAdmin.search_fields
 
     fieldsets = (
-      (None, {
-        'fields': (['market', 'corpusName', 'versionInfo', 'source'])
-      }),
-    ) + BaseMetadataAdmin.fieldsets
+        (
+            None,
+            {'fields': (['market', 'corpusName', 'versionInfo', 'source'])},
+        ),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class TextSegmentAdmin(BaseMetadataAdmin):
     """
     Model admin for TextSegment instances.
     """
+
     list_display = [
-      'metadata', 'itemID', 'itemType', 'segmentID', 'segmentText'
+        'metadata',
+        'itemID',
+        'itemType',
+        'segmentID',
+        'segmentText',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'metadata__corpusName', 'metadata__versionInfo',
-      'metadata__market__sourceLanguageCode',
-      'metadata__market__targetLanguageCode',
-      'metadata__market__domainName',
-      'itemType'
+        'metadata__corpusName',
+        'metadata__versionInfo',
+        'metadata__market__sourceLanguageCode',
+        'metadata__market__targetLanguageCode',
+        'metadata__market__domainName',
+        'itemType',
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      'segmentID', 'segmentText'
+        'segmentID',
+        'segmentText',
     ] + BaseMetadataAdmin.search_fields
 
     fieldsets = (
-      (None, {
-        'fields': (['metadata', 'itemID', 'itemType', 'segmentID',
-          'segmentText'])
-      }),
-    ) + BaseMetadataAdmin.fieldsets
+        (
+            None,
+            {
+                'fields': (
+                    [
+                        'metadata',
+                        'itemID',
+                        'itemType',
+                        'segmentID',
+                        'segmentText',
+                    ]
+                )
+            },
+        ),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class TextSegmentWithTwoTargetsAdmin(BaseMetadataAdmin):
     """
     Model admin for TextPair instances.
     """
+
     list_display = [
-      '__str__', 'itemID', 'itemType', 'segmentID', 'segmentText',
-      'target1ID', 'target1Text', 'target2ID', 'target2Text'
+        '__str__',
+        'itemID',
+        'itemType',
+        'segmentID',
+        'segmentText',
+        'target1ID',
+        'target1Text',
+        'target2ID',
+        'target2Text',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'metadata__corpusName',
-      'metadata__versionInfo',
-      'metadata__market__sourceLanguageCode',
-      'metadata__market__targetLanguageCode',
-      'metadata__market__domainName',
-      'itemType'
+        'metadata__corpusName',
+        'metadata__versionInfo',
+        'metadata__market__sourceLanguageCode',
+        'metadata__market__targetLanguageCode',
+        'metadata__market__domainName',
+        'itemType',
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      'segmentID', 'segmentText',
-      'target1ID', 'target1Text',
-      'target2ID', 'target2Text'
+        'segmentID',
+        'segmentText',
+        'target1ID',
+        'target1Text',
+        'target2ID',
+        'target2Text',
     ] + BaseMetadataAdmin.search_fields
 
     fieldsets = (
-      (None, {
-        'fields': (['metadata', 'itemID', 'itemType',
-          'segmentID', 'segmentText',
-          'target1ID', 'target1Text',
-          'target2ID', 'target2Text'])
-      }),
-    ) + BaseMetadataAdmin.fieldsets
+        (
+            None,
+            {
+                'fields': (
+                    [
+                        'metadata',
+                        'itemID',
+                        'itemType',
+                        'segmentID',
+                        'segmentText',
+                        'target1ID',
+                        'target1Text',
+                        'target2ID',
+                        'target2Text',
+                    ]
+                )
+            },
+        ),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class TextPairAdmin(BaseMetadataAdmin):
     """
     Model admin for TextPair instances.
     """
+
     list_display = [
-      '__str__', 'itemID', 'itemType', 'sourceID', 'sourceText', 'targetID',
-      'targetText'
+        '__str__',
+        'itemID',
+        'itemType',
+        'sourceID',
+        'sourceText',
+        'targetID',
+        'targetText',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'metadata__corpusName', 'metadata__versionInfo',
-      'metadata__market__sourceLanguageCode',
-      'metadata__market__targetLanguageCode',
-      'metadata__market__domainName',
-      'itemType'
+        'metadata__corpusName',
+        'metadata__versionInfo',
+        'metadata__market__sourceLanguageCode',
+        'metadata__market__targetLanguageCode',
+        'metadata__market__domainName',
+        'itemType',
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      'sourceID', 'sourceText', 'targetID', 'targetText'
+        'sourceID',
+        'sourceText',
+        'targetID',
+        'targetText',
     ] + BaseMetadataAdmin.search_fields
 
     fieldsets = (
-      (None, {
-        'fields': (['metadata', 'itemID', 'itemType', 'sourceID',
-          'sourceText', 'targetID', 'targetText'])
-      }),
-    ) + BaseMetadataAdmin.fieldsets
-
-
-class TextPairAdmin(BaseMetadataAdmin):
-    """
-    Model admin for TextPair instances.
-    """
-    list_display = [
-      '__str__', 'itemID', 'itemType', 'sourceID', 'sourceText', 'targetID',
-      'targetText'
-    ] + BaseMetadataAdmin.list_display
-    list_filter = [
-      'metadata__corpusName', 'metadata__versionInfo',
-      'metadata__market__sourceLanguageCode',
-      'metadata__market__targetLanguageCode',
-      'metadata__market__domainName',
-      'itemType'
-    ] + BaseMetadataAdmin.list_filter
-    search_fields = [
-      'sourceID', 'sourceText', 'targetID', 'targetText'
-    ] + BaseMetadataAdmin.search_fields
-
-    fieldsets = (
-      (None, {
-        'fields': (['metadata', 'itemID', 'itemType', 'sourceID',
-          'sourceText', 'targetID', 'targetText'])
-      }),
-    ) + BaseMetadataAdmin.fieldsets
+        (
+            None,
+            {
+                'fields': (
+                    [
+                        'metadata',
+                        'itemID',
+                        'itemType',
+                        'sourceID',
+                        'sourceText',
+                        'targetID',
+                        'targetText',
+                    ]
+                )
+            },
+        ),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class TextPairWithContextAdmin(BaseMetadataAdmin):
     """
     Model admin for TextPairWithContext instances.
     """
+
     list_display = [
-      '__str__', 'itemID', 'itemType', 'documentID', 'isCompleteDocument',
-      'sourceID', 'sourceText', 'sourceContextLeft', 'sourceContextRight',
-      'targetID', 'targetText', 'targetContextLeft', 'targetContextRight'
+        '__str__',
+        'itemID',
+        'itemType',
+        'documentID',
+        'isCompleteDocument',
+        'sourceID',
+        'sourceText',
+        'sourceContextLeft',
+        'sourceContextRight',
+        'targetID',
+        'targetText',
+        'targetContextLeft',
+        'targetContextRight',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'metadata__corpusName', 'metadata__versionInfo',
-      'metadata__market__sourceLanguageCode',
-      'metadata__market__targetLanguageCode',
-      'metadata__market__domainName',
-      'itemType',
-      'isCompleteDocument'
+        'metadata__corpusName',
+        'metadata__versionInfo',
+        'metadata__market__sourceLanguageCode',
+        'metadata__market__targetLanguageCode',
+        'metadata__market__domainName',
+        'itemType',
+        'isCompleteDocument',
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      'documentID', 'sourceID', 'targetID',
-      'sourceText', 'sourceContextLeft', 'sourceContextRight',
-      'targetText', 'targetContextLeft', 'targetContextRight'
+        'documentID',
+        'sourceID',
+        'targetID',
+        'sourceText',
+        'sourceContextLeft',
+        'sourceContextRight',
+        'targetText',
+        'targetContextLeft',
+        'targetContextRight',
     ] + BaseMetadataAdmin.search_fields
 
     fieldsets = (
-      (None, {
-        'fields': (['metadata', 'itemID', 'itemType', 'documentID',
-          'isCompleteDocument', 'sourceID', 'sourceText', 'sourceContextLeft',
-          'sourceContextRight', 'targetID', 'targetText', 'targetContextLeft',
-          'targetContextRight'])
-      }),
-    ) + BaseMetadataAdmin.fieldsets
+        (
+            None,
+            {
+                'fields': (
+                    [
+                        'metadata',
+                        'itemID',
+                        'itemType',
+                        'documentID',
+                        'isCompleteDocument',
+                        'sourceID',
+                        'sourceText',
+                        'sourceContextLeft',
+                        'sourceContextRight',
+                        'targetID',
+                        'targetText',
+                        'targetContextLeft',
+                        'targetContextRight',
+                    ]
+                )
+            },
+        ),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class TextPairWithImageAdmin(BaseMetadataAdmin):
     """
     Model admin for TextPairWithImage instances.
     """
+
     list_display = [
-      '__str__', 'itemID', 'itemType', 'sourceID', 'sourceText', 'targetID',
-      'targetText', 'imageURL'
+        '__str__',
+        'itemID',
+        'itemType',
+        'sourceID',
+        'sourceText',
+        'targetID',
+        'targetText',
+        'imageURL',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'metadata__corpusName', 'metadata__versionInfo',
-      'metadata__market__sourceLanguageCode',
-      'metadata__market__targetLanguageCode',
-      'metadata__market__domainName',
-      'itemType'
+        'metadata__corpusName',
+        'metadata__versionInfo',
+        'metadata__market__sourceLanguageCode',
+        'metadata__market__targetLanguageCode',
+        'metadata__market__domainName',
+        'itemType',
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      'sourceID', 'sourceText', 'targetID', 'targetText'
+        'sourceID',
+        'sourceText',
+        'targetID',
+        'targetText',
     ] + BaseMetadataAdmin.search_fields
 
     fieldsets = (
-      (None, {
-        'fields': (['metadata', 'itemID', 'itemType', 'sourceID',
-          'sourceText', 'targetID', 'targetText', 'imageURL'])
-      }),
-    ) + BaseMetadataAdmin.fieldsets
+        (
+            None,
+            {
+                'fields': (
+                    [
+                        'metadata',
+                        'itemID',
+                        'itemType',
+                        'sourceID',
+                        'sourceText',
+                        'targetID',
+                        'targetText',
+                        'imageURL',
+                    ]
+                )
+            },
+        ),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class DirectAssessmentTaskAdmin(BaseMetadataAdmin):
     """
     Model admin for DirectAssessmentTask instances.
     """
+
     list_display = [
-      'dataName', 'batchNo', 'campaign', 'requiredAnnotations'
+        'dataName',
+        'batchNo',
+        'campaign',
+        'requiredAnnotations',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'campaign__campaignName',
-      'campaign__batches__market__targetLanguageCode',
-      'campaign__batches__market__sourceLanguageCode', 'batchData'
+        'campaign__campaignName',
+        'campaign__batches__market__targetLanguageCode',
+        'campaign__batches__market__sourceLanguageCode',
+        'batchData',
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      'campaign__campaignName', 'assignedTo'
+        'campaign__campaignName',
+        'assignedTo',
     ] + BaseMetadataAdmin.search_fields
 
     fieldsets = (
-      (None, {
-        'fields': (['batchData', 'batchNo', 'campaign', 'items',
-        'requiredAnnotations', 'assignedTo'])
-      }),
-    ) + BaseMetadataAdmin.fieldsets
+        (
+            None,
+            {
+                'fields': (
+                    [
+                        'batchData',
+                        'batchNo',
+                        'campaign',
+                        'items',
+                        'requiredAnnotations',
+                        'assignedTo',
+                    ]
+                )
+            },
+        ),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class DirectAssessmentResultAdmin(BaseMetadataAdmin):
     """
     Model admin for DirectAssessmentResult instances.
     """
+
     list_display = [
-      '__str__', 'score', 'start_time', 'end_time', 'duration', 'item_type'
+        '__str__',
+        'score',
+        'start_time',
+        'end_time',
+        'duration',
+        'item_type',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'item__itemType', 'task__completed'
+        'item__itemType',
+        'task__completed',
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      # nothing model specific
-    ] + BaseMetadataAdmin.search_fields
+        # nothing model specific
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     readonly_fields = ('item', 'task')
 
     fieldsets = (
-      (None, {
-        'fields': (['score', 'start_time', 'end_time'])
-      }),
-      ('Related', {
-        'fields': (['item', 'task'])
-      })
-    ) + BaseMetadataAdmin.fieldsets
+        (None, {'fields': (['score', 'start_time', 'end_time'])}),
+        ('Related', {'fields': (['item', 'task'])}),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
+
 
 class DirectAssessmentContextTaskAdmin(BaseMetadataAdmin):
     """
     Model admin for DirectAssessmentContextTask instances.
     """
+
     list_display = [
-      'dataName', 'batchNo', 'campaign', 'requiredAnnotations'
+        'dataName',
+        'batchNo',
+        'campaign',
+        'requiredAnnotations',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'campaign__campaignName',
-      'campaign__batches__market__targetLanguageCode',
-      'campaign__batches__market__sourceLanguageCode', 'batchData'
+        'campaign__campaignName',
+        'campaign__batches__market__targetLanguageCode',
+        'campaign__batches__market__sourceLanguageCode',
+        'batchData',
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      'campaign__campaignName', 'assignedTo'
+        'campaign__campaignName',
+        'assignedTo',
     ] + BaseMetadataAdmin.search_fields
 
     fieldsets = (
-      (None, {
-        'fields': (['batchData', 'batchNo', 'campaign', 'items',
-        'requiredAnnotations', 'assignedTo'])
-      }),
-    ) + BaseMetadataAdmin.fieldsets
+        (
+            None,
+            {
+                'fields': (
+                    [
+                        'batchData',
+                        'batchNo',
+                        'campaign',
+                        'items',
+                        'requiredAnnotations',
+                        'assignedTo',
+                    ]
+                )
+            },
+        ),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
+
 
 class DirectAssessmentContextResultAdmin(BaseMetadataAdmin):
     """
     Model admin for DirectAssessmentContextResult instances.
     """
+
     list_display = [
-      '__str__', 'score', 'start_time', 'end_time', 'duration', 'item_type',
+        '__str__',
+        'score',
+        'start_time',
+        'end_time',
+        'duration',
+        'item_type',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'item__itemType', 'task__completed', 'item__isCompleteDocument'
+        'item__itemType',
+        'task__completed',
+        'item__isCompleteDocument',
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      # nothing model specific
-    ] + BaseMetadataAdmin.search_fields
+        # nothing model specific
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     readonly_fields = ('item', 'task')
 
     fieldsets = (
-      (None, {
-        'fields': (['score', 'start_time', 'end_time'])
-      }),
-      ('Related', {
-        'fields': (['item', 'task'])
-      })
-    ) + BaseMetadataAdmin.fieldsets
+        (None, {'fields': (['score', 'start_time', 'end_time'])}),
+        ('Related', {'fields': (['item', 'task'])}),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
+
 
 class DirectAssessmentDocumentTaskAdmin(DirectAssessmentContextTaskAdmin):
     """
     Model admin for DirectAssessmentDocumentTask instances.
     """
+
     pass
+
 
 class DirectAssessmentDocumentResultAdmin(DirectAssessmentContextResultAdmin):
     """
     Model admin for DirectAssessmentDocumentResult instances.
     """
+
     pass
+
 
 class MultiModalAssessmentTaskAdmin(BaseMetadataAdmin):
     """
     Model admin for MultiModalAssessmentTask instances.
     """
+
     list_display = [
-      'dataName', 'batchNo', 'campaign', 'requiredAnnotations'
+        'dataName',
+        'batchNo',
+        'campaign',
+        'requiredAnnotations',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'campaign__campaignName',
-      'campaign__batches__market__targetLanguageCode',
-      'campaign__batches__market__sourceLanguageCode', 'batchData'
+        'campaign__campaignName',
+        'campaign__batches__market__targetLanguageCode',
+        'campaign__batches__market__sourceLanguageCode',
+        'batchData',
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      'campaign__campaignName', 'assignedTo'
+        'campaign__campaignName',
+        'assignedTo',
     ] + BaseMetadataAdmin.search_fields
 
     fieldsets = (
-      (None, {
-        'fields': (['batchData', 'batchNo', 'campaign', 'items',
-          'requiredAnnotations', 'assignedTo'])
-      }),
-    ) + BaseMetadataAdmin.fieldsets
+        (
+            None,
+            {
+                'fields': (
+                    [
+                        'batchData',
+                        'batchNo',
+                        'campaign',
+                        'items',
+                        'requiredAnnotations',
+                        'assignedTo',
+                    ]
+                )
+            },
+        ),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class MultiModalAssessmentResultAdmin(BaseMetadataAdmin):
     """
     Model admin for MultiModalAssessmentResult instances.
     """
+
     list_display = [
-      '__str__', 'score', 'start_time', 'end_time', 'duration', 'item_type'
+        '__str__',
+        'score',
+        'start_time',
+        'end_time',
+        'duration',
+        'item_type',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'item__itemType', 'task__completed'
+        'item__itemType',
+        'task__completed',
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      # nothing model specific
-    ] + BaseMetadataAdmin.search_fields
+        # nothing model specific
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (
-      (None, {
-        'fields': (['score', 'start_time', 'end_time', 'item', 'task'])
-      }),
-    ) + BaseMetadataAdmin.fieldsets
+        (
+            None,
+            {'fields': (['score', 'start_time', 'end_time', 'item', 'task'])},
+        ),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class WorkAgendaAdmin(admin.ModelAdmin):
     """
     Model admin for WorkAgenda object model.
     """
-    list_display = [
-      'user', 'campaign', 'completed'
-    ]
-    list_filter = [
-      'campaign'
-    ]
+
+    list_display = ['user', 'campaign', 'completed']
+    list_filter = ['campaign']
     search_fields = [
-      'user__username', 'campaign__campaignName',
+        'user__username',
+        'campaign__campaignName',
     ]
 
 
@@ -471,16 +656,14 @@ class TaskAgendaAdmin(admin.ModelAdmin):
     """
     Model admin for TaskAgenda object model.
     """
+
     actions = ['reset_taskagenda']
 
-    list_display = [
-      'user', 'campaign', 'completed'
-    ]
-    list_filter = [
-      'campaign'
-    ]
+    list_display = ['user', 'campaign', 'completed']
+    list_filter = ['campaign']
     search_fields = [
-      'user__username', 'campaign__campaignName',
+        'user__username',
+        'campaign__campaignName',
     ]
 
     def get_actions(self, request):
@@ -500,117 +683,235 @@ class TaskAgendaAdmin(admin.ModelAdmin):
         agendas_selected = queryset.count()
         if agendas_selected > 1:
             _msg = (
-              "You can only reset one task agenda at a time. "
-              "No items have been changed."
+                "You can only reset one task agenda at a time. "
+                "No items have been changed."
             )
             self.message_user(request, _msg, level=messages.WARNING)
-            return HttpResponseRedirect(
-              reverse('admin:EvalData_taskagenda_changelist'))
+            return HttpResponseRedirect(reverse('admin:EvalData_taskagenda_changelist'))
 
-        _pk = request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
-        return HttpResponseRedirect(
-          reverse('reset-taskagenda', args=_pk))
-    reset_taskagenda.short_description = "Reset task agenda"
+        _pk = request.POST.getlist(admin.helpers.ACTION_CHECKBOX_NAME)
+        return HttpResponseRedirect(reverse('reset-taskagenda', args=_pk))
+
+    reset_taskagenda.short_description = "Reset task agenda"  # type: ignore
 
 
 class PairwiseAssessmentTaskAdmin(BaseMetadataAdmin):
     """
     Model admin for PairwiseAssessmentTask instances.
     """
+
     list_display = [
-      'dataName', 'batchNo', 'campaign', 'requiredAnnotations'
+        'dataName',
+        'batchNo',
+        'campaign',
+        'requiredAnnotations',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'campaign__campaignName',
-      'campaign__batches__market__targetLanguageCode',
-      'campaign__batches__market__sourceLanguageCode', 'batchData'
+        'campaign__campaignName',
+        'campaign__batches__market__targetLanguageCode',
+        'campaign__batches__market__sourceLanguageCode',
+        'batchData',
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      'campaign__campaignName', 'assignedTo'
+        'campaign__campaignName',
+        'assignedTo',
     ] + BaseMetadataAdmin.search_fields
 
     fieldsets = (
-      (None, {
-        'fields': (['batchData', 'batchNo', 'campaign', 'items',
-        'requiredAnnotations', 'assignedTo'])
-      }),
-    ) + BaseMetadataAdmin.fieldsets
+        (
+            None,
+            {
+                'fields': (
+                    [
+                        'batchData',
+                        'batchNo',
+                        'campaign',
+                        'items',
+                        'requiredAnnotations',
+                        'assignedTo',
+                    ]
+                )
+            },
+        ),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class PairwiseAssessmentResultAdmin(BaseMetadataAdmin):
     """
     Model admin for PairwiseAssessmentResult instances.
     """
+
     list_display = [
-      '__str__', 'score1', 'score2', 'start_time', 'end_time', 'duration',
-      'item_type'
+        '__str__',
+        'score1',
+        'score2',
+        'start_time',
+        'end_time',
+        'duration',
+        'item_type',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'item__itemType', 'task__completed'
+        'item__itemType',
+        'task__completed',
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      # nothing model specific
-    ] + BaseMetadataAdmin.search_fields
+        # nothing model specific
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     readonly_fields = ('item', 'task')
 
     fieldsets = (
-      (None, {
-        'fields': (['score1', 'score2', 'start_time', 'end_time'])
-      }),
-      ('Related', {
-        'fields': (['item', 'task'])
-      })
-    ) + BaseMetadataAdmin.fieldsets
+        (
+            None,
+            {'fields': (['score1', 'score2', 'start_time', 'end_time'])},
+        ),
+        ('Related', {'fields': (['item', 'task'])}),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
+
+
+class PairwiseAssessmentDocumentTaskAdmin(BaseMetadataAdmin):
+    """
+    Model admin for PairwiseAssessmentDocumentTask instances.
+    """
+
+    list_display = [
+        'dataName',
+        'batchNo',
+        'campaign',
+        'requiredAnnotations',
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+        'campaign__campaignName',
+        'campaign__batches__market__targetLanguageCode',
+        'campaign__batches__market__sourceLanguageCode',
+        'batchData',
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+        'campaign__campaignName',
+        'assignedTo',
+    ] + BaseMetadataAdmin.search_fields
+
+    fieldsets = (
+        (
+            None,
+            {
+                'fields': (
+                    [
+                        'batchData',
+                        'batchNo',
+                        'campaign',
+                        'items',
+                        'requiredAnnotations',
+                        'assignedTo',
+                    ]
+                )
+            },
+        ),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
+
+
+class PairwiseAssessmentDocumentResultAdmin(BaseMetadataAdmin):
+    """
+    Model admin for PairwiseAssessmentDocumentResult instances.
+    """
+
+    list_display = [
+        '__str__',
+        'score1',
+        'score2',
+        'start_time',
+        'end_time',
+        'duration',
+        'item_type',
+    ] + BaseMetadataAdmin.list_display
+    list_filter = [
+        'item__itemType',
+        'task__completed',
+        'item__isCompleteDocument',
+    ] + BaseMetadataAdmin.list_filter
+    search_fields = [
+        # nothing model specific
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
+
+    readonly_fields = ('item', 'task')
+
+    fieldsets = (
+        (
+            None,
+            {'fields': (['score1', 'score2', 'start_time', 'end_time'])},
+        ),
+        ('Related', {'fields': (['item', 'task'])}),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class DataAssessmentTaskAdmin(BaseMetadataAdmin):
     """
     Model admin for DataAssessmentTask instances.
     """
+
     list_display = [
-      'dataName', 'batchNo', 'campaign', 'requiredAnnotations'
+        'dataName',
+        'batchNo',
+        'campaign',
+        'requiredAnnotations',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'campaign__campaignName',
-      'campaign__batches__market__targetLanguageCode',
-      'campaign__batches__market__sourceLanguageCode', 'batchData'
+        'campaign__campaignName',
+        'campaign__batches__market__targetLanguageCode',
+        'campaign__batches__market__sourceLanguageCode',
+        'batchData',
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      'campaign__campaignName', 'assignedTo'
+        'campaign__campaignName',
+        'assignedTo',
     ] + BaseMetadataAdmin.search_fields
 
     fieldsets = (
-      (None, {
-        'fields': (['batchData', 'batchNo', 'campaign', 'items',
-        'requiredAnnotations', 'assignedTo'])
-      }),
-    ) + BaseMetadataAdmin.fieldsets
+        (
+            None,
+            {
+                'fields': (
+                    [
+                        'batchData',
+                        'batchNo',
+                        'campaign',
+                        'items',
+                        'requiredAnnotations',
+                        'assignedTo',
+                    ]
+                )
+            },
+        ),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
+
 
 class DataAssessmentResultAdmin(BaseMetadataAdmin):
     """
     Model admin for DataAssessmentResult instances.
     """
+
     list_display = [
-      '__str__', 'score', 'start_time', 'end_time', 'duration', 'item_type'
+        '__str__',
+        'score',
+        'start_time',
+        'end_time',
+        'duration',
+        'item_type',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
-      'item__itemType', 'task__completed'
+        'item__itemType',
+        'task__completed',
     ] + BaseMetadataAdmin.list_filter
     search_fields = [
-      # nothing model specific
-    ] + BaseMetadataAdmin.search_fields
+        # nothing model specific
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     readonly_fields = ('item', 'task')
 
     fieldsets = (
-      (None, {
-        'fields': (['score', 'start_time', 'end_time'])
-      }),
-      ('Related', {
-        'fields': (['item', 'task'])
-      })
-    ) + BaseMetadataAdmin.fieldsets
+        (None, {'fields': (['score', 'start_time', 'end_time'])}),
+        ('Related', {'fields': (['item', 'task'])}),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 admin.site.register(Market, MarketAdmin)
@@ -632,5 +933,9 @@ admin.site.register(MultiModalAssessmentTask, MultiModalAssessmentTaskAdmin)
 admin.site.register(MultiModalAssessmentResult, MultiModalAssessmentResultAdmin)
 admin.site.register(PairwiseAssessmentTask, PairwiseAssessmentTaskAdmin)
 admin.site.register(PairwiseAssessmentResult, PairwiseAssessmentResultAdmin)
+admin.site.register(PairwiseAssessmentDocumentTask, PairwiseAssessmentDocumentTaskAdmin)
+admin.site.register(
+    PairwiseAssessmentDocumentResult, PairwiseAssessmentDocumentResultAdmin
+)
 admin.site.register(WorkAgenda, WorkAgendaAdmin)
 admin.site.register(TaskAgenda, TaskAgendaAdmin)

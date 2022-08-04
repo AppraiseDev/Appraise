@@ -1,0 +1,19 @@
+name: "PythonCodeValidator"
+
+on: [push, pull_request]
+
+jobs:
+  formatting:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Python Code Validator
+        uses: cfedermann/python-code-validator@master
+        env:
+            PYLINT_THRESHOLD: 6
+            BLACK_LINE_MAXLEN: 88
+            APPRAISE_SECRET_KEY: not_a_real_key

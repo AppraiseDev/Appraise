@@ -5,11 +5,17 @@ See LICENSE for usage details
 """
 # pylint: disable=W0611
 from os import path
-from django.contrib.auth.models import Group, User
 
-from django.core.management.base import BaseCommand, CommandError
-from django.db.utils import OperationalError, ProgrammingError
-from Campaign.models import Campaign, CampaignTeam, TrustedUser
+from django.contrib.auth.models import Group
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
+from django.db.utils import OperationalError
+from django.db.utils import ProgrammingError
+
+from Campaign.models import Campaign
+from Campaign.models import CampaignTeam
+from Campaign.models import TrustedUser
 
 
 INFO_MSG = 'INFO: '

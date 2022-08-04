@@ -3,8 +3,11 @@ Appraise
 """
 # pylint: disable=C0103,C0111,C0330,E1101
 from json import loads
-from zipfile import ZipFile, is_zipfile
-from django.core.management.base import BaseCommand, CommandError
+from zipfile import is_zipfile
+from zipfile import ZipFile
+
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
 from Campaign.models import Campaign
 

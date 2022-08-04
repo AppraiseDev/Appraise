@@ -1,21 +1,22 @@
 from hashlib import md5
 
-from django.contrib.auth.models import User, Group
-from django.core.management.base import BaseCommand, CommandError
+from django.contrib.auth.models import Group
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
-from Campaign.models import Campaign, CampaignTeam
+from Campaign.models import Campaign
+from Campaign.models import CampaignTeam
 from Dashboard.models import validate_language_code
-from EvalData.models import Market, Metadata
+from EvalData.models import Market
+from EvalData.models import Metadata
 
-EX_LANGUAGES = (
-    'guj',
-)
+EX_LANGUAGES = ('guj',)
 
-XE_LANGUAGES = (
-)
+XE_LANGUAGES = ()
 
-XY_LANGUAGES = (
-)
+XY_LANGUAGES = ()
+
 
 def _create_uniform_task_map(annotators, tasks, redudancy):
     """
@@ -40,6 +41,7 @@ def _create_uniform_task_map(annotators, tasks, redudancy):
 
     return _results
 
+
 # Allows for arbitrary task to annotator mappings.
 #
 # Can be uniformly distributed, i.e., 2 tasks per annotator:
@@ -63,7 +65,7 @@ CAMPAIGN_URL = 'http://wmt19.appraise.cf/dashboard/sso/'
 CAMPAIGN_NAME = 'WMT19DocSrcDACrowd2'
 CAMPAIGN_KEY = 'WMT19DocSrcDACrowd2'
 CAMPAIGN_NO = 230
-ANNOTATORS = None # Will be determined by TASKS_TO_ANNOTATORS mapping
+ANNOTATORS = None  # Will be determined by TASKS_TO_ANNOTATORS mapping
 TASKS = None
 REDUNDANCY = 1
 
@@ -73,19 +75,16 @@ for code in EX_LANGUAGES + XE_LANGUAGES + XY_LANGUAGES:
         raise ValueError(_msg)
 
 for ex_code in EX_LANGUAGES:
-    TASKS_TO_ANNOTATORS[('eng', ex_code)] = _create_uniform_task_map(
-        0, 0, REDUNDANCY)
+    TASKS_TO_ANNOTATORS[('eng', ex_code)] = _create_uniform_task_map(0, 0, REDUNDANCY)
 
-for xe_code in XE_LANGUAGES:
-    TASKS_TO_ANNOTATORS[(xe_code, 'eng')] = _create_uniform_task_map(
-        0, 0, REDUNDANCY)
+for xe_code in XE_LANGUAGES:  # type: ignore
+    TASKS_TO_ANNOTATORS[(xe_code, 'eng')] = _create_uniform_task_map(0, 0, REDUNDANCY)
 
-for xy_code in XY_LANGUAGES:
-    TASKS_TO_ANNOTATORS[xy_code] = _create_uniform_task_map(
-        0, 0, REDUNDANCY)
+for xy_code in XY_LANGUAGES:  # type: ignore
+    TASKS_TO_ANNOTATORS[xy_code] = _create_uniform_task_map(0, 0, REDUNDANCY)
 
 TASKS_TO_ANNOTATORS = {
-    ('eng', 'guj') : _create_uniform_task_map(77, 154, REDUNDANCY),
+    ('eng', 'guj'): _create_uniform_task_map(77, 154, REDUNDANCY),
 }
 
 
@@ -96,15 +95,16 @@ def _create_campaign_team(name, owner, tasks, redudancy):
     Returns reference to CampaignTeam instance.
     """
     _cteam = CampaignTeam.objects.get_or_create(
-      teamName=CAMPAIGN_NAME,
-      owner=owner,
-      requiredAnnotations=100, #(tasks * redudancy), # TODO: fix
-      requiredHours=50, #(tasks * redudancy) / 2,
-      createdBy=owner
+        teamName=CAMPAIGN_NAME,
+        owner=owner,
+        requiredAnnotations=100,  # (tasks * redudancy), # TODO: fix
+        requiredHours=50,  # (tasks * redudancy) / 2,
+        createdBy=owner,
     )
     _cteam[0].members.add(owner)
     _cteam[0].save()
     return _cteam[0]
+
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
@@ -112,8 +112,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-          '--csv-output', type=str, default=None, metavar='--csv',
-          help='Path used to create CSV file containing credentials.'
+            '--csv-output',
+            type=str,
+            default=None,
+            metavar='--csv',
+            help='Path used to create CSV file containing credentials.',
         )
 
     def handle(self, *args, **options):
@@ -140,17 +143,17 @@ class Command(BaseCommand):
         for code in EX_LANGUAGES:
             # EX
             _ex_market = Market.objects.filter(
-              sourceLanguageCode='eng',
-              targetLanguageCode=code,
-              domainName='WMT19'              
+                sourceLanguageCode='eng',
+                targetLanguageCode=code,
+                domainName='WMT19',
             )
 
             if not _ex_market.exists():
                 _ex_market = Market.objects.get_or_create(
-                  sourceLanguageCode='eng',
-                  targetLanguageCode=code,
-                  domainName='WMT19',
-                  createdBy=superusers[0]
+                    sourceLanguageCode='eng',
+                    targetLanguageCode=code,
+                    domainName='WMT19',
+                    createdBy=superusers[0],
                 )
                 _ex_market = _ex_market[0]
 
@@ -158,19 +161,19 @@ class Command(BaseCommand):
                 _ex_market = _ex_market.first()
 
             _ex_meta = Metadata.objects.filter(
-              market=_ex_market,
-              corpusName='WMT19',
-              versionInfo='1.0',
-              source='official'             
+                market=_ex_market,
+                corpusName='WMT19',
+                versionInfo='1.0',
+                source='official',
             )
 
             if not _ex_meta.exists():
                 _ex_meta = Metadata.objects.get_or_create(
-                  market=_ex_market,
-                  corpusName='WMT19',
-                  versionInfo='1.0',
-                  source='official',
-                  createdBy=superusers[0]
+                    market=_ex_market,
+                    corpusName='WMT19',
+                    versionInfo='1.0',
+                    source='official',
+                    createdBy=superusers[0],
                 )
                 _ex_meta = _ex_meta[0]
 
@@ -180,17 +183,17 @@ class Command(BaseCommand):
         for code in XE_LANGUAGES:
             # XE
             _xe_market = Market.objects.filter(
-              sourceLanguageCode=code,
-              targetLanguageCode='eng',
-              domainName='WMT19'              
+                sourceLanguageCode=code,
+                targetLanguageCode='eng',
+                domainName='WMT19',
             )
 
             if not _xe_market.exists():
                 _xe_market = Market.objects.get_or_create(
-                  sourceLanguageCode=code,
-                  targetLanguageCode='eng',
-                  domainName='WMT19',
-                  createdBy=superusers[0]
+                    sourceLanguageCode=code,
+                    targetLanguageCode='eng',
+                    domainName='WMT19',
+                    createdBy=superusers[0],
                 )
                 _xe_market = _xe_market[0]
 
@@ -198,19 +201,19 @@ class Command(BaseCommand):
                 _xe_market = _xe_market.first()
 
             _xe_meta = Metadata.objects.filter(
-              market=_xe_market,
-              corpusName='WMT19',
-              versionInfo='1.0',
-              source='official'             
+                market=_xe_market,
+                corpusName='WMT19',
+                versionInfo='1.0',
+                source='official',
             )
 
             if not _xe_meta.exists():
                 _xe_meta = Metadata.objects.get_or_create(
-                  market=_xe_market,
-                  corpusName='WMT19',
-                  versionInfo='1.0',
-                  source='official',
-                  createdBy=superusers[0]
+                    market=_xe_market,
+                    corpusName='WMT19',
+                    versionInfo='1.0',
+                    source='official',
+                    createdBy=superusers[0],
                 )
                 _xe_meta = _xe_meta[0]
 
@@ -220,17 +223,17 @@ class Command(BaseCommand):
         for source, target in XY_LANGUAGES:
             # XY
             _xy_market = Market.objects.filter(
-              sourceLanguageCode=source,
-              targetLanguageCode=target,
-              domainName='WMT19'              
+                sourceLanguageCode=source,
+                targetLanguageCode=target,
+                domainName='WMT19',
             )
 
             if not _xy_market.exists():
                 _xy_market = Market.objects.get_or_create(
-                  sourceLanguageCode=source,
-                  targetLanguageCode=target,
-                  domainName='WMT19',
-                  createdBy=superusers[0]
+                    sourceLanguageCode=source,
+                    targetLanguageCode=target,
+                    domainName='WMT19',
+                    createdBy=superusers[0],
                 )
                 _xy_market = _xy_market[0]
 
@@ -238,19 +241,19 @@ class Command(BaseCommand):
                 _xy_market = _xy_market.first()
 
             _xy_meta = Metadata.objects.filter(
-              market=_xy_market,
-              corpusName='WMT19',
-              versionInfo='1.0',
-              source='official'             
+                market=_xy_market,
+                corpusName='WMT19',
+                versionInfo='1.0',
+                source='official',
             )
 
             if not _xy_meta.exists():
                 _xy_meta = Metadata.objects.get_or_create(
-                  market=_xy_market,
-                  corpusName='WMT19',
-                  versionInfo='1.0',
-                  source='official',
-                  createdBy=superusers[0]
+                    market=_xy_market,
+                    corpusName='WMT19',
+                    versionInfo='1.0',
+                    source='official',
+                    createdBy=superusers[0],
                 )
                 _xy_meta = _xy_meta[0]
 
@@ -264,14 +267,12 @@ class Command(BaseCommand):
         for code in EX_LANGUAGES:
             _tasks_map = TASKS_TO_ANNOTATORS.get(('eng', code))
             if _tasks_map is None:
-                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    ('eng', code))
+                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(('eng', code))
                 self.stdout.write(_msg)
                 continue
 
             if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
-                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    ('eng', code))
+                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(('eng', code))
                 self.stdout.write(_msg)
                 continue
 
@@ -279,12 +280,13 @@ class Command(BaseCommand):
             ANNOTATORS = len(_tasks_map)
 
             campaign_team_object = _create_campaign_team(
-                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS)
+                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS
+            )
 
             # EX
             for user_id in range(ANNOTATORS):
                 username = '{0}{1}{2:02x}{3:02x}'.format(
-                  'eng', code, CAMPAIGN_NO, user_id+1
+                    'eng', code, CAMPAIGN_NO, user_id + 1
                 )
 
                 hasher = md5()
@@ -294,7 +296,7 @@ class Command(BaseCommand):
 
                 if not User.objects.filter(username=username).exists():
                     new_user = User.objects.create_user(
-                      username=username, password=secret
+                        username=username, password=secret
                     )
                     new_user.save()
 
@@ -303,14 +305,12 @@ class Command(BaseCommand):
         for code in XE_LANGUAGES:
             _tasks_map = TASKS_TO_ANNOTATORS.get((code, 'eng'))
             if _tasks_map is None:
-                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (code, 'eng'))
+                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format((code, 'eng'))
                 self.stdout.write(_msg)
                 continue
 
             if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
-                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (code, 'eng'))
+                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format((code, 'eng'))
                 self.stdout.write(_msg)
                 continue
 
@@ -318,12 +318,13 @@ class Command(BaseCommand):
             ANNOTATORS = len(_tasks_map)
 
             _cteam = _create_campaign_team(
-                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS)
+                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS
+            )
 
             # XE
             for user_id in range(ANNOTATORS):
                 username = '{0}{1}{2:02x}{3:02x}'.format(
-                  code, 'eng', CAMPAIGN_NO, user_id+1
+                    code, 'eng', CAMPAIGN_NO, user_id + 1
                 )
 
                 hasher = md5()
@@ -333,7 +334,7 @@ class Command(BaseCommand):
 
                 if not User.objects.filter(username=username).exists():
                     new_user = User.objects.create_user(
-                      username=username, password=secret
+                        username=username, password=secret
                     )
                     new_user.save()
 
@@ -342,14 +343,14 @@ class Command(BaseCommand):
         for source, target in XY_LANGUAGES:
             _tasks_map = TASKS_TO_ANNOTATORS.get((source, target))
             if _tasks_map is None:
-                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (source, target))
+                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format((source, target))
                 self.stdout.write(_msg)
                 continue
 
             if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
                 _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (source, target))
+                    (source, target)
+                )
                 self.stdout.write(_msg)
                 continue
 
@@ -357,12 +358,13 @@ class Command(BaseCommand):
             ANNOTATORS = len(_tasks_map)
 
             _cteam = _create_campaign_team(
-                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS)
+                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS
+            )
 
             # XY
             for user_id in range(ANNOTATORS):
                 username = '{0}{1}{2:02x}{3:02x}'.format(
-                  source, target, CAMPAIGN_NO, user_id+1
+                    source, target, CAMPAIGN_NO, user_id + 1
                 )
 
                 hasher = md5()
@@ -372,7 +374,7 @@ class Command(BaseCommand):
 
                 if not User.objects.filter(username=username).exists():
                     new_user = User.objects.create_user(
-                      username=username, password=secret
+                        username=username, password=secret
                     )
                     new_user.save()
 
@@ -387,14 +389,10 @@ class Command(BaseCommand):
 
         # Write credentials to CSV file if specified.
         if csv_output:
-            csv_lines = [
-                ','.join(('Username', 'Password', 'URL')) + '\n'
-            ]
+            csv_lines = [','.join(('Username', 'Password', 'URL')) + '\n']
             for u, p in credentials.items():
                 url = '{0}{1}/{2}/'.format(CAMPAIGN_URL, u, p)
-                csv_lines.append(
-                    ','.join((u, p, url)) + '\n'
-                )
+                csv_lines.append(','.join((u, p, url)) + '\n')
             with open(csv_output, mode='w') as out_file:
                 out_file.writelines(csv_lines)
 
@@ -402,14 +400,12 @@ class Command(BaseCommand):
         for code in EX_LANGUAGES:
             _tasks_map = TASKS_TO_ANNOTATORS.get(('eng', code))
             if _tasks_map is None:
-                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    ('eng', code))
+                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(('eng', code))
                 self.stdout.write(_msg)
                 continue
 
             if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
-                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    ('eng', code))
+                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(('eng', code))
                 self.stdout.write(_msg)
                 continue
 
@@ -417,32 +413,34 @@ class Command(BaseCommand):
             ANNOTATORS = len(_tasks_map)
 
             campaign_team_object = _create_campaign_team(
-                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS)
+                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS
+            )
 
             # EX
             for user_id in range(ANNOTATORS):
                 username = '{0}{1}{2:02x}{3:02x}'.format(
-                  'eng', code, CAMPAIGN_NO, user_id+1
+                    'eng', code, CAMPAIGN_NO, user_id + 1
                 )
 
                 user_object = User.objects.get(username=username)
                 if user_object not in campaign_team_object.members.all():
-                    print('{0} --> {1}'.format(
-                      campaign_team_object.teamName, user_object.username
-                    ))
+                    print(
+                        '{0} --> {1}'.format(
+                            campaign_team_object.teamName,
+                            user_object.username,
+                        )
+                    )
                     campaign_team_object.members.add(user_object)
 
         for code in XE_LANGUAGES:
             _tasks_map = TASKS_TO_ANNOTATORS.get((code, 'eng'))
             if _tasks_map is None:
-                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (code, 'eng'))
+                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format((code, 'eng'))
                 self.stdout.write(_msg)
                 continue
 
             if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
-                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (code, 'eng'))
+                _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format((code, 'eng'))
                 self.stdout.write(_msg)
                 continue
 
@@ -450,32 +448,36 @@ class Command(BaseCommand):
             ANNOTATORS = len(_tasks_map)
 
             campaign_team_object = _create_campaign_team(
-                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS)
+                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS
+            )
 
             # XE
             for user_id in range(ANNOTATORS):
                 username = '{0}{1}{2:02x}{3:02x}'.format(
-                  code, 'eng', CAMPAIGN_NO, user_id+1
+                    code, 'eng', CAMPAIGN_NO, user_id + 1
                 )
 
                 user_object = User.objects.get(username=username)
                 if user_object not in campaign_team_object.members.all():
-                    print('{0} --> {1}'.format(
-                      campaign_team_object.teamName, user_object.username
-                    ))
+                    print(
+                        '{0} --> {1}'.format(
+                            campaign_team_object.teamName,
+                            user_object.username,
+                        )
+                    )
                     campaign_team_object.members.add(user_object)
 
         for source, target in XY_LANGUAGES:
             _tasks_map = TASKS_TO_ANNOTATORS.get((source, target))
             if _tasks_map is None:
-                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (source, target))
+                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format((source, target))
                 self.stdout.write(_msg)
                 continue
 
             if sum([len(x) for x in _tasks_map]) % REDUNDANCY > 0:
                 _msg = 'Bad TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (source, target))
+                    (source, target)
+                )
                 self.stdout.write(_msg)
                 continue
 
@@ -483,19 +485,23 @@ class Command(BaseCommand):
             ANNOTATORS = len(_tasks_map)
 
             campaign_team_object = _create_campaign_team(
-                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS)
+                CAMPAIGN_NAME, superusers[0], TASKS, ANNOTATORS
+            )
 
             # XY
             for user_id in range(ANNOTATORS):
                 username = '{0}{1}{2:02x}{3:02x}'.format(
-                  source, target, CAMPAIGN_NO, user_id+1
+                    source, target, CAMPAIGN_NO, user_id + 1
                 )
 
                 user_object = User.objects.get(username=username)
                 if user_object not in campaign_team_object.members.all():
-                    print('{0} --> {1}'.format(
-                      campaign_team_object.teamName, user_object.username
-                    ))
+                    print(
+                        '{0} --> {1}'.format(
+                            campaign_team_object.teamName,
+                            user_object.username,
+                        )
+                    )
                     campaign_team_object.members.add(user_object)
 
         _msg = 'Processed CampaignTeam members'
@@ -503,7 +509,7 @@ class Command(BaseCommand):
 
         c = Campaign.objects.filter(campaignName=CAMPAIGN_NAME)
         if not c.exists():
-          return
+            return
         c = c[0]
 
         from EvalData.models import (
@@ -512,9 +518,8 @@ class Command(BaseCommand):
             ObjectID,
         )
         from collections import defaultdict
-        tasks = DirectAssessmentContextTask.objects.filter(
-          campaign=c, activated=True
-        )
+
+        tasks = DirectAssessmentContextTask.objects.filter(campaign=c, activated=True)
 
         # Assignment scheme:
         #
@@ -528,11 +533,10 @@ class Command(BaseCommand):
         users_for_market = defaultdict(list)
         for task in tasks.order_by('id'):
             market = '{0}{1:02x}'.format(
-              task.marketName().replace('_', '')[:6],
-              CAMPAIGN_NO
+                task.marketName().replace('_', '')[:6], CAMPAIGN_NO
             )
             tasks_for_market[market].append(task)
-        
+
         # This assigns tasks like this
         #
         # T1 U1 U3
@@ -541,23 +545,20 @@ class Command(BaseCommand):
         # T4 U2 U5
         # T5 U3 U5
         #
-#        tasks_for_current_market = tasks_for_market[market]
-#        redundant_tasks = []
-#        for i in range(REDUNDANCY):
-#            redundant_tasks.extend(tasks_for_current_market)
-#        tasks_for_market[market] = redundant_tasks
+        #        tasks_for_current_market = tasks_for_market[market]
+        #        redundant_tasks = []
+        #        for i in range(REDUNDANCY):
+        #            redundant_tasks.extend(tasks_for_current_market)
+        #        tasks_for_market[market] = redundant_tasks
 
         for key in tasks_for_market:
-            users = User.objects.filter(
-              username__startswith=key
-            )
+            users = User.objects.filter(username__startswith=key)
 
             source = key[:3]
             target = key[3:6]
             _tasks_map = TASKS_TO_ANNOTATORS.get((source, target))
             if _tasks_map is None:
-                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format(
-                    (source, target))
+                _msg = 'No TASKS_TO_ANNOTATORS mapping for {0}'.format((source, target))
                 self.stdout.write(_msg)
                 continue
 
@@ -575,20 +576,15 @@ class Command(BaseCommand):
             for u, t in zip(_users, _tasks):
                 print(u, '-->', t.id)
 
-                a = TaskAgenda.objects.filter(
-                  user=u, campaign=c
-                )
+                a = TaskAgenda.objects.filter(user=u, campaign=c)
 
                 if not a.exists():
-                    a = TaskAgenda.objects.create(
-                      user=u, campaign=c
-                    )
+                    a = TaskAgenda.objects.create(user=u, campaign=c)
                 else:
                     a = a[0]
 
                 serialized_t = ObjectID.objects.get_or_create(
-                  typeName='DirectAssessmentContextTask',
-                  primaryID=t.id
+                    typeName='DirectAssessmentContextTask', primaryID=t.id
                 )
 
                 _task_done_for_user = t.next_item_for_user(u) is None

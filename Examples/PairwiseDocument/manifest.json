@@ -1,0 +1,14 @@
+{
+    "CAMPAIGN_URL": "http://127.0.0.1:8000/dashboard/sso/",
+    "CAMPAIGN_NAME": "example10pairdoc",
+    "CAMPAIGN_KEY": "c10",
+    "CAMPAIGN_NO": 10,
+    "REDUNDANCY": 1,
+
+    "TASKS_TO_ANNOTATORS": [
+        ["eng", "deu", "uniform",  1, 1]
+    ],
+
+    "TASK_TYPE": "PairwiseDocument",
+    "TASK_OPTIONS": "SQM;StaticContext"
+}

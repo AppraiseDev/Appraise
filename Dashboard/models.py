@@ -5,17 +5,21 @@ See LICENSE for usage details
 """
 from uuid import uuid4
 
-# pylint: disable=import-error
-from django.contrib.auth.models import Group, User
+from django.contrib.auth.models import Group
+from django.contrib.auth.models import User
 from django.db import models
-from django.db.utils import OperationalError, ProgrammingError
+from django.db.utils import OperationalError
+from django.db.utils import ProgrammingError
+
+# pylint: disable=import-error
 
 LANGUAGE_CODES_AND_NAMES = {
+    'aeb': 'Tunisian Arabic (تونسي)',
     'ces': 'Czech (čeština)',
     'zho': 'Chinese (中文)',
     'eng': 'English',
     'fin': 'Finnish (suomi)',
-    'deu': 'German (deutsch)',
+    'deu': 'German (Deutsch)',
     'lav': 'Latvian (latviešu)',
     'rus': 'Russian (русский)',
     'trk': 'Turkish (Türkçe)',
@@ -201,10 +205,15 @@ LANGUAGE_CODES_AND_NAMES = {
     'yua': 'Yucatec Maya (mayaʼ tʼàan)',
     'pus': 'Pashto (پښتو)',
     'lzh': 'Classical Chinese (文言文)',
+    'chv': 'Chuvash (Чӑвашла)',
     'lin': 'Lingala (Lingála)',
     'lug': 'Luganda (Oluganda)',
+    'sgg': 'Swiss-German Sign Language (Deutschschweizer Gebärdensprache (DSGS))',
     'liv': 'Livonian (līvõ kēļ)',
 }
+
+# All sign language codes
+SIGN_LANGUAGE_CODES = set([LANGUAGE_CODES_AND_NAMES['sgg']])
 
 # Ensure that all languages have a corresponding group.
 try:
@@ -249,9 +258,7 @@ class UserInviteToken(models.Model):
 
     group = models.ForeignKey(Group, models.PROTECT, db_index=True)
 
-    user = models.ForeignKey(
-        User, models.PROTECT, db_index=True, blank=True, null=True
-    )
+    user = models.ForeignKey(User, models.PROTECT, db_index=True, blank=True, null=True)
 
     token = models.CharField(
         max_length=8,

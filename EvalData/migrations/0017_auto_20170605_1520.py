@@ -3,7 +3,8 @@
 from __future__ import unicode_literals
 
 from django.conf import settings
-from django.db import migrations, models
+from django.db import migrations
+from django.db import models
 
 
 class Migration(migrations.Migration):
@@ -16,6 +17,14 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='directassessmenttask',
             name='assignedTo',
-            field=models.ManyToManyField(blank=True, db_index=True, help_text='(users working on this task)', related_name='evaldata_directassessmenttask_assignedTo', related_query_name='evaldata_directassessmenttasks', to=settings.AUTH_USER_MODEL, verbose_name='Assigned to'),
+            field=models.ManyToManyField(
+                blank=True,
+                db_index=True,
+                help_text='(users working on this task)',
+                related_name='evaldata_directassessmenttask_assignedTo',
+                related_query_name='evaldata_directassessmenttasks',
+                to=settings.AUTH_USER_MODEL,
+                verbose_name='Assigned to',
+            ),
         ),
     ]

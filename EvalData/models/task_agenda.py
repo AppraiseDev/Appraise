@@ -4,60 +4,63 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=C0103,C0330,no-member
-from inspect import currentframe, getframeinfo
+from inspect import currentframe
+from inspect import getframeinfo
 from re import compile as re_compile
 
-from django.db import models
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
+
+from deprecated import add_deprecated_method
+from EvalData.models.base_models import ObjectID
+from EvalData.models.data_assessment import DataAssessmentResult
+from EvalData.models.direct_assessment import DirectAssessmentResult
+from EvalData.models.direct_assessment import DirectAssessmentTask
+from EvalData.models.direct_assessment_context import (
+    DirectAssessmentContextResult,
+)
+from EvalData.models.direct_assessment_document import (
+    DirectAssessmentDocumentResult,
+)
+from EvalData.models.multi_modal_assessment import (
+    MultiModalAssessmentResult,
+)
+from EvalData.models.pairwise_assessment import PairwiseAssessmentResult
+from EvalData.models.pairwise_assessment_document import (
+    PairwiseAssessmentDocumentResult,
+)
 
 # TODO: Unclear if these are needed?
 # from Appraise.settings import STATIC_URL, BASE_CONTEXT
-from EvalData.models.base_models import ObjectID
-from EvalData.models.direct_assessment import DirectAssessmentResult
-from EvalData.models.direct_assessment import DirectAssessmentTask
-from EvalData.models.direct_assessment_context import DirectAssessmentContextResult
-from EvalData.models.direct_assessment_document import DirectAssessmentDocumentResult
-from EvalData.models.multi_modal_assessment import MultiModalAssessmentResult
-from EvalData.models.pairwise_assessment import PairwiseAssessmentResult
-
-from deprecated import add_deprecated_method
 
 
 class TaskAgenda(models.Model):
-    user = models.ForeignKey(
-      User,
-      models.PROTECT,
-      verbose_name=_('User')
-    )
+    user = models.ForeignKey(User, models.PROTECT, verbose_name=_('User'))
 
     campaign = models.ForeignKey(
-      'Campaign.Campaign',
-      models.PROTECT,
-      verbose_name=_('Campaign')
+        'Campaign.Campaign', models.PROTECT, verbose_name=_('Campaign')
     )
 
     _open_tasks = models.ManyToManyField(
-      ObjectID,
-      blank=True,
-      related_name='%(app_label)s_%(class)s_opentasks',
-      related_query_name="%(app_label)s_%(class)ss_open",
-      verbose_name=_('Open tasks')
+        ObjectID,
+        blank=True,
+        related_name='%(app_label)s_%(class)s_opentasks',
+        related_query_name="%(app_label)s_%(class)ss_open",
+        verbose_name=_('Open tasks'),
     )
 
     _completed_tasks = models.ManyToManyField(
-      ObjectID,
-      blank=True,
-      related_name='%(app_label)s_%(class)s_completedtasks',
-      related_query_name="%(app_label)s_%(class)ss_completed",
-      verbose_name=_('Completed tasks')
+        ObjectID,
+        blank=True,
+        related_name='%(app_label)s_%(class)s_completedtasks',
+        related_query_name="%(app_label)s_%(class)ss_completed",
+        verbose_name=_('Completed tasks'),
     )
 
     class Meta:
-        permissions = (
-          ("reset_taskagenda", "Can reset task agendas"),
-        )
+        permissions = (("reset_taskagenda", "Can reset task agendas"),)
 
     def completed(self):
         return self._open_tasks.count() == 0
@@ -76,10 +79,7 @@ class TaskAgenda(models.Model):
 
     def activate_completed_task(self, task, only_completed=True):
         if not isinstance(task, ObjectID):
-            raise ValueError(
-                'Invalid task {0!r} not ObjectID '
-                'instance'.format(task)
-            )
+            raise ValueError('Invalid task {0!r} not ObjectID ' 'instance'.format(task))
 
         if only_completed and not task in self._completed_tasks.all():
             return False
@@ -96,10 +96,7 @@ class TaskAgenda(models.Model):
 
     def complete_open_task(self, task, only_open=False):
         if not isinstance(task, ObjectID):
-            raise ValueError(
-                'Invalid task {0!r} not ObjectID '
-                'instance'.format(task)
-            )
+            raise ValueError('Invalid task {0!r} not ObjectID ' 'instance'.format(task))
 
         if only_open and not task in self._open_tasks.all():
             return False
@@ -126,10 +123,10 @@ class TaskAgenda(models.Model):
     # TODO: decide whether this needs to be optimized.
     def __str__(self):
         return '{0}/{1}[{2}:{3}]'.format(
-          self.user.username,
-          self.campaign.campaignName,
-          self._open_tasks.count(),
-          self._completed_tasks.count()
+            self.user.username,
+            self.campaign.campaignName,
+            self._open_tasks.count(),
+            self._completed_tasks.count(),
         )
 
     # pylint: disable=protected-access,missing-docstring
@@ -157,10 +154,12 @@ class TaskAgenda(models.Model):
         Returns True upon success, False otherwise.
         """
         type_to_result_class_mapping = {
+            'DataAssessmentTask': DataAssessmentResult,
             'DirectAssessmentTask': DirectAssessmentResult,
             'DirectAssessmentContextTask': DirectAssessmentContextResult,
             'DirectAssessmentDocumentTask': DirectAssessmentDocumentResult,
             'MultiModalAssessmentTask': MultiModalAssessmentResult,
+            'PairwiseAssessmentDocumentTask': PairwiseAssessmentDocumentResult,
             'PairwiseAssessmentTask': PairwiseAssessmentResult,
         }
 
@@ -175,8 +174,7 @@ class TaskAgenda(models.Model):
             _lvl = messages.ERROR
             return (False, _msg, _lvl)
 
-        annotated_output_for_user = result_class.objects.filter(
-            createdBy=self.user)
+        annotated_output_for_user = result_class.objects.filter(createdBy=self.user)
 
         if not annotated_output_for_user.exists():
             _msg = 'Nothing to be done for user {0}.'.format(self.user)
@@ -208,46 +206,42 @@ class TaskAgenda(models.Model):
         for annotation_result in annotated_output_for_user:
             annotation_result.createdBy = _shadow_copy
             annotation_result.modifiedBy = _shadow_copy
-            annotation_result.retire() # Implictly calls save()
+            annotation_result.retire()  # Implictly calls save()
 
         # pylint: disable=protected-access
         for task in self._completed_tasks.all():
             self._open_tasks.add(task)
             self._completed_tasks.remove(task)
 
-        _msg = ('Succesfully reset task agenda for user {0}, creating '
-          'shadow copy {1}.'.format(self.user, _shadow_copy))
+        _msg = (
+            'Succesfully reset task agenda for user {0}, creating '
+            'shadow copy {1}.'.format(self.user, _shadow_copy)
+        )
         _lvl = messages.INFO
         return (True, _msg, _lvl)
 
 
 class WorkAgenda(models.Model):
-    user = models.ForeignKey(
-      User,
-      models.PROTECT,
-      verbose_name=_('User')
-    )
+    user = models.ForeignKey(User, models.PROTECT, verbose_name=_('User'))
 
     campaign = models.ForeignKey(
-      'Campaign.Campaign',
-      models.PROTECT,
-      verbose_name=_('Campaign')
+        'Campaign.Campaign', models.PROTECT, verbose_name=_('Campaign')
     )
 
     openTasks = models.ManyToManyField(
-      DirectAssessmentTask,
-      blank=True,
-      related_name='%(app_label)s_%(class)s_opentasks',
-      related_query_name="%(app_label)s_%(class)ss_open",
-      verbose_name=_('Open tasks')
+        DirectAssessmentTask,
+        blank=True,
+        related_name='%(app_label)s_%(class)s_opentasks',
+        related_query_name="%(app_label)s_%(class)ss_open",
+        verbose_name=_('Open tasks'),
     )
 
     completedTasks = models.ManyToManyField(
-      DirectAssessmentTask,
-      blank=True,
-      related_name='%(app_label)s_%(class)s_completedtasks',
-      related_query_name="%(app_label)s_%(class)ss_completed",
-      verbose_name=_('Completed tasks')
+        DirectAssessmentTask,
+        blank=True,
+        related_name='%(app_label)s_%(class)s_completedtasks',
+        related_query_name="%(app_label)s_%(class)ss_completed",
+        verbose_name=_('Completed tasks'),
     )
 
     def completed(self):
@@ -256,8 +250,8 @@ class WorkAgenda(models.Model):
     # TODO: decide whether this needs to be optimized.
     def __str__(self):
         return '{0}/{1}[{2}:{3}]'.format(
-          self.user.username,
-          self.campaign.campaignName,
-          self.openTasks.count(),
-          self.completedTasks.count()
+            self.user.username,
+            self.campaign.campaignName,
+            self.openTasks.count(),
+            self.completedTasks.count(),
         )

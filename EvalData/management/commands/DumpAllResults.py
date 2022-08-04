@@ -5,13 +5,13 @@ See LICENSE for usage details
 """
 from os.path import basename
 
-# pylint: disable=E0401,W0611
-from django.core.management.base import (
-    BaseCommand,
-    CommandError,
-)
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
-from EvalData.models import DirectAssessmentResult, MultiModalAssessmentResult
+from EvalData.models import DirectAssessmentResult
+from EvalData.models import MultiModalAssessmentResult
+
+# pylint: disable=E0401,W0611
 
 
 INFO_MSG = 'INFO: '
@@ -33,8 +33,10 @@ class Command(BaseCommand):
         self.stdout.write('\n[INIT]\n\n')
 
         DirectAssessmentResult.dump_all_results_to_csv_file(
-            'DirectAssessmentResults.csv')
+            'DirectAssessmentResults.csv'
+        )
         MultiModalAssessmentResult.dump_all_results_to_csv_file(
-            'MultiModalAssessmentResults.csv')
+            'MultiModalAssessmentResults.csv'
+        )
 
         self.stdout.write('\n[DONE]\n\n')

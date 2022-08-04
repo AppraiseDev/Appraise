@@ -6,13 +6,12 @@ See LICENSE for usage details
 from gzip import open as gz_open
 from os.path import basename
 
-# pylint: disable=E0401,W0611
-from django.core.management.base import (
-    BaseCommand,
-    CommandError,
-)
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
 
 from EvalData.models import DirectAssessmentResult
+
+# pylint: disable=E0401,W0611
 
 
 INFO_MSG = 'INFO: '
@@ -23,11 +22,7 @@ class Command(BaseCommand):
     help = 'Dumps all DirectAssessmentResult scores and associated metadata'
 
     def add_arguments(self, parser):
-        parser.add_argument(
-          'target_file', type=str,
-          help='Path to target text file'
-        )
-
+        parser.add_argument('target_file', type=str, help='Path to target text file')
 
     def handle(self, *args, **options):
         _msg = '\n[{0}]\n\n'.format(basename(__file__))
@@ -84,17 +79,15 @@ class Command(BaseCommand):
                 campaign_name,
                 item_id,
                 item_type,
-                source_text, #.encode('utf-8'),
+                source_text,  # .encode('utf-8'),
                 source_id,
-                target_text, #.encode('utf-8'),
+                target_text,  # .encode('utf-8'),
                 target_id,
                 item_score,
                 source_language_code,
                 target_language_code,
             )
-            output.append(
-                data
-            )
+            output.append(data)
             #
             if len(output) == batch_size:
                 lines = []
@@ -116,7 +109,13 @@ class Command(BaseCommand):
                 output = []
                 lines = []
                 blocks += 1
-                print('{0}/{1} blocks written, {2:05.1f}% completed'.format(blocks, total_blocks, 100.0 * float(blocks)/float(total_blocks)))
+                print(
+                    '{0}/{1} blocks written, {2:05.1f}% completed'.format(
+                        blocks,
+                        total_blocks,
+                        100.0 * float(blocks) / float(total_blocks),
+                    )
+                )
 
         lines = []
         for data in output:
@@ -137,6 +136,12 @@ class Command(BaseCommand):
         output = []
         lines = []
         blocks += 1
-        print('{0}/{1} blocks written, {2:05.1f}% completed'.format(blocks, total_blocks, 100.0 * float(blocks)/float(total_blocks)))
+        print(
+            '{0}/{1} blocks written, {2:05.1f}% completed'.format(
+                blocks,
+                total_blocks,
+                100.0 * float(blocks) / float(total_blocks),
+            )
+        )
 
         self.stdout.write('\n[DONE]\n\n')

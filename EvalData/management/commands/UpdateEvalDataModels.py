@@ -6,72 +6,21 @@ See LICENSE for usage details
 # pylint: disable=W0611
 from datetime import datetime
 from os import path
+
 from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
+from django.db.models import Count
+from django.db.models import Q
+from django.db.utils import OperationalError
+from django.db.utils import ProgrammingError
 
-from django.core.management.base import BaseCommand, CommandError
-from django.db.models import Count, Q
-from django.db.utils import OperationalError, ProgrammingError
-from EvalData.models import (
-    Market,
-    Metadata,
-    DataAssessmentTask,
-    DataAssessmentResult,
-    TextPairWithDomain,
-    DirectAssessmentTask,
-    DirectAssessmentResult,
-    TextPair,
-    DirectAssessmentContextTask,
-    DirectAssessmentContextResult,
-    DirectAssessmentDocumentTask,
-    DirectAssessmentDocumentResult,
-    TextPairWithContext,
-    MultiModalAssessmentTask,
-    MultiModalAssessmentResult,
-    TextPairWithImage,
-    PairwiseAssessmentTask,
-    PairwiseAssessmentResult,
-    TextSegmentWithTwoTargets,
-)
-
-MODEL_DEFINITIONS = (
-    (
-        DataAssessmentTask,
-        DataAssessmentResult,
-        TextPairWithDomain,
-        'evaldata_dataassessmenttasks',
-        'evaldata_dataassessmentresults',
-    ),
-    (
-        DirectAssessmentTask,
-        DirectAssessmentResult,
-        TextPair,
-        'evaldata_directassessmenttasks',
-        'evaldata_directassessmentresults',
-    ),
-    (
-        DirectAssessmentContextTask,
-        DirectAssessmentContextResult,
-        TextPairWithContext,
-        'evaldata_directassessmentcontexttasks',
-        'evaldata_directassessmentcontextresults',
-    ),
-    (
-        DirectAssessmentDocumentTask,
-        DirectAssessmentDocumentResult,
-        TextPairWithContext,
-        'evaldata_directassessmentdocumenttasks',
-        'evaldata_directassessmentdocumentresults',
-    ),
-    (
-        PairwiseAssessmentTask,
-        PairwiseAssessmentResult,
-        TextSegmentWithTwoTargets,
-        'evaldata_pairwiseassessmenttasks',
-        'evaldata_pairwiseassessmentresults',
-    ),
-    # Note: MultiModalAssessmentTask is handled differently than
-    # other task types, so it is not included in this tuple
-)
+from EvalData.models import Market
+from EvalData.models import Metadata
+from EvalData.models import MultiModalAssessmentResult
+from EvalData.models import MultiModalAssessmentTask
+from EvalData.models import TASK_DEFINITIONS
+from EvalData.models import TextPairWithImage
 
 
 INFO_MSG = 'INFO: '
@@ -159,12 +108,14 @@ def _update_eval_data_models(stdout):
     #################################################################
 
     for (
+        _,
         task_cls,
         result_cls,
+        _,
         item_cls,
         evaldata_task_str,
         evaldata_result_str,
-    ) in MODEL_DEFINITIONS:
+    ) in TASK_DEFINITIONS:
         task_name = task_cls.__name__
         result_name = result_cls.__name__
         item_name = item_cls.__name__

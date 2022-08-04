@@ -6,33 +6,24 @@ See LICENSE for usage details
 # pylint: disable=E1101
 from collections import defaultdict
 from datetime import datetime
-from math import floor, sqrt
+from math import floor
+from math import sqrt
 
-# pylint: disable=import-error
 from django.contrib.auth.decorators import login_required
 from django.core.management.base import CommandError
 from django.http import HttpResponse
 
 from Appraise.utils import _get_logger
 from Campaign.utils import _get_campaign_instance
-from EvalData.models import (
-    DataAssessmentResult,
-    DirectAssessmentResult,
-    DirectAssessmentContextResult,
-    DirectAssessmentDocumentResult,
-    MultiModalAssessmentResult,
-    PairwiseAssessmentResult,
-    seconds_to_timedelta,
-)
+from EvalData.models import DataAssessmentResult
+from EvalData.models import PairwiseAssessmentDocumentResult
+from EvalData.models import PairwiseAssessmentResult
+from EvalData.models import seconds_to_timedelta
+from EvalData.models import TASK_DEFINITIONS
 
-RESULT_TYPE_BY_CLASS_NAME = {
-    'DataAssessmentTask': DataAssessmentResult,
-    'DirectAssessmentTask': DirectAssessmentResult,
-    'DirectAssessmentContextTask': DirectAssessmentContextResult,
-    'DirectAssessmentDocumentTask': DirectAssessmentDocumentResult,
-    'MultiModalAssessmentTask': MultiModalAssessmentResult,
-    'PairwiseAssessmentTask': PairwiseAssessmentResult,
-}
+# pylint: disable=import-error
+
+RESULT_TYPE_BY_CLASS_NAME = {tup[1].__name__: tup[2] for tup in TASK_DEFINITIONS}
 
 LOGGER = _get_logger(name=__name__)
 
@@ -79,7 +70,10 @@ def campaign_status(request, campaign_name, sort_key=2):
                 createdBy=user, completed=True, task__campaign=campaign.id
             )
 
-            if result_type is PairwiseAssessmentResult:
+            if (
+                result_type is PairwiseAssessmentResult
+                or result_type is PairwiseAssessmentDocumentResult
+            ):
                 _data = _data.values_list(
                     'start_time',
                     'end_time',
@@ -111,9 +105,7 @@ def campaign_status(request, campaign_name, sort_key=2):
             _cs = _annotations - 1  # Corrected sample size for stdev.
             _user_stdev = 1
             if _cs > 0:
-                _user_stdev = sqrt(
-                    sum(((x[2] - _user_mean) ** 2 / _cs) for x in _data)
-                )
+                _user_stdev = sqrt(sum(((x[2] - _user_mean) ** 2 / _cs) for x in _data))
 
             if int(_user_stdev) == 0:
                 _user_stdev = 1
@@ -139,14 +131,10 @@ def campaign_status(request, campaign_name, sort_key=2):
                 _dst[_key].append(_z_score)
 
             _first_modified = (
-                seconds_to_timedelta(min(_start_times))
-                if _start_times
-                else None
+                seconds_to_timedelta(min(_start_times)) if _start_times else None
             )
             _last_modified = (
-                seconds_to_timedelta(max(_end_times))
-                if _end_times
-                else None
+                seconds_to_timedelta(max(_end_times)) if _end_times else None
             )
             _annotation_time = sum(_durations) if _durations else None
 
@@ -159,7 +147,7 @@ def campaign_status(request, campaign_name, sort_key=2):
             _reliable = None
             if _x and _y:
                 try:
-                    from scipy.stats import mannwhitneyu
+                    from scipy.stats import mannwhitneyu  # type: ignore
 
                     _t, pvalue = mannwhitneyu(_x, _y, alternative='less')
                     _reliable = pvalue
@@ -193,9 +181,7 @@ def campaign_status(request, campaign_name, sort_key=2):
             if _annotation_time:
                 _hours = int(floor(_annotation_time / 3600))
                 _minutes = int(floor((_annotation_time % 3600) / 60))
-                _annotation_time = '{0:0>2d}h{1:0>2d}m'.format(
-                    _hours, _minutes
-                )
+                _annotation_time = '{0:0>2d}h{1:0>2d}m'.format(_hours, _minutes)
 
             else:
                 _annotation_time = 'n/a'

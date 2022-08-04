@@ -4,17 +4,27 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=W0611
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from os import path
-from django.contrib.auth.models import User
 
-from django.core.management.base import BaseCommand, CommandError
-from django.db.models import Count, Q
-from django.db.utils import OperationalError, ProgrammingError
+from django.contrib.auth.models import User
+from django.core.management.base import BaseCommand
+from django.core.management.base import CommandError
+from django.db.models import Count
+from django.db.models import Q
+from django.db.utils import OperationalError
+from django.db.utils import ProgrammingError
 from django.utils.timezone import utc
-from EvalData.models import Market, Metadata, DirectAssessmentTask, \
-  DirectAssessmentResult, TextPair, MultiModalAssessmentTask, \
-  MultiModalAssessmentResult, TextPairWithImage
+
+from EvalData.models import DirectAssessmentResult
+from EvalData.models import DirectAssessmentTask
+from EvalData.models import Market
+from EvalData.models import Metadata
+from EvalData.models import MultiModalAssessmentResult
+from EvalData.models import MultiModalAssessmentTask
+from EvalData.models import TextPair
+from EvalData.models import TextPairWithImage
 
 
 INFO_MSG = 'INFO: '
@@ -32,13 +42,15 @@ class Command(BaseCommand):
         self.stdout.write(_msg)
         self.stdout.write('\n[INIT]\n\n')
 
-        active_tasks = DirectAssessmentTask.objects.filter(
-          activated=True
-        )
+        active_tasks = DirectAssessmentTask.objects.filter(activated=True)
 
         user_instances = {}
         for active_task in active_tasks:
-            annotators = list(active_task.evaldata_directassessmentresult_task.values_list('createdBy__id', flat=True))
+            annotators = list(
+                active_task.evaldata_directassessmentresult_task.values_list(
+                    'createdBy__id', flat=True
+                )
+            )
             for unique_annotator in set(annotators):
                 if annotators.count(unique_annotator) >= 100:
                     if unique_annotator in user_instances:
@@ -49,28 +61,40 @@ class Command(BaseCommand):
                         user_instances[unique_annotator] = user
 
                     if not active_task.assignedTo.filter(id=unique_annotator).exists():
-                        print("Adding user {0} to task {1} due to annotation count {2}".format(
-                          user.username, active_task.id, annotators.count(unique_annotator)
-                        ))
+                        print(
+                            "Adding user {0} to task {1} due to annotation count {2}".format(
+                                user.username,
+                                active_task.id,
+                                annotators.count(unique_annotator),
+                            )
+                        )
                         active_task.assignedTo.add(user)
                         active_task.save()
 
             assigned_users = active_task.assignedTo.all()
             for assigned_user in assigned_users:
-                completed_annotations = active_task.evaldata_directassessmentresult_task.filter(
-                  createdBy=assigned_user
-                ).count()
+                completed_annotations = (
+                    active_task.evaldata_directassessmentresult_task.filter(
+                        createdBy=assigned_user
+                    ).count()
+                )
 
                 if completed_annotations >= 100:
                     continue
 
-                last_user_annotation = DirectAssessmentResult.objects.filter(
-                  createdBy=assigned_user,
-                ).order_by(
-                  '-dateCreated'
-                ).first()
+                last_user_annotation = (
+                    DirectAssessmentResult.objects.filter(
+                        createdBy=assigned_user,
+                    )
+                    .order_by('-dateCreated')
+                    .first()
+                )
 
-                print("\nactive task ID:", active_task.id, active_task.items.first().metadata.market)
+                print(
+                    "\nactive task ID:",
+                    active_task.id,
+                    active_task.items.first().metadata.market,
+                )
                 print(assigned_user.username)
                 print(completed_annotations)
 
@@ -82,7 +106,7 @@ class Command(BaseCommand):
                 print(assigned_user, last_user_annotation.dateCreated)
 
                 utc_now = datetime.utcnow().replace(tzinfo=utc)
-                delta = utc_now-last_user_annotation.dateCreated
+                delta = utc_now - last_user_annotation.dateCreated
                 if delta > timedelta(hours=1):
                     active_task.assignedTo.remove(assigned_user)
                     print("time delta > 1h, removing user")
@@ -90,8 +114,7 @@ class Command(BaseCommand):
                     continue
 
                 results_for_current_task = DirectAssessmentResult.objects.filter(
-                  createdBy=assigned_user,
-                  task=active_task
+                    createdBy=assigned_user, task=active_task
                 ).count()
 
                 if results_for_current_task == 0:

@@ -5,7 +5,9 @@ See LICENSE for usage details
 """
 import logging
 
-from Appraise.settings import LOG_HANDLER, LOG_LEVEL
+from Appraise.settings import LOG_HANDLER
+from Appraise.settings import LOG_LEVEL
+
 
 def _get_logger(name):
     """

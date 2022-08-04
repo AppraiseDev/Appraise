@@ -18,3 +18,7 @@ appraise.log
 # Editors
 .vscode
 *.sw[po]
+
+.venv
+venv
+db.sqlite3*
