@@ -1,0 +1,13 @@
+<span id="video-context-{{videoid}}"></span>
+<script type="text/javascript">
+    $(document).ready(function() {
+        var videos = '{{ videos|linebreaksbr }}'.split('<br>');
+        $.each(videos, function( idx, val ) {
+            $("<a />", {
+                href : val,
+                target : "_blank",
+                text : "<Video " + (idx + 1).toString() + " is hidden. Click to open in new window.>",
+            }).append('<br>').appendTo($('#video-context-{{videoid}}'));
+        });
+    });
+</script>

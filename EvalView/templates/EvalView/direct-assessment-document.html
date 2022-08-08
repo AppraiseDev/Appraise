@@ -500,16 +500,22 @@ function _show_error_box(item_box, msg) {
                 {% if not monolingual %}
                 <div class="col-sm-6">
                     <span title="Source static context">
-                        <p>{{ item.sourceContextLeft|linebreaks }}</p>
                         {% if item.sourceContextLeft %}
+                        {% if source_item_type == 'video' %}
+                            {% with videoid=forloop.counter videos=item.sourceContextLeft %}
+                            {% include 'EvalView/_video_context.html' %}
+                            {% endwith %}
+                        {% else %}
+                        {{ item.sourceContextLeft|linebreaks }}
+                        {% endif %}
                         <small class="segment-label">- Additional source context</small>
                         {% endif %}
                     </span>
                 </div>
                 <div class="col-sm-5">
                     <span title="Static context of the candidate translation">
-                        <p><strong>{{ item.targetContextLeft|linebreaks }}</strong></p>
                         {% if item.targetContextLeft %}
+                        <strong>{{ item.targetContextLeft|linebreaks }}</strong>
                         <small class="segment-label">- Additional target context</small>
                         {% endif %}
                     </span>
@@ -517,8 +523,8 @@ function _show_error_box(item_box, msg) {
                 {% else %}
                 <div class="col-sm-11">
                     <span title="Static context">
-                        <p>{{ item.targetContextLeft|linebreaks }}</p>
                         {% if item.targetContextLeft %}
+                        {{ item.targetContextLeft|linebreaks }}
                         <small class="segment-label">- Additional context</small>
                         {% endif %}
                     </span>
