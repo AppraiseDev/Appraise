@@ -108,7 +108,7 @@ def unwrap_xml(
         ref_docs = OrderedDict()
 
     if len(hyp_langs) > 1:
-        raise RuntimeError("Multiple hypothesis languages found")
+        raise RuntimeError(f"Multiple hypothesis languages found: {hyp_langs}")
 
     systems = list(systems)
     if len(hyp_langs) > 0:
