@@ -801,10 +801,6 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         LOGGER.info('No current item detected, redirecting to dashboard')
         return redirect('dashboard')
 
-    # By default, source and target items are text segments
-    source_item_type = 'text'
-    target_item_type = 'text'
-
     # Get item scores from the latest corresponding results
     block_scores = []
     _prev_item = None
@@ -844,16 +840,43 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     t4 = datetime.now()
 
+    # By default, source and target items are text segments
+    source_item_type = 'text'
+    target_item_type = 'text'
     reference_label = 'Source text'
     candidate_label = 'Candidate translation'
+
+    monolingual_task = 'monolingual' in campaign_opts
+    sign_translation = 'signlt' in campaign_opts
+    speech_translation = 'speechtranslation' in campaign_opts
+    static_context = 'staticcontext' in campaign_opts
+    use_sqm = 'sqm' in campaign_opts
+    ui_language = 'enu'
+
+    if 'wmt22signlt' in campaign_opts:
+        sign_translation = True
+        static_context = True
+        use_sqm = True
+        ui_language = 'deu'
+
+    if sign_translation:
+        # For sign languages, source or target segments are videos
+        if source_language in SIGN_LANGUAGE_CODES:
+            source_item_type = 'video'
+            reference_label = 'Source video'
+        if target_language in SIGN_LANGUAGE_CODES:
+            target_item_type = 'video'
+            candidate_label = 'Candidate translation (video)'
+        else:
+            sign_translation = False  # disable sign-specific SQM instructions
 
     priming_question_texts = [
         'Below you see a document with {0} sentences in {1} (left columns) '
         'and their corresponding candidate translations in {2} (right columns). '
         'Score each candidate sentence translation in the document context. '
         'You may revisit already scored sentences and update their scores at any time '
-        'by clicking at a source text.'.format(
-            len(block_items) - 1, source_language, target_language
+        'by clicking at a source {3}.'.format(
+            len(block_items) - 1, source_language, target_language, source_item_type,
         ),
         'Assess the translation quality answering the question: ',
         'How accurately does the candidate text (right column, in bold) convey the '
@@ -867,17 +890,6 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'in {0} (right column) convey the original semantics of the source document '
         'in {1} (left column)? '.format(target_language, source_language),
     ]
-
-    monolingual_task = 'monolingual' in campaign_opts
-    sign_translation = 'signlt' in campaign_opts
-    speech_translation = 'speechtranslation' in campaign_opts
-    static_context = 'staticcontext' in campaign_opts
-    use_sqm = 'sqm' in campaign_opts
-
-    if 'wmt22signlt' in campaign_opts:
-        sign_translation = True
-        static_context = True
-        use_sqm = True
 
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
@@ -899,16 +911,35 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         ]
         candidate_label = None
 
-    if sign_translation:
-        # For sign languages, source or target segments are videos
-        if source_language in SIGN_LANGUAGE_CODES:
-            source_item_type = 'video'
-            reference_label = 'Source video'
-        if target_language in SIGN_LANGUAGE_CODES:
-            target_item_type = 'video'
-            candidate_label = 'Candidate translation (video)'
+    # German instructions for WMT22 sign language task
+    if 'wmt22signlt' in campaign_opts:
+        if 'text2sign' in campaign_opts:
+            priming_question_texts = [
+                'Unten sehen Sie ein Dokument mit {0} Sätzen auf Deutsch (linke Spalten) '
+                'und die entsprechenden möglichen Übersetzungen in Deutschschweizer '
+                'Gebärdensprache (DSGS) (rechte Spalten). Bewerten Sie jede mögliche '
+                'Übersetzung des Satzes im Kontext des Dokuments. '
+                'Sie können bereits bewertete Sätze jederzeit durch Anklicken eines '
+                'Quelltextes erneut aufrufen und die Bewertung aktualisieren.'.format(
+                    len(block_items) - 1,
+                ),
+            ]
         else:
-            sign_translation = False  # disable sign-specific SQM instructions
+            priming_question_texts = [
+                'Unten sehen Sie ein Dokument mit {0} Sätzen in Deutschschweizer '
+                'Gebärdensprache (DSGS) (linke Spalten) und die entsprechenden möglichen '
+                'Übersetzungen auf Deutsch (rechte Spalten). Bewerten Sie jede mögliche '
+                'Übersetzung des Satzes im Kontext des Dokuments. '
+                'Sie können bereits bewertete Sätze jederzeit durch Anklicken eines '
+                'Eingabevideos erneut aufrufen und die Bewertung aktualisieren.'.format(
+                    len(block_items) - 1,
+                ),
+            ]
+        document_question_texts += [
+            'Bitte bewerten Sie die Übersetzungsqualität des gesamten Dokuments. '
+            '(Sie können das Dokument erst bewerten, nachdem Sie zuvor alle Sätze '
+            'einzeln bewertet haben.)',
+        ]
 
     # Special instructions for IWSLT 2022 dialect task
     if 'iwslt2022dialectsrc' in campaign_opts:
@@ -974,6 +1005,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'signlt': sign_translation,
         'monolingual': monolingual_task,
         'static_context': static_context,
+        'ui_lang': ui_language,
     }
 
     if ajax:

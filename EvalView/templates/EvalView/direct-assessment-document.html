@@ -463,7 +463,7 @@ function _show_error_box(item_box, msg) {
             <p>{{text|safe}}</p>
             {% endfor %}
             {% if sqm %}
-              {% with speech=speech signlt=signlt mono=monolingual %}
+              {% with speech=speech signlt=signlt mono=monolingual ui_lang=ui_lang %}
               {% include 'EvalView/_sqm_instructions.html' %}
               {% endwith %}
             {% endif %}
@@ -593,7 +593,7 @@ function _show_error_box(item_box, msg) {
         <div class="target-box toggleable" >
             <div class="row">
             {% if sqm %}
-                {% with sliderid=item.itemID speech=speech signlt=signlt mono=monolingual %}
+                {% with sliderid=item.itemID speech=speech signlt=signlt mono=monolingual ui_lang=ui_lang %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
@@ -632,7 +632,7 @@ function _show_error_box(item_box, msg) {
                     <p>{{text|safe}}</p>
                     {% endfor %}
                     {% if sqm %}
-                      {% with speech=speech signlt=signlt mono=monolingual %}
+                      {% with speech=speech signlt=signlt mono=monolingual ui_lang=ui_lang %}
                       {% include 'EvalView/_sqm_instructions.html' %}
                       {% endwith %}
                     {% endif %}
@@ -643,7 +643,7 @@ function _show_error_box(item_box, msg) {
         <div class="target-box document-box quotelike">
             <div class="row">
             {% if sqm %}
-                {% with sliderid=item.itemID speech=speech mono=monolingual%}
+                {% with sliderid=item.itemID speech=speech mono=monolingual ui_lang=ui_lang %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
