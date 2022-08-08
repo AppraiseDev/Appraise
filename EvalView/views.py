@@ -938,7 +938,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                     len(block_items) - 1,
                 ),
             ]
-        document_question_texts += [
+        document_question_texts = [
             'Bitte bewerten Sie die Übersetzungsqualität des gesamten Dokuments. '
             '(Sie können das Dokument erst bewerten, nachdem Sie zuvor alle Sätze '
             'einzeln bewertet haben.)',
