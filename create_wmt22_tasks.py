@@ -108,7 +108,7 @@ def unwrap_xml(
         ref_docs = OrderedDict()
 
     if len(hyp_langs) > 1:
-        raise RuntimeError("Multiple hypothesis languages found")
+        raise RuntimeError(f"Multiple hypothesis languages found: {hyp_langs}")
 
     systems = list(systems)
     if len(hyp_langs) > 0:
@@ -917,12 +917,8 @@ if __name__ == "__main__":
                 src_ctx = []
                 tgt_ctx = []
                 if seg_counter == 0:
-                    if SRC_LANG != 'sgg':
-                        src_ctx = [txt for _, txt in SRC_PREV[doc_id]][-CTX_SIZE:]
-                    if TGT_LANG != 'sgg':
-                        tgt_ctx = [txt for _, txt in SYS_PREV[sys_id][doc_id]][
-                            -CTX_SIZE:
-                        ]
+                    src_ctx = [txt for _, txt in SRC_PREV[doc_id]][-CTX_SIZE:]
+                    tgt_ctx = [txt for _, txt in SYS_PREV[sys_id][doc_id]][-CTX_SIZE:]
 
                 obj: Dict[str, Any] = OrderedDict()
                 obj['_item'] = _item
@@ -957,10 +953,8 @@ if __name__ == "__main__":
 
             src_ctx = []
             tgt_ctx = []
-            if SRC_LANG != 'sgg':
-                src_ctx = [txt for _, txt in SRC_NEXT[doc_id]][:CTX_SIZE]
-            if TGT_LANG != 'sgg':
-                tgt_ctx = [txt for _, txt in SYS_NEXT[sys_id][doc_id]][:CTX_SIZE]
+            src_ctx = [txt for _, txt in SRC_NEXT[doc_id]][:CTX_SIZE]
+            tgt_ctx = [txt for _, txt in SYS_NEXT[sys_id][doc_id]][:CTX_SIZE]
 
             obj = OrderedDict()
             obj['_item'] = _item

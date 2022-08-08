@@ -108,6 +108,7 @@ class CampaignAdmin(BaseMetadataAdmin):
                     'packageFile',
                     'teams',
                     'batches',
+                    'campaignOptions',
                 )
             },
         ),
