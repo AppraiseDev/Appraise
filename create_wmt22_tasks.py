@@ -966,7 +966,7 @@ if __name__ == "__main__":
             obj['targetID'] = target_id
             obj['targetText'] = ' '.join(context_tgt)  # full document
             obj['itemID'] = item_id
-            obj['itemType'] = 'TGT'
+            obj['itemType'] = 'BAD' if has_control_item else 'TGT'
             obj['documentID'] = doc_id
             obj['isCompleteDocument'] = True
             items_data[-1].append(obj)
