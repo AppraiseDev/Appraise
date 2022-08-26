@@ -210,6 +210,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'lug': 'Luganda (Oluganda)',
     'sgg': 'Swiss-German Sign Language (Deutschschweizer Gebärdensprache (DSGS))',
     'liv': 'Livonian (līvõ kēļ)',
+    'sah': 'Yakut (саха тыла)',
 }
 
 # All sign language codes
