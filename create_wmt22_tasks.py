@@ -257,7 +257,7 @@ def select_docs(orig_src_docs, orig_ref_docs, orig_hyp_docs, tsv_file):
     print("Selecting the following documents only:")
     with open(tsv_file, "r", encoding="utf8") as tsv:
         for line in tsv:
-            _docid, _segid_first, _segid_last = line.strip().split()
+            _docid, _segid_first, _segid_last = line.strip().split("\t")
             selected_docs.append((_docid, int(_segid_first), int(_segid_last)))
             print(f"  {selected_docs[-1]}")
 
@@ -556,6 +556,11 @@ def parse_cmd_args():
         type=int,
         default=MAX_DOC_LENGTH,  # a large number should use all available segments
     )
+    parser.add_argument(
+        "--even",
+        help="duplicate one task is necessary to keep the total number of tasks even",
+        action="store_true",
+    )
     args = parser.parse_args()
     return (
         args.xml_file,
@@ -569,6 +574,7 @@ def parse_cmd_args():
         args.rng_seed,
         args.selected_docs,
         args.static_context,
+        args.even,
     )
 
 
@@ -590,6 +596,7 @@ if __name__ == "__main__":
         RND_SEED,
         SELECTED,
         CTX_SIZE,
+        EVEN_NUM,
     ) = parse_cmd_args()
 
     print(f'Character based={CHARLANG}')
@@ -814,6 +821,11 @@ if __name__ == "__main__":
             print(f'WARNING: no control items in task no. {tid}')
             # raise NotImplementedError('Needs isControl=True update!')
             padded_tasks.append(tuple(task))  # TODO: does this ever occur?
+
+    if EVEN_NUM and len(padded_tasks) % 2 == 1:
+        print('Duplicating one batch to keep the number of tasks even')
+        padded_tasks.append(padded_tasks[0])
+        print(f'Number of tasks now is {len(padded_tasks)}')
 
     csv_data = []
     task_id = 0
