@@ -54,10 +54,10 @@ def _validate_campaign_data(campaign, stdout=None):
                 ]
                 for batch_json_file in batch_json_files:
                     batch_data = batch_zip.read(batch_json_file).decode('utf-8')
-                    loads(batch_data, encoding='utf-8')
+                    loads(batch_data)
 
             else:
-                loads(str(batch_file.read(), encoding="utf-8"))
+                loads(str(batch_file.read()))
 
             batch.dataValid = True
             batch.save()
