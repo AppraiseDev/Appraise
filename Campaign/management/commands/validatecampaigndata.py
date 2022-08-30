@@ -1,9 +1,8 @@
 """
 Appraise
 """
-import sys
-
 # pylint: disable=C0103,C0111,C0330,E1101
+import sys
 from json import loads
 from zipfile import is_zipfile
 from zipfile import ZipFile
