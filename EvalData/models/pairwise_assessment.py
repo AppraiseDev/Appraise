@@ -4,6 +4,7 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=C0103,C0330,no-member
+import sys
 from collections import defaultdict
 from json import loads
 from traceback import format_exc
@@ -266,10 +267,14 @@ class PairwiseAssessmentTask(BaseMetadata):
             # TODO: implement proper support for multiple json files in archive.
             for batch_json_file in batch_json_files:
                 batch_content = batch_zip.read(batch_json_file).decode('utf-8')
-                batch_json = loads(batch_content)
+                # Python 3.9 removed 'encoding' from json.loads
+                if sys.version_info >= (3, 9, 0):
+                    batch_json = loads(batch_content)
+                else:
+                    batch_json = loads(batch_content, encoding='utf-8')
 
         else:
-            batch_json = loads(str(batch_file.read()))
+            batch_json = loads(str(batch_file.read(), encoding='utf-8'))
 
         from datetime import datetime
 
