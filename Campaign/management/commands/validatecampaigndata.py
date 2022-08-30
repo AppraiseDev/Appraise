@@ -1,6 +1,8 @@
 """
 Appraise
 """
+import sys
+
 # pylint: disable=C0103,C0111,C0330,E1101
 from json import loads
 from zipfile import is_zipfile
@@ -54,10 +56,14 @@ def _validate_campaign_data(campaign, stdout=None):
                 ]
                 for batch_json_file in batch_json_files:
                     batch_data = batch_zip.read(batch_json_file).decode('utf-8')
-                    loads(batch_data)
+                    # Python 3.9 removed 'encoding' from json.loads
+                    if sys.version_info >= (3,9,0):
+                        loads(batch_data)
+                    else:
+                        loads(batch_data, encoding='utf-8')
 
             else:
-                loads(str(batch_file.read()))
+                loads(str(batch_file.read(), encoding='utf-8'))
 
             batch.dataValid = True
             batch.save()
