@@ -248,6 +248,10 @@ def direct_assessment(request, code=None, campaign_name=None):
     else:
         html_file = 'EvalView/direct-assessment-context.html'
 
+    if 'reference' in campaign_opts.lower():
+        reference_label = 'Reference text in {}'.format(target_language)
+        candidate_label = 'Candidate translation in {}'.format(target_language)
+
     context = {
         'active_page': 'direct-assessment',
         'reference_label': reference_label,
