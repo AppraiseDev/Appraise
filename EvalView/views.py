@@ -30,6 +30,7 @@ from EvalData.models import PairwiseAssessmentDocumentTask
 from EvalData.models import PairwiseAssessmentResult
 from EvalData.models import PairwiseAssessmentTask
 from EvalData.models import TaskAgenda
+from EvalData.error_topologies import ERROR_TYPOLOGIES
 
 # pylint: disable=import-error
 
@@ -857,6 +858,9 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     use_sqm = 'sqm' in campaign_opts
     ui_language = 'enu'
 
+    if 'errortypes' in campaign_opts:
+        error_types = ERROR_TYPOLOGIES['BasicErrorTypes']
+
     if 'wmt22signlt' in campaign_opts:
         sign_translation = True
         static_context = True
@@ -1007,11 +1011,12 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
         # Task variations
-        'sqm': use_sqm,
-        'speech': speech_translation,
-        'signlt': sign_translation,
+        'errortypes': error_types,
         'monolingual': monolingual_task,
+        'signlt': sign_translation,
+        'speech': speech_translation,
         'static_context': static_context,
+        'sqm': use_sqm,
         'ui_lang': ui_language,
     }
 

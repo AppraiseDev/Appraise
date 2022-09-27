@@ -5,7 +5,7 @@ Examples/**/*.csv
 Examples/**/*.log
 Packages
 regressiontests.db
-static
+./static
 
 # Python
 *.py[cod]
