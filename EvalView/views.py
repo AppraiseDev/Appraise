@@ -858,6 +858,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     use_sqm = 'sqm' in campaign_opts
     ui_language = 'enu'
 
+    error_types = None
     if 'errortypes' in campaign_opts:
         error_types = ERROR_TYPOLOGIES['BasicErrorTypes']
 
