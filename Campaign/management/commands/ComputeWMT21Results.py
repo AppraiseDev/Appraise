@@ -27,6 +27,7 @@ LANGUAGE_CODES = {
     'rus': 'ru',
     'aeb': 'ae',
     'spa': 'es',
+    'sgg': 'dsgs',
 }
 
 
