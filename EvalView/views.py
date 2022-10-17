@@ -15,7 +15,7 @@ from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Campaign.models import Campaign
 from Dashboard.models import SIGN_LANGUAGE_CODES
-from EvalData.error_topologies import ERROR_TYPOLOGIES
+from EvalData.error_types import ERROR_TYPES
 from EvalData.models import DataAssessmentResult
 from EvalData.models import DataAssessmentTask
 from EvalData.models import DirectAssessmentContextResult
@@ -859,8 +859,13 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     ui_language = 'enu'
 
     error_types = None
-    if 'errortypes' in campaign_opts:
-        error_types = ERROR_TYPOLOGIES['BasicErrorTypes']
+    critical_error = None
+    # TODO: not fully implemented in this task type yet
+    # if 'reportcriticalerror' in campaign_opts:
+        # critical_error = True
+    # TODO: not fully implemented in this task type yet
+    # elif 'errortypes' in campaign_opts:
+        # error_types = ERROR_TYPES['BasicErrorTypes']
 
     if 'wmt22signlt' in campaign_opts:
         sign_translation = True
@@ -1013,6 +1018,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'trusted_user': current_task.is_trusted_user(request.user),
         # Task variations
         'errortypes': error_types,
+        'criticalerror': critical_error,
         'monolingual': monolingual_task,
         'signlt': sign_translation,
         'speech': speech_translation,

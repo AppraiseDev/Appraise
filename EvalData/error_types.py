@@ -6,32 +6,41 @@ See LICENSE for usage details
 
 from collections import OrderedDict
 
-ERROR_TYPOLOGIES = {
+ERROR_TYPES = {
     'BasicErrorTypes': [
         {
             'name': 'Accuracy',
             'var': 'accuracy',
-            'description': 'the candidate translation does not accurately correspond to the source text, introduced by distorting, omitting, or adding to the message',
+            'description': 'the candidate translation does not accurately correspond'
+            ' to the source text, introduced by distorting, omitting, or adding to'
+            ' the message',
         },
         {
             'name': 'Terminology',
             'var': 'terminology',
-            'description': 'a term does not conform to normative domain or a target term is not the correct, normative equivalent of the corresponding term in the source',
+            'description': 'a term does not conform to normative domain or a target'
+            ' term is not the correct, normative equivalent of the corresponding term'
+            ' in the source',
         },
         {
             'name': 'Fluency',
             'var': 'fluency',
-            'description': 'related to the linguistic well-formedness of the text, including problems with, grammaticality, idiomaticity, and mechanical correctness',
+            'description': 'related to the linguistic well-formedness of the text,'
+            ' including problems with, grammaticality, idiomaticity, and mechanical'
+            ' correctness',
         },
         {
             'name': 'Style',
             'var': 'style',
-            'description': 'occurring in a text that can be grammatical but are inappropriate because they exhibit inappropriate language style',
+            'description': 'occurring in a text that can be grammatical but are'
+            ' inappropriate because they exhibit inappropriate language style',
         },
         {
             'name': 'Locale conventions',
             'var': 'locale',
-            'description': 'the translation product violates locale-specific content or formatting requirements for numbers, currency, measurements, time, address, etc.',
+            'description': 'the translation product violates locale-specific content'
+            ' or formatting requirements for numbers, currency, measurements, time,'
+            ' address, etc.',
         },
         {
             'name': 'Not a translation',
