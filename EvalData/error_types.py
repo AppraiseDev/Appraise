@@ -3,7 +3,6 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
-
 from collections import OrderedDict
 
 ERROR_TYPES = {
