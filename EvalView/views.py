@@ -862,10 +862,10 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     critical_error = None
     # TODO: not fully implemented in this task type yet
     # if 'reportcriticalerror' in campaign_opts:
-        # critical_error = True
+    # critical_error = True
     # TODO: not fully implemented in this task type yet
     # elif 'errortypes' in campaign_opts:
-        # error_types = ERROR_TYPES['BasicErrorTypes']
+    # error_types = ERROR_TYPES['BasicErrorTypes']
 
     if 'wmt22signlt' in campaign_opts:
         sign_translation = True
@@ -1330,7 +1330,14 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
 
-        print('score1={0}, score2={1}, item_id={2}'.format(score1, score2, item_id))
+        error1 = request.POST.get('error1', None)
+        error2 = request.POST.get('error2', None)
+
+        print(
+            'score1={0}, score2={1}, item_id={2}, error1={3}, error2={4}'.format(
+                score1, score2, item_id, error1, error2
+            )
+        )
         LOGGER.info('score1=%s, score2=%s, item_id=%s', score1, score2, item_id)
 
         if score1 and item_id and start_timestamp and end_timestamp:
@@ -1418,8 +1425,7 @@ def pairwise_assessment(request, code=None, campaign_name=None):
 
     campaign_opts = (campaign.campaignOptions or "").lower()
     use_sqm = False
-    critical_error = None
-
+    critical_error = False
     if 'reportcriticalerror' in campaign_opts:
         critical_error = True
     if 'sqm' in campaign_opts:
