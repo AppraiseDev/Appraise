@@ -860,12 +860,6 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     error_types = None
     critical_error = None
-    # TODO: not fully implemented in this task type yet
-    # if 'reportcriticalerror' in campaign_opts:
-    # critical_error = True
-    # TODO: not fully implemented in this task type yet
-    # elif 'errortypes' in campaign_opts:
-    # error_types = ERROR_TYPES['BasicErrorTypes']
 
     if 'wmt22signlt' in campaign_opts:
         sign_translation = True
