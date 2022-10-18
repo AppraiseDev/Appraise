@@ -345,7 +345,7 @@ class BaseMetadata(models.Model):
 
 class BaseAssessmentResult(BaseMetadata):
     """
-    Abstract base class for all assessment result.
+    Abstract base class for assessment result.
     """
 
     errors = models.TextField(
@@ -354,6 +354,31 @@ class BaseAssessmentResult(BaseMetadata):
         max_length=MAX_SEGMENTTEXT_LENGTH,
         null=True,
         verbose_name=_('Errors'),
+    )
+
+    class Meta:
+        abstract = True
+
+
+class BasePairwiseAssessmentResult(BaseMetadata):
+    """
+    Abstract base class for pairwise assessment result.
+    """
+
+    errors1 = models.TextField(
+        blank=True,
+        help_text=_(f('(max. {value} characters)', value=MAX_SEGMENTTEXT_LENGTH)),
+        max_length=MAX_SEGMENTTEXT_LENGTH,
+        null=True,
+        verbose_name=_('Errors (1)'),
+    )
+
+    errors2 = models.TextField(
+        blank=True,
+        help_text=_(f('(max. {value} characters)', value=MAX_SEGMENTTEXT_LENGTH)),
+        max_length=MAX_SEGMENTTEXT_LENGTH,
+        null=True,
+        verbose_name=_('Errors (2)'),
     )
 
     class Meta:

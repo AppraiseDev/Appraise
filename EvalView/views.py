@@ -1371,6 +1371,8 @@ def pairwise_assessment(request, code=None, campaign_name=None):
                     activated=False,
                     completed=True,
                     dateCompleted=utc_now,
+                    errors1=error1,
+                    errors2=error2,
                 )
 
     t3 = datetime.now()
