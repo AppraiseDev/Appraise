@@ -95,13 +95,6 @@ jQuery.fn.clickToggle = function(a, b) {
 };
 
 $(document).ready(function() {
-    {% if errortypes %}
-    // Set Bootstrap version for the bootstrap-select plugin
-    $.fn.selectpicker.Constructor.BootstrapVersion = '3';
-    $.fn.selectpicker.Constructor.DEFAULTS.display = 'static';
-    $('.selectpicker').selectpicker();
-    {% endif %}
-
     // This sets the same starting time for all items, but it is set again when
     // an item is expanded by clicking on it.
     $('input[name="start_timestamp"]').val(Date.now()/1000.0);
@@ -437,8 +430,6 @@ function _show_error_box(item_box, msg) {
 
 -->
 </script>
-<link rel="stylesheet" href="{% static 'EvalView/css/bootstrap-select.min.css' %}">
-<script src="{% static 'EvalView/js/bootstrap-select.min.js' %}"></script>
 
 {% endblock %}
 
@@ -566,7 +557,6 @@ function _show_error_box(item_box, msg) {
         <input name="document_id" type="hidden" value="{{ item.documentID }}" />
         <input name="score" type="hidden" value="{{ scores.score }}" id="score{{ item.itemID }}" />
         <input name="ajax" type="hidden" value="False" />
-        <input name="errors" type="hidden" value="" id="score{{ item.itemID }}" />
 
         {% if not item.isCompleteDocument %}
 
@@ -621,19 +611,6 @@ function _show_error_box(item_box, msg) {
             {% endif %}
             </div>
 
-            {% if errortypes %}
-            <div class="row">
-            <div class="col-sm-12">
-              <select class="selectpicker" multiple data-width="100%" data-actions-box="true"
-                      title="Specify translation errors found in this candidate translation">
-                {% for error_type in errortypes %}
-                <option data-subtext=": {{ error_type.description }}">{{ error_type.name }}</option>
-                {% endfor %}
-              </select>
-            </div>
-            </div>
-            {% endif %}
-
             <table class="row action-box">
                 <tr>
                     <td style="width:30%;text-align:left;">
@@ -644,15 +621,6 @@ function _show_error_box(item_box, msg) {
                     </td>
 
                     <td style="width:70%;text-align:right;">
-                    {% if criticalerror %}
-                    <label>
-                        <div class="btn btn-warning button-critical-error" accesskey="3"
-                             title="Check this box if a translation error significantly changed the meaning of the candidate translation">
-                            <input id="critical-error-{{ item.itemID }}" type="checkbox" value="{{ item.itemID }}">
-                            Report serious semantic translation error
-                        </div>
-                        </label>
-                    {% endif %}
                         <button class="btn button-next btn-primary"
                                 name="next_button"
                                 accesskey="1"
