@@ -1416,6 +1416,15 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         candidate2_text,
     ) = current_item.target_texts_with_diffs()
 
+    campaign_opts = (campaign.campaignOptions or "").lower()
+    use_sqm = False
+    critical_error = None
+
+    if 'reportcriticalerror' in campaign_opts:
+        critical_error = True
+    if 'sqm' in campaign_opts:
+        use_sqm = True
+
     context = {
         'active_page': 'pairwise-assessment',
         'reference_label': reference_label,
@@ -1438,16 +1447,12 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         'campaign': campaign.campaignName,
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
+        'sqm': use_sqm,
+        'critical_error': critical_error,
     }
     context.update(BASE_CONTEXT)
 
-    campaign_opts = campaign.campaignOptions or ""
-    if 'sqm' in campaign_opts.lower():
-        html_file = 'EvalView/pairwise-assessment-sqm.html'
-    else:
-        html_file = 'EvalView/pairwise-assessment.html'
-
-    return render(request, html_file, context)
+    return render(request, 'EvalView/pairwise-assessment.html', context)
 
 
 # pylint: disable=C0103,C0330

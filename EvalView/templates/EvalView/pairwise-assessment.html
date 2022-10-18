@@ -28,6 +28,9 @@ small.padright { padding-right: 20px; }
   content: attr(data-pseudo-content);
   font-weight:bold;
 }
+
+.slider-box { font-size:16px; width:100%; }
+.slider-box .slider-grid { font-size:14px; width:100%; color:#777; }
 </style>
 
 <link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}">
@@ -190,21 +193,19 @@ function match_sliders()
     <div class="col-sm-12">
         <p class="candidate-text"><strong>{{candidate_text|safe}}</strong></p>
     </div>
-    <div class="col-sm-12">
-        <div id="slider" class="slider"></div>
-    </div>
-    <div class="col-sm-12">
-        <table class="col-sm-12" style="color: #777;">
-            <tr>
-            <td style="width:20%;text-align: right;"><small>&larr; Not at all</small></td>
-            <td style="width:5%;text-align: right;">|</td>
-            <td style="width:25%;text-align: right;">|</td>
-            <td style="width:25%;text-align: right;">|</td>
-            <td style="width:5%;text-align: right;"></td>
-            <td style="width:20%;text-align: left;"><small>Perfectly &rarr;</small></td>
-            </tr>
-        </table>
-    </div>
+    {% if sqm %}
+
+    {% with sliderid='' %}
+    {% include 'EvalView/_sqm_slider.html' %}
+    {% endwith %}
+
+    {% else %}
+
+    {% with sliderid='' %}
+    {% include 'EvalView/_slider.html' %}
+    {% endwith %}
+
+    {% endif %}
 </div>
 
 {% if candidate2_text %}
@@ -213,21 +214,19 @@ function match_sliders()
     <div class="col-sm-12">
         <p class="candidate-text"><strong>{{candidate2_text|safe}}</strong></p>
     </div>
-    <div class="col-sm-12">
-        <div id="slider2" class="slider"></div>
-    </div>
-    <div class="col-sm-12">
-        <table class="col-sm-12" style="color: #777;">
-            <tr>
-            <td style="width:20%;text-align: right;"><small>&larr; Not at all</small></td>
-            <td style="width:5%;text-align: right;">|</td>
-            <td style="width:25%;text-align: right;">|</td>
-            <td style="width:25%;text-align: right;">|</td>
-            <td style="width:5%;text-align: right;"></td>
-            <td style="width:20%;text-align: left;"><small>Perfectly &rarr;</small></td>
-            </tr>
-        </table>
-    </div>
+    {% if sqm %}
+
+    {% with sliderid='2' %}
+    {% include 'EvalView/_sqm_slider.html' %}
+    {% endwith %}
+
+    {% else %}
+
+    {% with sliderid='2' %}
+    {% include 'EvalView/_slider.html' %}
+    {% endwith %}
+
+    {% endif %}
 </div>
 {% endif %}
 
@@ -257,6 +256,11 @@ function match_sliders()
   </tr>
   </table>
 </div>
+
+{% if sqm %}
+<br/>
+{% include 'EvalView/_sqm_instructions.html' %}
+{% endif %}
 
 </form>
 
