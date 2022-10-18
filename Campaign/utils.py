@@ -70,8 +70,11 @@ def _get_campaign_instance(campaign_name):
     _campaign = Campaign.objects.filter(campaignName=campaign_name)
     if not _campaign.exists():
         raise CommandError(
-            'Campaign {0!r} does not exist. No task agendas '
-            'have been assigned.'.format(campaign_name)
+            'Campaign {0!r} does not exist. '.format(campaign_name)
+            + 'No task agendas have been assigned. '
+            'This message is expected if you are initializing a new campaign '
+            'and have not created it in the admin panel. '
+            'Create a new campaign or check for a misspelling and try again.'
         )
 
     return _campaign[0]
