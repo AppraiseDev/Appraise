@@ -29,7 +29,8 @@ LANGUAGE_CODES = {
     'spa': 'es',
     'sgg': 'dsgs',
     'hrv': 'hr',
-    'urk': 'uk',
+    'ukr': 'uk',
+    'sah': 'sah',
 }
 
 
