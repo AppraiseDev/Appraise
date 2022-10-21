@@ -44,7 +44,13 @@ class Command(BaseCommand):
         )
 
         parser.add_argument(
-            '--errors',
+            '--source-error',
+            metavar='TEXT',
+            type=str,
+            help='Source error(s) that should be assigned',
+        )
+        parser.add_argument(
+            '--target-errors',
             metavar='TEXT',
             type=str,
             help='Error comment(s) that should be assigned, delimited by a semicolon '
@@ -60,9 +66,10 @@ class Command(BaseCommand):
         scores = [int(score) for score in _scores]
 
         # Get error comment(s)
-        errors = []
-        if options['errors'] is not None:
-            errors = options['errors'].replace(':', ' ').split(' ')
+        source_error = options.get('source_error', None)
+        target_errors = []
+        if options['target_errors'] is not None:
+            target_errors = options['target_errors'].replace(':', ' ').split(' ')
 
         # Needed to get the response context
         # http://jazstudios.blogspot.com/2011/01/django-testing-views.html
@@ -147,13 +154,16 @@ class Command(BaseCommand):
                 'end_timestamp': datetime.now().timestamp(),
             }
 
-            if len(errors) > 0:
-                data['error1'] = errors[0]
+            if source_error is not None:
+                data['source_error'] = source_error
+
+            if len(target_errors) > 0:
+                data['error1'] = target_errors[0]
 
             if response.context['candidate2_text'] is not None:
                 data['score2'] = scores[1]
-                if len(errors) > 1:
-                    data['error2'] = errors[1]
+                if len(target_errors) > 1:
+                    data['error2'] = target_errors[1]
 
             msg_info = 'item {}/{} with score(s) {}'.format(
                 response.context['item_id'], response.context['task_id'], scores[0]

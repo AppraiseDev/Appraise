@@ -197,18 +197,15 @@ function match_sliders()
     <div class="col-sm-12">
         <p class="candidate-text"><strong>{{candidate_text|safe}}</strong></p>
     </div>
+
     {% if sqm %}
-
-    {% with sliderid='' %}
-    {% include 'EvalView/_sqm_slider.html' %}
-    {% endwith %}
-
+      {% with sliderid='' %}
+      {% include 'EvalView/_sqm_slider.html' %}
+      {% endwith %}
     {% else %}
-
-    {% with sliderid='' %}
-    {% include 'EvalView/_slider.html' %}
-    {% endwith %}
-
+      {% with sliderid='' %}
+      {% include 'EvalView/_slider.html' %}
+      {% endwith %}
     {% endif %}
 
     {% if critical_error %}
@@ -231,17 +228,13 @@ function match_sliders()
         <p class="candidate-text"><strong>{{candidate2_text|safe}}</strong></p>
     </div>
     {% if sqm %}
-
-    {% with sliderid='2' %}
-    {% include 'EvalView/_sqm_slider.html' %}
-    {% endwith %}
-
+      {% with sliderid='2' %}
+      {% include 'EvalView/_sqm_slider.html' %}
+      {% endwith %}
     {% else %}
-
-    {% with sliderid='2' %}
-    {% include 'EvalView/_slider.html' %}
-    {% endwith %}
-
+      {% with sliderid='2' %}
+      {% include 'EvalView/_slider.html' %}
+      {% endwith %}
     {% endif %}
 
     {% if critical_error %}
@@ -264,6 +257,17 @@ function match_sliders()
     <td style="width:50%;text-align:left;">
       <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn"
               title="Reset the slider(s). Access key: '2'"><i class="icon-repeat"></i> Reset</button>
+
+      {% if source_error %}
+      <label class="">
+        <div class="btn btn-danger"
+             title="Check this box if a serious error appears in the source text making it difficult to understand or translate, for instance, it is not in {{source_language}}, contains multiple serious grammatical errors, is nonsense, etc.">
+          <input name="source_error" type="checkbox" value="errors-in-source-text">
+          Flag serious error(s) in the source text
+        </div>
+      </label>
+      {% endif %}
+
       {% if candidate2_text %}
       <button onclick="javascript:toggle_diff();" accesskey="4" type="button" class="btn"
               title="Show or hide highlighted differences between segments. Access key: '4'">Show/Hide diff.</button>
@@ -290,6 +294,22 @@ function match_sliders()
 {% include 'EvalView/_sqm_instructions.html' %}
 {% endif %}
 
+{% if source_error %}
+<br/>
+<div class="row">
+  <div class="col-md-12">
+    <b>Serious error(s) in the source text:</b> Please report if a serious error appears
+    in the source text making it difficult to understand or translate, for
+    instance, it is not in the expected language, contains multiple serious
+    grammatical errors, is nonsense, etc.
+
+    Report critical errors only; typos, minor grammatical errors, etc., that
+    still make the text possible to understand and translate should not be
+    reported.
+  </div>
+</div>
+{% endif %}
+
 {% if critical_error %}
 <br/>
 <div class="row">
@@ -299,7 +319,7 @@ function match_sliders()
     for instance, an untranslated fragment, changed numerical value,
     surplus/omitted negation, repeated content, etc.
 
-    Report serious translation errors only, minor errors should be reflected
+    Report critical translation errors only, minor errors should be reflected
     through the scores.
   </div>
 </div>

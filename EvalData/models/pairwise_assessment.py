@@ -822,6 +822,7 @@ class PairwiseAssessmentResult(BasePairwiseAssessmentResult):
             'score2',  # Score
             'errors1',  # Translation errors/annotation comments
             'errors2',  # Translation errors/annotation comments
+            'sourceErrors',  # Errors in the source text
         )
 
         if extended_csv:

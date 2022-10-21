@@ -1324,12 +1324,13 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
 
+        source_error = request.POST.get('source_error', None)
         error1 = request.POST.get('error1', None)
         error2 = request.POST.get('error2', None)
 
         print(
-            'score1={0}, score2={1}, item_id={2}, error1={3}, error2={4}'.format(
-                score1, score2, item_id, error1, error2
+            'score1={0}, score2={1}, item_id={2}, src_err={3}, error1={4}, error2={5}'.format(
+                score1, score2, item_id, source_error, error1, error2
             )
         )
         LOGGER.info('score1=%s, score2=%s, item_id=%s', score1, score2, item_id)
@@ -1365,6 +1366,7 @@ def pairwise_assessment(request, code=None, campaign_name=None):
                     activated=False,
                     completed=True,
                     dateCompleted=utc_now,
+                    sourceErrors=source_error,
                     errors1=error1,
                     errors2=error2,
                 )
@@ -1422,10 +1424,21 @@ def pairwise_assessment(request, code=None, campaign_name=None):
     campaign_opts = (campaign.campaignOptions or "").lower()
     use_sqm = False
     critical_error = False
+    source_error = False
+    extra_guidelines = False
+
     if 'reportcriticalerror' in campaign_opts:
         critical_error = True
+        extra_guidelines = True
+    if 'reportsourceerror' in campaign_opts:
+        source_error = True
+        extra_guidelines = True
     if 'sqm' in campaign_opts:
         use_sqm = True
+        extra_guidelines = True
+
+    if extra_guidelines:
+        priming_question_text += ' (see detailed guidelines below)'
 
     context = {
         'active_page': 'pairwise-assessment',
@@ -1451,6 +1464,7 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         'trusted_user': current_task.is_trusted_user(request.user),
         'sqm': use_sqm,
         'critical_error': critical_error,
+        'source_error': source_error,
     }
     context.update(BASE_CONTEXT)
 
