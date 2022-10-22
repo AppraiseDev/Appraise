@@ -403,7 +403,7 @@ class PairwiseAssessmentTask(BaseMetadata):
         return '{0}.{1}[{2}]'.format(self.__class__.__name__, self.campaign, self.id)
 
 
-class PairwiseAssessmentResult(BaseMetadata):
+class PairwiseAssessmentResult(BasePairwiseAssessmentResult):
     """
     Models a contrastive direct assessment evaluation result.
     """
@@ -820,6 +820,9 @@ class PairwiseAssessmentResult(BaseMetadata):
             'item__metadata__market__targetLanguageCode',  # Target language
             'score1',  # Score
             'score2',  # Score
+            'errors1',  # Translation errors/annotation comments
+            'errors2',  # Translation errors/annotation comments
+            'sourceErrors',  # Errors in the source text
         )
 
         if extended_csv:
@@ -844,7 +847,8 @@ class PairwiseAssessmentResult(BaseMetadata):
                     _result[5],
                     _result[6],
                     _result[7],
-                    *_result[9:],
+                    _result[9],
+                    *_result[11:],
                 ),
                 (
                     _result[0],
@@ -854,7 +858,8 @@ class PairwiseAssessmentResult(BaseMetadata):
                     _result[5],
                     _result[6],
                     _result[8],
-                    *_result[9:],
+                    _result[10],
+                    *_result[11:],
                 ),
             ]
 
