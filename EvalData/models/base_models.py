@@ -344,6 +344,64 @@ class BaseMetadata(models.Model):
         return self._str_name
 
 
+class BaseAssessmentResult(BaseMetadata):
+    """
+    Abstract base class for assessment result.
+    """
+
+    sourceErrors = models.TextField(
+        blank=True,
+        help_text=_(f('(max. {value} characters)', value=MAX_SEGMENTTEXT_LENGTH)),
+        max_length=MAX_SEGMENTTEXT_LENGTH,
+        null=True,
+        verbose_name=_('Source errors'),
+    )
+
+    errors = models.TextField(
+        blank=True,
+        help_text=_(f('(max. {value} characters)', value=MAX_SEGMENTTEXT_LENGTH)),
+        max_length=MAX_SEGMENTTEXT_LENGTH,
+        null=True,
+        verbose_name=_('Errors'),
+    )
+
+    class Meta:
+        abstract = True
+
+
+class BasePairwiseAssessmentResult(BaseMetadata):
+    """
+    Abstract base class for pairwise assessment result.
+    """
+
+    sourceErrors = models.TextField(
+        blank=True,
+        help_text=_(f('(max. {value} characters)', value=MAX_SEGMENTTEXT_LENGTH)),
+        max_length=MAX_SEGMENTTEXT_LENGTH,
+        null=True,
+        verbose_name=_('Source errors'),
+    )
+
+    errors1 = models.TextField(
+        blank=True,
+        help_text=_(f('(max. {value} characters)', value=MAX_SEGMENTTEXT_LENGTH)),
+        max_length=MAX_SEGMENTTEXT_LENGTH,
+        null=True,
+        verbose_name=_('Errors (1)'),
+    )
+
+    errors2 = models.TextField(
+        blank=True,
+        help_text=_(f('(max. {value} characters)', value=MAX_SEGMENTTEXT_LENGTH)),
+        max_length=MAX_SEGMENTTEXT_LENGTH,
+        null=True,
+        verbose_name=_('Errors (2)'),
+    )
+
+    class Meta:
+        abstract = True
+
+
 class Market(BaseMetadata):
     """
     Models a language/locale market.

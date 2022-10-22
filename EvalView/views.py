@@ -16,6 +16,7 @@ from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Campaign.models import Campaign
 from Dashboard.models import SIGN_LANGUAGE_CODES
+from EvalData.error_types import ERROR_TYPES
 from EvalData.models import DataAssessmentResult
 from EvalData.models import DataAssessmentTask
 from EvalData.models import DirectAssessmentContextResult
@@ -861,6 +862,9 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     use_sqm = 'sqm' in campaign_opts
     ui_language = 'enu'
 
+    error_types = None
+    critical_error = None
+
     if 'wmt22signlt' in campaign_opts:
         sign_translation = True
         static_context = True
@@ -1011,11 +1015,13 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
         # Task variations
-        'sqm': use_sqm,
-        'speech': speech_translation,
-        'signlt': sign_translation,
+        'errortypes': error_types,
+        'criticalerror': critical_error,
         'monolingual': monolingual_task,
+        'signlt': sign_translation,
+        'speech': speech_translation,
         'static_context': static_context,
+        'sqm': use_sqm,
         'ui_lang': ui_language,
     }
 
@@ -1322,7 +1328,15 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
 
-        print('score1={0}, score2={1}, item_id={2}'.format(score1, score2, item_id))
+        source_error = request.POST.get('source_error', None)
+        error1 = request.POST.get('error1', None)
+        error2 = request.POST.get('error2', None)
+
+        print(
+            'score1={0}, score2={1}, item_id={2}, src_err={3}, error1={4}, error2={5}'.format(
+                score1, score2, item_id, source_error, error1, error2
+            )
+        )
         LOGGER.info('score1=%s, score2=%s, item_id=%s', score1, score2, item_id)
 
         if score1 and item_id and start_timestamp and end_timestamp:
@@ -1356,6 +1370,9 @@ def pairwise_assessment(request, code=None, campaign_name=None):
                     activated=False,
                     completed=True,
                     dateCompleted=utc_now,
+                    sourceErrors=source_error,
+                    errors1=error1,
+                    errors2=error2,
                 )
 
     t3 = datetime.now()
@@ -1408,6 +1425,25 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         candidate2_text,
     ) = current_item.target_texts_with_diffs()
 
+    campaign_opts = (campaign.campaignOptions or "").lower()
+    use_sqm = False
+    critical_error = False
+    source_error = False
+    extra_guidelines = False
+
+    if 'reportcriticalerror' in campaign_opts:
+        critical_error = True
+        extra_guidelines = True
+    if 'reportsourceerror' in campaign_opts:
+        source_error = True
+        extra_guidelines = True
+    if 'sqm' in campaign_opts:
+        use_sqm = True
+        extra_guidelines = True
+
+    if extra_guidelines:
+        priming_question_text += ' (see detailed guidelines below)'
+
     context = {
         'active_page': 'pairwise-assessment',
         'reference_label': reference_label,
@@ -1430,16 +1466,13 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         'campaign': campaign.campaignName,
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
+        'sqm': use_sqm,
+        'critical_error': critical_error,
+        'source_error': source_error,
     }
     context.update(BASE_CONTEXT)
 
-    campaign_opts = campaign.campaignOptions or ""
-    if 'sqm' in campaign_opts.lower():
-        html_file = 'EvalView/pairwise-assessment-sqm.html'
-    else:
-        html_file = 'EvalView/pairwise-assessment.html'
-
-    return render(request, html_file, context)
+    return render(request, 'EvalView/pairwise-assessment.html', context)
 
 
 # pylint: disable=C0103,C0330

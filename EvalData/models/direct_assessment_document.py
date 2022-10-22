@@ -18,6 +18,7 @@ from django.utils.translation import gettext_lazy as _
 from Appraise.utils import _get_logger
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 from EvalData.models.base_models import AnnotationTaskRegistry
+from EvalData.models.base_models import BaseAssessmentResult
 from EvalData.models.base_models import BaseMetadata
 from EvalData.models.base_models import MAX_REQUIREDANNOTATIONS_VALUE
 from EvalData.models.base_models import seconds_to_timedelta
@@ -486,7 +487,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         return '{0}.{1}[{2}]'.format(self.__class__.__name__, self.campaign, self.id)
 
 
-class DirectAssessmentDocumentResult(BaseMetadata):
+class DirectAssessmentDocumentResult(BaseAssessmentResult):
     """
     Models a direct assessment document evaluation result.
     """
