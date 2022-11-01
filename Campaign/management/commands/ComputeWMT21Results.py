@@ -31,6 +31,7 @@ LANGUAGE_CODES = {
     'hrv': 'hr',
     'ukr': 'uk',
     'sah': 'sah',
+    'liv': 'liv',
 }
 
 
