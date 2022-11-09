@@ -1,0 +1,14 @@
+{
+    "CAMPAIGN_URL": "http://127.0.0.1:8000/dashboard/sso/",
+    "CAMPAIGN_NAME": "example14namedentities",
+    "CAMPAIGN_KEY": "c14",
+    "CAMPAIGN_NO": 14,
+    "REDUNDANCY": 1,
+
+    "TASKS_TO_ANNOTATORS": [
+        ["eng", "deu", "uniform",  1, 1]
+    ],
+
+    "TASK_TYPE": "Direct",
+    "TASK_OPTIONS": "NamedEntitiesEvaluation"
+}

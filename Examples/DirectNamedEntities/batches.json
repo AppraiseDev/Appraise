@@ -1,0 +1,1014 @@
+[
+  {
+    "items": [
+      {
+        "_block": 0,
+        "_item": 0,
+        "itemID": 50,
+        "itemType": "REF",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "His whole clavicle was ripped open,\" <b>Hammel</b> said he noticed once he got to the boy.",
+        "targetID": "newstest2019-ende-ref.de",
+        "targetText": "Sein ganzes Schl\u00fcsselbein wurde aufgerissen, sagte Hammel, er stellte dies fest als er zu dem Jungen kam."
+      },
+      {
+        "_block": 0,
+        "_item": 1,
+        "itemID": 26,
+        "itemType": "REF",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "It said Lloyds would play a role in the plan, by adding an extended range of luxury skincare brands including <b>La Roche-Posay</b> and Vichy in four stores.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Es hie\u00df, dass Lloyds eine Rolle in dem Plan spielen w\u00fcrde, indem es eine erweiterte Palette von Luxus-Hautpflegemarken, darunter La Roche-Posay und Vichy, in vier Gesch\u00e4ften hinzuf\u00fcgt."
+      },
+      {
+        "_block": 0,
+        "_item": 2,
+        "itemID": 25,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "His whole clavicle was ripped open,\" <b>Hammel</b> said he noticed once he got to the boy.",
+        "targetID": "newstest2019-ende-ref.de",
+        "targetText": "Sein ganzes Schl\u00fcsselbein wurde aufgerissen, sagte Hammel, er stellte dies fest als er zu dem Jungen kam."
+      },
+      {
+        "_block": 0,
+        "_item": 3,
+        "itemID": 72,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "It said <b>Lloyds</b> would play a role in the plan, by adding an extended range of luxury skincare brands including La Roche-Posay and Vichy in four stores.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Es hie\u00df, dass Lloyds eine Rolle in dem Plan spielen w\u00fcrde, indem es eine erweiterte Palette von Luxus-Hautpflegemarken, darunter La Roche-Posay und Vichy, in vier Gesch\u00e4ften hinzuf\u00fcgt."
+      },
+      {
+        "_block": 0,
+        "_item": 4,
+        "itemID": 16,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "<b>AMs</b> will get the final vote on the question of what they should be called when they debate the legislation.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Die AMs werden die Schlussabstimmung \u00fcber die Frage erhalten, wie sie bei der Debatte \u00fcber die Rechtsvorschriften genannt werden sollten."
+      },
+      {
+        "_block": 0,
+        "_item": 5,
+        "itemID": 68,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "<b>Sainsbury's</b> has been putting Argos outlets in hundreds of stores and has also introduced a number of Habitats since it bought both chains two years ago, which it says has bolstered grocery sales and made the acquisitions more profitable.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Sainsbury's hat Argos-Gesch\u00e4fte in hunderten von Gesch\u00e4ften eingerichtet und auch eine Reihe von Habitats eingef\u00fchrt, seit es vor zwei Jahren beide Ketten gekauft hat, was, wie es hei\u00dft, die Lebensmittelverk\u00e4ufe gest\u00e4rkt und die Akquisitionen profitabler gemacht hat."
+      },
+      {
+        "_block": 0,
+        "_item": 6,
+        "itemID": 43,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Some parishioners complained of a lack of transparency on the <b>diocese's</b> part.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Einige Gemeindemitglieder beschwerten sich \u00fcber einen Mangel an Transparenz auf Seiten der Di\u00f6zese."
+      },
+      {
+        "_block": 0,
+        "_item": 7,
+        "itemID": 15,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The legislation on the reforms will include other changes to the way the assembly works, including rules on disqualification of <b>AMs</b> and the design of the committee system.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Die Rechtsvorschriften zu den Reformen werden weitere \u00c4nderungen an der Arbeitsweise der Versammlung beinhalten, darunter Vorschriften \u00fcber den Ausschluss von AMs und die Gestaltung des Ausschusssystems."
+      },
+      {
+        "_block": 0,
+        "_item": 8,
+        "itemID": 63,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Existing ranges from L'Oreal, Maybelline and Burt's Bees will also get more space with branded areas similar to those found in shops like <b>Boots</b>.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Bestehende Sortimente von L'Oreal, Maybelline und Burt's Bees erhalten ebenfalls mehr Platz mit Markenbereichen, die denen in Gesch\u00e4ften wie Boots \u00e4hneln."
+      },
+      {
+        "_block": 0,
+        "_item": 9,
+        "itemID": 29,
+        "itemType": "REF",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Existing ranges from L'Oreal, <b>Maybelline</b> and Burt's Bees will also get more space with branded areas similar to those found in shops like Boots.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Bestehende Sortimente von L'Oreal, Maybelline und Burt's Bees erhalten ebenfalls mehr Platz mit Markenbereichen, die denen in Gesch\u00e4ften wie Boots \u00e4hneln."
+      },
+      {
+        "_block": 1,
+        "_item": 10,
+        "itemID": 65,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "In addition, perfume retailer the Fragrance Shop will be testing out concessions in two Sainsbury's stores, the first of which opened in <b>Croydon</b>, south London, last week while a second opens in Selly Oak, Birmingham, later this year.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Dar\u00fcber hinaus wird der Parf\u00fcmh\u00e4ndler Fragrance Shop Konzessionen in zwei Sainsbury's-Gesch\u00e4ften testen, von denen das erste letzte Woche in Croydon, S\u00fcdlondon, er\u00f6ffnet wurde, w\u00e4hrend ein zweites Ende dieses Jahres in Selly Oak, Birmingham, er\u00f6ffnet wird."
+      },
+      {
+        "_block": 1,
+        "_item": 11,
+        "itemID": 9,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "In this context The Welsh letter w is pronounced similarly to the <b>Yorkshire</b> English pronunciation of the letter u.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "In diesem Zusammenhang wird der walisische Buchstabe w \u00e4hnlich wie die Yorkshire-Englische Aussprache des Buchstabens u ausgesprochen."
+      },
+      {
+        "_block": 1,
+        "_item": 12,
+        "itemID": 39,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The expert, <b>Tiffany Ng</b> of the University of Michigan, also noted that it was the first carillon in the world to be played by a black musician, Dionisio A. Lind, who moved to the larger carillon at the Riverside Church 18 years ago.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Der Experte, Tiffany Ng von der University of Michigan, bemerkte auch, dass es das erste Carillon der Welt war, das von einem schwarzen Musiker gespielt wurde, Dionisio A. Lind, der vor 18 Jahren in das gr\u00f6\u00dfere Carillon an der Riverside Church umzog."
+      },
+      {
+        "_block": 1,
+        "_item": 13,
+        "itemID": 71,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The new strategy comes after Sainsbury's sold its 281-store pharmacy business to Celesio, the owner of the <b>Lloyds Pharmacy chain</b>, for \u00a3125m, three years ago.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Die neue Strategie kommt, nachdem Sainsbury's vor drei Jahren sein 281-Store-Apothekengesch\u00e4ft an Celesio, den Eigent\u00fcmer der Lloyds-Apothekenkette, f\u00fcr 125 Mio. GBP verkauft hat."
+      },
+      {
+        "_block": 1,
+        "_item": 14,
+        "itemID": 23,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The Bells of St. Martin's Fall Silent as Churches in <b>Harlem Struggle</b>",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Die Glocken von St. Martins Fall schweigen als Kirchen in Harlem Kampf"
+      },
+      {
+        "_block": 1,
+        "_item": 15,
+        "itemID": 9,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "In this context The Welsh letter w is pronounced similarly to the <b>Yorkshire</b> English pronunciation of the letter u.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "In diesem Zusammenhang wird der walisische Buchstabe w \u00e4hnlich wie die Yorkshire-englische Aussprache des Buchstabens u ausgesprochen."
+      },
+      {
+        "_block": 1,
+        "_item": 16,
+        "itemID": 39,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The expert, Tiffany Ng of the University of Michigan, also noted that it was the first carillon in the world to be played by a black musician, <b>Dionisio A. Lind</b>, who moved to the larger carillon at the Riverside Church 18 years ago.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Der Experte, Tiffany Ng von der University of Michigan, merkte auch an, dass es das erste Glockenspiel der Welt war, das von einem schwarzen Musiker gespielt wurde, Dionisio A. Lind, der vor 18 Jahren in das gr\u00f6\u00dfere Glockenspiel in der Riverside Church umzog."
+      },
+      {
+        "_block": 1,
+        "_item": 17,
+        "itemID": 56,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Officials shut down beach access from <b>Ponto Beach in Casablad</b> to Swami's in Ecinitas for 48 hours for investigation and safety purposes.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Beamte sperrten den Strandzugang von Ponto Beach in Casablad zu Swami's in Ecinitas f\u00fcr 48 Stunden zu Untersuchungs- und Sicherheitszwecken."
+      },
+      {
+        "_block": 1,
+        "_item": 18,
+        "itemID": 75,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Officials shut down beach access from <b>Ponto Beach</b> in Casablad to Swami's in Ecinitas for 48 hours for investigation and safety purposes.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Beamte sperrten den Strandzugang von Ponto Beach in Casablad zu Swami's in Ecinitas f\u00fcr 48 Stunden zu Untersuchungs- und Sicherheitszwecken."
+      },
+      {
+        "_block": 1,
+        "_item": 19,
+        "itemID": 47,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Chad Hammel told <b>KSWB-TV</b> in San Diego he had been diving with friends for about half an hour Saturday morning when he heard the boy screaming for help and then paddled over with a group to help pull him out of the water.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Chad Hammel erz\u00e4hlte KSWB-TV in San Diego, dass er am Samstagmorgen etwa eine halbe Stunde mit Freunden getaucht war, als er den Jungen um Hilfe schreien h\u00f6rte und dann mit einer Gruppe hin\u00fcberpaddelte, um ihn aus dem Wasser zu ziehen."
+      },
+      {
+        "_block": 2,
+        "_item": 20,
+        "itemID": 64,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The supermarket is also relaunching its <b>Boutique</b> makeup range so that the majority of products are vegan-friendly - something increasingly demanded by younger shoppers.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Zudem bringt der Supermarkt sein Boutique-Make-up-Sortiment neu auf den Markt, so dass die meisten Produkte vegan-freundlich sind \u2013 was zunehmend von j\u00fcngeren K\u00e4ufern nachgefragt wird."
+      },
+      {
+        "_block": 2,
+        "_item": 21,
+        "itemID": 19,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The popular vote was set up in a bid to resolve a decades-long dispute with neighboring <b>Greece</b>, which has its own province called Macedonia.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Die Volksabstimmung wurde ins Leben gerufen, um einen jahrzehntelangen Streit mit dem benachbarten Griechenland zu l\u00f6sen, das eine eigene Provinz namens Mazedonien hat."
+      },
+      {
+        "_block": 2,
+        "_item": 22,
+        "itemID": 24,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "\"Historically, the old people I've talked to say there was a bar and a church on every corner,\" <b>Mr. Adams</b> said.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "\u201eHistorisch gesehen sagen die alten Leute, mit denen ich gesprochen habe, dass es an jeder Ecke eine Bar und eine Kirche gab\u201c, sagte Herr Adams."
+      },
+      {
+        "_block": 2,
+        "_item": 23,
+        "itemID": 42,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The vestry - the parish's governing body, made up of lay leaders - wrote the diocese in <b>July</b> with concerns that the diocese \"would seek to pass along the costs\" to the vestry, even though the vestry had not been involved in hiring the architects and contractors the diocese sent in.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Die Sakristei \u2013 das Leitungsgremium der Pfarrei, das sich aus Laienf\u00fchrern zusammensetzt \u2013 schrieb die Di\u00f6zese im Juli mit der Sorge, dass die Di\u00f6zese versuchen w\u00fcrde, die Kosten auf die Sakristei abzuw\u00e4lzen, obwohl die Sakristei nicht an der Einstellung der Architekten und Bauunternehmer beteiligt war, die von der Di\u00f6zese entsandt wurden."
+      },
+      {
+        "_block": 2,
+        "_item": 24,
+        "itemID": 66,
+        "itemType": "CHK",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Online shopping and a shift towards buying small amounts of <b>food daily</b> at local convenience stores means supermarkets are having to do more to persuade people to visit.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Online-Shopping und eine Verschiebung hin zum Kauf kleiner Mengen von Lebensmitteln t\u00e4glich in lokalen Convenience-Stores bedeutet, Superm\u00e4rkte m\u00fcssen mehr tun, um die Menschen zu \u00fcberzeugen, zu besuchen."
+      },
+      {
+        "_block": 2,
+        "_item": 25,
+        "itemID": 1,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "<b>Welsh AMs</b> worried about 'looking like muppets'",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Welsh AMs besorgt dar\u00fcber, dass sie \u201ewie Muppets aussehen\u201c"
+      },
+      {
+        "_block": 2,
+        "_item": 26,
+        "itemID": 53,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "<b>Sainsbury's</b> plans push into UK beauty market",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Sainsbury's plant Vorsto\u00df in den britischen Beauty-Markt"
+      },
+      {
+        "_block": 2,
+        "_item": 27,
+        "itemID": 36,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "A fire in 1939 left the building badly damaged, but as <b>Father Johnson's</b> parishioners made plans to rebuild, they commissioned the carillon.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Ein Brand im Jahre 1939 hinterlie\u00df das Geb\u00e4ude schwer besch\u00e4digt, aber als Pfarrangeh\u00f6rige von Pater Johnson Pl\u00e4ne zum Wiederaufbau machten, gaben sie das Glockenspiel in Auftrag."
+      },
+      {
+        "_block": 2,
+        "_item": 28,
+        "itemID": 58,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Sainsbury's plans push into <b>UK</b> beauty market",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Sainsbury's plant Vorsto\u00df in den britischen Beauty-Markt"
+      },
+      {
+        "_block": 2,
+        "_item": 29,
+        "itemID": 23,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The Bells of St. Martin's Fall Silent as Churches in Harlem Struggle",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Die Glocken von St. Martin verstummen, w\u00e4hrend die Kirchen in Harlem k\u00e4mpfen"
+      },
+      {
+        "_block": 3,
+        "_item": 30,
+        "itemID": 6,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "For readers outside of Wales: In Welsh twp means daft and pwp means poo.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "F\u00fcr Leser au\u00dferhalb von Wales: In Walisisch bedeutet twp daft und pwp poo."
+      },
+      {
+        "_block": 3,
+        "_item": 31,
+        "itemID": 52,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The boy was airlifted to Rady Children's Hospital in San Diego where he is listed in critical condition.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Der Junge wurde ins Rady Children's Hospital in San Diego geflogen, wo er in kritischem Zustand gelistet ist."
+      },
+      {
+        "_block": 3,
+        "_item": 32,
+        "itemID": 4,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "AMs across the political spectrum are worried it could invite ridicule.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "AMs aus dem gesamten politischen Spektrum sind besorgt, dass es zum Spott einladen k\u00f6nnte."
+      },
+      {
+        "_block": 3,
+        "_item": 33,
+        "itemID": 31,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "\"The overwhelming majority of people who buy condominiums in these buildings will be white,\" he said, \"and therefore will hasten the day that these churches close altogether because it is unlikely that most of these people who move into these condominiums will become members of these churches.\"",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "\u201eDie \u00fcberw\u00e4ltigende Mehrheit der Menschen, die Eigentumswohnungen in diesen Geb\u00e4uden kaufen, wird wei\u00df sein\u201c, sagte er, \u201eund wird daher den Tag beschleunigen, an dem diese Kirchen ganz geschlossen werden, weil es unwahrscheinlich ist, dass die meisten dieser Menschen, die in diese Eigentumswohnungen ziehen, Mitglieder dieser Kirchen werden\u201c."
+      },
+      {
+        "_block": 3,
+        "_item": 34,
+        "itemID": 21,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Macedonian President Gjorge Ivanov, an opponent of the plebiscite on the name change, has said he will disregard the vote.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Der mazedonische Pr\u00e4sident Gjorge Ivanov, ein Gegner der Volksabstimmung \u00fcber die Namens\u00e4nderung, hat erkl\u00e4rt, er werde die Abstimmung missachten."
+      },
+      {
+        "_block": 3,
+        "_item": 35,
+        "itemID": 55,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Giles added the victim sustained traumatic injuries to his upper torso area.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Giles f\u00fcgte hinzu, das Opfer erlitt traumatische Verletzungen an seinem oberen Oberk\u00f6rperbereich."
+      },
+      {
+        "_block": 3,
+        "_item": 36,
+        "itemID": 3,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "It has arisen because of plans to change the name of the assembly to the Welsh Parliament.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Es ist aufgrund von Pl\u00e4nen entstanden, den Namen der Versammlung in das walisische Parlament zu \u00e4ndern."
+      },
+      {
+        "_block": 3,
+        "_item": 37,
+        "itemID": 69,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The supermarket's previous attempt to revamp its beauty and pharmacy departments ended in failure.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Der fr\u00fchere Versuch des Supermarktes, seine Beauty- und Apothekenabteilungen umzugestalten, scheiterte."
+      },
+      {
+        "_block": 3,
+        "_item": 38,
+        "itemID": 28,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "\"Bars are no longer neighborhood living rooms where people go on a regular basis.\"",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "\u201eBars sind keine Nachbarschaftswohnzimmer mehr, in die die Menschen regelm\u00e4\u00dfig gehen\u201c."
+      },
+      {
+        "_block": 3,
+        "_item": 39,
+        "itemID": 2,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "There is consternation among some AMs at a suggestion their title should change to MWPs (Member of the Welsh Parliament).",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Es gibt Best\u00fcrzung unter einigen AMs \u00fcber einen Vorschlag, ihren Titel in MWPs (Mitglied des walisischen Parlaments) zu \u00e4ndern."
+      },
+      {
+        "_block": 4,
+        "_item": 40,
+        "itemID": 35,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "St. Martin's was taken over by a black congregation under the Rev. John Howard Johnson, who led a boycott of retailers on 125th Street, a main street for shopping in Harlem, who resisted hiring or promoting blacks.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "St. Martin's wurde von einer schwarzen Gemeinde unter Rev. John Howard Johnson \u00fcbernommen, der einen Boykott von Einzelh\u00e4ndlern auf der 125th Street, einer Hauptstra\u00dfe zum Einkaufen in Harlem, f\u00fchrte, die sich der Einstellung oder F\u00f6rderung von Schwarzen widersetzten."
+      },
+      {
+        "_block": 4,
+        "_item": 41,
+        "itemID": 10,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The Assembly Commission, which is currently drafting legislation to introduce the name changes, said: \"The final decision on any descriptors of what Assembly Members are called will of course be a matter for the members themselves.\"",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Die Versammlungskommission, die derzeit Rechtsvorschriften zur Einf\u00fchrung der Namens\u00e4nderung ausarbeitet, sagte: \u201eDie endg\u00fcltige Entscheidung \u00fcber alle Deskriptoren dessen, was Versammlungsmitglieder genannt werden, wird nat\u00fcrlich Sache der Mitglieder selbst sein\u201c."
+      },
+      {
+        "_block": 4,
+        "_item": 42,
+        "itemID": 33,
+        "itemType": "REF",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The original white Methodist congregation moved out in the 1930s.",
+        "targetID": "newstest2019-ende-ref.de",
+        "targetText": "Die urspr\u00fcngliche wei\u00dfe methodistische Gemeinde zog in den 1930er Jahren aus."
+      },
+      {
+        "_block": 4,
+        "_item": 43,
+        "itemID": 19,
+        "itemType": "REF",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The popular vote was set up in a bid to resolve a decades-long dispute with neighboring Greece, which has its own province called Macedonia.",
+        "targetID": "newstest2019-ende-ref.de",
+        "targetText": "Die Volksabstimmung wird abgehalten, um einen jahrzehntelangen Streit mit dem benachbarten Griechenland beizulegen, in dem eine Provinz den Namen Mazedonien tr\u00e4gt."
+      },
+      {
+        "_block": 4,
+        "_item": 44,
+        "itemID": 38,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The expert who played the carillon in July called it something else: \"A cultural treasure\" and \"an irreplaceable historical instrument.\"",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Der Experte, der das Carillon im Juli spielte, nannte es etwas anderes: walisische Parlament die M\u00f6glichkeit, seinen unersetzliches historisches Instrument\u201c."
+      },
+      {
+        "_block": 4,
+        "_item": 45,
+        "itemID": 55,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Giles added the victim sustained traumatic injuries to his upper torso area.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Giles f\u00fcgte hinzu, dass das Opfer traumatische Verletzungen an seinem Oberk\u00f6rperbereich erlitt."
+      },
+      {
+        "_block": 4,
+        "_item": 46,
+        "itemID": 71,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The new strategy comes after Sainsbury's sold its 281-store pharmacy business to Celesio, the owner of the Lloyds Pharmacy chain, for \u00a3125m, three years ago.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Die neue Strategie kommt, nachdem Sainsbury's vor drei Jahren sein 281-Store-Apothekengesch\u00e4ft f\u00fcr 125 Millionen Pfund an Celesio, den Eigent\u00fcmer der Lloyds-Apothekenkette, verkauft hatte."
+      },
+      {
+        "_block": 4,
+        "_item": 47,
+        "itemID": 61,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The investment in beauty comes as supermarkets hunt for ways to use up shelf space once sued for TVs, microwaves and homeware.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Die Investition in Sch\u00f6nheit kommt, w\u00e4hrend Superm\u00e4rkte nach M\u00f6glichkeiten suchen, Regalfl\u00e4chen zu nutzen, die einst f\u00fcr Fernseher, Mikrowellen und Haushaltswaren verklagt wurden."
+      },
+      {
+        "_block": 4,
+        "_item": 48,
+        "itemID": 45,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "A shark attacked and injured a 13-year-old boy Saturday while he was diving for lobster in California on the opening day of lobster season, officials said.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Ein Hai angegriffen und verletzt einen 13-j\u00e4hrigen Jungen Samstag, w\u00e4hrend er f\u00fcr Hummer in Kalifornien am Er\u00f6ffnungstag der Hummersaison tauchen, sagten Beamte."
+      },
+      {
+        "_block": 4,
+        "_item": 49,
+        "itemID": 30,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Churches, he added, could be replaced by apartment buildings with condominiums filled with the kind of people who will not help the neighborhood's remaining sanctuaries.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Kirchen, f\u00fcgte er hinzu, k\u00f6nnten durch Mehrfamilienh\u00e4user mit Eigentumswohnungen ersetzt werden, die mit der Art von Menschen gef\u00fcllt sind, die den verbleibenden Heiligt\u00fcmern des Viertels nicht helfen werden."
+      },
+      {
+        "_block": 5,
+        "_item": 50,
+        "itemID": 50,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "His whole clavicle was ripped open,\" Hammel said he noticed once he got to the boy.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Sein ganzes Schl\u00fcsselbein wurde aufgerissen\u201c, sagte Hammel, als er zu dem Jungen kam."
+      },
+      {
+        "_block": 5,
+        "_item": 51,
+        "itemID": 26,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "He said the disappearance of bars was understandable.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Er sagte, das Verschwinden der Bars sei verst\u00e4ndlich."
+      },
+      {
+        "_block": 5,
+        "_item": 52,
+        "itemID": 48,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Hammel said at first he thought it was just excitement of catching a lobster, but then he \"realized that he was yelling, 'I got bit!",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Hammel sagte zun\u00e4chst, dass er dachte, es sei nur Aufregung, einen Hummer zu fangen, aber dann \u201eerkennte er, dass er schrie: 'Ich habe Biss!"
+      },
+      {
+        "_block": 5,
+        "_item": 53,
+        "itemID": 74,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "We've also invested in specially trained colleagues who will be on hand to offer advice.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Wir haben auch in speziell ausgebildete Kollegen investiert, die zur Verf\u00fcgung stehen werden, um Ratschl\u00e4ge zu erteilen."
+      },
+      {
+        "_block": 5,
+        "_item": 54,
+        "itemID": 5,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "One Labour AM said his group was concerned \"it rhymes with Twp and Pwp.\"",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Ein Labour AM sagte, seine Gruppe sei besorgt, \u201ees reimt sich mit Twp und Pwp\u201c."
+      },
+      {
+        "_block": 5,
+        "_item": 55,
+        "itemID": 68,
+        "itemType": "CHK",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Sainsbury's has been putting Argos outlets in hundreds of stores and has also introduced a number of Habitats since it bought both chains two years ago, which it says has bolstered grocery sales and made the acquisitions more profitable.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Sainsbury's hat Argos-Gesch\u00e4fte in hunderten von Gesch\u00e4ften eingerichtet und auch eine Reihe von Habitats eingef\u00fchrt, seit es vor zwei Jahren beide Ketten gekauft hat, was, wie es hei\u00dft, die Lebensmittelverk\u00e4ufe gest\u00e4rkt und die Akquisitionen profitabler gemacht hat."
+      },
+      {
+        "_block": 5,
+        "_item": 56,
+        "itemID": 21,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Macedonian President Gjorge Ivanov, an opponent of the plebiscite on the name change, has said he will disregard the vote.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Der mazedonische Pr\u00e4sident Gjorge Ivanov, ein Gegner der Volksabstimmung \u00fcber die Namens\u00e4nderung, hat erkl\u00e4rt, dass er die Abstimmung missachten werde."
+      },
+      {
+        "_block": 5,
+        "_item": 57,
+        "itemID": 15,
+        "itemType": "CHK",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The legislation on the reforms will include other changes to the way the assembly works, including rules on disqualification of AMs and the design of the committee system.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Die Rechtsvorschriften zu den Reformen werden weitere \u00c4nderungen an der Arbeitsweise der Versammlung beinhalten, darunter Vorschriften \u00fcber den Ausschluss von AMs und die Gestaltung des Ausschusssystems."
+      },
+      {
+        "_block": 5,
+        "_item": 58,
+        "itemID": 14,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "AMs are apparently suggesting alternative options, but the struggle to reach consensus could be a headache for the Presiding Officer, Elin Jones, who is expected to submit draft legislation on the changes within weeks.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "AMs schlagen anscheinend alternative Optionen vor, aber das Ringen um einen Konsens k\u00f6nnte dem Vorsitzenden Elin Jones Kopfzerbrechen bereiten, der innerhalb von Wochen Gesetzesentw\u00fcrfe zu den \u00c4nderungen vorlegen soll."
+      },
+      {
+        "_block": 5,
+        "_item": 59,
+        "itemID": 29,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "As for churches, he worries that the money from selling assets will not last as long as leaders expect it to, \"and sooner or later they'll be right back where they started.\"",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Was die Kirchen angeht, so sorgt er sich, dass das Geld aus dem Verkauf von Verm\u00f6genswerten nicht so lange halten wird, wie die Politiker es erwarten, \u201eund fr\u00fcher oder sp\u00e4ter werden sie wieder da sein, wo sie angefangen haben\u201c."
+      },
+      {
+        "_block": 6,
+        "_item": 60,
+        "itemID": 41,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "What has played out at St. Martin's over the last few months has been a complicated tale of architects and contractors, some brought in by the lay leaders of the church, others by the Episcopal diocese.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Was sich in den letzten Monaten in St. Martin's abgespielt hat, war eine komplizierte Geschichte von Architekten und Bauunternehmern, von denen einige von den Laienf\u00fchrern der Kirche, andere von der Bischofsdi\u00f6zese eingebracht wurden."
+      },
+      {
+        "_block": 6,
+        "_item": 61,
+        "itemID": 11,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The Government of Wales Act 2017 gave the Welsh assembly the power to change its name.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Der Government of Wales Act 2017 gab der walisischen Versammlung die Befugnis, ihren Namen zu \u00e4ndern."
+      },
+      {
+        "_block": 6,
+        "_item": 62,
+        "itemID": 37,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The Rev. David Johnson, Father Johnson's son and successor at St. Martin's, proudly called the carillon \"the poor people's bells.\"",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Rev. David Johnson, Pater Johnsons Sohn und Nachfolger bei St. Martin's, nannte das Glockenspiel stolz \u201edie Glocken der Armen\u201c."
+      },
+      {
+        "_block": 6,
+        "_item": 63,
+        "itemID": 64,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The supermarket is also relaunching its Boutique makeup range so that the majority of products are vegan-friendly - something increasingly demanded by younger shoppers.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Der Supermarkt bringt auch sein Boutique-Make-up-Sortiment neu auf den Markt, so dass die Mehrheit der Produkte vegan-freundlich ist \u2013 etwas, das von j\u00fcngeren K\u00e4ufern zunehmend verlangt wird."
+      },
+      {
+        "_block": 6,
+        "_item": 64,
+        "itemID": 70,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Sainsbury's tested a joint venture with Boots in the early 2000s, but the tie-up ended after a row over how to split the revenues from the chemist's stores in its supermarkets.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Sainsbury's testete Anfang der 2000er Jahre ein Joint Venture mit Boots, aber die Bindung endete nach einem Streit dar\u00fcber, wie die Einnahmen aus den Apothekengesch\u00e4ften in seinen Superm\u00e4rkten aufgeteilt werden sollten."
+      },
+      {
+        "_block": 6,
+        "_item": 65,
+        "itemID": 57,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Giles noted that there are more than 135 shark species in the area, but most are not considered dangerous.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Giles stellte fest, dass es mehr als 135 Haiarten in dem Gebiet gibt, aber die meisten gelten nicht als gef\u00e4hrlich."
+      },
+      {
+        "_block": 6,
+        "_item": 66,
+        "itemID": 49,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "I got bit!'",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Ich habe Biss!'"
+      },
+      {
+        "_block": 6,
+        "_item": 67,
+        "itemID": 70,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Sainsbury's tested a joint venture with Boots in the early 2000s, but the tie-up ended after a row over how to split the revenues from the chemist's stores in its supermarkets.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Sainsbury's testete Anfang der 2000er Jahre ein Joint Venture mit Boots, aber die Bindung endete nach einem Streit dar\u00fcber, wie man die Einnahmen aus den Apothekengesch\u00e4ften in seinen Superm\u00e4rkten aufteilt."
+      },
+      {
+        "_block": 6,
+        "_item": 68,
+        "itemID": 49,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "I got bit!'",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Ich habe gebissen!'"
+      },
+      {
+        "_block": 6,
+        "_item": 69,
+        "itemID": 47,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Chad Hammel told KSWB-TV in San Diego he had been diving with friends for about half an hour Saturday morning when he heard the boy screaming for help and then paddled over with a group to help pull him out of the water.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Chad Hammel erz\u00e4hlte Mitgliedern der Versammlung \u00fcber einen Vorschlag, am Samstagmorgen etwa eine halbe Stunde mit Freunden getaucht war, als er den Jungen um Hilfe schreien h\u00f6rte und dann mit einer Gruppe hin\u00fcberpaddelte, um ihn aus dem Wasser zu ziehen."
+      },
+      {
+        "_block": 7,
+        "_item": 70,
+        "itemID": 10,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The Assembly Commission, which is currently drafting legislation to introduce the name changes, said: \"The final decision on any descriptors of what Assembly Members are called will of course be a matter for the members themselves.\"",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Die Versammlungskommission, die derzeit Rechtsvorschriften zur Einf\u00fchrung der Namens\u00e4nderung ausarbeitet, sagte: \u201eDie endg\u00fcltige Entscheidung \u00fcber die Bezeichnung der Mitglieder der Versammlung wird nat\u00fcrlich Sache der Mitglieder selbst sein\u201c."
+      },
+      {
+        "_block": 7,
+        "_item": 71,
+        "itemID": 39,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The expert, Tiffany Ng of the University of Michigan, also noted that it was the first carillon in the world to be played by a black musician, Dionisio A. Lind, who moved to the larger carillon at the Riverside Church 18 years ago.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Der Experte, Tiffany Ng von der University of Michigan, bemerkte auch, dass es das erste Carillon der Welt war, das von einem schwarzen Musiker, Dionisio A. Lind, gespielt wurde, der vor 18 Jahren in das gr\u00f6\u00dfere Carillon an der Riverside Church umzog."
+      },
+      {
+        "_block": 7,
+        "_item": 72,
+        "itemID": 58,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Sainsbury's plans push into UK beauty market",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Sainsburys Pl\u00e4ne dr\u00e4ngen in den britischen Sch\u00f6nheitsmarkt"
+      },
+      {
+        "_block": 7,
+        "_item": 73,
+        "itemID": 46,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The attack occurred just before 7 a.m. near Beacon's Beach in Encinitas.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Der Angriff ereignete sich kurz vor 7 Uhr morgens in der N\u00e4he von Beacon's Beach in Encinitas."
+      },
+      {
+        "_block": 7,
+        "_item": 74,
+        "itemID": 66,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Online shopping and a shift towards buying small amounts of food daily at local convenience stores means supermarkets are having to do more to persuade people to visit.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Online-Shopping und eine Verschiebung hin zum Kauf kleiner Mengen von Lebensmitteln t\u00e4glich in lokalen Convenience-Stores bedeutet, Superm\u00e4rkte m\u00fcssen mehr tun, um die Menschen zu \u00fcberzeugen, zu besuchen."
+      },
+      {
+        "_block": 7,
+        "_item": 75,
+        "itemID": 15,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The legislation on the reforms will include other changes to the way the assembly works, including rules on disqualification of AMs and the design of the committee system.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Die Rechtsvorschriften zu den Reformen werden weitere \u00c4nderungen an der Arbeitsweise der Versammlung beinhalten, darunter Vorschriften \u00fcber den Ausschluss von AMs und die Ausgestaltung des Ausschusssystems."
+      },
+      {
+        "_block": 7,
+        "_item": 76,
+        "itemID": 53,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The species of shark responsible for the attack was unknown.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Die f\u00fcr den Angriff verantwortliche Haiart war unbekannt."
+      },
+      {
+        "_block": 7,
+        "_item": 77,
+        "itemID": 29,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "As for churches, he worries that the money from selling assets will not last as long as leaders expect it to, \"and sooner or later they'll be right back where they started.\"",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Was die Kirchen angeht, so sorgt er sich, dass das Geld aus dem Verkauf von Verm\u00f6genswerten nicht so lange halten wird, wie die F\u00fchrer es erwarten, \u201eund fr\u00fcher oder sp\u00e4ter werden sie wieder da sein, wo sie angefangen haben\u201c."
+      },
+      {
+        "_block": 7,
+        "_item": 78,
+        "itemID": 58,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Sainsbury's plans push into UK beauty market",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "auf sein Territorium in den britischen Beauty-Markt"
+      },
+      {
+        "_block": 7,
+        "_item": 79,
+        "itemID": 75,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Our range of brands is designed to suit every need and the alluring environment and convenient locations mean we're now a compelling beauty destination which challenges the old way of shopping.\"",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Unsere Markenpalette ist f\u00fcr jeden Bedarf ausgelegt, und die verlockende Umgebung und die g\u00fcnstigen Lagen bedeuten, dass wir jetzt ein \u00fcberzeugendes Beauty-Reiseziel sind, das die alte Art des Einkaufens herausfordert\u201c."
+      },
+      {
+        "_block": 8,
+        "_item": 80,
+        "itemID": 33,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The original white Methodist congregation moved out in the 1930s.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Die urspr\u00fcngliche wei\u00dfe methodistische Gemeinde zog in den 1930er Jahren aus."
+      },
+      {
+        "_block": 8,
+        "_item": 81,
+        "itemID": 52,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The boy was airlifted to Rady Children's Hospital in San Diego where he is listed in critical condition.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Der Junge wurde ins Rady Children's \u201etwp\u201c im Walisischen bedeutet \u201ebescheuert\u201c wo er in kritischem Zustand gelistet ist."
+      },
+      {
+        "_block": 8,
+        "_item": 82,
+        "itemID": 4,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "AMs across the political spectrum are worried it could invite ridicule.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "AMs aus dem gesamten politischen Versammlungsmitglied von Plaid Cymru es zum Spott einladen k\u00f6nnte."
+      },
+      {
+        "_block": 8,
+        "_item": 83,
+        "itemID": 1,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Welsh AMs worried about 'looking like muppets'",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Walisische AMs besorgt dar\u00fcber, dass sie \u201ewie Muppets aussehen\u201c"
+      },
+      {
+        "_block": 8,
+        "_item": 84,
+        "itemID": 4,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "AMs across the political spectrum are worried it could invite ridicule.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "AMs aus dem gesamten politischen Spektrum sind besorgt, dass dies zu Spott f\u00fchren k\u00f6nnte."
+      },
+      {
+        "_block": 8,
+        "_item": 85,
+        "itemID": 55,
+        "itemType": "CHK",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Giles added the victim sustained traumatic injuries to his upper torso area.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Giles f\u00fcgte hinzu, das Opfer erlitt traumatische Verletzungen an seinem oberen Oberk\u00f6rperbereich."
+      },
+      {
+        "_block": 8,
+        "_item": 86,
+        "itemID": 30,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Churches, he added, could be replaced by apartment buildings with condominiums filled with the kind of people who will not help the neighborhood's remaining sanctuaries.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Kirchen, f\u00fcgte er hinzu, k\u00f6nnten durch Mehrfamilienh\u00e4user mit Eigentumswohnungen ersetzt werden, die mit der Art von Menschen gef\u00fcllt sind, die den verbliebenen Heiligt\u00fcmern der Nachbarschaft nicht helfen werden."
+      },
+      {
+        "_block": 8,
+        "_item": 87,
+        "itemID": 69,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The supermarket's previous attempt to revamp its beauty and pharmacy departments ended in failure.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "in der N\u00e4he eine Supermarktes, seine Beauty- und Apothekenabteilungen umzugestalten, scheiterte."
+      },
+      {
+        "_block": 8,
+        "_item": 88,
+        "itemID": 28,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "\"Bars are no longer neighborhood living rooms where people go on a regular basis.\"",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "\u201eBars sind keine Nachbarschaftswohnzimmer mehr, beizulegen, in dem eine regelm\u00e4\u00dfig gehen\u201c."
+      },
+      {
+        "_block": 8,
+        "_item": 89,
+        "itemID": 2,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "There is consternation among some AMs at a suggestion their title should change to MWPs (Member of the Welsh Parliament).",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Es gibt Best\u00fcrzung unter einigen AMs \u00fcber einen Vorschlag, der Nationalversammlung haben Bedenken, dass des walisischen Parlaments) zu \u00e4ndern."
+      },
+      {
+        "_block": 9,
+        "_item": 90,
+        "itemID": 41,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "What has played out at St. Martin's over the last few months has been a complicated tale of architects and contractors, some brought in by the lay leaders of the church, others by the Episcopal diocese.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Was sich in St. Martin's in den letzten Monaten abgespielt hat, war eine komplizierte Geschichte von Architekten und Auftragnehmern, einige von den Laienf\u00fchrern der Kirche, andere von der Bischofsdi\u00f6zese."
+      },
+      {
+        "_block": 9,
+        "_item": 91,
+        "itemID": 10,
+        "itemType": "BAD",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The Assembly Commission, which is currently drafting legislation to introduce the name changes, said: \"The final decision on any descriptors of what Assembly Members are called will of course be a matter for the members themselves.\"",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Die Versammlungskommission, die derzeit Rechtsvorschriften zur Einf\u00fchrung der Namens\u00e4nderung ausarbeitet, sagte: \u201eDie endg\u00fcltige Entscheidung die Schulung von Mitarbeitern investiert, die genannt werden, wird nat\u00fcrlich Sache der Mitglieder selbst sein\u201c."
+      },
+      {
+        "_block": 9,
+        "_item": 92,
+        "itemID": 33,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The original white Methodist congregation moved out in the 1930s.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Die urspr\u00fcngliche wei\u00dfe Methodisten-Gemeinde zog in den 1930er Jahren aus."
+      },
+      {
+        "_block": 9,
+        "_item": 93,
+        "itemID": 19,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The popular vote was set up in a bid to resolve a decades-long dispute with neighboring Greece, which has its own province called Macedonia.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "Die Volksabstimmung wurde mit dem Ziel durchgef\u00fchrt, einen jahrzehntelangen Streit mit dem Nachbarland Griechenland zu l\u00f6sen, das eine eigene Provinz namens Mazedonien hat."
+      },
+      {
+        "_block": 9,
+        "_item": 94,
+        "itemID": 38,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The expert who played the carillon in July called it something else: \"A cultural treasure\" and \"an irreplaceable historical instrument.\"",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Der Experte, der das Carillon im Juli spielte, nannte es etwas anderes: \u201eEin kultureller Schatz\u201c und \u201eein unersetzliches historisches Instrument\u201c."
+      },
+      {
+        "_block": 9,
+        "_item": 95,
+        "itemID": 54,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "Lifeguard Capt. Larry Giles said at a media briefing that a shark had been spotted in the area a few weeks earlier, but it was determined not to be a dangerous species of shark.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt+newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Rettungsschwimmer Capt. Larry Giles sagte bei einem Medienbriefing, dass ein Hai in dem Gebiet einige Wochen zuvor gesichtet worden war, aber es wurde festgestellt, dass es sich nicht um eine gef\u00e4hrliche Haiart handelt."
+      },
+      {
+        "_block": 9,
+        "_item": 96,
+        "itemID": 71,
+        "itemType": "CHK",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "The new strategy comes after Sainsbury's sold its 281-store pharmacy business to Celesio, the owner of the Lloyds Pharmacy chain, for \u00a3125m, three years ago.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt",
+        "targetText": "Die neue Strategie kommt, nachdem Sainsbury's vor drei Jahren sein 281-Store-Apothekengesch\u00e4ft f\u00fcr 125 Millionen Pfund an Celesio, den Eigent\u00fcmer der Lloyds-Apothekenkette, verkauft hatte."
+      },
+      {
+        "_block": 9,
+        "_item": 97,
+        "itemID": 13,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "On the matter of the AMs' title, the Commission favoured Welsh Parliament Members or WMPs, but the MWP option received the most support in a public consultation.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "In der Frage des Titels der AMs bevorzugte die Kommission walisische Parlamentsmitglieder oder WMPs, aber die MWP-Option erhielt in einer \u00f6ffentlichen Konsultation die meiste Unterst\u00fctzung."
+      },
+      {
+        "_block": 9,
+        "_item": 98,
+        "itemID": 24,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "\"Historically, the old people I've talked to say there was a bar and a church on every corner,\" Mr. Adams said.",
+        "targetID": "newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt",
+        "targetText": "\u201eHistorisch gesehen sagen die alten Leute, mit denen ich gesprochen habe, dass es an jeder Ecke eine Bar und eine Kirche gab\u201c, sagte Mr. Adams."
+      },
+      {
+        "_block": 9,
+        "_item": 99,
+        "itemID": 45,
+        "itemType": "TGT",
+        "sourceID": "newstest2019-ende-src.en",
+        "sourceText": "A shark attacked and injured a 13-year-old boy Saturday while he was diving for lobster in California on the opening day of lobster season, officials said.",
+        "targetID": "newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt",
+        "targetText": "Ein Hai hat am Samstag einen 13-j\u00e4hrigen Jungen angegriffen und verletzt, als er am Er\u00f6ffnungstag der Hummersaison in Kalifornien nach Hummer taumelte, sagten Beamte."
+      }
+    ],
+    "task": {
+      "batchNo": 1,
+      "batchSize": 10,
+      "randomSeed": 123456,
+      "requiredAnnotations": 1,
+      "sourceLanguage": "eng",
+      "targetLanguage": "deu"
+    }
+  }
+]

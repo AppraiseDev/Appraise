@@ -1,0 +1,174 @@
+{% extends "Dashboard/base.html" %}
+{% load static %}
+
+{% block head %}
+<style>
+.source-text { color:gray; }
+.target-text { color:gray; font-style:italic; }
+.source-text b, .priming-text b { font-weight:bold; text-decoration:underline; color:black; }
+</style>
+
+<link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}">
+<script src="{% static 'EvalView/js/jquery-ui.min.js' %}"></script>
+<script>
+<!--
+var idleTime = 0;
+
+String.prototype.rot13 = function() {
+  return this.replace(/[a-zA-Z]/g, function(c) {
+    return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
+  });
+};
+
+$(document).ready(function() {
+  $('input[name="start_timestamp"]').val(Date.now()/1000.0);
+});
+
+
+function add_end_timestamp()
+{
+  $('input[name="end_timestamp"]').val(Date.now()/1000.0);
+}
+
+function reset_form()
+{
+  idleTime = 0;
+  $('input[name="start_timestamp"]').val(Date.now()/1000.0);
+  $('#slider').slider('option', 'value', 0);
+}
+
+function validate_form()
+{
+  var radio = $('input[name="score"]:checked');
+  if (radio.length == 0) {
+      alert('Please provide the answer before submitting. Thanks!');
+      return false;
+  }
+  return true;
+}
+
+-->
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+<form action="{{action_url}}" method="post" onsubmit="javascript:add_end_timestamp();">
+{% csrf_token %}
+
+<div class="alert alert-info">
+  <table style="width:100%">
+  <tr>
+    <td style="width:33%;text-align:left;">
+      <strong>{% if isCompleteDocument %}Document{% else %}Sentence pair{% endif %}</strong>
+    </td>
+    <td style="width:33%;text-align:center;">
+      <strong>{{campaign}} #{{datask_id}}:Document #{{document_id}}-{{item_id}}</strong>
+    </td>
+    <td style="width:33%;text-align:right;">
+      <strong>{% if source_language %}{{source_language}} &rarr; {% endif %}{{target_language}}</strong>
+    </td>
+  </tr>
+  </table>
+</div>
+
+<div class="row">
+<div class="col-sm-12 priming-text">
+<p>For the pair of sentences below, consider the following question:</p>
+<p>How accurately does the candidate text (bottom) translates the <b>highlighted</b> named entity from the source text (top) in {{source_language}} into {{target_language}}?
+Please choose one of the available options.
+A named entity is a real-world object, such as a person, location, organization, product, etc., that can be denoted with a proper name. </p>
+<p>Translation quality of the remaining parts (other than the highlighted named entity) should not influence your judgement. </p>
+</div>
+</div>
+
+<div class="row">
+<div class="col-sm-12">
+<blockquote>
+<p class="source-text">{% if reference_context_left %}{{reference_context_left|safe}}{% endif %} <strong>{{reference_text|safe}}</strong> {% if reference_context_right %}{{reference_context_right|safe}}{% endif %}</p>
+<small>{{reference_label}}</small>
+</blockquote>
+</div>
+</div>
+
+<input name="end_timestamp" type="hidden" value="" />
+<input name="item_id" type="hidden" value="{{item_id}}" />
+<input name="task_id" type="hidden" value="{{task_id}}" />
+<input name="document_id" type="hidden" value="{{document_id}}" />
+<input name="start_timestamp" type="hidden" value="" />
+
+<div class="row">
+<div class="col-sm-12">
+<blockquote>
+<p class="target-text">{% if candidate_context_left %}{{candidate_context_left|safe}}{% endif %} <strong>{{candidate_text|safe}}</strong> {% if candidate_context_right %}{{candidate_context_right|safe}}{% endif %}</p>
+<small>{{candidate_label}}</small>
+</blockquote>
+</div>
+
+<div class="col-sm-12">
+<div class="radio-box">
+    <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-2">
+            <p><label class="radio-inline">
+                <input type="radio" name="score" id="radio-0" value="0">
+                <span class="radio-label">The highlighted part in the source text is not a named entity</span>
+            </label></p>
+        </div>
+        <div class="col-sm-2">
+            <p><label class="radio-inline">
+                <input type="radio" name="score" id="radio-1" value="10">
+                <span class="radio-label">Named entity does not appear in the candidate translation</span>
+            </label></p>
+        </div>
+        <div class="col-sm-2">
+            <p><label class="radio-inline">
+                <input type="radio" name="score" id="radio-2" value="20">
+                <span class="radio-label">Named entity is incorrectly translated</span>
+            </label></p>
+        </div>
+        <div class="col-sm-2">
+            <p><label class="radio-inline">
+                <input type="radio" name="score" id="radio-3" value="30">
+                <span class="radio-label">Named entity is only partially correctly translated</span>
+            </label></p>
+        </div>
+        <!--
+        <div class="col-sm-2">
+            <p><label class="radio-inline">
+                <input type="radio" name="score" id="radio-4" value="4">
+                <span class="radio-label">Named entity is translated, but is inflected incorrectly</span>
+            </label></p>
+        </div>
+        -->
+        <div class="col-sm-2">
+            <p><label class="radio-inline">
+                <input type="radio" name="score" id="radio-5" value="50">
+                <span class="radio-label">Named entity is correctly translated</span>
+            </label></p>
+        </div>
+        <div class="col-sm-1"></div>
+    </div>
+</div>
+</div>
+</div>
+
+</span>
+
+<div class="actions">
+  <table style="width:100%">
+  <tr>
+    <td style="width:50%;text-align:left;">
+      <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn"><i class="icon-repeat"></i> Reset</button>
+    </td>
+    <td style="width:50%;text-align:right;">
+      <button class="btn btn-primary" name="submit_button" accesskey="1" type="submit" value="SUBMIT" onclick="javascript:return validate_form();"><i class="icon-ok-sign icon-white"></i> Submit</button>
+    </td>
+  </tr>
+  </table>
+</div>
+
+</form>
+
+{% endblock %}
