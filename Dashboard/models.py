@@ -146,6 +146,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'bew': 'Betawi (bahasa Betawi)',
     'gan': 'Gan (赣语)',
     'kin': 'Rwanda (Ikinyarwanda)',
+    'nso': 'Sepedi (Sesotho sa Leboa)',
     'shi': 'Shilha (ⵜⴰⵛⵍⵃⵉⵢⵜ)',
     'ace': 'Acehnese (Basa Acèh)',
     'quc': "K'iche' (Qatzijobʼal)",
