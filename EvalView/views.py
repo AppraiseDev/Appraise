@@ -860,6 +860,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     static_context = 'staticcontext' in campaign_opts
     use_sqm = 'sqm' in campaign_opts
     ui_language = 'enu'
+    doc_guidelines = 'doclvlguideline' in campaign_opts
 
     error_types = None
     critical_error = None
@@ -924,6 +925,18 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             'the whole document only after scoring all individual sentences first).',
         ]
         candidate_label = None
+
+    if doc_guidelines:
+        priming_question_texts += [
+            'The following evaluation may contain outputs of translation '
+            'systems that translated groups of sentences together, rather than '
+            'the usual situation of translating sentences independently, without '
+            'context. We are hoping to learn whether this produces <u>translations '
+            'that are better when evaluated according to document-level '
+            'properties, such as consistency of style, selection of translation '
+            'terms, formality, and so on</u>. Please pay attention to these, in '
+            'addition to the usual correctness criteria.'
+        ]
 
     # German instructions for WMT22 sign language task
     if 'wmt22signlt' in campaign_opts:
@@ -2060,6 +2073,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     monolingual_task = 'monolingual' in campaign_opts
     use_sqm = 'sqm' in campaign_opts
     static_context = 'staticcontext' in campaign_opts
+    doc_guidelines = 'doclvlguideline' in campaign_opts
 
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
@@ -2082,6 +2096,18 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         ]
         candidate1_label = 'Sentence A'
         candidate2_label = 'Sentence B'
+
+    if doc_guidelines:
+        priming_question_texts += [
+            'The following evaluation may contain outputs of translation '
+            'systems that translated groups of sentences together, rather than '
+            'the usual situation of translating sentences independently, without '
+            'context. We are hoping to learn whether this produces <u>translations '
+            'that are better when evaluated according to document-level '
+            'properties, such as consistency of style, selection of translation '
+            'terms, formality, and so on</u>. Please pay attention to these, in '
+            'addition to the usual correctness criteria.'
+        ]
 
     # A part of context used in responses to both Ajax and standard POST
     # requests
