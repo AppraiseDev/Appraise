@@ -927,15 +927,19 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         candidate_label = None
 
     if doc_guidelines:
-        priming_question_texts += [
-            'The following evaluation may contain outputs of translation '
-            'systems that translated groups of sentences together, rather than '
-            'the usual situation of translating sentences independently, without '
-            'context. We are hoping to learn whether this produces <u>translations '
-            'that are better when evaluated according to document-level '
-            'properties, such as consistency of style, selection of translation '
-            'terms, formality, and so on</u>. Please pay attention to these, in '
-            'addition to the usual correctness criteria.'
+        priming_question_texts = [
+            'Below you see a document with {0} pseudo-paragraphs in {1} (left columns) '
+            'and their corresponding two candidate translations in {2} (middle and right column). '
+            'Please score each paragraph of both candidate translations '
+            '<u><b>paying special attention to document-level properties, '
+            'such as consistency of style, selection of translation terms, formality, '
+            'and so on</b></u>, in addition to the usual correctness criteria. '
+            'Note that sentences in each paragraph were separated by the <i>&lt;eos&gt;</i> tags '
+            'for convenience and this should not impact your assessment. '.format(
+                len(block_items) - 1,
+                source_language,
+                target_language,
+            ),
         ]
 
     # German instructions for WMT22 sign language task
@@ -2098,15 +2102,19 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         candidate2_label = 'Sentence B'
 
     if doc_guidelines:
-        priming_question_texts += [
-            'The following evaluation may contain outputs of translation '
-            'systems that translated groups of sentences together, rather than '
-            'the usual situation of translating sentences independently, without '
-            'context. We are hoping to learn whether this produces <u>translations '
-            'that are better when evaluated according to document-level '
-            'properties, such as consistency of style, selection of translation '
-            'terms, formality, and so on</u>. Please pay attention to these, in '
-            'addition to the usual correctness criteria.'
+        priming_question_texts = [
+            'Below you see a document with {0} pseudo-paragraphs in {1} (left columns) '
+            'and their corresponding two candidate translations in {2} (middle and right column). '
+            'Please score each paragraph of both candidate translations '
+            '<u><b>paying special attention to document-level properties, '
+            'such as consistency of style, selection of translation terms, formality, '
+            'and so on</b></u>, in addition to the usual correctness criteria. '
+            'Note that sentences in each paragraph were separated by the <i>&lt;eos&gt;</i> tags '
+            'for convenience and this should not impact your assessment. '.format(
+                len(block_items) - 1,
+                source_language,
+                target_language,
+            ),
         ]
 
     # A part of context used in responses to both Ajax and standard POST
