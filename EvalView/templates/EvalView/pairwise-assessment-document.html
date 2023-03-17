@@ -612,7 +612,7 @@ function _show_error_box(item_box, msg) {
                 <div class="source-box col-sm-3">
                     <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
                     <span title="Source sentence #{{ item.itemID|add:"1" }}">
-                        <p>{{ item.segmentText }}<small class="segment-label">- {{ reference_label }}</small></p>
+                        <p>{{ scores.segment_text|safe }}<small class="segment-label">- {{ reference_label }}</small></p>
                     </span>
                 </div>
                 {% else %}
