@@ -931,7 +931,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     if doc_guidelines:
         priming_question_texts = [
-            'Below you see a document with {0} pseudo-paragraphs in {1} (left columns) '
+            'Below you see a document with {0} partial-paragraphs in {1} (left columns) '
             'and their corresponding two candidate translations in {2} (middle and right column). '
             'Please score each paragraph of both candidate translations '
             '<u><b>paying special attention to document-level properties, '
