@@ -2111,7 +2111,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             'and their corresponding two candidate translations in {2} (middle and right column). '
             'Please score each paragraph of both candidate translations '
             '<u><b>paying special attention to document-level properties, '
-            'such as consistency of style, selection of translation terms, formality, '
+            'such as consistency of formality and style, selection of translation terms, pronoun choice, '
             'and so on</b></u>, in addition to the usual correctness criteria. '
             'Note that sentences in each paragraph were separated by the <i>&lt;eos&gt;</i> tags '
             'for convenience and this should not impact your assessment. '.format(
