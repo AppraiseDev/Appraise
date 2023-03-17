@@ -500,7 +500,7 @@ function _show_error_box(item_box, msg) {
             <p>{{text|safe}}</p>
             {% endfor %}
             {% if sqm %}
-            {% with mono=monolingual %}
+            {% with mono=monolingual doclvl=doc_guidelines %}
             {% include 'EvalView/_sqm_instructions.html' %}
             {% endwith %}
             {% endif %}
@@ -628,7 +628,7 @@ function _show_error_box(item_box, msg) {
 
             <div class="row half-slider target-box toggleable">
             {% if sqm %}
-                {% with sliderid=item.itemID slidernum=1 mono=monolingual %}
+                {% with sliderid=item.itemID slidernum=1 mono=monolingual doclvl=doc_guidelines %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
@@ -646,7 +646,7 @@ function _show_error_box(item_box, msg) {
 
             <div class="row half-slider target-box toggleable">
             {% if sqm %}
-                {% with sliderid=item.itemID slidernum=2 mono=monolingual %}
+                {% with sliderid=item.itemID slidernum=2 mono=monolingual doclvl=doc_guidelines %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
@@ -676,7 +676,7 @@ function _show_error_box(item_box, msg) {
             <div class="row">
             <div class="col-sm-6">
             {% if sqm %}
-                {% with sliderid=item.itemID mono=monolingual %}
+                {% with sliderid=item.itemID mono=monolingual doclvl=doc_guidelines %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
@@ -687,7 +687,7 @@ function _show_error_box(item_box, msg) {
             </div>
             <div class="col-sm-6">
             {% if sqm %}
-                {% with sliderid=item.itemID mono=monolingual %}
+                {% with sliderid=item.itemID mono=monolingual doclvl=doc_guidelines %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
@@ -728,7 +728,7 @@ function _show_error_box(item_box, msg) {
                     <p>{{text|safe}}</p>
                     {% endfor %}
                     {% if sqm %}
-                    {% with mono=monolingual %}
+                    {% with mono=monolingual doclvl=doc_guidelines %}
                     {% include 'EvalView/_sqm_instructions.html' %}
                     {% endwith %}
                     {% endif %}
@@ -741,7 +741,7 @@ function _show_error_box(item_box, msg) {
             <div class="col-sm-6">
                 <small class="segment-label">{{ candidate1_label }}</small>
             {% if sqm %}
-                {% with sliderid=item.itemID slidernum=1 mono=monolingual %}
+                {% with sliderid=item.itemID slidernum=1 mono=monolingual doclvl=doc_guidelines %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
@@ -753,7 +753,7 @@ function _show_error_box(item_box, msg) {
             <div class="col-sm-6">
                 <small class="segment-label">{{ candidate2_label }}</small>
             {% if sqm %}
-                {% with sliderid=item.itemID slidernum=2 mono=monolingual %}
+                {% with sliderid=item.itemID slidernum=2 mono=monolingual doclvl=doc_guidelines %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}

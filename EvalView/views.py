@@ -2141,6 +2141,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'sqm': use_sqm,
         'static_context': static_context,
         'guidelines_popup': guidelines_popup,
+        'doc_guidelines': doc_guidelines,
     }
 
     if ajax:
