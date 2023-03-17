@@ -2027,6 +2027,9 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     monolingual_task = 'monolingual' in campaign_opts
     use_sqm = 'sqm' in campaign_opts
     static_context = 'staticcontext' in campaign_opts
+    guidelines_popup = (
+        'guidelinepopup' in campaign_opts or 'guidelinespopup' in campaign_opts
+    )
 
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
@@ -2070,6 +2073,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'monolingual': monolingual_task,
         'sqm': use_sqm,
         'static_context': static_context,
+        'guidelines_popup': guidelines_popup,
     }
 
     if ajax:

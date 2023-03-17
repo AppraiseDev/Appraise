@@ -162,6 +162,8 @@ $(document).ready(function() {
     $('#button-open-unannotated').click(open_all_unannotated_items);
     $('#button-close-all').click(close_all_items_except_current);
 
+    // Show guidelines in a popup box
+    $('#guidelines-modal').modal('show');
 });
 
 function _all_sentences_scored() {
@@ -518,6 +520,10 @@ function _show_error_box(item_box, msg) {
         </div>
     </div>
 </div>
+
+{% if guidelines_popup %}
+    {% include 'EvalView/_guidelines_popup.html' %}
+{% endif %}
 
 {% for item,scores in items %}
 
