@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.utils.timezone import utc
+from django.utils.html import escape
 
 from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
@@ -2032,6 +2033,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             'score2': result.score2 if result else -1,
             'candidate1_text': _candidate1_text.replace("&lt;eos&gt;", "<code>&lt;eos&gt;</code>"),
             'candidate2_text': _candidate2_text.replace("&lt;eos&gt;", "<code>&lt;eos&gt;</code>"),
+            'segment_text': escape(item.segmentText).replace("&lt;eos&gt;", "<code>&lt;eos&gt;</code>"),
         }
         block_scores.append(item_scores)
 
