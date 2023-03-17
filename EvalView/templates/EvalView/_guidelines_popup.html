@@ -11,8 +11,10 @@
                 {% endfor %}
 
                 {% if sqm %}
-                {% with mono=monolingual %}
+                {% with mono=monolingual doclvl=doc_guidelines %}
+                <small>
                 {% include 'EvalView/_sqm_instructions.html' %}
+                </small>
                 {% endwith %}
                 {% endif %}
             </div>
