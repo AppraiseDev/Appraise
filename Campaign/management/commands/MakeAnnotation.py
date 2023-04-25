@@ -43,6 +43,20 @@ class Command(BaseCommand):
             'if multiple scores are needed for the task type',
         )
 
+        parser.add_argument(
+            '--source-error',
+            metavar='TEXT',
+            type=str,
+            help='Source error(s) that should be assigned',
+        )
+        parser.add_argument(
+            '--target-errors',
+            metavar='TEXT',
+            type=str,
+            help='Error comment(s) that should be assigned, delimited by a semicolon '
+            'if multiple comments are allowed for the task type',
+        )
+
     def handle(self, *args, **options):
         # Get username and password from options
         username, password = options['user'].replace(':', ' ').split(' ')
@@ -50,6 +64,12 @@ class Command(BaseCommand):
         # Get score(s)
         _scores = options['score'].replace(':', ' ').split(' ')
         scores = [int(score) for score in _scores]
+
+        # Get error comment(s)
+        source_error = options.get('source_error', None)
+        target_errors = []
+        if options['target_errors'] is not None:
+            target_errors = options['target_errors'].replace(':', ' ').split(' ')
 
         # Needed to get the response context
         # http://jazstudios.blogspot.com/2011/01/django-testing-views.html
@@ -133,8 +153,17 @@ class Command(BaseCommand):
                 'start_timestamp': (datetime.now() - timedelta(minutes=5)).timestamp(),
                 'end_timestamp': datetime.now().timestamp(),
             }
+
+            if source_error is not None:
+                data['source_error'] = source_error
+
+            if len(target_errors) > 0:
+                data['error1'] = target_errors[0]
+
             if response.context['candidate2_text'] is not None:
                 data['score2'] = scores[1]
+                if len(target_errors) > 1:
+                    data['error2'] = target_errors[1]
 
             msg_info = 'item {}/{} with score(s) {}'.format(
                 response.context['item_id'], response.context['task_id'], scores[0]
