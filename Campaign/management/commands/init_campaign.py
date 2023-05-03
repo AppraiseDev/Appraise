@@ -9,6 +9,7 @@ from django.core.management.base import BaseCommand
 from django.core.management.base import CommandError
 from tablib import Dataset  # type: ignore
 
+from Campaign.utils import _create_linear_task_map
 from Campaign.utils import _create_uniform_task_map
 from Campaign.utils import _identify_super_users
 from Campaign.utils import _load_campaign_manifest
@@ -218,7 +219,10 @@ def _create_context(manifest_data, stdout=None):
     Parameters:
     - manifest_data:dict[str]->any dictionary containing manifest data;
     """
-    GENERATORS = {'uniform': _create_uniform_task_map}
+    GENERATORS = {
+        'uniform': _create_uniform_task_map,
+        'linear': _create_linear_task_map,
+    }
     ALL_LANGUAGES = []
     ALL_LANGUAGE_CODES = set()
     TASKS_TO_ANNOTATORS = {}

@@ -26,6 +26,7 @@ from EvalData.models import TaskAgenda
 def _create_uniform_task_map(annotators, tasks, redudancy):
     """
     Creates task maps, uniformly distributed across given annotators.
+    Returns a list of tuples.
     """
     _total_tasks = tasks * redudancy
     if annotators == 0 or _total_tasks % annotators > 0:
@@ -44,6 +45,31 @@ def _create_uniform_task_map(annotators, tasks, redudancy):
         _current_task_id += 1
         _results.append(tuple(_annotator_tasks))
 
+    print('Uniform task map:', _results)
+    return _results
+
+
+def _create_linear_task_map(annotators, tasks, redudancy):
+    """
+    Creates task maps assigning batches to annotators in batch original order.
+    If redundancy equals to the number of annotators, each annotator will have the same exact tasks assigned.
+    Returns a list of tuples.
+    """
+    _total_tasks = tasks * redudancy
+    if annotators == 0 or _total_tasks % annotators > 0:
+        return None
+    _tasks_per_annotator = _total_tasks // annotators
+
+    _results = []
+    _current_task_id = 0
+    for _ in range(annotators):
+        _annotator_tasks = []
+        for _ in range(_tasks_per_annotator):
+            _annotator_tasks.append(_current_task_id)
+            _current_task_id = (_current_task_id + 1) % _total_tasks
+        _results.append(tuple(_annotator_tasks))
+
+    print('Linear task map:', _results)
     return _results
 
 
@@ -282,6 +308,7 @@ def _map_tasks_to_users_by_market(tasks, usernames, context):
 
     # Organise tasks by market
     tasks_by_market = _get_tasks_by_market(tasks, context)
+    # print('Tasks by market:', {k:[x._generate_str_name() for x in xs] for k, xs in tasks_by_market.items()})
 
     # Create map containing pairs (user, task)
     tasks_to_users_map = defaultdict(list)
@@ -314,15 +341,20 @@ def _map_tasks_to_users_by_market(tasks, usernames, context):
             raise CommandError(_msg)
 
         for user, tasks_for_user in zip(users.order_by('id'), _tasks_map):
+            batches_for_user = []
+            for task_id in tasks_for_user:
+                batches_for_user.append(_tasks_for_current_key[task_id].batchNo)
+                tasks_to_users_map[key].append((_tasks_for_current_key[task_id], user))
             print(
                 'Mapping task(s) to user:',
                 source_code,
                 target_code,
                 user,
+                'taskID=',
                 tasks_for_user,
+                'batchNo=',
+                batches_for_user,
             )
-            for task_id in tasks_for_user:
-                tasks_to_users_map[key].append((_tasks_for_current_key[task_id], user))
 
     return tasks_to_users_map
 
