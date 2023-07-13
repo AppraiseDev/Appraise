@@ -216,6 +216,13 @@ LANGUAGE_CODES_AND_NAMES = {
     'liv': 'Livonian (līvõ kēļ)',
     'mai': 'Maithili (मैथिली)',
     'san': 'Sanskrit (संस्कृतम्)',
+    'bho': 'Bhojpuri (भोजपुरी)',
+    'brx': 'Bodo (बड़ो)',
+    'dgo': 'Dogri (डोगरी)',
+    'hne': 'Chhattisgarhi (छत्तीसगढ़ी)',
+    'kas': 'Kashmiri (كٲشُر)',
+    'mni': 'Meitei (ꯃꯩꯇꯩꯂꯣꯟ)',
+    'sat': 'Santali (ᱥᱟᱱᱛᱟᱲᱤ)',
 }
 
 # All sign language codes
