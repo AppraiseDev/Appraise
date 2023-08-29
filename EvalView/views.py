@@ -935,8 +935,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             '<u><b>paying special attention to document-level properties, '
             'such as consistency of style, selection of translation terms, formality, '
             'and so on</b></u>, in addition to the usual correctness criteria. '
-            'Note that sentences in each paragraph were separated by the <i>&lt;eos&gt;</i> tags '
-            'for convenience and this should not impact your assessment. '.format(
+            'Note that sentences in each paragraph may be separated by <i>&lt;eos&gt;</i> tags '
+            'for convenience. These tags, if present, should not impact your assessment. '.format(
                 len(block_items) - 1,
                 source_language,
                 target_language,
@@ -2033,13 +2033,13 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             'score2': result.score2 if result else -1,
             'candidate1_text': _candidate1_text.replace(
                 "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
-            ),
+            ).replace("&lt;br/&gt;", "<br/>"),
             'candidate2_text': _candidate2_text.replace(
                 "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
-            ),
-            'segment_text': escape(item.segmentText).replace(
-                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
-            ),
+            ).replace("&lt;br/&gt;", "<br/>"),
+            'segment_text': escape(item.segmentText)
+            .replace("&lt;eos&gt;", "<code>&lt;eos&gt;</code>")
+            .replace("&lt;br/&gt;", "<br/>"),
         }
         block_scores.append(item_scores)
 
