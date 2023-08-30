@@ -868,7 +868,6 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     if 'wmt22signlt' in campaign_opts:
         sign_translation = True
-        static_context = True
         use_sqm = True
         ui_language = 'deu'
 
@@ -953,6 +952,16 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                 'Übersetzung des Satzes im Kontext des Dokuments. '
                 'Sie können bereits bewertete Sätze jederzeit durch Anklicken eines '
                 'Quelltextes erneut aufrufen und die Bewertung aktualisieren.'.format(
+                    len(block_items) - 1,
+                ),
+            ]
+        elif 'sign2text-seglvl' in campaign_opts:
+            priming_question_texts = [
+                'Unten sehen Sie ein Set von {0} unzusammenhängenden Sätzen in Deutschschweizer '
+                'Gebärdensprache (DSGS) (linke Spalten) und die entsprechenden möglichen '
+                'Übersetzungen auf Deutsch (rechte Spalten). '
+                'Sie können bereits bewertete Sätze jederzeit durch Anklicken eines '
+                'Eingabevideos erneut aufrufen und die Bewertung aktualisieren.'.format(
                     len(block_items) - 1,
                 ),
             ]
