@@ -33,6 +33,10 @@ small.padright { padding-right: 20px; }
 .slider-box .slider-grid { font-size:14px; width:100%; color:#777; }
 
 .button-critical-error { margin-top:10px; }
+
+.question-box { margin-bottom:10px; }
+.question-box p { font-size: 120%; margin: 10px 0 20px; font-style: italic; color: #31708f; }
+.question-box li { font-size: 100%; font-style: italic; color: #31708f; }
 </style>
 
 <link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}">
@@ -66,6 +70,9 @@ $(document).ready(function() {
 
   // make the first slider active, so that the score can be changed using left/right keys
   $('#slider .ui-slider-handle').focus();
+
+  // Show guidelines in a popup box
+  $('#guidelines-modal').modal('show');
 });
 
 function toggle_context()
@@ -159,6 +166,10 @@ function match_sliders()
   </table>
 </div>
 
+{% if guidelines_popup %}
+    {% include 'EvalView/_guidelines_popup.html' %}
+{% endif %}
+
 <div class="row quotelike">
 <div class="col-sm-12">
     <div class="context-sentences" style="display: none">
@@ -178,7 +189,7 @@ function match_sliders()
 </div>
 </div>
 
-<div class="row">
+<div class="row question-box">
     <div class="col-sm-12">
         <p class="priming-question">{{priming_question_text|safe}}</p>
     </div>
@@ -291,12 +302,16 @@ function match_sliders()
 
 {% if sqm %}
 <br/>
-{% include 'EvalView/_sqm_instructions.html' %}
-{% endif %}
+<div class="question-box">
+  {% with doclvl=doc_guidelines %}
+  {% include 'EvalView/_sqm_instructions.html' %}
+  {% endwith %}
+  {% endif %}
+</div>
 
 {% if source_error %}
 <br/>
-<div class="row">
+<div class="row question-box">
   <div class="col-md-12">
     <b>Serious error(s) in the source text:</b> Please report if a serious error appears
     in the source text making it difficult to understand or translate, for

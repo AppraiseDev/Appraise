@@ -1458,6 +1458,8 @@ def pairwise_assessment(request, code=None, campaign_name=None):
     critical_error = False
     source_error = False
     extra_guidelines = False
+    doc_guidelines = False
+    guideline_popup = False
 
     if 'reportcriticalerror' in campaign_opts:
         critical_error = True
@@ -1470,7 +1472,27 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         extra_guidelines = True
 
     if extra_guidelines:
-        priming_question_text += ' (see detailed guidelines below)'
+        # note this is not needed if DocLvlGuideline is enabled
+        priming_question_text += '<br/> (Please see the detailed guidelines below)'
+
+    if 'doclvlguideline' in campaign_opts:
+        use_sqm = True
+        doc_guidelines = True
+        guidelines_popup = (
+            'guidelinepopup' in campaign_opts or 'guidelinespopup' in campaign_opts
+        )
+
+    if doc_guidelines:
+        priming_question_text = (
+            'Above you see a paragraph in {0} and below its corresponding one or two candidate translations in {1}. '
+            'Please score the candidate translation(s) below following the detailed guidelines at the bottom of the page '
+            '<u><b>paying special attention to document-level properties, '
+            'such as consistency of style, selection of translation terms, formality, '
+            'and so on</b></u>, in addition to the usual correctness criteria. '.format(
+                source_language,
+                target_language,
+            )
+        )
 
     context = {
         'active_page': 'pairwise-assessment',
@@ -1497,6 +1519,8 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         'sqm': use_sqm,
         'critical_error': critical_error,
         'source_error': source_error,
+        'guidelines_popup': guidelines_popup,
+        'doc_guidelines': doc_guidelines,
     }
     context.update(BASE_CONTEXT)
 
@@ -2130,9 +2154,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             'Please score each paragraph of both candidate translations '
             '<u><b>paying special attention to document-level properties, '
             'such as consistency of formality and style, selection of translation terms, pronoun choice, '
-            'and so on</b></u>, in addition to the usual correctness criteria. '
-            'Note that sentences in each paragraph were separated by the <code>&lt;eos&gt;</code> tags '
-            'for convenience and this should not impact your assessment. '.format(
+            'and so on</b></u>, in addition to the usual correctness criteria. '.format(
                 len(block_items) - 1,
                 source_language,
                 target_language,
