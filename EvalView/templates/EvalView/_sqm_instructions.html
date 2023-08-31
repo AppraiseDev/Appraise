@@ -49,5 +49,11 @@
 
       {% endif %}
     </ul>
+
+    {% if ui_lang == 'deu' %}
+    {% else %}
+    <p>The numeric labels on the slider are there to help you to adjust the score more precisely, but the slider can be stopped at any position along the track.
+    Try to use the full range of the scale when scoring segments and not limit yourself only to the values around the numeric labels.</p>
+    {% endif %}
   </div>
 </div>
