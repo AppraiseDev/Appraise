@@ -424,6 +424,8 @@ def dashboard(request):
                             languages_map[task_cls][campaign.campaignName].remove(code)
 
             # _type and _languages variables are only for debug
+            _type = None
+            _languages = {}
             for task_cls in campaign_map:
                 if campaign_map[task_cls].exists():
                     _type = TASK_NAMES[task_cls]
