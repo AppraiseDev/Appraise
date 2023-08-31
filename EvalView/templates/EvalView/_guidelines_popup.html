@@ -6,9 +6,13 @@
                 <h4 class="modal-title" id="myModalLabel">Important Annotation Guidelines</h4>
             </div>
             <div class="modal-body">
-                {% for text in priming_question_texts %}
-                <p>{{text|safe}}</p>
-                {% endfor %}
+                {% if priming_question_text %}
+                <p>{{priming_question_text|safe}}</p>
+                {% else %}
+                    {% for text in priming_question_texts %}
+                    <p>{{text|safe}}</p>
+                    {% endfor %}
+                {% endif %}
 
                 {% if sqm %}
                 {% with mono=monolingual doclvl=doc_guidelines %}

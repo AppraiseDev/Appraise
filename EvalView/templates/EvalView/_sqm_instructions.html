@@ -54,6 +54,10 @@
     {% else %}
     <p>The numeric labels on the slider are there to help you to adjust the score more precisely, but the slider can be stopped at any position along the track.
     Try to use the full range of the scale when scoring segments and not limit yourself only to the values around the numeric labels.</p>
+
+      {% if doclvl %}
+      <p>Note that sentences in each paragraph can be separated by the <code>&lt;eos&gt;</code> or <code>&lt;br/&gt;</code> tags for convenience and this should not impact your assessment.</p>
+      {% endif %}
     {% endif %}
   </div>
 </div>
