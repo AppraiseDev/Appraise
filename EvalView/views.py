@@ -1480,6 +1480,8 @@ def pairwise_assessment(request, code=None, campaign_name=None):
             'guidelinepopup' in campaign_opts or 'guidelinespopup' in campaign_opts
         )
 
+    segment_text = current_item.segmentText
+
     if doc_guidelines:
         priming_question_text = (
             'Above you see a paragraph in {0} and below its corresponding one or two candidate translations in {1}. '
@@ -1492,10 +1494,21 @@ def pairwise_assessment(request, code=None, campaign_name=None):
             )
         )
 
+        # highlight <eos>s and unescape <br/>s
+        segment_text = segment_text.replace(
+            "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+        ).replace("&lt;br/&gt;", "<br/>"),
+        candidate1_text = candidate1_text.replace(
+            "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+        ).replace("&lt;br/&gt;", "<br/>"),
+        candidate2_text = candidate2_text.replace(
+            "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+        ).replace("&lt;br/&gt;", "<br/>"),
+
     context = {
         'active_page': 'pairwise-assessment',
         'reference_label': reference_label,
-        'reference_text': current_item.segmentText,
+        'reference_text': segment_text,
         'context_left': current_item.context_left(),
         'context_right': current_item.context_right(),
         'candidate_label': candidate1_label,
