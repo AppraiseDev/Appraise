@@ -1496,16 +1496,16 @@ def pairwise_assessment(request, code=None, campaign_name=None):
             )
         )
 
-        # highlight <eos>s and unescape <br/>s
+        # process <eos>s and unescape <br/>s
         segment_text = segment_text.replace(
             "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
-        ).replace("&lt;br/&gt;", "<br/>"),
+        ).replace("&lt;br/&gt;", "<br/>")
         candidate1_text = candidate1_text.replace(
             "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
-        ).replace("&lt;br/&gt;", "<br/>"),
+        ).replace("&lt;br/&gt;", "<br/>")
         candidate2_text = candidate2_text.replace(
             "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
-        ).replace("&lt;br/&gt;", "<br/>"),
+        ).replace("&lt;br/&gt;", "<br/>")
 
     context = {
         'active_page': 'pairwise-assessment',
