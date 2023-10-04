@@ -1475,6 +1475,7 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         # note this is not needed if DocLvlGuideline is enabled
         priming_question_text += '<br/> (Please see the detailed guidelines below)'
 
+    guidelines_popup = False
     if 'doclvlguideline' in campaign_opts:
         use_sqm = True
         doc_guidelines = True
