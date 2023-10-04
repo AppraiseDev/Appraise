@@ -1457,7 +1457,7 @@ def pairwise_assessment(request, code=None, campaign_name=None):
     source_error = False
     extra_guidelines = False
     doc_guidelines = False
-    guideline_popup = False
+    guidelines_popup = False
 
     if 'reportcriticalerror' in campaign_opts:
         critical_error = True
@@ -1469,11 +1469,17 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         use_sqm = True
         extra_guidelines = True
 
+    if 'gamingdomainnote' in campaign_opts:
+        priming_question_text = (
+            'The presented text is a message from an online video game chat. '
+            'Please take into account the video gaming genre when making your assessments. </br> '
+            + priming_question_text
+        )
+
     if extra_guidelines:
         # note this is not needed if DocLvlGuideline is enabled
         priming_question_text += '<br/> (Please see the detailed guidelines below)'
 
-    guidelines_popup = False
     if 'doclvlguideline' in campaign_opts:
         use_sqm = True
         doc_guidelines = True
@@ -2136,6 +2142,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     guidelines_popup = (
         'guidelinepopup' in campaign_opts or 'guidelinespopup' in campaign_opts
     )
+    gaming_domain = 'gamingdomainnote' in campaign_opts
 
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
@@ -2171,6 +2178,12 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
                 source_language,
                 target_language,
             ),
+        ]
+
+    if gaming_domain:
+        priming_question_texts += [
+            'The presented texts are messages from an online video game chat. '
+            'Please take into account the video gaming genre when making your assessments. </br> '
         ]
 
     # A part of context used in responses to both Ajax and standard POST
