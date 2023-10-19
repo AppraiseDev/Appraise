@@ -655,7 +655,7 @@ class Command(BaseCommand):
                     ranks,
                     '{0:.1f}'.format(rScore),
                     '{0:.3f}'.format(zScore),
-                    systemID[:51].replace('_', '\_'),
+                    systemID[:51].replace('_', '\\_'),
                     '\\\\ \\hline' if add_cluster_boundary else '\\\\',
                 )
                 latex_data.append('{0} & {1} & {2} & {3} & {4}{5}'.format(*_latex_data))
@@ -664,7 +664,7 @@ class Command(BaseCommand):
                     '\t'.join(
                         (
                             pair,
-                            systemID[:51].replace('_', '\_'),
+                            systemID[:51].replace('_', '\\_'),
                             ranks,
                             '{0:.1f}'.format(rScore),
                             '{0:.3f}'.format(zScore),
