@@ -616,13 +616,21 @@ class Command(BaseCommand):
                 else:
                     return -1
 
+            def sort_by_score(x, y):
+                if x[3] > y[3]:
+                    return 1
+                elif x[3] == y[3]:
+                    return 0
+                else:
+                    return -1
+
             total_systems = len(sorted_by_wins)
             min_wins_current_cluster = total_systems
             current_system = 0
             last_wins_count = None
             for values in sorted(
                 sorted_by_wins,
-                key=cmp_to_key(sort_by_z_score),
+                key=cmp_to_key(sort_by_score),
                 reverse=True,
             ):
                 current_system += 1
@@ -652,7 +660,7 @@ class Command(BaseCommand):
                         wins, systemID[:51], zScore, hScore, rScore
                     ).replace('+', ' ')
                 else:
-                    output = '{0:02d} {1:>51} {2:>2.1f}'.format(
+                    output = '{0:02d} {1:>51} {2:>+2.1f}'.format(
                         wins, systemID[:51], rScore
                     ).replace('+', ' ')
                 print(output)
