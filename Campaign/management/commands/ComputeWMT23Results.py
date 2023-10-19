@@ -169,6 +169,11 @@ class Command(BaseCommand):
             action='store_true',
             help='Use approximate randomization',
         )
+        parser.add_argument(
+            '--wmt22-format',
+            action='store_true',
+            help='Print output in WMT22 format, including z scores',
+        )
 
         # TODO: add argument to specify batch user
 
@@ -428,6 +433,10 @@ class Command(BaseCommand):
                 )
 
                 # WMT23: sort by decreasing raw score instead of normalised
+                sort_score = averaged_raw_score
+                if options['wmt22_format']:
+                    sort_score = normalized_score
+                
                 normalized_scores[averaged_raw_score] = (
                     key,
                     len(value),
@@ -576,15 +585,28 @@ class Command(BaseCommand):
                 + target_language
                 + '} } \\\\[0.5mm] '
             )
-            latex_data.append('\\begin{tabular}{cccrl}')
-            latex_data.append('& Rank & Ave. & Ave. z & System\\\\ \\hline')
 
-            tsv_data.append('pair\tsystem\trank\tave\tave_z')
+            if options["wmt22_format"]:
+                latex_data.append('\\begin{tabular}{cccrl}')
+                latex_data.append('& Rank & Ave. & Ave. z & System\\\\ \\hline')
 
-            print('-' * 80)
-            print(
-                'Wins                                         System ID  Z Score H Score  R Score'
-            )
+                tsv_data.append('pair\tsystem\trank\tave\tave_z')
+
+                print('-' * 80)
+                print(
+                    'Wins                                         System ID  Z Score H Score  R Score'
+                )
+
+            else:
+                latex_data.append('\\begin{tabular}{ccrl}')
+                latex_data.append('& Rank & Ave. & System\\\\ \\hline')
+
+                tsv_data.append('pair\tsystem\trank\tave')
+
+                print('-' * 80)
+                print(
+                    'Wins                                         System ID  ↓ Ave Score'
+                )
 
             def sort_by_z_score(x, y):
                 if x[4] > y[4]:
@@ -625,9 +647,14 @@ class Command(BaseCommand):
                 #                if last_wins_count != wins:
                 #                    print('-' * 80)
 
-                output = '{0:02d} {1:>51} {2:>+2.5f} {3:>1.5f} {4:>2.5f}'.format(
-                    wins, systemID[:51], zScore, hScore, rScore
-                ).replace('+', ' ')
+                if options["wmt22_format"]:
+                    output = '{0:02d} {1:>51} {2:>+2.5f} {3:>1.5f} {4:>2.5f}'.format(
+                        wins, systemID[:51], zScore, hScore, rScore
+                    ).replace('+', ' ')
+                else:
+                    output = '{0:02d} {1:>51} {2:>2.1f}'.format(
+                        wins, systemID[:51], rScore
+                    ).replace('+', ' ')
                 print(output)
 
                 min_wins_current_cluster = min(wins, min_wins_current_cluster)
@@ -650,27 +677,50 @@ class Command(BaseCommand):
                     if top_rank != worst_rank
                     else str(top_rank)
                 )
-                _latex_data = (
-                    '\\Uncon{}',
-                    ranks,
-                    '{0:.1f}'.format(rScore),
-                    '{0:.3f}'.format(zScore),
-                    systemID[:51].replace('_', '\\_'),
-                    '\\\\ \\hline' if add_cluster_boundary else '\\\\',
-                )
-                latex_data.append('{0} & {1} & {2} & {3} & {4}{5}'.format(*_latex_data))
 
-                tsv_data.append(
-                    '\t'.join(
-                        (
-                            pair,
-                            systemID[:51].replace('_', '\\_'),
-                            ranks,
-                            '{0:.1f}'.format(rScore),
-                            '{0:.3f}'.format(zScore),
+                if options["wmt22_format"]:
+                    _latex_data = (
+                        '\\Uncon{}',
+                        ranks,
+                        '{0:.1f}'.format(rScore),
+                        '{0:.3f}'.format(zScore),
+                        systemID[:51].replace('_', '\\_'),
+                        '\\\\ \\hline' if add_cluster_boundary else '\\\\',
+                    )
+                    latex_data.append('{0} & {1} & {2} & {3} & {4}{5}'.format(*_latex_data))
+
+                    tsv_data.append(
+                        '\t'.join(
+                            (
+                                pair,
+                                systemID[:51].replace('_', '\\_'),
+                                ranks,
+                                '{0:.1f}'.format(rScore),
+                                '{0:.3f}'.format(zScore),
+                            )
                         )
                     )
-                )
+
+                else:
+                    _latex_data = (
+                        '\\Uncon{}',
+                        ranks,
+                        '{0:.1f}'.format(rScore),
+                        systemID[:51].replace('_', '\\_'),
+                        '\\\\ \\hline' if add_cluster_boundary else '\\\\',
+                    )
+                    latex_data.append('{0} & {1} & {2} & {3}{4}'.format(*_latex_data))
+
+                    tsv_data.append(
+                        '\t'.join(
+                            (
+                                pair,
+                                systemID[:51].replace('_', '\\_'),
+                                ranks,
+                                '{0:.1f}'.format(rScore),
+                            )
+                        )
+                    )
 
                 last_wins_count = wins
 
