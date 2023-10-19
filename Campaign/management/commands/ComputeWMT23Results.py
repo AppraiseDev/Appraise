@@ -436,7 +436,7 @@ class Command(BaseCommand):
                 sort_score = averaged_raw_score
                 if options['wmt22_format']:
                     sort_score = normalized_score
-                
+
                 normalized_scores[averaged_raw_score] = (
                     key,
                     len(value),
@@ -472,7 +472,7 @@ class Command(BaseCommand):
             wins_for_system = defaultdict(list)
             losses_for_system = defaultdict(list)
             p_level = 0.05
-            for (sysA, sysB) in combinations_with_replacement(system_ids, 2):
+            for sysA, sysB in combinations_with_replacement(system_ids, 2):
                 sysA_ids = set([x[0] for x in system_z_scores[sysA]])
                 sysB_ids = set([x[0] for x in system_z_scores[sysB]])
                 good_ids = set.intersection(sysA_ids, sysB_ids)
@@ -699,7 +699,9 @@ class Command(BaseCommand):
                         systemID[:51].replace('_', '\\_'),
                         '\\\\ \\hline' if add_cluster_boundary else '\\\\',
                     )
-                    latex_data.append('{0} & {1} & {2} & {3} & {4}{5}'.format(*_latex_data))
+                    latex_data.append(
+                        '{0} & {1} & {2} & {3} & {4}{5}'.format(*_latex_data)
+                    )
 
                     tsv_data.append(
                         '\t'.join(
