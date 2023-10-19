@@ -32,6 +32,8 @@ LANGUAGE_CODES = {
     'ukr': 'uk',
     'sah': 'sah',
     'liv': 'liv',
+    'por': 'pt',
+    'heb': 'he',
 }
 
 
@@ -510,9 +512,13 @@ class Command(BaseCommand):
                     else:
                         t_statistic, p_value = 0, 1
                 else:
-                    t_statistic, p_value = mannwhitneyu(
-                        sysA_sorted, sysB_sorted, alternative="greater"
-                    )
+                    if not sysA_sorted or not sysB_sorted:
+                        pass
+                        t_statistic, p_value = 0, 1
+                    else:
+                        t_statistic, p_value = mannwhitneyu(
+                            sysA_sorted, sysB_sorted, alternative="greater"
+                        )
 
                 if options['use_ar']:
                     if p_value < p_level:
