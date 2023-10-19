@@ -17,7 +17,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import format_lazy as f
 from django.utils.timezone import utc
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from Appraise.utils import _get_logger
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES

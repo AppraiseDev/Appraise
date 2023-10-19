@@ -16,7 +16,7 @@ from django.db import models
 from django.utils.html import escape
 from django.utils.text import format_lazy as f
 from django.utils.timezone import utc
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from Appraise.utils import _get_logger
 
