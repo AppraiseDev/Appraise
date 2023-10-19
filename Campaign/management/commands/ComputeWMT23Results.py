@@ -607,6 +607,7 @@ class Command(BaseCommand):
                 print(
                     'Wins                                         System ID  ↓ Ave Score'
                 )
+            print('-' * 80)
 
             def sort_by_z_score(x, y):
                 if x[4] > y[4]:
