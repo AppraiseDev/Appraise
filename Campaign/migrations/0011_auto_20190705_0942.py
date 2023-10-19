@@ -30,6 +30,6 @@ class Migration(migrations.Migration):
                 related_query_name='campaign_campaigns',
                 to='Campaign.CampaignData',
                 verbose_name='Batches',
-            ),
+            ),  # type: ignore
         ),
     ]

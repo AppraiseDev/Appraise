@@ -20,6 +20,6 @@ class Migration(migrations.Migration):
                 related_query_name='campaign_campaigns',
                 to='Campaign.CampaignTeam',
                 verbose_name='Teams',
-            ),
+            ),  # type: ignore
         ),
     ]
