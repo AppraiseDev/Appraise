@@ -617,9 +617,9 @@ class Command(BaseCommand):
                     return -1
 
             def sort_by_score(x, y):
-                if x[3] > y[3]:
+                if x[5] > y[5]:
                     return 1
-                elif x[3] == y[3]:
+                elif x[5] == y[5]:
                     return 0
                 else:
                     return -1
@@ -627,10 +627,13 @@ class Command(BaseCommand):
             total_systems = len(sorted_by_wins)
             min_wins_current_cluster = total_systems
             current_system = 0
+            sort_func = sort_by_score
+            if options["wmt22_format"]:
+                sort_func = sort_by_z_score
             last_wins_count = None
             for values in sorted(
                 sorted_by_wins,
-                key=cmp_to_key(sort_by_score),
+                key=cmp_to_key(sort_func),
                 reverse=True,
             ):
                 current_system += 1
