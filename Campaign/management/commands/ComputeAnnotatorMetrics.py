@@ -169,7 +169,7 @@ class Command(BaseCommand):
         user_z_scores = defaultdict(list)
         for key, values in user_scores.items():
             for value in values:
-                z_score = (value[3] - user_means[key]) / user_stdev[key]
+                z_score = (value[3] - user_means[key]) / (user_stdev[key] or 1.0)
                 user_z_scores[key].append((value[0], value[1], value[2], z_score))
 
         user_scores = user_z_scores
