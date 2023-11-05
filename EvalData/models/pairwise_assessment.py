@@ -834,6 +834,7 @@ class PairwiseAssessmentResult(BaseMetadata):
                 'item_id',  # Real item ID
             )
 
+        system_data.append(attributes_to_extract)
         for _result in qs.values_list(*attributes_to_extract):
             results = [
                 (
