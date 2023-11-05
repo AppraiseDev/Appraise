@@ -765,6 +765,7 @@ class DirectAssessmentResult(BaseMetadata):
                 'item_id',  # Real item ID
             )
 
+        system_data.append(attributes_to_extract)
         for result in qs.values_list(*attributes_to_extract):
             user_id = result[0]
 
