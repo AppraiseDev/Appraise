@@ -4,6 +4,8 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=C0103,C0330,no-member
+from datetime import timezone
+utc = timezone.utc
 from datetime import datetime
 from datetime import timedelta
 from difflib import SequenceMatcher
@@ -15,7 +17,6 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.html import escape
 from django.utils.text import format_lazy as f
-from django.utils.timezone import utc
 from django.utils.translation import gettext_lazy as _
 
 from Appraise.utils import _get_logger
