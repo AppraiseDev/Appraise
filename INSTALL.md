@@ -2,34 +2,27 @@
 
 ## Basic setup
 
-1. Clone the repository.
-2. Install Python 3.5+.
-3. Install virtual environments for Python:
+1. Basic setup 
 
 ```
-pip3 install --user virtualenv
-```
-
-4. Create environment for the project, activate it, and install Python
-   requirements:
-
-```
+git clone https://github.com/AppraiseDev/Appraise.git
+cd Appraise
+pip install --user virtualenv
 virtualenv venv -p python3
 source ./venv/bin/activate
-pip3 install -r requirements.txt
+pip install -r requirements.txt
 ```
 
-5. Create database, the first super user, and collect static files:
+2. Create database, the first super user, and collect static files:
 
+Follow instructions on your screen; do not leave the password empty.
 ```
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py collectstatic --no-post-process
 ```
 
-Follow instructions on your screen; do not leave the password empty.
-
-6. Run the app on a local server:
+3. Run the app on a local server:
 
 ```
 python manage.py runserver
@@ -38,6 +31,21 @@ python manage.py runserver
 Open the browser at http://127.0.0.1:8000/.
 The admin panel is available at http://127.0.0.1:8000/admin
 
+4. Start a campaign:
+
+```
+# See Examples/DirectMQM/README.md
+python manage.py StartNewCampaign Examples/DirectMQM/manifest.json \
+    --batches-json Examples/Direct/batches.json \
+    --csv-output Examples/DirectMQM/output.csv
+python manage.py CreateInviteTokens test_group 20 --create-group test_group
+```
+
+10. Clean up everything
+
+```
+rm -rf static appraise.log db.sqlite3 Batches
+```
 
 ## Creating a new campaign
 
@@ -45,8 +53,8 @@ To create a campaign, a manifest file and data batches in JSON formats are neede
 See examples in [`Examples/`](Examples/) for simple end-to-end examples for
 each annotation tasks that are currently available in Appraise.
 
-Alternatively, a Django command can be created instead of the manifest file, see
-`Campaign/management/commands/InitCampaigh*.py` for examples.
+Alternatively, a Django command can be created instead of the manifest file,
+see `Campaign/management/commands/InitCampaign*.py` for examples.
 
 
 ### manifest.json

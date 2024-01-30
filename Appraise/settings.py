@@ -117,7 +117,7 @@ if DEBUG:
         INSTALLED_APPS.append('debug_toolbar')
         warnings.warn('Enabled Django Debug Toolbar in installed apps')
     except ImportError:
-        warnings.warn('Django Debug Toolbar not installed')
+        pass
 
 MIDDLEWARE = []
 if DEBUG:
@@ -206,7 +206,7 @@ if MEDIA_ROOT and MEDIA_ROOT[-1] != '/':
 
 # Base context for all views.
 BASE_CONTEXT = {
-    'commit_tag': '#wmt22dev',
+    'commit_tag': '#wmt24dev',
     'title': 'Appraise evaluation system',
     'static_url': STATIC_URL,
 }
