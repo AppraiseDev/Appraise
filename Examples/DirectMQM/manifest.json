@@ -1,6 +1,6 @@
 {
     "CAMPAIGN_URL": "http://127.0.0.1:8000/dashboard/sso/",
-    "CAMPAIGN_NAME": "example6mqm",
+    "CAMPAIGN_NAME": "example15mqm",
     "CAMPAIGN_KEY": "c6",
     "CAMPAIGN_NO": 6,
     "REDUNDANCY": 1,
@@ -10,5 +10,5 @@
     ],
 
     "TASK_TYPE": "Direct",
-    "TASK_OPTIONS": "MQM"
+    "TASK_OPTIONS": "MQM;AI;"
 }

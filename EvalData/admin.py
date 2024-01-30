@@ -250,7 +250,7 @@ class TextPairAdmin(BaseMetadataAdmin):
     """
     Model admin for TextPair instances.
     """
-
+    
     list_display = [
         '__str__',
         'itemID',
@@ -259,6 +259,7 @@ class TextPairAdmin(BaseMetadataAdmin):
         'sourceText',
         'targetID',
         'targetText',
+        'mqm',
     ] + BaseMetadataAdmin.list_display
     list_filter = [
         'metadata__corpusName',
@@ -273,6 +274,7 @@ class TextPairAdmin(BaseMetadataAdmin):
         'sourceText',
         'targetID',
         'targetText',
+        'mqm',
     ] + BaseMetadataAdmin.search_fields
 
     fieldsets = (
@@ -288,6 +290,7 @@ class TextPairAdmin(BaseMetadataAdmin):
                         'sourceText',
                         'targetID',
                         'targetText',
+                        'mqm',
                     ]
                 )
             },
