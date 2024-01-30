@@ -36,7 +36,7 @@ The admin panel is available at http://127.0.0.1:8000/admin
 ```
 # See Examples/DirectMQM/README.md
 python manage.py StartNewCampaign Examples/DirectMQM/manifest.json \
-    --batches-json Examples/Direct/batches.json \
+    --batches-json Examples/DirectMQM/batches.json \
     --csv-output Examples/DirectMQM/output.csv
 python manage.py CreateInviteTokens test_group 20 --create-group test_group
 ```

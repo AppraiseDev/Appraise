@@ -4,6 +4,7 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 from datetime import timezone
+import json
 utc = timezone.utc
 from datetime import datetime
 
@@ -249,7 +250,7 @@ def direct_assessment(request, code=None, campaign_name=None):
     print(campaign)
     if 'sqm' in campaign_opts.lower():
         html_file = 'EvalView/direct-assessment-sqm.html'
-    elif 'mqm' in campaign_opts.lower():
+    elif 'mqm;' in campaign_opts.lower():
         html_file = 'EvalView/direct-assessment-mqm.html'
     else:
         html_file = 'EvalView/direct-assessment-context.html'
@@ -279,6 +280,7 @@ def direct_assessment(request, code=None, campaign_name=None):
         'campaign': campaign.campaignName,
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
+        'mqm': json.loads(current_item.mqm.replace("'", '"')) if "ai;" in campaign_opts.lower() else []
     }
     context.update(BASE_CONTEXT)
 
@@ -503,7 +505,6 @@ def direct_assessment_context(request, code=None, campaign_name=None):
             'preference for <em>Candidate A</em> (left), no difference '
             '(middle) or preference for <em>Candidate B</em> (right).'
         )
-
     context = {
         'active_page': 'direct-assessment',
         'reference_label': reference_label,

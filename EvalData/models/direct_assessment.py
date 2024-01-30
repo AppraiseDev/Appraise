@@ -308,6 +308,7 @@ class DirectAssessmentTask(BaseMetadata):
                     createdBy=batch_user,
                     itemID=item['itemID'],
                     itemType=item['itemType'],
+                    mqm=item['mqm'],
                 )
                 new_items.append(new_item)
 
