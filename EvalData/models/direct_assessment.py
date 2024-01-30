@@ -23,9 +23,6 @@ from EvalData.models.base_models import MAX_REQUIREDANNOTATIONS_VALUE
 from EvalData.models.base_models import seconds_to_timedelta
 from EvalData.models.base_models import TextPair
 
-# TODO: Unclear if these are needed?
-# from Appraise.settings import STATIC_URL, BASE_CONTEXT
-
 LOGGER = _get_logger(name=__name__)
 
 

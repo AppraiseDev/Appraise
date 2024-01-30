@@ -38,41 +38,7 @@ $(document).ready(function() {
   $('input[name="start_timestamp"]').val(Date.now()/1000.0);
   $('#slider').slider({orientation: "horizontal", range: "min", change: update_score});
   $('input[name="score"]').val(-1);
-
-  //var $a = $('#id_candidate_text').attr('data-pseudo-content');
-  //$('#id_candidate_text').attr('data-pseudo-content', $a.rot13());
-  //alert($a);
-
-  // Increment the idle time counter every second.
-  //var idleInterval = setInterval(timerIncrement, 1000);
-
-  // Zero idle timer on mouse movement.
-  //$(this).mousemove(function (e) {
-  //  idleTime = 0;
-  //});
-
-  // Zero idle timer on key presses.
-  //$(this).keypress(function (e) {
-  //  idleTime = 0;
-  //});
 });
-
-// Uncomment this to activate timeout functionality
-/*
-function timerIncrement() {
-  idleTime = idleTime + 1;
-  if (idleTime > idleTimeoutInSeconds) {
-    alert('Annotation has been paused after ' + idleTimeoutInSeconds+ ' seconds of inactiviy.\nClick "OK" to continue annotation.');
-    reset_timer();
-  }
-}
-
-function reset_timer()
-{
-  idleTime = 0;
-  $('input[name="start_timestamp"]').val(Date.now()/1000.0);
-}
-*/
 
 function add_end_timestamp()
 {
@@ -209,7 +175,7 @@ function update_score()
 </div>
 
 <br/>
-{% include 'EvalView/_sqm_instructions.html' %}
+{% include 'EvalView/_mqm_instructions.html' %}
 
 </form>
 

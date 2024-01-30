@@ -197,8 +197,10 @@ class Command(BaseCommand):
 
         _campaign_type = context['TASK_TYPE']
         _max_count = options['max_count']
+        print("A")
         if not _campaign.activated:
             _process_campaign_data(_campaign, owner, _campaign_type, _max_count)
+        print("B")
 
         #############################################################
         self.stdout.write('### Running UpdateEvalDataModels')
@@ -206,6 +208,7 @@ class Command(BaseCommand):
 
         #############################################################
         self.stdout.write('### Running init_campaign again')
+        print("C")
 
         _init_campaign(
             context,

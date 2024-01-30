@@ -246,8 +246,11 @@ def direct_assessment(request, code=None, campaign_name=None):
         )
 
     campaign_opts = campaign.campaignOptions or ""
+    print(campaign)
     if 'sqm' in campaign_opts.lower():
         html_file = 'EvalView/direct-assessment-sqm.html'
+    elif 'mqm' in campaign_opts.lower():
+        html_file = 'EvalView/direct-assessment-mqm.html'
     else:
         html_file = 'EvalView/direct-assessment-context.html'
 
