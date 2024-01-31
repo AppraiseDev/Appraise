@@ -156,17 +156,7 @@
 
   <div class="row">
     <div class="col-sm-12">
-      {% if isCompleteDocument %}
-      <p>Below are the sentences you have just rated as a single <strong>document</strong>. Please state how much you
-        agree that:</p>
-      <p class="center_align"><strong>The black text adequately expresses the meaning of the gray text in
-          {{target_language}}.</strong></p>
-      {% else %}
-      <p>For the pair of <strong>sentences</strong> below: Read the text and state how much you agree that:</p>
-      <p class="center_align"><strong>The black text adequately expresses the meaning of the gray text in
-          {{target_language}}.</strong></p>
-
-      {% endif %}
+      <p class="center_align"><strong>The black text adequately expresses the meaning of the gray text in {{target_language}}.</strong></p>
     </div>
   </div>
 
@@ -299,10 +289,12 @@
   let marker_candidate = new Mark(document.querySelector("#candidate_text"));
 
   async function redraw_mqm() {
+    // cleanup artefacts
     $("#candidate_text").html($("#candidate_text").html().trim())
     // NOTE: hopefully this will get us into the next loop
     // WARNING: might not always be the case
     await new Promise(resolve => setTimeout(resolve, 10))
+
     marker_candidate.unmark({
       done: async () => {
         console.log("marking ranges", mqm.map((span) => ({
@@ -315,7 +307,7 @@
             "length": span["end_i"] - span["start_i"]
           })),
           {
-            done: () => {
+            done: async () => {
               $("#candidate_text > mark").each((i, el) => {
                 el = $(el)
                 el.css("background-color", MAJORITY_TO_COLOR[mqm[i]["severity"]]);
@@ -323,6 +315,8 @@
                 el.attr("i", i);
                 // currently just remove on click
                 el.on("click", () => {
+                  // destroy all bubbles
+                  $(".mqm_bubble").remove()
                   mqm.splice(i, 1)
                   redraw_mqm()
                 })
@@ -330,7 +324,7 @@
                 el.on("mouseover", () => {
                   // this is different from .offset().left
                   let left = el.get(0).offsetLeft;
-                  let top = el.position().top-22;
+                  let top = el.position().top-24;
                   el.parent().prepend(`
                     <span class="mqm_bubble" style="left: ${left}px; top: ${top}px;">
                       ${mqm[i]["type1"]} > ${mqm[i]["type2"]}
@@ -338,9 +332,7 @@
                   `)
                 })
                 // destroy all bubbles
-                el.on("mouseout", () => {
-                  $(".mqm_bubble").remove()
-                })
+                el.on("mouseout", () => $(".mqm_bubble").remove())
               })
             }
           })
@@ -359,15 +351,19 @@
       let start_prev_i = -1
       let start_i = selection.anchorOffset
       if (selection.anchorNode.previousSibling) {
-        start_i += Number.parseInt($(selection.anchorNode.previousSibling).attr("end_i"))
         start_prev_i = Number.parseInt($(selection.anchorNode.previousSibling).attr("i"))
+        if (!Number.isNaN(start_prev_i)) 
+          start_i += Number.parseInt($(selection.anchorNode.previousSibling).attr("end_i"))
       }
       let end_i = selection.focusOffset
       let end_prev_i = -1
       if (selection.focusNode.previousSibling) {
-        end_i += Number.parseInt($(selection.focusNode.previousSibling).attr("end_i"))
         end_prev_i = Number.parseInt($(selection.focusNode.previousSibling).attr("i"))
+        if (!Number.isNaN(end_prev_i)) 
+        if (!Number.isNaN(end_prev_i)) 
+          end_i += Number.parseInt($(selection.focusNode.previousSibling).attr("end_i"))
       }
+
       [start_i, end_i] = [Math.min(start_i, end_i), Math.max(start_i, end_i)]
       // don't allow very short spans
       if (end_i < start_i + 1) {
@@ -377,6 +373,8 @@
       if (selection.focusNode.previousSibling != selection.anchorNode.previousSibling) {
         return
       }
+      console.log(start_prev_i, end_prev_i)
+
       new_span = {
         "start_i": start_i,
         "end_i": end_i,
@@ -384,10 +382,8 @@
         "type1": USER_SETTING["type1"],
         "type2": USER_SETTING["type2"],
       }
-      console.log(new_span, selection.anchorNode.previousSibling)
       // should be the same because we disallow skipping marked spans for now
       let index = Math.min(start_prev_i, end_prev_i)+1
-      console.log("index", index)
       mqm = [
         ...mqm.slice(0, index),
         new_span,
