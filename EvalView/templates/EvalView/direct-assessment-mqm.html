@@ -27,11 +27,50 @@
   }
 
   #candidate_text {
-    line-height: 2em;
+    line-height: 1.7em;
   }
 
   mark {
     cursor: pointer;
+    border-radius: 4px;
+    padding: 0px;
+  }
+
+  .expanded_select {
+    display: inline-block;
+    width: 300px;
+    vertical-align: top;
+    list-style-type: none;
+    background-color: #dfd;
+    border: 1px solid #397;
+    border-radius: 4px;
+    padding-left: 0;
+    padding: 3px;
+  }
+
+  .expanded_select > li {
+    width: 100%;
+    font-size: 12pt;
+    user-select: none;
+  }
+
+  .expanded_select > li:hover:not([selected]) {
+    background-color: #aaa8;
+  }
+
+  .expanded_select > li[selected] {
+    background-color: #0004;
+  }
+
+  .mqm_bubble {
+    position: absolute;
+    background-color: #dfd;
+    border: 1px solid #397;
+    font-size: 10pt;
+    font-weight: normal;
+    line-height: 1em;
+    padding: 5px;
+    border-radius: 4px;
   }
 
   [data-pseudo-content]::before,
@@ -179,8 +218,31 @@
   {% include 'EvalView/_sqm_slider.html' %}
   {% endwith %}
 </div> -->
-
   </span>
+
+  <div>
+    <ul class="expanded_select" id="select_severity" setting_type="severity">
+      <li>Critical</li>
+      <li selected>Major</li>
+      <li>Minor</li>
+      <li>Neutral</li>
+    </ul>
+    <ul class="expanded_select" id="select_category" setting_type="type1">
+      <li selected>Accuracy</li>
+      <li>Fluency</li>
+      <li>Terminology</li>
+      <li>Locale convention</li>
+      <li>Style</li>
+      <li>Verity</li>
+      <li>Design</li>
+    </ul>
+    <ul class="expanded_select" id="select_category" setting_type="type2">
+      <li>Addition</li>
+      <li selected>Mistranslation</li>
+      <li>Omission</li>
+      <li>Untranslated</li>
+    <ul>
+  </div>
 
   <div class="actions">
     <table style="width:100%">
@@ -203,16 +265,37 @@
 
 </form>
 
-<!-- MQM-specific, at the end after everything is rendered -->
+<!-- process list select -->
 <script>
+  var USER_SETTING = {
+    "severity": "major",
+    "type1": "accuracy",
+    "type2": "mistranslation",
+  }
+  var USER_SEVERITY = "major"
   const MAJORITY_TO_COLOR = {
     "critical": "#d99c",
     "major": "#d999",
     "minor": "#d995",
     "neutral": "#d992",
   }
-  let mqm = JSON.parse(document.getElementById('mqm-payload').textContent);
 
+  $(".expanded_select > li").each((_, el) => {
+    let parent = $(el).parent()
+    $(el).on("click", () => {
+      // remove from all siblings
+      parent.children().each((_, el) => $(el).removeAttr("selected"))
+      // add to self
+      $(el).attr("selected", "selected")
+      // set the value
+      USER_SETTING[parent.attr("setting_type")] = $(el).text().toLowerCase()
+    })
+  })
+</script>
+
+<!-- MQM-specific, at the end after everything is rendered -->
+<script>
+  let mqm = JSON.parse(document.getElementById('mqm-payload').textContent);
   let marker_candidate = new Mark(document.querySelector("#candidate_text"));
 
   function redraw_mqm() {
@@ -226,13 +309,29 @@
           {
             done: () => {
               $("#candidate_text > mark").each((i, el) => {
-                $(el).css("background-color", MAJORITY_TO_COLOR[mqm[i]["severity"]]);
-                $(el).attr("end_i", mqm[i]["end_i"]);
-                $(el).attr("i", i);
+                el = $(el)
+                el.css("background-color", MAJORITY_TO_COLOR[mqm[i]["severity"]]);
+                el.attr("end_i", mqm[i]["end_i"]);
+                el.attr("i", i);
                 // currently just remove on click
-                $(el).on("click", () => {
+                el.on("click", () => {
                   mqm.splice(i, 1)
                   redraw_mqm()
+                })
+                // show highlight on hover
+                el.on("mouseover", () => {
+                  // this is different from .offset().left
+                  let left = el.get(0).offsetLeft;
+                  let top = el.position().top-22;
+                  el.parent().prepend(`
+                    <span class="mqm_bubble" style="left: ${left}px; top: ${top}px;">
+                      ${mqm[i]["type1"]} > ${mqm[i]["type2"]}
+                    </span>
+                  `)
+                })
+                // destroy all bubbles
+                el.on("mouseout", () => {
+                  $(".mqm_bubble").remove()
                 })
               })
             }
@@ -273,9 +372,11 @@
       new_span = {
         "start_i": start_i,
         "end_i": end_i,
-        "severity": "critical",
+        "severity": USER_SETTING["severity"],
+        "type1": USER_SETTING["type1"],
+        "type2": USER_SETTING["type2"],
       }
-      // shoudl be the same because we disallow skipping marked spans for now
+      // should be the same because we disallow skipping marked spans for now
       let index = Math.min(start_prev_i, end_prev_i)+1
       mqm = [
         ...mqm.slice(0, index),
@@ -294,8 +395,6 @@
     }
     return '';
   }
-
-// TODO: update colors somehow
 </script>
 
 {% endblock %}
