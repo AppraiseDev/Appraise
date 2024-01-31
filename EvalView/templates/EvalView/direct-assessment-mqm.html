@@ -298,9 +298,17 @@
   let mqm = JSON.parse(document.getElementById('mqm-payload').textContent);
   let marker_candidate = new Mark(document.querySelector("#candidate_text"));
 
-  function redraw_mqm() {
+  async function redraw_mqm() {
+    $("#candidate_text").html($("#candidate_text").html().trim())
+    // NOTE: hopefully this will get us into the next loop
+    // WARNING: might not always be the case
+    await new Promise(resolve => setTimeout(resolve, 10))
     marker_candidate.unmark({
-      done: () => {
+      done: async () => {
+        console.log("marking ranges", mqm.map((span) => ({
+            "start": span["start_i"],
+            "length": span["end_i"] - span["start_i"]
+          })));
         marker_candidate.markRanges(
           mqm.map((span) => ({
             "start": span["start_i"],
@@ -376,8 +384,10 @@
         "type1": USER_SETTING["type1"],
         "type2": USER_SETTING["type2"],
       }
+      console.log(new_span, selection.anchorNode.previousSibling)
       // should be the same because we disallow skipping marked spans for now
       let index = Math.min(start_prev_i, end_prev_i)+1
+      console.log("index", index)
       mqm = [
         ...mqm.slice(0, index),
         new_span,
