@@ -27,8 +27,8 @@
   .small_message {
     position: fixed;
     top: 25px;
-    left: 44%;
-    right: 44%;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 2000;
     text-align: center;
 
@@ -37,6 +37,8 @@
     border-radius: 4px;
 
     font-size: 15pt;
+    padding: 2px 10px;
+    min-width: 100px;
   }
 
   .instruction_sev {
@@ -136,20 +138,25 @@
     </div>
   </span>
 
-  <div class="actions">
-    <table style="width:100%">
-      <tr>
-        <td style="width:40%; text-align:left;">
-          <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn">
-            <i class="icon-repeat"></i> Reset</button>
-        <td style="width:20%; text-align:right;">
-          <button class="btn btn-primary" name="submit_button" accesskey="1" type="submit" value="SUBMIT"
-            onclick="javascript:return validate_form();">
-            <i class="icon-ok-sign icon-white"></i> Submit</button>
-          </button>
-        </td>
-      </tr>
-    </table>
+  <div style="text-align: center; min-height: 2em;">
+        <button
+          onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn"
+          style="float: left;"
+        >
+          <i class="icon-repeat"></i> Reset
+        </button>
+        <input
+          type="button" id="mobile_manual_add"
+          value="Mark error" class="btn btn-primary"
+        >
+      
+        <button
+          class="btn btn-primary" name="submit_button" accesskey="1" type="submit" value="SUBMIT"
+          onclick="javascript:return validate_form();"
+          style="float: right;"
+        >
+          <i class="icon-ok-sign icon-white"></i> Submit
+        </button>
   </div>
 
   <br />
@@ -177,10 +184,13 @@
     "major": "critical",
     "critical": null,
   }
-
   Object.keys(SEVERITY_TO_COLOR).map((key) => {
     $(`#instruction_sev_${key}`).css("background-color", SEVERITY_TO_COLOR[key])
   })
+  const IS_MOBILE = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0));
+  if (!IS_MOBILE) {
+    $("#mobile_manual_add").remove()
+  }
 </script>
 
 <script>
@@ -248,10 +258,7 @@
 
   let el_candidate_text = $('#candidate_text')
 
-  // text selection creates a highlight
-  // TODO: special phone handling
-  // https://stackoverflow.com/questions/56889013/detect-a-text-selection-on-a-smartphone
-  el_candidate_text.mouseup(function () {
+  function add_mqm_span() {
     let text = getSelectedText();
     let selection = window.getSelection()
     if (selection) {
@@ -296,7 +303,10 @@
       ]
       redraw_mqm()
     }
-  });
+  }
+
+  el_candidate_text.on("mouseup", add_mqm_span);
+  $("#mobile_manual_add").on("click", add_mqm_span);
 
   function getSelectedText() {
     if (window.getSelection) {
