@@ -39,6 +39,12 @@
     font-size: 15pt;
   }
 
+  .instruction_sev {
+    border-radius: 4px;
+    padding: 0px 2px;
+    font-weight: bold;
+  }
+
   [data-pseudo-content]::before,
   [data-pseudo-content--before]::before,
   [data-pseudo-content--after]::after {
@@ -171,6 +177,10 @@
     "major": "critical",
     "critical": null,
   }
+
+  Object.keys(SEVERITY_TO_COLOR).map((key) => {
+    $(`#instruction_sev_${key}`).css("background-color", SEVERITY_TO_COLOR[key])
+  })
 </script>
 
 <script>

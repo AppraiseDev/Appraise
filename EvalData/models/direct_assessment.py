@@ -754,6 +754,7 @@ class DirectAssessmentResult(BaseMetadata):
             'item__metadata__market__sourceLanguageCode',  # Source language
             'item__metadata__market__targetLanguageCode',  # Target language
             'score',  # Score
+            'mqm',  # MQM
         )
 
         if extended_csv:
