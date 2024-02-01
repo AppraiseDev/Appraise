@@ -11,5 +11,5 @@ python manage.py StartNewCampaign Examples/DirectMQM/manifest.json \
 # See Examples/DirectMQM/outputs.csv for a SSO login for the annotator account
 # Collect some annotations, then export annotation scores...
 
-python manage.py ExportSystemScoresToCSV example6mqm
+python manage.py ExportSystemScoresToCSV example15mqm
 ```
