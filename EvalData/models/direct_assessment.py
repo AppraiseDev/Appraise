@@ -381,6 +381,9 @@ class DirectAssessmentResult(BaseMetadata):
     score = models.PositiveSmallIntegerField(
         verbose_name=_('Score'), help_text=_('(value in range=[1,100])')
     )
+    mqm = models.TextField(
+        verbose_name=_('MQM'), help_text=_('JSON-encoded MQM annotations')
+    )
 
     start_time = models.FloatField(
         verbose_name=_('Start time'), help_text=_('(in seconds)')
@@ -412,7 +415,7 @@ class DirectAssessmentResult(BaseMetadata):
 
     # pylint: disable=E1136
     def _generate_str_name(self):
-        return '{0}.{1}={2}'.format(self.__class__.__name__, self.item, self.score)
+        return '{0}.{1}={2}'.format(self.__class__.__name__, self.item, self.score, self.mqm)
 
     def duration(self):
         d = self.end_time - self.start_time
@@ -471,6 +474,7 @@ class DirectAssessmentResult(BaseMetadata):
             'item__itemID',
             'item__metadata__market__sourceLanguageCode',
             'item__metadata__market__targetLanguageCode',
+            'mqm',
         )
         for result in qs.values_list(*value_names):
             systemID = result[0]
@@ -478,7 +482,8 @@ class DirectAssessmentResult(BaseMetadata):
             annotatorID = result[2]
             segmentID = result[3]
             marketID = '{0}-{1}'.format(result[4], result[5])
-            system_scores[marketID].append((systemID, annotatorID, segmentID, score))
+            mqm = result[6]
+            system_scores[marketID].append((systemID, annotatorID, segmentID, score, mqm))
 
         return system_scores
 

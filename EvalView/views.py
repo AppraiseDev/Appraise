@@ -138,33 +138,37 @@ def direct_assessment(request, code=None, campaign_name=None):
     t2 = datetime.now()
     if request.method == "POST":
         score = request.POST.get('score', None)
+        mqm = request.POST.get('mqm', None)
         item_id = request.POST.get('item_id', None)
         task_id = request.POST.get('task_id', None)
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
-        LOGGER.info('score=%s, item_id=%s', score, item_id)
-        if score and item_id and start_timestamp and end_timestamp:
+        
+        LOGGER.info(f'score={score}, mqm={mqm}, item_id={item_id}')
+        if not mqm and score:
+            mqm = ""
+        elif mqm and not score:
+            score = 0
+        elif not mqm and not score:
+            LOGGER.debug("Neither score nor mqm submitted.")
+
+        if (score or mqm) and item_id and start_timestamp and end_timestamp:
             duration = float(end_timestamp) - float(start_timestamp)
             LOGGER.debug(float(start_timestamp))
             LOGGER.debug(float(end_timestamp))
             LOGGER.info(
-                'start=%s, end=%s, duration=%s',
-                start_timestamp,
-                end_timestamp,
-                duration,
+                f'start={start_timestamp,}, end={end_timestamp}, duration={duration}',
             )
 
             current_item = current_task.next_item_for_user(request.user)
             if current_item.itemID != int(item_id) or current_item.id != int(task_id):
-                _msg = 'Item ID %s does not match item %s, will not save!'
-                LOGGER.debug(_msg, item_id, current_item.itemID)
-
+                LOGGER.debug(f'Item ID {item_id} does not match item {current_item.itemID}, will not save!')
             else:
                 utc_now = datetime.utcnow().replace(tzinfo=utc)
-
                 # pylint: disable=E1101
                 DirectAssessmentResult.objects.create(
                     score=score,
+                    mqm=mqm,
                     start_time=float(start_timestamp),
                     end_time=float(end_timestamp),
                     item=current_item,
@@ -245,7 +249,7 @@ def direct_assessment(request, code=None, campaign_name=None):
         )
 
     campaign_opts = campaign.campaignOptions or ""
-    print(campaign)
+    
     if 'sqm' in campaign_opts.lower():
         html_file = 'EvalView/direct-assessment-sqm.html'
     elif 'mqm;' in campaign_opts.lower():
@@ -402,7 +406,6 @@ def direct_assessment_context(request, code=None, campaign_name=None):
                 end_timestamp,
                 duration,
             )
-
             current_item = current_task.next_item_for_user(request.user)
             if (
                 current_item.itemID != int(item_id)
@@ -414,7 +417,6 @@ def direct_assessment_context(request, code=None, campaign_name=None):
 
             else:
                 utc_now = datetime.utcnow().replace(tzinfo=utc)
-
                 # pylint: disable=E1101
                 DirectAssessmentContextResult.objects.create(
                     score=score,
