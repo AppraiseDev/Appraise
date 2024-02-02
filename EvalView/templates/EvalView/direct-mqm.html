@@ -10,8 +10,22 @@
     padding: 10px 20px;
   }
 
-  .center_align {
+  body {
+    /* override the default */
+    padding-top: 50px !important;
+  }
+
+  .main_instruction {
     text-align: center;
+    font-size: large;
+    font-weight: bold;
+  }
+
+  u {
+    text-decoration: none;
+    border-radius: 4px;
+    background-color: #ddd;
+    padding: 0px 2px;
   }
 
   #candidate_text {
@@ -47,6 +61,10 @@
     font-weight: bold;
   }
 
+  ul {
+    padding-left: 20px;
+  }
+
   [data-pseudo-content]::before,
   [data-pseudo-content--before]::before,
   [data-pseudo-content--after]::after {
@@ -55,7 +73,6 @@
   }
 </style>
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/themes/smoothness/jquery-ui.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
 <!-- for highlighting -->
@@ -88,9 +105,9 @@
   </div>
 
   <div class="row">
-    <div class="col-sm-12">
-      <p class="center_align"><strong>The black text adequately expresses the meaning of the gray text in
-          {{target_language}}.</strong></p>
+    <div class="col-sm-12 main_instruction">
+      For the translation in {{target_language}}, please <u>(1) Mark error spans</u>, and <u>(2) Update the translation
+        score</u> (slider).
     </div>
   </div>
 
@@ -117,6 +134,7 @@
   <input name="document_id" type="hidden" value="{{document_id}}" />
   <input name="start_timestamp" type="hidden" value="" />
   <input name="mqm" type="hidden" value="" />
+  <input name="score" type="hidden" value="" />
 
   <span id="candidate">
     <div class="row">
@@ -145,24 +163,15 @@
   </div>
 
   <div style="text-align: center; min-height: 2em;">
-        <button
-          onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn"
-          style="float: left;"
-        >
-          <i class="icon-repeat"></i> Reset
-        </button>
-        <input
-          type="button" id="mobile_manual_add"
-          value="Mark error" class="btn btn-primary"
-        >
-      
-        <button
-          class="btn btn-primary" name="submit_button" accesskey="1" type="submit" value="SUBMIT"
-          onclick="javascript:return validate_form();"
-          style="float: right;"
-        >
-          <i class="icon-ok-sign icon-white"></i> Submit
-        </button>
+    <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn" style="float: left;">
+      <i class="icon-repeat"></i> Reset
+    </button>
+    <input type="button" id="mobile_manual_add" value="Mark error" class="btn btn-primary">
+
+    <button class="btn btn-primary" name="submit_button" accesskey="1" type="submit" value="SUBMIT"
+      onclick="javascript:return validate_form();" style="float: right;">
+      <i class="icon-ok-sign icon-white"></i> Submit
+    </button>
   </div>
 
   <br />
@@ -200,7 +209,8 @@
   Object.keys(SEVERITY_TO_COLOR).map((key) => {
     $(`#instruction_sev_${key}`).css("background-color", SEVERITY_TO_COLOR[key])
   })
-  const IS_MOBILE = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0));
+  // https://stackoverflow.com/questions/4817029/whats-the-best-way-to-detect-a-touch-screen-device-using-javascript
+  const IS_MOBILE = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0) || window.matchMedia("(any-pointer: coarse)").matches);
   if (!IS_MOBILE) {
     $("#mobile_manual_add").remove()
   }
@@ -227,6 +237,15 @@
     obj.fadeIn(200);
     setTimeout(() => { obj.fadeOut(700, () => { obj.remove() }) }, 1500);
   }
+
+  function current_mqm_score(modified) {
+    let score = mqm.reduce((a, b) => a - SEVERITY_TO_SCORE[b["severity"]], 0)
+    if (modified) {
+      return (Math.max(-25, score) + 25) * 4
+    } else {
+      return score
+    }
+  }
 </script>
 
 <!-- MQM-specific, at the end after everything is rendered -->
@@ -238,10 +257,9 @@
   async function redraw_mqm() {
     // store currently displayed version
     $('input[name="mqm"]').val(JSON.stringify(mqm));
-    let score = mqm.reduce((a, b) => a - SEVERITY_TO_SCORE[b["severity"]], 0)
-    // should be in range [0, 100]
-    let score_modified = (Math.max(-25, score) + 25) * 4
-    $('#slider').slider('value', score_modified)
+    let score =
+      // should be in range [0, 100]
+      $('#slider').slider('value', current_mqm_score(true))
 
     // cleanup artefacts
     $("#candidate_text").html($("#candidate_text").html().trim())
@@ -288,7 +306,7 @@
     let text = getSelectedText();
     let selection = window.getSelection()
     if (selection) {
-      if(selection.focusNode.parentElement.id != "candidate_text" || selection.anchorNode.parentElement.id != "candidate_text") {
+      if (selection.focusNode.parentElement.id != "candidate_text" || selection.anchorNode.parentElement.id != "candidate_text") {
         // we are inside an existing span
         return
       }
@@ -302,14 +320,14 @@
       }
       let end_i = selection.focusOffset
       let end_prev_i = -1
-      
+
 
       if (selection.focusNode.previousSibling) {
         end_prev_i = Number.parseInt($(selection.focusNode.previousSibling).attr("i"))
         if (!Number.isNaN(end_prev_i))
           end_i += Number.parseInt($(selection.focusNode.previousSibling).attr("end_i"))
       }
-    
+
 
       [start_i, end_i] = [Math.min(start_i, end_i), Math.max(start_i, end_i)]
       // unclear how this could happen but just to be sure
@@ -318,12 +336,12 @@
       }
 
       // don't allow spans that go over existing spans
-      if (!mqm.every((mqm) => 
+      if (!mqm.every((mqm) =>
         (mqm["start_i"] <= start_i && mqm["end_i"] <= start_i) || (mqm["start_i"] >= end_i && mqm["end_i"] >= end_i)
       )) {
         return
       }
-      
+
       // create new span
       new_span = {
         "start_i": start_i,
@@ -371,11 +389,14 @@
   }
 
   function validate_form() {
-    if(mqm.some((x) => x["severity"] == "undecided")) {
+    if (mqm.some((x) => x["severity"] == "undecided")) {
       alert('There are some segments without severity (in blue). Click on them to change their severities.');
       return false
     }
-    if(mqm.length == 0 && !confirm("There are no annotated spans. Are you sure you want to submit?")) {
+    if (mqm.length == 0 && !confirm("There are no annotated spans. Are you sure you want to submit?")) {
+      return false
+    }
+    if (current_mqm_score(true) == Number.parseFloat($('input[name="score"]').val()) && !confirm("You did not change the original translation score. Are you sure you want to submit?")) {
       return false
     }
     return true;

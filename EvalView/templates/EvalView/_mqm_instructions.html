@@ -5,17 +5,37 @@
         <ul>
           <li>Highlight parts of the text with your cursor.</li>
           <li>Click the span repeatedly to increase its severity.</li>
+          <li><strong>Severity:</strong>
+            <ul>
+              <li><span class="instruction_sev" id="instruction_sev_critical">Critical:</span> Errors that drastically
+                change the meaning or make the content incomprehensible.</li>
+              <li><span class="instruction_sev" id="instruction_sev_major">Major:</span> Errors that cause a change in
+                meaning or a significant reduction in fluency, but do not make the text incomprehensible.</li>
+              <li><span class="instruction_sev" id="instruction_sev_minor">Minor:</span> Less severe errors that do not
+                significantly change the meaning or reduce the fluency of the text. They might be small mistakes in
+                grammar, spelling, or punctuation that do not greatly affect the overall quality of the translation.
+              </li>
+            </ul>
+          </li>
         </ul>
       </li>
-      
-      <li><strong>Severity:</strong>
+      <li>
+        <strong>Score: </strong>
+        The translation score is automatically recomputed based on your marked spans.
+        However, in many cases it does reflect well the overall translation quality.
+        Please, update the translation score before continuing to the next segment.
         <ul>
-          <li><span class="instruction_sev" id="instruction_sev_critical">Critical:</span> Errors that drastically change the meaning or make the content incomprehensible.</li>
-          <li><span class="instruction_sev" id="instruction_sev_major">Major:</span> Errors that cause a change in meaning or a significant reduction in fluency, but do not make the text incomprehensible.</li>
-          <li><span class="instruction_sev" id="instruction_sev_minor">Minor:</span> Less severe errors that do not significantly change the meaning or reduce the fluency of the text. They might be small mistakes in grammar, spelling, or punctuation that do not greatly affect the overall quality of the translation.</li>
+          <li><strong>0: No meaning preserved</strong>: Nearly all information is lost between the translation and
+            source. Grammar is irrelevant.</li>
+          <li><strong>4: Some meaning preserved</strong>: The translation preserves some of the meaning of the source
+            but misses significant parts. The narrative is hard to follow due to fundamental errors. Grammar may be
+            poor.</li>
+          <li><strong>6: Most meaning preserved and few grammar mistakes</strong>: The translation retains most of the
+            meaning. It may have some grammar mistakes or minor contextual inconsistencies.</li>
+          <li><strong>10: Perfect meaning and grammar</strong>: The meaning of the translation is completely consistent
+            with the source the context. The grammar is also correct.</li>
         </ul>
       </li>
-      <li><strong>TODO: </strong>Actual MQM instructions</li>
     </ul>
   </div>
 </div>
