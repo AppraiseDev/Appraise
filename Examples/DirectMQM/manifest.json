@@ -3,10 +3,10 @@
     "CAMPAIGN_NAME": "example15mqm",
     "CAMPAIGN_KEY": "c6",
     "CAMPAIGN_NO": 6,
-    "REDUNDANCY": 1,
+    "REDUNDANCY": 2,
 
     "TASKS_TO_ANNOTATORS": [
-        ["eng", "deu", "uniform",  1, 1]
+        ["eng", "deu", "uniform",  60, 30]
     ],
 
     "TASK_TYPE": "Direct",
