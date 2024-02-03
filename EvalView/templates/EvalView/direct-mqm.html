@@ -46,13 +46,13 @@
     z-index: 2000;
     text-align: center;
 
-    background-color: #c99;
-    border: 1px solid #a77;
+    background-color: #bbb;
+    border: 1px solid #999;
     border-radius: 4px;
 
-    font-size: 15pt;
+    font-size: 16pt;
     padding: 2px 10px;
-    min-width: 100px;
+    min-width: 130px;
   }
 
   .instruction_sev {
@@ -145,7 +145,7 @@
             {% if candidate_context_left %}
             {{candidate_context_left|safe}}
             {% endif %}
-            <strong id="candidate_text">{{candidate_text|safe}}</strong>
+            <strong id="candidate_text">{{candidate_text|safe}} <em>[MISSING]</em></strong>
             {% if candidate_context_right %}
             {{candidate_context_right|safe}}
             {% endif %}
@@ -193,18 +193,18 @@
     "undecided": "#99d9",
   }
   const SEVERITY_TO_SCORE = {
-    "critical": 25,
+    "critical": 15,
     "major": 5,
     "minor": 1,
     "neutral": 0,
     "undecided": Number.NaN,
   }
   const SEVERITY_TO_NEXT = {
-    "undecided": "neutral",
-    "neutral": "minor",
+    "undecided": "minor",
+    // "neutral": "minor",
     "minor": "major",
     "major": "critical",
-    "critical": null,
+    "critical": "undecided",
   }
   Object.keys(SEVERITY_TO_COLOR).map((key) => {
     $(`#instruction_sev_${key}`).css("background-color", SEVERITY_TO_COLOR[key])
@@ -235,7 +235,8 @@
     let obj = $(`<div class="small_message" style="display: none">${text}</div>`)
     $("body").append(obj);
     obj.fadeIn(200);
-    setTimeout(() => { obj.fadeOut(700, () => { obj.remove() }) }, 1500);
+    // disappear in 2s
+    setTimeout(() => { obj.fadeOut(700, () => { obj.remove() }) }, 2000);
   }
 
   function current_mqm_score(modified) {
@@ -253,6 +254,7 @@
   const MQM_ORIGINAL = JSON.parse(document.getElementById('mqm-payload').textContent);
   let mqm = MQM_ORIGINAL
   let marker_candidate = new Mark(document.querySelector("#candidate_text"));
+  let mqm_delete_timer = null
 
   async function redraw_mqm() {
     // store currently displayed version
@@ -284,13 +286,14 @@
 
                 // go to next severity level on click
                 el.on("click", () => {
+                  clearTimeout(mqm_delete_timer)
                   let severity_next = SEVERITY_TO_NEXT[mqm[i]["severity"]]
-                  if (severity_next == null) {
-                    mqm.splice(i, 1)
-                  } else {
-                    mqm[i]["severity"] = severity_next
-                    small_message(severity_next.charAt(0).toUpperCase() + severity_next.slice(1))
+                  // undecided is removed after 1sec
+                  if (severity_next == "undecided") {
+                    mqm_delete_timer = setTimeout(() => { mqm.splice(i, 1); redraw_mqm() }, 1000)
                   }
+                  mqm[i]["severity"] = severity_next
+                  small_message(severity_next.charAt(0).toUpperCase() + severity_next.slice(1))
                   redraw_mqm()
                 })
               })
@@ -389,6 +392,7 @@
   }
 
   function validate_form() {
+    console.log(mqm)
     if (mqm.some((x) => x["severity"] == "undecided")) {
       alert('There are some segments without severity (in blue). Click on them to change their severities.');
       return false
