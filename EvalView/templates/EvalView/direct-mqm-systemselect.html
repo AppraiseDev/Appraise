@@ -259,9 +259,8 @@
   async function redraw_mqm() {
     // store currently displayed version
     $('input[name="mqm"]').val(JSON.stringify(mqm));
-    let score =
-      // should be in range [0, 100]
-      $('#slider').slider('value', current_mqm_score(true))
+    // should be in range [0, 100]
+    $('#slider').slider('value', current_mqm_score(true))
 
     // cleanup artefacts
     $("#candidate_text").html($("#candidate_text").html().trim())

@@ -114,8 +114,10 @@
 
   <div class="row">
     <div class="col-sm-12 main_instruction">
-      For the translation in {{target_language}}, please <u>(1) Mark error spans</u>, and <u>(2) Update the translation
-        score</u> (slider).
+      For the source text in {{source_language}} and its candidate translation in {{target_language}} shown below,
+      <br>please
+      <u>(1) highlight all errors of various severity levels</u>, and then
+      <u>(2) update the overall translation quality score on the slider</u>.
     </div>
   </div>
 
@@ -268,6 +270,9 @@
   async function redraw_mqm() {
     // store currently displayed version
     $('input[name="mqm"]').val(JSON.stringify(mqm));
+    // should be in range [0, 100]
+    $('#slider').slider('value', current_mqm_score(true))
+
 
     let html_candidate = TXT_CANDIDATE_ORIGINAL.split("").map((v, i) => {
       return `<span class="mqm_char" id="candidate_char_${i}" char_id="${i}">${v}</span>`
@@ -301,9 +306,11 @@
         if (el.attr("in_mqm")) {
           let mqm_i = Number.parseInt(el.attr("in_mqm"))
           mqm[mqm_i]["severity"] = SEVERITY_TO_NEXT[mqm[mqm_i]["severity"]]
-          if (mqm[mqm_i]["severity"] == "undecided") {
-            mqm_delete_timer = setTimeout(() => { mqm.splice(mqm_i, 1); redraw_mqm() }, 1000)
-          }
+          // clear ALL undecided
+          mqm_delete_timer = setTimeout(() => {
+            mqm = mqm.filter(v => v["severity"] != "undecided");
+            redraw_mqm()
+          }, 1000)
           redraw_mqm()
           abort_selection()
         } else {
@@ -321,6 +328,7 @@
               (v["end_i"] > start_i && v["end_i"] < end_i)
             )) {
               abort_selection()
+              small_message("Overlapping error fragments are not allowed.")
               return
             }
 
@@ -361,7 +369,7 @@
       alert('There are some segments without severity (in blue). Click on them to change their severities.');
       return false
     }
-    if (mqm.length == 0 && !confirm("There are no annotated spans. Are you sure you want to submit?")) {
+    if (mqm.length == 0 && !confirm("There are no annotated text fragments. Are you sure you want to submit?")) {
       return false
     }
     if (current_mqm_score(true) == Number.parseFloat($('input[name="score"]').val()) && !confirm("You did not change the original translation score. Are you sure you want to submit?")) {
