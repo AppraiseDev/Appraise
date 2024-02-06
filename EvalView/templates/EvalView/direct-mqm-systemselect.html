@@ -32,6 +32,12 @@
     line-height: 2em;
   }
 
+  mark {
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 4.2px 0px;
+  }
+
   .small_message {
     position: fixed;
     top: 25px;
@@ -59,22 +65,6 @@
     padding-left: 20px;
   }
 
-  #candidate_text {
-    user-select: none;
-  }
-
-  .mqm_char:hover:not([selected]):not([in_mqm]) {
-    outline: 2px solid #ccc;
-  }
-
-  .mqm_char[selected] {
-    background-color: #ccc;
-  }
-
-  .mqm_char {
-    cursor: pointer;
-  }
-
   [data-pseudo-content]::before,
   [data-pseudo-content--before]::before,
   [data-pseudo-content--after]::after {
@@ -85,6 +75,8 @@
 
 <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/themes/smoothness/jquery-ui.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
+<!-- for highlighting -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js"></script>
 
 
 {{ mqm|json_script:"mqm-payload" }}
@@ -174,6 +166,7 @@
     <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn" style="float: left;">
       <i class="icon-repeat"></i> Reset
     </button>
+    <input type="button" id="mobile_manual_add" value="Mark error" class="btn btn-primary">
 
     <button class="btn btn-primary" name="submit_button" accesskey="1" type="submit" value="SUBMIT"
       onclick="javascript:return validate_form();" style="float: right;">
@@ -207,8 +200,8 @@
     "undecided": Number.NaN,
   }
   const SEVERITY_TO_NEXT = {
-    "neutral": "minor",
     "undecided": "minor",
+    // "neutral": "minor",
     "minor": "major",
     "major": "critical",
     "critical": "undecided",
@@ -218,6 +211,9 @@
   })
   // https://stackoverflow.com/questions/4817029/whats-the-best-way-to-detect-a-touch-screen-device-using-javascript
   const IS_MOBILE = (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0) || window.matchMedia("(any-pointer: coarse)").matches);
+  if (!IS_MOBILE) {
+    $("#mobile_manual_add").remove()
+  }
 </script>
 
 <script>
@@ -251,92 +247,131 @@
       return score
     }
   }
-
-  function waitout_js_loop() {
-    return new Promise(resolve => setTimeout(resolve, 1))
-  }
 </script>
 
 <!-- MQM-specific, at the end after everything is rendered -->
 <script>
   const MQM_ORIGINAL = JSON.parse(document.getElementById('mqm-payload').textContent);
-  const TXT_CANDIDATE_ORIGINAL = $("#candidate_text").text().trim()
-  var SELECTION_STATE = []
   let mqm = MQM_ORIGINAL
+  let marker_candidate = new Mark(document.querySelector("#candidate_text"));
   let mqm_delete_timer = null
 
   async function redraw_mqm() {
     // store currently displayed version
     $('input[name="mqm"]').val(JSON.stringify(mqm));
+    let score =
+      // should be in range [0, 100]
+      $('#slider').slider('value', current_mqm_score(true))
 
-    let html_candidate = TXT_CANDIDATE_ORIGINAL.split("").map((v, i) => {
-      return `<span class="mqm_char" id="candidate_char_${i}" char_id="${i}">${v}</span>`
-    }).join("")
-    $("#candidate_text").html(html_candidate)
+    // cleanup artefacts
+    $("#candidate_text").html($("#candidate_text").html().trim())
+    // NOTE: hopefully this will get us into the next loop
+    // WARNING: might not always be the case
+    await new Promise(resolve => setTimeout(resolve, 10))
 
-    await waitout_js_loop()
+    marker_candidate.unmark({
+      done: async () => {
+        marker_candidate.markRanges(
+          mqm.map((span) => ({
+            "start": span["start_i"],
+            "length": span["end_i"] - span["start_i"]
+          })),
+          {
+            done: async () => {
+              $("#candidate_text > mark").each((i, el) => {
+                el = $(el)
+                el.css("background-color", SEVERITY_TO_COLOR[mqm[i]["severity"]]);
+                el.attr("end_i", mqm[i]["end_i"]);
+                el.attr("i", i);
 
-    function abort_selection() {
-      // cleanup
-      $(".mqm_char[selected]").each((_, el) => $(el).attr("selected", false))
-      SELECTION_STATE = []
-    }
+                // go to next severity level on click
+                el.on("click", () => {
+                  clearTimeout(mqm_delete_timer)
+                  let severity_next = SEVERITY_TO_NEXT[mqm[i]["severity"]]
+                  // undecided is removed after 1sec
+                  if (severity_next == "undecided") {
+                    mqm_delete_timer = setTimeout(() => { mqm.splice(i, 1); redraw_mqm() }, 1000)
+                  }
+                  mqm[i]["severity"] = severity_next
+                  small_message(severity_next.charAt(0).toUpperCase() + severity_next.slice(1))
+                  redraw_mqm()
+                })
+              })
+            }
+          })
+      }
+    })
+  }
 
-    $(".mqm_char").each((i, el) => {
-      el = $(el)
-      let char_id = Number.parseInt(el.attr("char_id"))
+  let el_candidate_text = $('#candidate_text')
 
-      // render existing mqm
-      let active_mqm = mqm.map((v, i) => [v, i]).filter((v) => v[0]["start_i"] <= char_id && v[0]["end_i"] >= char_id)
-      // TODO: should be only 0 or 1 exactly
-      if (active_mqm.length > 0) {
-        active_mqm = active_mqm[0]
-        el.css("background-color", SEVERITY_TO_COLOR[active_mqm[0]["severity"]])
-        el.attr("in_mqm", active_mqm[1])
+  function add_mqm_span() {
+    let text = getSelectedText();
+    let selection = window.getSelection()
+    if (selection) {
+      if (selection.focusNode.parentElement.id != "candidate_text" || selection.anchorNode.parentElement.id != "candidate_text") {
+        // we are inside an existing span
+        return
       }
 
-      el.on("click", () => {
-        clearTimeout(mqm_delete_timer)
-
-        if (el.attr("in_mqm")) {
-          let mqm_i = Number.parseInt(el.attr("in_mqm"))
-          mqm[mqm_i]["severity"] = SEVERITY_TO_NEXT[mqm[mqm_i]["severity"]]
-          if (mqm[mqm_i]["severity"] == "undecided") {
-            mqm_delete_timer = setTimeout(() => { mqm.splice(mqm_i, 1); redraw_mqm() }, 1000)
-          }
-          redraw_mqm()
-          abort_selection()
-        } else {
-          // add new span
-
-          el.attr("selected", true)
-          SELECTION_STATE.push(char_id)
-          // TODO: intermediate highlight on hover?
-          if (SELECTION_STATE.length == 2) {
-            // check that nothing overlaps
-            let start_i = Math.min(...SELECTION_STATE)
-            let end_i = Math.max(...SELECTION_STATE)
-            if (mqm.some((v) =>
-              (v["start_i"] > start_i && v["start_i"] < end_i) ||
-              (v["end_i"] > start_i && v["end_i"] < end_i)
-            )) {
-              abort_selection()
-              return
-            }
-
-            mqm.push({
-              "start_i": start_i,
-              "end_i": end_i,
-              "severity": "minor",
-            })
+      let start_prev_i = -1
+      let start_i = selection.anchorOffset
+      if (selection.anchorNode.previousSibling) {
+        start_prev_i = Number.parseInt($(selection.anchorNode.previousSibling).attr("i"))
+        if (!Number.isNaN(start_prev_i))
+          start_i += Number.parseInt($(selection.anchorNode.previousSibling).attr("end_i"))
+      }
+      let end_i = selection.focusOffset
+      let end_prev_i = -1
 
 
-            abort_selection()
-            redraw_mqm()
-          }
-        }
-      })
-    })
+      if (selection.focusNode.previousSibling) {
+        end_prev_i = Number.parseInt($(selection.focusNode.previousSibling).attr("i"))
+        if (!Number.isNaN(end_prev_i))
+          end_i += Number.parseInt($(selection.focusNode.previousSibling).attr("end_i"))
+      }
+
+
+      [start_i, end_i] = [Math.min(start_i, end_i), Math.max(start_i, end_i)]
+      // unclear how this could happen but just to be sure
+      if (end_i == start_i) {
+        return
+      }
+
+      // don't allow spans that go over existing spans
+      if (!mqm.every((mqm) =>
+        (mqm["start_i"] <= start_i && mqm["end_i"] <= start_i) || (mqm["start_i"] >= end_i && mqm["end_i"] >= end_i)
+      )) {
+        return
+      }
+
+      // create new span
+      new_span = {
+        "start_i": start_i,
+        "end_i": end_i,
+        "severity": "minor",
+      }
+      // should be the same because we disallow skipping marked spans for now
+      let index = Math.min(start_prev_i, end_prev_i) + 1
+      mqm = [
+        ...mqm.slice(0, index),
+        new_span,
+        ...mqm.slice(index)
+      ]
+      redraw_mqm()
+    }
+  }
+
+  el_candidate_text.on("mouseup", add_mqm_span);
+  $("#mobile_manual_add").on("click", add_mqm_span);
+
+  function getSelectedText() {
+    if (window.getSelection) {
+      return window.getSelection().toString();
+    } else if (document.selection) {
+      return document.selection.createRange();
+    }
+    return '';
   }
 </script>
 
@@ -357,6 +392,7 @@
   }
 
   function validate_form() {
+    console.log(mqm)
     if (mqm.some((x) => x["severity"] == "undecided")) {
       alert('There are some segments without severity (in blue). Click on them to change their severities.');
       return false
