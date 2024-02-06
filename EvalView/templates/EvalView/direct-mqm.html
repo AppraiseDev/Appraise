@@ -172,6 +172,9 @@
     {% endwith %}
   </div>
 
+  <input type="checkbox" id="check_word_level">
+  <label for="check_word_level">Use word-level units</label>
+
   <div style="text-align: center; min-height: 2em;">
     <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn" style="float: left;">
       <i class="icon-repeat"></i> Reset
@@ -257,12 +260,14 @@
   function waitout_js_loop() {
     return new Promise(resolve => setTimeout(resolve, 1))
   }
+
 </script>
 
 <!-- MQM-specific, at the end after everything is rendered -->
 <script>
   const MQM_ORIGINAL = JSON.parse(document.getElementById('mqm-payload').textContent);
   const TXT_CANDIDATE_ORIGINAL = $("#candidate_text").text().trim()
+  const tokenizer = new RegExp(/[^a-zA-Z\-0-9]+/g)
   var SELECTION_STATE = []
   let mqm = MQM_ORIGINAL
   let mqm_delete_timer = null
@@ -273,10 +278,19 @@
     // should be in range [0, 100]
     $('#slider').slider('value', current_mqm_score(true))
 
-
-    let html_candidate = TXT_CANDIDATE_ORIGINAL.split("").map((v, i) => {
+    let split_text = TXT_CANDIDATE_ORIGINAL.split("")
+    
+    // TODO: add checkbox
+    if($("#check_word_level").prop("checked")) {
+      split_text = [...TXT_CANDIDATE_ORIGINAL.matchAll(/([\p{L}\-0-9]+|[^\p{L}\-0-9]+)/gu)]
+      split_text = split_text.map((v) => v[0])
+      console.log(split_text)
+    }
+    
+    let html_candidate = split_text.map((v, i) => {
       return `<span class="mqm_char" id="candidate_char_${i}" char_id="${i}">${v}</span>`
     }).join("")
+
     $("#candidate_text").html(html_candidate)
 
     await waitout_js_loop()
@@ -346,6 +360,8 @@
       })
     })
   }
+
+  $("#check_word_level").on("change", redraw_mqm)
 </script>
 
 <script>
