@@ -284,7 +284,6 @@
     if($("#check_word_level").prop("checked")) {
       split_text = [...TXT_CANDIDATE_ORIGINAL.matchAll(/([\p{L}\-0-9]+|[^\p{L}\-0-9]+)/gu)]
       split_text = split_text.map((v) => v[0])
-      console.log(split_text)
     }
     
     let html_candidate = split_text.map((v, i) => {
