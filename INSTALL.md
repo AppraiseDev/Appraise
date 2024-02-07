@@ -17,15 +17,15 @@ pip install -r requirements.txt
 
 Follow instructions on your screen; do not leave the password empty.
 ```
-python manage.py migrate
-python manage.py createsuperuser
-python manage.py collectstatic --no-post-process
+python3 manage.py migrate
+python3 manage.py createsuperuser
+python3 manage.py collectstatic --no-post-process
 ```
 
 3. Run the app on a local server:
 
 ```
-python manage.py runserver
+python3 manage.py runserver
 ```
 
 Open the browser at http://127.0.0.1:8000/.
@@ -35,10 +35,10 @@ The admin panel is available at http://127.0.0.1:8000/admin
 
 ```
 # See Examples/DirectMQM/README.md
-python manage.py StartNewCampaign Examples/DirectMQM/manifest.json \
+python3 manage.py StartNewCampaign Examples/DirectMQM/manifest.json \
     --batches-json Examples/DirectMQM/batches.json \
     --csv-output Examples/DirectMQM/output.csv
-python manage.py CreateInviteTokens test_group 20 --create-group test_group
+python3 manage.py CreateInviteTokens test_group 20 --create-group test_group
 ```
 
 10. Clean up everything
