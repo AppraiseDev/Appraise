@@ -640,7 +640,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     # hijack this function if it uses MQM
     campaign_opts = (campaign.campaignOptions or "").lower()
     if 'mqm' in campaign_opts:
-        return direct_assessment_document_mqm(request, code, campaign_name)
+        return direct_assessment_document_mqm(campaign, current_task, request)
 
     # Handling POST requests differs from the original direct_assessment/
     # direct_assessment_context view, but the input is the same: a score for the
@@ -1079,103 +1079,11 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     return render(request, 'EvalView/direct-assessment-document.html', context)
 
-# pylint: disable=C0103,C0330
-@login_required
-def direct_assessment_document_mqm(request, code=None, campaign_name=None):
+def direct_assessment_document_mqm(campaign, current_task, request):
     """
     Direct assessment document annotation view.
     """
     t1 = datetime.now()
-
-    campaign = None
-    if campaign_name:
-        campaign = Campaign.objects.filter(campaignName=campaign_name)
-        if not campaign.exists():
-            _msg = 'No campaign named "%s" exists, redirecting to dashboard'
-            LOGGER.info(_msg, campaign_name)
-            return redirect('dashboard')
-
-        campaign = campaign[0]
-
-    LOGGER.info(
-        'Rendering direct assessment document view for user "%s".',
-        request.user.username or "Anonymous",
-    )
-
-    current_task = None
-
-    # Try to identify TaskAgenda for current user.
-    agendas = TaskAgenda.objects.filter(user=request.user)
-
-    if campaign:
-        agendas = agendas.filter(campaign=campaign)
-
-    for agenda in agendas:
-        LOGGER.info('Identified work agenda %s', agenda)
-
-        tasks_to_complete = []
-        for serialized_open_task in agenda.serialized_open_tasks():
-            open_task = serialized_open_task.get_object_instance()
-
-            # Skip tasks which are not available anymore
-            if open_task is None:
-                continue
-
-            if open_task.next_item_for_user(request.user) is not None:
-                current_task = open_task
-                if not campaign:
-                    campaign = agenda.campaign
-            else:
-                tasks_to_complete.append(serialized_open_task)
-
-        modified = False
-        for task in tasks_to_complete:
-            modified = agenda.complete_open_task(task) or modified
-
-        if modified:
-            agenda.save()
-
-    if not current_task and agendas.count() > 0:
-        LOGGER.info('Work agendas completed, redirecting to dashboard')
-        LOGGER.info('- code=%s, campaign=%s', code, campaign)
-        return redirect('dashboard')
-
-    # If language code has been given, find a free task and assign to user.
-    if not current_task:
-        current_task = DirectAssessmentDocumentTask.get_task_for_user(user=request.user)
-
-    if not current_task:
-        if code is None or campaign is None:
-            LOGGER.info('No current task detected, redirecting to dashboard')
-            LOGGER.info('- code=%s, campaign=%s', code, campaign)
-            return redirect('dashboard')
-
-        LOGGER.info(
-            'Identifying next task for code "%s", campaign="%s"',
-            code,
-            campaign,
-        )
-        next_task = DirectAssessmentDocumentTask.get_next_free_task_for_language(
-            code, campaign, request.user
-        )
-
-        if next_task is None:
-            LOGGER.info('No next task detected, redirecting to dashboard')
-            return redirect('dashboard')
-
-        next_task.assignedTo.add(request.user)
-        next_task.save()
-
-        current_task = next_task
-
-    if current_task:
-        if not campaign:
-            campaign = current_task.campaign
-
-        elif campaign.campaignName != current_task.campaign.campaignName:
-            _msg = 'Incompatible campaign given, using item campaign instead!'
-            LOGGER.info(_msg)
-            campaign = current_task.campaign
 
     # Handling POST requests differs from the original direct_assessment/
     # direct_assessment_context view, but the input is the same: a score for the
@@ -1359,7 +1267,6 @@ def direct_assessment_document_mqm(request, code=None, campaign_name=None):
 
     # Get item scores from the latest corresponding results
     block_scores = []
-    _prev_item = None
     for item, result in zip(block_items, block_results):
         item_scores = {
             'completed': bool(result and result.score > -1),
@@ -1383,14 +1290,12 @@ def direct_assessment_document_mqm(request, code=None, campaign_name=None):
     reference_label = 'Source text'
     candidate_label = 'Candidate translation'
 
-    static_context = 'staticcontext' in campaign_opts
-    use_sqm = 'sqm' in campaign_opts
     ui_language = 'enu'
 
     # A part of context used in responses to both Ajax and standard POST
     # requests
     context = {
-        'active_page': 'direct-assessment-document-mqm',
+        'active_page': 'direct-assessment-document',
         'item_id': current_item.itemID,
         'task_id': current_item.id,
         'document_id': current_item.documentID,
@@ -1407,9 +1312,7 @@ def direct_assessment_document_mqm(request, code=None, campaign_name=None):
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
         # Task variations
-        'sqm': use_sqm,
         'mqm': current_item.mqm,
-        'static_context': static_context,
         'ui_lang': ui_language,
     }
 
@@ -1417,7 +1320,8 @@ def direct_assessment_document_mqm(request, code=None, campaign_name=None):
         ajax_context = {'saved': item_saved, 'error_msg': error_msg}
         context.update(ajax_context)
         context.update(BASE_CONTEXT)
-        return JsonResponse(context)  # Sent response to the Ajax POST request
+        # Send response to the Ajax POST request
+        return JsonResponse(context)
 
     page_context = {
         'items': zip(block_items, block_scores),
