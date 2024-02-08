@@ -42,7 +42,7 @@
 <div id="item-{{ item.itemID }}" class="item-box quotelike active" data-item-id="{{ item.itemID }}"
     data-item-completed="{{ scores.completed }}" data-item-score="{{ scores.score }}">
 
-    <form action="{{action_url}}" method="post">
+    <form action="{{action_url}}" method="post" item_id="{{ item.itemID }}">
         {% csrf_token %}
 
         <input name="start_timestamp" type="hidden" value="" />
@@ -51,24 +51,16 @@
         <input name="task_id" type="hidden" value="{{ item.id }}" />
         <input name="document_id" type="hidden" value="{{ item.documentID }}" />
         <input name="score" type="hidden" value="{{ scores.score }}" id="score{{ item.itemID }}" />
-        <input name="ajax" type="hidden" value="False" />
+        <!-- Tell the server that the client expect JSON response -->
+        <input name="ajax" type="hidden" value="True" />
 
         <div class="source-box">
-            <div class="row">
-                <div class="col-sm-6">
-                    <span title='Source sentence #{{ item.itemID|add:" 1" }}'>
-                        <p>{{ item.sourceText }}</p>
-                    </span>
-                </div>
+            <div class="source-text" title='Source sentence #{{ item.itemID|add:" 1" }}'>
+                {{ item.sourceText }}
+            </div>
 
-                <div class="{% if not monolingual %}col-sm-5{% else %}col-sm-11{% endif %}">
-                    <span title='Candidate translation of source sentence #{{ item.itemID|add:" 1" }}'>
-                        <p><strong>{{item.targetText|safe}}</strong></p>
-                    </span>
-                </div>
-                <div class="col-sm-1">
-                    <span class="source-btn-done glyphicon glyphicon-ok"></span>
-                </div>
+            <div class="target-text"  title='Candidate translation of source sentence #{{ item.itemID|add:" 1" }}' >
+                {{item.targetText|safe}}
             </div>
         </div>
 
@@ -83,10 +75,11 @@
                         <button class="btn button-reset" accesskey="2" type="reset">Reset</button>
                     </td>
                     <td style="width: 40%; text-align: center;">
-                        Unfinished
+                        <span class="status-indicator glyphicon glyphicon-ok"></span>
+                        <span class="status-text">Item status</span>
                     </td>
                     <td style="width:30%;text-align:right;">
-                        <button class="btn button-next btn-primary" name="next_button" accesskey="1" type="submit"
+                        <button class="btn button-submit btn-primary" name="next_button" accesskey="1" type="submit"
                             value="{{ item.itemID }}"> Submit</button>
                     </td>
                 </tr>
