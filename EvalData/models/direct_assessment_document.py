@@ -420,6 +420,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
                     itemType=item['itemType'],
                     documentID=item['documentID'],
                     isCompleteDocument=item['isCompleteDocument'],
+                    mqm=item['mqm'],
                 )
                 new_items.append(new_item)
                 if item['isCompleteDocument']:
@@ -583,6 +584,7 @@ class DirectAssessmentDocumentResult(BaseMetadata):
             'item__itemID',
             'item__metadata__market__sourceLanguageCode',
             'item__metadata__market__targetLanguageCode',
+            'mqm'
         )
         for result in qs.values_list(*value_names):
             systemID = result[0]
@@ -590,7 +592,8 @@ class DirectAssessmentDocumentResult(BaseMetadata):
             annotatorID = result[2]
             segmentID = result[3]
             marketID = '{0}-{1}'.format(result[4], result[5])
-            system_scores[marketID].append((systemID, annotatorID, segmentID, score))
+            mqm = result[6]
+            system_scores[marketID].append((systemID, annotatorID, segmentID, score, mqm))
 
         return system_scores
 
@@ -887,6 +890,7 @@ class DirectAssessmentDocumentResult(BaseMetadata):
             'score',  # Score
             'item__documentID',  # Document ID
             'item__isCompleteDocument',  # isCompleteDocument
+            'mqm',  # MQM
         )
 
         if extended_csv:

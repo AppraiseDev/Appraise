@@ -6,9 +6,9 @@
     "REDUNDANCY": 2,
 
     "TASKS_TO_ANNOTATORS": [
-        ["eng", "deu", "uniform",  60, 30]
+        ["eng", "deu", "uniform",  56, 28]
     ],
 
-    "TASK_TYPE": "Direct",
-    "TASK_OPTIONS": "MQM;AI;"
+    "TASK_TYPE": "Document",
+    "TASK_OPTIONS": "MQM;StaticContext"
 }
