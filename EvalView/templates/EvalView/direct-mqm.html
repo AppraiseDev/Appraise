@@ -297,7 +297,7 @@
         active_mqm = active_mqm[0]
         el.css("background-color", SEVERITY_TO_COLOR[active_mqm[0]["severity"]])
         el.attr("in_mqm", active_mqm[1])
-      } else if(!SELECTION_STATE.includes(i)) {
+      } else if (!SELECTION_STATE.includes(i)) {
         // reset color
         el.css("background-color", "")
       }
@@ -324,13 +324,39 @@
     SELECTION_STATE = []
   }
 
+  var HOVER_UNDECIDED_SPANS = new Set()
+  function remove_undecided() {
+    // remove attribute pointers if they point to undecided spans
+    $(".mqm_char").each((i, el) => { if ($(el).attr("in_mqm") && mqm[Number.parseInt($(el).attr("in_mqm"))]["severity"] == "undecided") { $(el).removeAttr("in_mqm") } })
+    // clear all undecided
+    mqm = mqm.filter(v => v["severity"] != "undecided");
+    redraw_mqm()
+  }
+
   function setup_span_click_handlers() {
     $(".mqm_char").each((i, el) => {
       el = $(el)
       let char_id = Number.parseInt(el.attr("char_id"))
 
-      el.on("click", () => {
+      // remove undecided spans only when the mouse laves them
+      el.on("mouseout", async () => {
+        if (el.attr("in_mqm") && mqm[Number.parseInt(el.attr("in_mqm"))]["severity"] == "undecided") {
+          HOVER_UNDECIDED_SPANS.delete(i)
+          // wait for a bit in case mouse enter adds to this
+          await waitout_js_loop()
+          if (HOVER_UNDECIDED_SPANS.size == 0)
+            mqm_delete_timer = setTimeout(remove_undecided, 1000)
+          else
+            clearTimeout(mqm_delete_timer)
+        }
+      })
+      el.on("mouseenter", async () => {
+        if (el.attr("in_mqm") && mqm[Number.parseInt(el.attr("in_mqm"))]["severity"] == "undecided") {
+          HOVER_UNDECIDED_SPANS.add(i)
+        }
+      })
 
+      el.on("click", () => {
         clearTimeout(mqm_delete_timer)
 
         if (el.attr("char_id") == "missing") {
@@ -357,13 +383,6 @@
         if (el.attr("in_mqm")) {
           let mqm_i = Number.parseInt(el.attr("in_mqm"))
           mqm[mqm_i]["severity"] = SEVERITY_TO_NEXT[mqm[mqm_i]["severity"]]
-          mqm_delete_timer = setTimeout(() => {
-            // remove attribute pointers if they point to undecided spans
-            $(".mqm_char").each((i, el) => { if ($(el).attr("in_mqm") && mqm[Number.parseInt($(el).attr("in_mqm"))]["severity"] == "undecided") { $(el).removeAttr("in_mqm") } })
-            // clear all undecided
-            mqm = mqm.filter(v => v["severity"] != "undecided");
-            redraw_mqm()
-          }, 1000)
           redraw_mqm()
           abort_selection()
         } else {
