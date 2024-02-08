@@ -17,8 +17,8 @@
 
   .main_instruction {
     text-align: center;
-    font-size: large;
-    font-weight: bold;
+    margin-top: -10px;
+    margin-bottom: 10px;
   }
 
   u {
@@ -30,6 +30,14 @@
 
   #candidate_text {
     line-height: 2em;
+    font-size: 1.2em;
+  }
+
+  .span_missing {
+    font-family: monospace, monospace;
+    margin-left: 10px;
+    font-weight: bold;
+    font-size: 1.2em;
   }
 
   .small_message {
@@ -116,8 +124,8 @@
     <div class="col-sm-12 main_instruction">
       For the source text in {{source_language}} and its candidate translation in {{target_language}} shown below,
       <br>please
-      <u>(1) highlight all errors of various severity levels</u>, and then
-      <u>(2) update the overall translation quality score on the slider</u>.
+      <b>(1) highlight all errors of various severity levels</b>, and then
+      <b>(2) update the overall translation quality score on the slider</b>.
     </div>
   </div>
 
@@ -155,7 +163,7 @@
             {% if candidate_context_left %}
             {{candidate_context_left|safe}}
             {% endif %}
-            <strong id="candidate_text">{{candidate_text|safe}} <em>[MISSING]</em></strong>
+            <strong id="candidate_text">{{candidate_text|safe}}</strong>
             {% if candidate_context_right %}
             {{candidate_context_right|safe}}
             {% endif %}
@@ -171,9 +179,6 @@
     {% include 'EvalView/_mqm_slider.html' %}
     {% endwith %}
   </div>
-
-  <input type="checkbox" id="check_word_level">
-  <label for="check_word_level">Use word-level units</label>
 
   <div style="text-align: center; min-height: 2em;">
     <button onclick="javascript:reset_form();" accesskey="2" type="reset" class="btn" style="float: left;">
@@ -267,7 +272,6 @@
 <script>
   const MQM_ORIGINAL = JSON.parse(document.getElementById('mqm-payload').textContent);
   const TXT_CANDIDATE_ORIGINAL = $("#candidate_text").text().trim()
-  const tokenizer = new RegExp(/[^a-zA-Z\-0-9]+/g)
   var SELECTION_STATE = []
   let mqm = MQM_ORIGINAL
   let mqm_delete_timer = null
@@ -278,49 +282,85 @@
     // should be in range [0, 100]
     $('#slider').slider('value', current_mqm_score(true))
 
-    let split_text = TXT_CANDIDATE_ORIGINAL.split("")
-    
-    // TODO: add checkbox
-    if($("#check_word_level").prop("checked")) {
-      split_text = [...TXT_CANDIDATE_ORIGINAL.matchAll(/([\p{L}\-0-9]+|[^\p{L}\-0-9]+)/gu)]
-      split_text = split_text.map((v) => v[0])
-    }
-    
-    let html_candidate = split_text.map((v, i) => {
-      return `<span class="mqm_char" id="candidate_char_${i}" char_id="${i}">${v}</span>`
-    }).join("")
-
-    $("#candidate_text").html(html_candidate)
-
-    await waitout_js_loop()
-
-    function abort_selection() {
-      // cleanup
-      $(".mqm_char[selected]").each((_, el) => $(el).attr("selected", false))
-      SELECTION_STATE = []
-    }
-
+    // redraw
     $(".mqm_char").each((i, el) => {
       el = $(el)
       let char_id = Number.parseInt(el.attr("char_id"))
 
       // render existing mqm
-      let active_mqm = mqm.map((v, i) => [v, i]).filter((v) => v[0]["start_i"] <= char_id && v[0]["end_i"] >= char_id)
+      let active_mqm = mqm.map((v, i) => [v, i]).filter((v) => (
+        (v[0]["start_i"] <= char_id && v[0]["end_i"] >= char_id) ||
+        (el.attr("char_id") == "missing" && v[0]["start_i"] == "missing" && v[0]["end_i"] == "missing")
+      ))
       // TODO: should be only 0 or 1 exactly
       if (active_mqm.length > 0) {
         active_mqm = active_mqm[0]
         el.css("background-color", SEVERITY_TO_COLOR[active_mqm[0]["severity"]])
         el.attr("in_mqm", active_mqm[1])
+      } else if(!SELECTION_STATE.includes(i)) {
+        // reset color
+        el.css("background-color", "")
       }
+    })
+  }
+
+  function setup_span_structure() {
+    let split_text = TXT_CANDIDATE_ORIGINAL.split("")
+
+    // word-level, not used anymore
+    // split_text = [...TXT_CANDIDATE_ORIGINAL.matchAll(/([\p{L}\-0-9]+|[^\p{L}\-0-9]+)/gu)]
+    // split_text = split_text.map((v) => v[0])
+
+    let html_candidate = split_text.map((v, i) => {
+      return `<span class="mqm_char" id="candidate_char_${i}" char_id="${i}">${v}</span>`
+    }).join("") + " <span class='mqm_char span_missing' id='candidate_char_missing' char_id='missing'>[MISSING]</span>"
+
+    $("#candidate_text").html(html_candidate)
+  }
+
+  function abort_selection() {
+    // cleanup
+    $(".mqm_char[selected]").each((_, el) => $(el).attr("selected", false))
+    SELECTION_STATE = []
+  }
+
+  function setup_span_click_handlers() {
+    $(".mqm_char").each((i, el) => {
+      el = $(el)
+      let char_id = Number.parseInt(el.attr("char_id"))
 
       el.on("click", () => {
+
         clearTimeout(mqm_delete_timer)
+
+        if (el.attr("char_id") == "missing") {
+          abort_selection()
+          let mqm_missing = mqm.filter(v => v["start_i"] == "missing" && v["end_i"] == "missing")
+          if (mqm_missing.length == 0) {
+            // create new missing mqm span
+            mqm_missing = {
+              "start_i": "missing",
+              "end_i": "missing",
+              "severity": "minor",
+            }
+            mqm.push(mqm_missing)
+          } else {
+            // increase severity
+            mqm_missing = mqm_missing[0]
+            mqm_missing["severity"] = SEVERITY_TO_NEXT[mqm_missing["severity"]]
+          }
+          redraw_mqm()
+          return
+        }
+
 
         if (el.attr("in_mqm")) {
           let mqm_i = Number.parseInt(el.attr("in_mqm"))
           mqm[mqm_i]["severity"] = SEVERITY_TO_NEXT[mqm[mqm_i]["severity"]]
-          // clear ALL undecided
           mqm_delete_timer = setTimeout(() => {
+            // remove attribute pointers if they point to undecided spans
+            $(".mqm_char").each((i, el) => { if ($(el).attr("in_mqm") && mqm[Number.parseInt($(el).attr("in_mqm"))]["severity"] == "undecided") { $(el).removeAttr("in_mqm") } })
+            // clear all undecided
             mqm = mqm.filter(v => v["severity"] != "undecided");
             redraw_mqm()
           }, 1000)
@@ -328,7 +368,6 @@
           abort_selection()
         } else {
           // add new span
-
           el.attr("selected", true)
           SELECTION_STATE.push(char_id)
           // TODO: intermediate highlight on hover?
@@ -360,12 +399,15 @@
     })
   }
 
-  $("#check_word_level").on("change", redraw_mqm)
+  async function tmp() {
+    setup_span_structure()
+    await waitout_js_loop()
+    setup_span_click_handlers()
+  }
+  tmp()
 </script>
 
 <script>
-  var idleTime = 0;
-
   $(document).ready(reset_form);
 
   function add_end_timestamp() {
@@ -373,7 +415,6 @@
   }
 
   function reset_form() {
-    idleTime = 0;
     $('input[name="start_timestamp"]').val(Date.now() / 1000);
     mqm = MQM_ORIGINAL
     redraw_mqm()
