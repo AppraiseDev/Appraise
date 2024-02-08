@@ -266,6 +266,9 @@
     return new Promise(resolve => setTimeout(resolve, 1))
   }
 
+  String.prototype.capitalize = function () {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+  }
 </script>
 
 <!-- MQM-specific, at the end after everything is rendered -->
@@ -359,7 +362,7 @@
 
       el.on("click mousedown mouseup", (event) => {
         // do nothing to prevent all three events operating at the same time
-        if(event.timeStamp < LAST_MOUSE_TIMESTAMP + 250) {
+        if (event.timeStamp < LAST_MOUSE_TIMESTAMP + 250) {
           event.preventDefault()
           return
         }
@@ -376,19 +379,21 @@
               "severity": "minor",
             }
             mqm.push(mqm_missing)
+            small_message("Minor")
           } else {
             // increase severity
             mqm_missing = mqm_missing[0]
             mqm_missing["severity"] = SEVERITY_TO_NEXT[mqm_missing["severity"]]
+            small_message(mqm_missing["severity"].capitalize())
           }
           redraw_mqm()
           return
         }
 
-
         if (el.attr("in_mqm")) {
           let mqm_i = Number.parseInt(el.attr("in_mqm"))
           mqm[mqm_i]["severity"] = SEVERITY_TO_NEXT[mqm[mqm_i]["severity"]]
+          small_message(mqm[mqm_i]["severity"].capitalize())
           redraw_mqm()
           abort_selection()
         } else {
@@ -414,6 +419,7 @@
               "end_i": end_i,
               "severity": "minor",
             })
+            small_message("Minor")
 
 
             abort_selection()
