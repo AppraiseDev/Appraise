@@ -41,6 +41,8 @@
 
 <div id="item-{{ item.itemID }}" class="item-box quotelike active" data-item-id="{{ item.itemID }}"
     data-item-completed="{{ scores.completed }}" data-item-score="{{ scores.score }}">
+    
+    {{ scores.mqm|json_script:"mqm-payload" }}
 
     <form action="{{action_url}}" method="post" item_id="{{ item.itemID }}">
         {% csrf_token %}
@@ -51,6 +53,7 @@
         <input name="task_id" type="hidden" value="{{ item.id }}" />
         <input name="document_id" type="hidden" value="{{ item.documentID }}" />
         <input name="score" type="hidden" value="{{ scores.score }}" id="score{{ item.itemID }}" />
+        <input name="mqm" type="hidden" value="{{ scores.mqm }}" id="score{{ item.itemID }}" />
         <!-- Tell the server that the client expect JSON response -->
         <input name="ajax" type="hidden" value="True" />
 

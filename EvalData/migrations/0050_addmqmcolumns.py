@@ -24,4 +24,11 @@ class Migration(migrations.Migration):
                 blank=True, null=True, verbose_name='MQM'
             ),
         ),
+        migrations.AddField(
+            model_name='DirectAssessmentDocumentResult',
+            name='mqm',
+            field=models.TextField(
+                blank=True, null=True, verbose_name='MQM'
+            ),
+        ),
     ]
