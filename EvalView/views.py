@@ -1247,8 +1247,6 @@ def direct_assessment_document_mqm(campaign, current_task, request):
 
     t3 = datetime.now()
 
-    campaign_opts = (campaign.campaignOptions or "").lower()
-
     # Get all items from the document that the first unannotated item in the
     # task belongs to, and collect some additional statistics
     (
@@ -1271,7 +1269,9 @@ def direct_assessment_document_mqm(campaign, current_task, request):
         item_scores = {
             'completed': bool(result and result.score > -1),
             'current_item': bool(item.id == current_item.id),
+            # will be recomputed user-side anyway
             'score': result.score if result else -1,
+            'mqm': result.mqm if result else item.mqm,
         }
 
         block_scores.append(item_scores)
