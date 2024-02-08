@@ -333,6 +333,7 @@
     redraw_mqm()
   }
 
+  var LAST_MOUSE_TIMESTAMP = 0
   function setup_span_click_handlers() {
     $(".mqm_char").each((i, el) => {
       el = $(el)
@@ -356,8 +357,13 @@
         }
       })
 
-      el.on("click", () => {
-        clearTimeout(mqm_delete_timer)
+      el.on("click mousedown mouseup", (event) => {
+        // do nothing to prevent all three events operating at the same time
+        if(event.timeStamp < LAST_MOUSE_TIMESTAMP + 250) {
+          event.preventDefault()
+          return
+        }
+        LAST_MOUSE_TIMESTAMP = event.timeStamp
 
         if (el.attr("char_id") == "missing") {
           abort_selection()
