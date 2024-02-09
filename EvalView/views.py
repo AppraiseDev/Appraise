@@ -1061,6 +1061,7 @@ def direct_assessment_document_mqm(campaign, current_task, request):
     error_msg = ''
     if request.method == "POST":
         score = request.POST.get('score', None)
+        mqm = request.POST.get('mqm', None)
         item_id = request.POST.get('item_id', None)
         task_id = request.POST.get('task_id', None)
         document_id = request.POST.get('document_id', None)
@@ -1068,11 +1069,11 @@ def direct_assessment_document_mqm(campaign, current_task, request):
         end_timestamp = request.POST.get('end_timestamp', None)
         ajax = bool(request.POST.get('ajax', None) == 'True')
 
-        LOGGER.info('score=%s, item_id=%s', score, item_id)
-        print(f'Got request score={score}, item_id={item_id}, ajax={ajax}')
+        LOGGER.info(f'score={score}, item_id={item_id}, mqm={mqm}')
+        print(f'Got request score={score}, item_id={item_id}, ajax={ajax}, mqm={mqm}')
 
         # If all required information was provided in the POST request
-        if score and item_id and start_timestamp and end_timestamp:
+        if score and mqm and item_id and start_timestamp and end_timestamp:
             duration = float(end_timestamp) - float(start_timestamp)
             LOGGER.debug(float(start_timestamp))
             LOGGER.debug(float(end_timestamp))
@@ -1105,6 +1106,7 @@ def direct_assessment_document_mqm(campaign, current_task, request):
                     # pylint: disable=E1101
                     DirectAssessmentDocumentResult.objects.create(
                         score=score,
+                        mqm=mqm,
                         start_time=float(start_timestamp),
                         end_time=float(end_timestamp),
                         item=current_item,
@@ -1139,16 +1141,13 @@ def direct_assessment_document_mqm(campaign, current_task, request):
                     if current_result:
                         prev_score = current_result.score
                         current_result.score = score
+                        current_result.mqm = mqm
                         current_result.start_time = float(start_timestamp)
                         current_result.end_time = float(end_timestamp)
                         utc_now = datetime.utcnow().replace(tzinfo=utc)
                         current_result.dateCompleted = utc_now
                         current_result.save()
-                        _msg = 'Item {} (itemID={}) updated {}->{}'.format(
-                            task_id, item_id, prev_score, score
-                        )
-                        LOGGER.debug(_msg)
-                        print(_msg)
+                        LOGGER.debug(f'Item {task_id} (itemID={item_id}) updated {prev_score}->{score}')
                         item_saved = True
 
                     # If not yet scored, check if the submitted item is from
@@ -1169,6 +1168,7 @@ def direct_assessment_document_mqm(campaign, current_task, request):
                             # pylint: disable=E1101
                             DirectAssessmentDocumentResult.objects.create(
                                 score=score,
+                                mqm=mqm,
                                 start_time=float(start_timestamp),
                                 end_time=float(end_timestamp),
                                 item=found_item,
@@ -1178,13 +1178,8 @@ def direct_assessment_document_mqm(campaign, current_task, request):
                                 completed=True,
                                 dateCompleted=utc_now,
                             )
-                            _msg = 'Item {} (itemID={}) saved, although it was not the next item'.format(
-                                task_id, item_id
-                            )
-                            LOGGER.debug(_msg)
-                            print(_msg)
+                            LOGGER.debug(f'Item {task_id} (itemID={item_id}) saved, although it was not the next item')
                             item_saved = True
-
                         else:
                             error_msg = (
                                 'We did not expect this item to be submitted. '
@@ -1192,18 +1187,12 @@ def direct_assessment_document_mqm(campaign, current_task, request):
                                 'please reload the page and try again.'
                             )
 
-                            _msg = 'Item ID {} does not match item {}, will not save!'.format(
-                                item_id, current_item.itemID
-                            )
-                            LOGGER.debug(_msg)
-                            print(_msg)
+                            LOGGER.debug(f'Item ID {item_id} does not match item {current_item.itemID}, will not save!')
 
             # An item from a wrong document was submitted
             else:
                 print(
-                    'Different document IDs: {} != {}, will not save!'.format(
-                        current_item.documentID, document_id
-                    )
+                    f'Different document IDs: {current_item.documentID} != {document_id}, will not save!'
                 )
 
                 error_msg = (
@@ -1239,6 +1228,7 @@ def direct_assessment_document_mqm(campaign, current_task, request):
             # will be recomputed user-side anyway
             'score': result.score if result else -1,
             'mqm': result.mqm if result else item.mqm,
+            'mqm_orig': item.mqm,
         }
 
         block_scores.append(item_scores)

@@ -234,15 +234,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         ).count()
         total_blocks = self.items.filter(isCompleteDocument=True).count()
 
-        print(
-            'Completed {}/{} documents, {}/{} items in the current document, completed {} items in total'.format(
-                completed_blocks,
-                total_blocks,
-                completed_items_in_block,
-                len(block_items),
-                completed_items,
-            )
-        )
+        print(f'Completed {completed_blocks}/{total_blocks} documents, {completed_items_in_block}/{len(block_items)} items in the current document, completed {completed_items} items in total')
 
         return (
             next_item,  # the first unannotated item for the user
@@ -496,6 +488,10 @@ class DirectAssessmentDocumentResult(BaseMetadata):
         verbose_name=_('Score'), help_text=_('(value in range=[1,100])')
     )
 
+    mqm = models.TextField(
+        verbose_name=_('MQM'), help_text=_('MQM JSON string')
+    )
+
     start_time = models.FloatField(
         verbose_name=_('Start time'), help_text=_('(in seconds)')
     )
@@ -663,6 +659,7 @@ class DirectAssessmentDocumentResult(BaseMetadata):
             'task__campaign__campaignName',
             'item__documentID',
             'item__isCompleteDocument',
+            'mqm'
         )
         for result in qs.values_list(*value_names):
 
@@ -680,6 +677,7 @@ class DirectAssessmentDocumentResult(BaseMetadata):
             campaignName = result[11]
             documentID = result[12]
             isCompleteDocument = result[13]
+            mqm = result[14]
 
             if annotatorID in user_data:
                 username = user_data[annotatorID][0]
@@ -718,13 +716,14 @@ class DirectAssessmentDocumentResult(BaseMetadata):
                     campaignName,
                     documentID,
                     isCompleteDocument,
+                    mqm,
                 )
             )
 
         # TODO: this is very intransparent... and needs to be fixed!
         x = system_scores
         s = [
-            'taskID,systemID,username,email,groups,segmentID,score,startTime,endTime,durationInSeconds,itemType,campaignName,documentID,isCompleteDocument'
+            'taskID,systemID,username,email,groups,segmentID,score,startTime,endTime,durationInSeconds,itemType,campaignName,documentID,isCompleteDocument,mqm'
         ]
         for l in x:
             for i in x[l]:
@@ -757,6 +756,7 @@ class DirectAssessmentDocumentResult(BaseMetadata):
             'item__itemType',
             'item__documentID',
             'item__isCompleteDocument',
+            'mqm',
         )
         for result in qs.values_list(*value_names):
 
@@ -779,6 +779,7 @@ class DirectAssessmentDocumentResult(BaseMetadata):
             itemType = result[9]
             documentID = result[10]
             isCompleteDocument = result[11]
+            mqm = result[12]
             user = User.objects.get(pk=annotatorID)
             username = user.username
             useremail = user.email
@@ -793,6 +794,7 @@ class DirectAssessmentDocumentResult(BaseMetadata):
                     itemType,
                     documentID,
                     isCompleteDocument,
+                    mqm
                 )
             )
 
