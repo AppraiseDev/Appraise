@@ -39,12 +39,17 @@
 
 {% for item,scores in items %}
 
-<div id="item-{{ item.itemID }}" class="item-box quotelike active" data-item-id="{{ item.itemID }}"
-    data-item-completed="{{ scores.completed }}" data-item-score="{{ scores.score }}">
-    
-    {{ scores.mqm|json_script:"mqm-payload" }}
+<div id="item-{{ item.itemID }}" class="item-box quotelike active" 
+    data-item-id="{{ item.itemID }}"
+    data-item-completed="{{ scores.completed }}"
+    data-item-score="{{ scores.score }}"
+    {% if forloop.last %} last_item {% endif %}
+    >
 
-    <form action="{{action_url}}" method="post" item_id="{{ item.itemID }}">
+    {{ scores.mqm|json_script:"mqm-payload" }}
+    {{ scores.mqm_orig|json_script:"mqm-payload-orig" }}
+
+    <form action="{{action_url}}" method="post"  item_id="{{ item.itemID }}">
         {% csrf_token %}
 
         <input name="start_timestamp" type="hidden" value="" />
@@ -62,7 +67,7 @@
                 {{ item.sourceText }}
             </div>
 
-            <div class="target-text"  title='Candidate translation of source sentence #{{ item.itemID|add:" 1" }}' >
+            <div class="target-text" title='Candidate translation of source sentence #{{ item.itemID|add:" 1" }}'>
                 {{item.targetText|safe}}
             </div>
         </div>
@@ -92,4 +97,20 @@
 </div>
 
 {% endfor %}
+
+
+<form action="{{action_url}}" method="post">
+    {% csrf_token %}
+
+    <input name="end_timestamp" type="hidden" value="" />
+    <input name="task_id" type="hidden" value="{{ item.id }}" />
+    <input name="document_id" type="hidden" value="{{ item.documentID }}" />
+    <input name="ajax" type="hidden" value="False" />
+
+    <button type="submit" class="btn btn-primary" style="margin-left: auto; margin-right: auto; display: block;"
+        id="button-next-doc">
+        Continue to next document
+    </button>
+</form>
+
 {% endblock %}
