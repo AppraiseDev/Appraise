@@ -11,8 +11,8 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
-from django.utils.timezone import utc
 from django.utils.html import escape
+from django.utils.timezone import utc
 
 from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
