@@ -40,6 +40,8 @@ from EvalData.models import TaskAgenda
 LOGGER = _get_logger(name=__name__)
 
 # pylint: disable=C0103,C0330
+
+
 @login_required
 def direct_assessment(request, code=None, campaign_name=None):
     """
@@ -102,7 +104,8 @@ def direct_assessment(request, code=None, campaign_name=None):
 
     # If language code has been given, find a free task and assign to user.
     if not current_task:
-        current_task = DirectAssessmentTask.get_task_for_user(user=request.user)
+        current_task = DirectAssessmentTask.get_task_for_user(
+            user=request.user)
 
     if not current_task:
         if code is None or campaign is None:
@@ -145,7 +148,7 @@ def direct_assessment(request, code=None, campaign_name=None):
         task_id = request.POST.get('task_id', None)
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
-        
+
         LOGGER.info(f'score={score}, mqm={mqm}, item_id={item_id}')
         if not mqm and score:
             mqm = ""
@@ -164,7 +167,8 @@ def direct_assessment(request, code=None, campaign_name=None):
 
             current_item = current_task.next_item_for_user(request.user)
             if current_item.itemID != int(item_id) or current_item.id != int(task_id):
-                LOGGER.debug(f'Item ID {item_id} does not match item {current_item.itemID}, will not save!')
+                LOGGER.debug(
+                    f'Item ID {item_id} does not match item {current_item.itemID}, will not save!')
             else:
                 utc_now = datetime.utcnow().replace(tzinfo=utc)
                 # pylint: disable=E1101
@@ -219,9 +223,11 @@ def direct_assessment(request, code=None, campaign_name=None):
 
     _reference_campaigns = ('HumanEvalFY19{0}'.format(x) for x in ('7B',))
 
-    _adequacy_campaigns = ('HumanEvalFY19{0}'.format(x) for x in ('51', '57', '63'))
+    _adequacy_campaigns = ('HumanEvalFY19{0}'.format(x)
+                           for x in ('51', '57', '63'))
 
-    _fluency_campaigns = ('HumanEvalFY19{0}'.format(x) for x in ('52', '58', '64'))
+    _fluency_campaigns = ('HumanEvalFY19{0}'.format(x)
+                          for x in ('52', '58', '64'))
 
     if campaign.campaignName in _reference_campaigns:
         reference_label = 'Reference text'
@@ -251,7 +257,7 @@ def direct_assessment(request, code=None, campaign_name=None):
         )
 
     campaign_opts = campaign.campaignOptions or ""
-    
+
     if 'sqm' in campaign_opts.lower():
         html_file = 'EvalView/direct-assessment-sqm.html'
     elif 'mqm;' in campaign_opts.lower():
@@ -354,7 +360,8 @@ def direct_assessment_context(request, code=None, campaign_name=None):
 
     # If language code has been given, find a free task and assign to user.
     if not current_task:
-        current_task = DirectAssessmentContextTask.get_task_for_user(user=request.user)
+        current_task = DirectAssessmentContextTask.get_task_for_user(
+            user=request.user)
 
     if not current_task:
         if code is None or campaign is None:
@@ -477,9 +484,11 @@ def direct_assessment_context(request, code=None, campaign_name=None):
 
     _reference_campaigns = ('HumanEvalFY19{0}'.format(x) for x in ('7B',))
 
-    _adequacy_campaigns = ('HumanEvalFY19{0}'.format(x) for x in ('51', '57', '63'))
+    _adequacy_campaigns = ('HumanEvalFY19{0}'.format(x)
+                           for x in ('51', '57', '63'))
 
-    _fluency_campaigns = ('HumanEvalFY19{0}'.format(x) for x in ('52', '58', '64'))
+    _fluency_campaigns = ('HumanEvalFY19{0}'.format(x)
+                          for x in ('52', '58', '64'))
 
     if campaign.campaignName in _reference_campaigns:
         reference_label = 'Reference text'
@@ -556,7 +565,6 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
         campaign = campaign[0]
 
-
     LOGGER.info(
         'Rendering direct assessment document view for user "%s".',
         request.user.username or "Anonymous",
@@ -602,7 +610,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     # If language code has been given, find a free task and assign to user.
     if not current_task:
-        current_task = DirectAssessmentDocumentTask.get_task_for_user(user=request.user)
+        current_task = DirectAssessmentDocumentTask.get_task_for_user(
+            user=request.user)
 
     if not current_task:
         if code is None or campaign is None:
@@ -1079,6 +1088,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     return render(request, 'EvalView/direct-assessment-document.html', context)
 
+
 def direct_assessment_document_mqm(campaign, current_task, request):
     """
     Direct assessment document annotation view.
@@ -1103,7 +1113,8 @@ def direct_assessment_document_mqm(campaign, current_task, request):
         ajax = bool(request.POST.get('ajax', None) == 'True')
 
         LOGGER.info(f'score={score}, item_id={item_id}, mqm={mqm}')
-        print(f'Got request score={score}, item_id={item_id}, ajax={ajax}, mqm={mqm}')
+        print(
+            f'Got request score={score}, item_id={item_id}, ajax={ajax}, mqm={mqm}')
 
         # If all required information was provided in the POST request
         if score and mqm and item_id and start_timestamp and end_timestamp:
@@ -1180,7 +1191,8 @@ def direct_assessment_document_mqm(campaign, current_task, request):
                         utc_now = datetime.utcnow().replace(tzinfo=utc)
                         current_result.dateCompleted = utc_now
                         current_result.save()
-                        LOGGER.debug(f'Item {task_id} (itemID={item_id}) updated {prev_score}->{score}')
+                        LOGGER.debug(
+                            f'Item {task_id} (itemID={item_id}) updated {prev_score}->{score}')
                         item_saved = True
 
                     # If not yet scored, check if the submitted item is from
@@ -1211,7 +1223,8 @@ def direct_assessment_document_mqm(campaign, current_task, request):
                                 completed=True,
                                 dateCompleted=utc_now,
                             )
-                            LOGGER.debug(f'Item {task_id} (itemID={item_id}) saved, although it was not the next item')
+                            LOGGER.debug(
+                                f'Item {task_id} (itemID={item_id}) saved, although it was not the next item')
                             item_saved = True
                         else:
                             error_msg = (
@@ -1220,7 +1233,8 @@ def direct_assessment_document_mqm(campaign, current_task, request):
                                 'please reload the page and try again.'
                             )
 
-                            LOGGER.debug(f'Item ID {item_id} does not match item {current_item.itemID}, will not save!')
+                            LOGGER.debug(
+                                f'Item ID {item_id} does not match item {current_item.itemID}, will not save!')
 
             # An item from a wrong document was submitted
             else:
@@ -1247,6 +1261,19 @@ def direct_assessment_document_mqm(campaign, current_task, request):
         block_results,
         total_blocks,
     ) = current_task.next_document_for_user(request.user)
+
+    # the total blocks and completed blocks that we are getting from the above call are not correct
+    # this is a HOTFIX
+    # mark document as complete if at least one item is complete
+    # for document-level MQM the only way to achieve this is for the whole document to be done
+    completed_blocks = len({
+        item.item.documentID for item
+        in DirectAssessmentDocumentResult.objects.filter(
+            task=current_task,
+            completed=True,
+            createdBy=request.user).all()
+    }) + 1
+    total_blocks = len({item.documentID for item in current_task.items.all()})
 
     if not current_item:
         LOGGER.info('No current item detected, redirecting to dashboard')
@@ -1387,7 +1414,8 @@ def multimodal_assessment(request, code=None, campaign_name=None):
 
     # If language code has been given, find a free task and assign to user.
     if not current_task:
-        current_task = MultiModalAssessmentTask.get_task_for_user(user=request.user)
+        current_task = MultiModalAssessmentTask.get_task_for_user(
+            user=request.user)
 
     if not current_task:
         if code is None or campaign is None:
@@ -1564,7 +1592,8 @@ def pairwise_assessment(request, code=None, campaign_name=None):
 
     # If language code has been given, find a free task and assign to user.
     if not current_task:
-        current_task = PairwiseAssessmentTask.get_task_for_user(user=request.user)
+        current_task = PairwiseAssessmentTask.get_task_for_user(
+            user=request.user)
 
     if not current_task:
         if code is None or campaign is None:
@@ -2008,7 +2037,8 @@ def data_assessment(request, code=None, campaign_name=None):
     if any(opt in campaign_opts for opt in ['disablemtlabel', 'disablemtrank']):
         ranks = None
         rank_question_text = None
-        score_question_text[0] = score_question_text[0][13:]  # remove 'Question #1: '
+        # remove 'Question #1: '
+        score_question_text[0] = score_question_text[0][13:]
 
     context = {
         'active_page': 'data-assessment',
@@ -2157,7 +2187,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         end_timestamp = request.POST.get('end_timestamp', None)
         ajax = bool(request.POST.get('ajax', None) == 'True')
 
-        LOGGER.info('score1=%s, score2=%s, item_id=%s', score1, score2, item_id)
+        LOGGER.info('score1=%s, score2=%s, item_id=%s',
+                    score1, score2, item_id)
         print(
             'Got request score1={0}, score2={1}, item_id={2}, ajax={3}'.format(
                 score1, score2, item_id, ajax
