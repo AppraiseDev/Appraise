@@ -5,7 +5,7 @@ from django.db import models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ( 'EvalData', '0049_auto_20220629_1315', ),
+        ( 'EvalData', '0052_auto_20221020_0800', ),
     ]
 
     operations = [

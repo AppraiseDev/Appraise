@@ -24,3 +24,4 @@ venv
 db.sqlite3*
 
 Scripts/restart_all.sh
+static
