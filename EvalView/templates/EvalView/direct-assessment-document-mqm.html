@@ -17,9 +17,9 @@
         <tr>
             <td style="width:33%;text-align:left;">
                 <strong id="task_progress">
-                    {{completed_blocks}}/{{total_blocks}} documents,
-                    <span id="items-left-counter">{{items_left_in_block}}</span>
-                    items left in document
+                    {{completed_blocks}}/{{total_blocks}} documents
+                    <!-- <span id="items-left-counter">{{items_left_in_block}}</span>
+                    items left in document -->
                 </strong>
             </td>
             <td style="width:33%;text-align:center;">
@@ -48,6 +48,7 @@
 
     {{ scores.mqm|json_script:"mqm-payload" }}
     {{ scores.mqm_orig|json_script:"mqm-payload-orig" }}
+    {{ item.targetText|json_script:"text-target-payload" }}
 
     <form action="{{action_url}}" method="post"  item_id="{{ item.itemID }}">
         {% csrf_token %}
@@ -88,7 +89,7 @@
                     </td>
                     <td style="width:30%;text-align:right;">
                         <button class="btn button-submit btn-primary" name="next_button" accesskey="1" type="submit"
-                            value="{{ item.itemID }}"> Submit</button>
+                            value="{{ item.itemID }}"> Mark complete</button>
                     </td>
                 </tr>
             </table>
@@ -99,18 +100,17 @@
 {% endfor %}
 
 
-<form action="{{action_url}}" method="post">
+<form id="form-next-doc" action="{{action_url}}" method="post">
     {% csrf_token %}
-
     <input name="end_timestamp" type="hidden" value="" />
     <input name="task_id" type="hidden" value="{{ item.id }}" />
     <input name="document_id" type="hidden" value="{{ item.documentID }}" />
     <input name="ajax" type="hidden" value="False" />
-
-    <button type="submit" class="btn btn-primary" style="margin-left: auto; margin-right: auto; display: block;"
-        id="button-next-doc">
-        Continue to next document
-    </button>
 </form>
+
+<button class="btn btn-primary" style="margin-left: auto; margin-right: auto; display: block;"
+    id="button-next-doc">
+    Continue to next document
+</button>
 
 {% endblock %}
