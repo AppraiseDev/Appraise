@@ -91,12 +91,9 @@ function submit_form_local(event) {
     // update counters
     item_box.attr("data-item-completed", "True")
     mqm_handler.check_status()
-    // change submit button label to 'Update'
-    // item_box.find('button[name="next_button"]').text('Update');
+
+    // hide document submit for now
     item_box.find('button[name="next_button"]').toggle(false);
-    // document progress
-    // $('#items-left-counter').text(data.items_left_in_block);
-    // $('#current-item-id').text(data.item_id);
 
     // Add end timestamp
     item_box.find('input[name="end_timestamp"]').val(Date.now());
@@ -168,6 +165,9 @@ String.prototype.capitalize = function () {
     return this.charAt(0).toUpperCase() + this.slice(1);
 }
 
+function fuzzy_abs_match(a, b, tol) {
+    return a == b || Math.abs(a - b) <= tol
+}
 
 class MQMItemHandler {
     constructor(el) {
@@ -180,6 +180,13 @@ class MQMItemHandler {
         this.el_slider = this.el.find('.slider')
         // for Appraise reasons it's a JSON string encoding JSON
         this.mqm = JSON.parse(JSON.parse(this.el.children('#mqm-payload').html()))
+        if (!Array.isArray(this.mqm)) {
+            this.tutorial = this.mqm["tutorial"]
+            this.mqm = this.mqm["payload"]
+            this.el.find(".tutorial-text").html(this.tutorial["instruction"])
+        } else {
+            this.tutorial = false
+        }
         this.mqm_submitted = structuredClone(this.mqm)
         this.mqm_orig = JSON.parse(JSON.parse(this.el.children('#mqm-payload-orig').html()))
         this.text_target_orig = JSON.parse(this.el.children('#text-target-payload').html()).trim()
@@ -283,7 +290,41 @@ class MQMItemHandler {
         }
     }
 
+    validate_tutorial() {
+        if ("mqm_target" in this.tutorial) {
+            if (this.tutorial["mqm_target"].length != this.mqm.length) {
+                return false
+            }
+            let fulfilled = this.tutorial["mqm_target"].map((x) => {
+                // check that each mqm requirement has a fuzzy match in this.mqm
+                return (this.mqm.some(y =>
+                    fuzzy_abs_match(y["start_i"], x["start_i"], 3) &&
+                    fuzzy_abs_match(y["end_i"], x["end_i"], 3) &&
+                    (x["severity"] == y["severity"])
+                ))
+            })
+            if (!fulfilled.every(x => x))
+                return false
+        }
+        if ("score_target" in this.tutorial) {
+            // tolerate range of 10, quite a lot
+            if (!fuzzy_abs_match(this.tutorial["score_target"], Number.parseFloat(this.el.find("input[name='score']").val()), 10)) {
+                return false
+            }
+        }
+        return true
+    }
+
     validate_form() {
+        if (this.tutorial && !this.validate_tutorial()) {
+            alert('Please follow the tutorial instructions.');
+            return false
+        }
+        // skip other messages in the tutorial
+        if (this.tutorial) {
+            return true
+        }
+
         if (this.mqm.some((x) => x["severity"] == "undecided")) {
             alert('There are some segments without severity (in blue). Click on them to change their severities.');
             return false

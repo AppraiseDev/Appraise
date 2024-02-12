@@ -49,6 +49,11 @@
     line-height: 120%;
 }
 
+.tutorial-text {
+    text-align: center;
+    color: #257;
+}
+
 .action-box {
     width: 100%;
 }
