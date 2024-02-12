@@ -4,6 +4,7 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=C0103,C0330,no-member
+import json
 import sys
 from collections import defaultdict
 from json import loads
@@ -413,7 +414,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
                     itemType=item['itemType'],
                     documentID=item['documentID'],
                     isCompleteDocument=item['isCompleteDocument'],
-                    mqm=item['mqm'],
+                    mqm=json.dumps(item['mqm']),
                 )
                 new_items.append(new_item)
                 if item['isCompleteDocument']:

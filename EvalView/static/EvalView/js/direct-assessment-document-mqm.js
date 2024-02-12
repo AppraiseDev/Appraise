@@ -39,7 +39,7 @@ var MQM_HANDLERS = {}
 $(document).ready(() => {
     // This sets the same starting time for all items, but it is set again when
     // an item is expanded by clicking on it.
-    $('input[name="start_timestamp"]').val(Date.now() / 1000);
+    $('input[name="start_timestamp"]').val(Date.now());
 
     // bind UI events
     // TODO: this does not work very well because of 
@@ -56,7 +56,7 @@ $(document).ready(() => {
 
     $(".item-box").each((_i, el) => {
         MQM_HANDLERS[$(el).attr("data-item-id")] = new MQMItemHandler(el)
-        $(el).find('input[name="start_timestamp"]').val(Date.now() / 1000);
+        $(el).find('input[name="start_timestamp"]').val(Date.now());
     })
 
     // highlight instructions
@@ -99,7 +99,7 @@ function submit_form_local(event) {
     // $('#current-item-id').text(data.item_id);
 
     // Add end timestamp
-    item_box.find('input[name="end_timestamp"]').val(Date.now() / 1000.0);
+    item_box.find('input[name="end_timestamp"]').val(Date.now());
 
     if (_all_sentences_scored()) {
         $("#button-next-doc").toggle(true)
@@ -178,9 +178,10 @@ class MQMItemHandler {
     initialize() {
         this.el_target = this.el.find(".target-text")
         this.el_slider = this.el.find('.slider')
-        this.mqm = JSON.parse(this.el.children('#mqm-payload').html().replace(/(^"|"$)/g, "").replace(/'/g, '"'))
+        // for Appraise reasons it's a JSON string encoding JSON
+        this.mqm = JSON.parse(JSON.parse(this.el.children('#mqm-payload').html()))
         this.mqm_submitted = structuredClone(this.mqm)
-        this.mqm_orig = JSON.parse(this.el.children('#mqm-payload-orig').html().replace(/(^"|"$)/g, "").replace(/'/g, '"'))
+        this.mqm_orig = JSON.parse(JSON.parse(this.el.children('#mqm-payload-orig').html()))
         this.text_target_orig = JSON.parse(this.el.children('#text-target-payload').html()).trim()
         this.SELECTION_STATE = []
         this.HOVER_UNDECIDED_SPANS = new Set()
@@ -226,7 +227,7 @@ class MQMItemHandler {
 
     async redraw_mqm() {
         // store currently displayed version
-        this.el.find('input[name="mqm"]').val(JSON.stringify(this.mqm).replace(/"/g, "'"));
+        this.el.find('input[name="mqm"]').val(JSON.stringify(this.mqm));
         // should be in range [0, 100]
         this.el_slider.slider('value', this.current_mqm_score(true))
 
