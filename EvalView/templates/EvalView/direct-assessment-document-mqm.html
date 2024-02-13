@@ -3,8 +3,8 @@
 
 {% block head %}
 <link rel="stylesheet" href="{% static 'EvalView/css/direct-assessment-document-mqm.css' %}">
-<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/themes/smoothness/jquery-ui.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/themes/smoothness/jquery-ui.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.1/js.cookie.min.js"></script>
 <script src="{% static 'EvalView/js/direct-assessment-document-mqm.js' %}"></script>
 
@@ -14,6 +14,7 @@
 
 {{ mqm_type|json_script:"mqm-type-payload" }}
 
+<div id="error-type-form" class="modal"></div>
 
 <div class="alert alert-info" style="margin-top: -55px;">
     <table style="width:100%">
@@ -21,8 +22,6 @@
             <td style="width:33%;text-align:left;">
                 <strong id="task_progress">
                     document {{completed_blocks}} / {{total_blocks}}
-                    <!-- <span id="items-left-counter">{{items_left_in_block}}</span>
-                    items left in document -->
                 </strong>
             </td>
             <td style="width:33%;text-align:center;">
@@ -46,7 +45,6 @@
     data-item-id="{{ item.itemID }}"
     data-item-completed="{{ scores.completed }}"
     data-item-score="{{ scores.score }}"
-    {% if forloop.last %} last_item {% endif %}
     >
 
     {{ scores.mqm|json_script:"mqm-payload" }}
@@ -68,11 +66,11 @@
 
         <div class="source-box">
             <div class="tutorial-text"></div>
-            <div class="source-text" title='Source sentence #{{ item.itemID|add:" 1" }}'>
+            <div class="source-text">
                 {{ item.sourceText }}
             </div>
 
-            <div class="target-text" title='Candidate translation of source sentence #{{ item.itemID|add:" 1" }}'>
+            <div class="target-text">
                 {{item.targetText|safe}}
             </div>
         </div>

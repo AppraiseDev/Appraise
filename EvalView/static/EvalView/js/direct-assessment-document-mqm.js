@@ -20,6 +20,61 @@ const SEVERITY_TO_NEXT = {
     "major": "critical",
     "critical": "undecided",
 }
+const ERROR_TYPES = {
+    "Terminology": {
+        "Inconsistent with terminology resource": {},
+        "Inconsistent use of terminology": {},
+        "Wrong term": {},
+    },
+    "Accuracy": {
+        "Mistranslation": {},
+        "Overtranslation": {},
+        "Undertranslation": {},
+        "Addition": {},
+        "Omission": {},
+        "Do not translate": {},
+        "Untranslated": {},
+    },
+    "Linguistic conventions": {
+        "Grammar": {},
+        "Punctuation": {},
+        "Spelling": {},
+        "Unintelligible": {},
+        "Character encoding": {},
+        "Textual conventions": {},
+    },
+    "Style": {
+        "Organization style": {},
+        "Third-party style": {},
+        "Inconsistent with external reference": {},
+        "Language register": {},
+        "Awkward style": {},
+        "Unidiomatic style": {},
+        "Inconsistent style": {},
+    },
+    "Locale convention": {
+        "Number format": {},
+        "Currency format": {},
+        "Measurement format": {},
+        "Time format": {},
+        "Date format": {},
+        "Address format": {},
+        "Telephone format": {},
+        "Shortcut key": {},
+    },
+    "Audience appropriateness": {
+        "Culture-specific reference": {},
+        "Offensive": {},
+    },
+    "Design and markup": {
+        "Layout": {},
+        "Markup tag": {},
+        "Truncation/text espansion": {},
+        "Missing text": {},
+        "Link/cross-reference": {},
+    },
+    "Other": {    },
+}
 Object.keys(SEVERITY_TO_COLOR).map((key) => {
     $(`#instruction_sev_${key}`).css("background-color", SEVERITY_TO_COLOR[key])
 })
@@ -36,6 +91,42 @@ String.prototype.capitalize = function () {
 
 var MQM_HANDLERS = {}
 var MQM_TYPE;
+
+async function get_error_type() {
+    // LQM doesn't have error types
+    if (MQM_TYPE == "LQM") {
+        return null
+    }
+    let error_stack = []
+    let possible_errors = ERROR_TYPES
+
+    while (Object.keys(possible_errors).length != 0) {
+        let el_dialog = $("#error-type-form")
+
+        el_dialog.text(error_stack.join(" > ") + " > ____")
+        let result = await new Promise(function (resolve, reject) {
+            el_dialog.dialog({
+                autoOpen: true,
+                width: 350,
+                modal: true,
+                title: "Please select error type",
+                // closing is permitted but will yield null
+                close: () => resolve(null),
+                buttons: Object.fromEntries(
+                    Object.keys(possible_errors).map(x => [x, () => { resolve(x); el_dialog.dialog("close") }])
+                )
+            })
+        })
+        if (result == null) {
+            return null
+        }
+        error_stack.push(result)
+        possible_errors = possible_errors[result]
+        console.log(result)
+    }
+
+    return error_stack
+}
 
 $(document).ready(() => {
     MQM_TYPE = JSON.parse($('#mqm-type-payload').html())
@@ -163,11 +254,6 @@ function _show_error_box(text, timeout = 2000) {
     setTimeout(() => { obj.fadeOut(700, () => { obj.remove() }) }, timeout);
 }
 
-
-String.prototype.capitalize = function () {
-    return this.charAt(0).toUpperCase() + this.slice(1);
-}
-
 function fuzzy_abs_match(a, b, tol) {
     return a == b || Math.abs(a - b) <= tol
 }
@@ -256,6 +342,16 @@ class MQMItemHandler {
                 active_mqm = active_mqm[0]
                 el.css("background-color", SEVERITY_TO_COLOR[active_mqm[0]["severity"]])
                 el.attr("in_mqm", active_mqm[1])
+                
+                console.log(active_mqm[0]["severity"], "x")
+                let tooltip_message = active_mqm[0]["severity"].capitalize();
+                console.log(active_mqm[0])
+                if ("error_type" in active_mqm[0]) {
+                    (active_mqm[0]["error_type"] || []).forEach((x) => {
+                        tooltip_message += " > " + x
+                    });
+                }
+                el.attr("title", tooltip_message)
             } else if (!this.SELECTION_STATE.includes(i)) {
                 // reset color
                 el.css("background-color", "")
@@ -371,7 +467,7 @@ class MQMItemHandler {
                 }
             })
 
-            el.on("click mousedown mouseup", (event) => {
+            el.on("click mousedown mouseup", async (event) => {
                 // do nothing to prevent all three events operating at the same time
                 if (event.timeStamp < this.LAST_MOUSE_TIMESTAMP + 250) {
                     event.preventDefault()
@@ -383,14 +479,20 @@ class MQMItemHandler {
                     this.abort_selection()
                     let mqm_missing = this.mqm.filter(v => v["start_i"] == "missing" && v["end_i"] == "missing")
                     if (mqm_missing.length == 0) {
-                        // create new missing mqm span
-                        mqm_missing = {
-                            "start_i": "missing",
-                            "end_i": "missing",
-                            "severity": "minor",
+                        let error_type = await get_error_type()
+                        if (MQM_TYPE == "MQM" && error_type == null) {
+                            _show_error_box("You need to select error type")
+                        } else {
+                            // create new missing mqm span
+                            mqm_missing = {
+                                "start_i": "missing",
+                                "end_i": "missing",
+                                "severity": "minor",
+                                "error_type": error_type,
+                            }
+                            this.mqm.push(mqm_missing)
+                            _show_error_box("Minor")
                         }
-                        this.mqm.push(mqm_missing)
-                        _show_error_box("Minor")
                     } else {
                         // increase severity
                         mqm_missing = mqm_missing[0]
@@ -429,12 +531,18 @@ class MQMItemHandler {
                             return
                         }
 
-                        this.mqm.push({
-                            "start_i": start_i,
-                            "end_i": end_i,
-                            "severity": "minor",
-                        })
-                        _show_error_box("Minor")
+                        let error_type = await get_error_type()
+                        if (MQM_TYPE == "MQM" && error_type == null) {
+                            _show_error_box("You need to select error type")
+                        } else {
+                            this.mqm.push({
+                                "start_i": start_i,
+                                "end_i": end_i,
+                                "severity": "minor",
+                                "error_type": error_type
+                            })
+                            _show_error_box("Minor")
+                        }
 
 
                         this.abort_selection()

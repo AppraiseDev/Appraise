@@ -124,3 +124,25 @@
     font-weight: bold;
     font-size: 1.2em;
 }
+
+/* error type */
+/* manuall draw cross */
+.ui-dialog-titlebar-close::after {
+    content: "\274c"; /* use the hex value here... */
+    position: relative;
+    top: -2px;
+    left: -1px;
+}
+
+.ui-dialog-buttonset {
+    width: 100%;
+}
+
+.ui-dialog-buttonset > button {
+    display: block;
+    width: 100%;
+}
+
+.ui-widget-content {
+    border: none !important;
+}
