@@ -17,13 +17,6 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AddField(
-            model_name='DirectAssessmentResult',
-            name='mqm',
-            field=models.TextField(
-                blank=True, null=True, verbose_name='MQM'
-            ),
-        ),
-        migrations.AddField(
             model_name='DirectAssessmentDocumentResult',
             name='mqm',
             field=models.TextField(

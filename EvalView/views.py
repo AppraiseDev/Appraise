@@ -143,21 +143,16 @@ def direct_assessment(request, code=None, campaign_name=None):
     t2 = datetime.now()
     if request.method == "POST":
         score = request.POST.get('score', None)
-        mqm = request.POST.get('mqm', None)
         item_id = request.POST.get('item_id', None)
         task_id = request.POST.get('task_id', None)
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
 
-        LOGGER.info(f'score={score}, mqm={mqm}, item_id={item_id}')
-        if not mqm and score:
-            mqm = ""
-        elif mqm and not score:
-            score = 0
-        elif not mqm and not score:
-            LOGGER.debug("Neither score nor mqm submitted.")
+        LOGGER.info(f'score={score}, item_id={item_id}')
+        if not score or score == -1:
+            LOGGER.debug(f"Score not submitted ({score}).")
 
-        if (score or mqm) and item_id and start_timestamp and end_timestamp:
+        if score and item_id and start_timestamp and end_timestamp:
             duration = float(end_timestamp) - float(start_timestamp)
             LOGGER.debug(float(start_timestamp))
             LOGGER.debug(float(end_timestamp))
@@ -173,8 +168,7 @@ def direct_assessment(request, code=None, campaign_name=None):
                 utc_now = datetime.utcnow().replace(tzinfo=utc)
                 # pylint: disable=E1101
                 DirectAssessmentResult.objects.create(
-                    score=score,
-                    mqm=mqm,
+                    score=score,                    
                     start_time=float(start_timestamp),
                     end_time=float(end_timestamp),
                     item=current_item,
@@ -260,8 +254,6 @@ def direct_assessment(request, code=None, campaign_name=None):
 
     if 'sqm' in campaign_opts.lower():
         html_file = 'EvalView/direct-assessment-sqm.html'
-    elif 'mqm;' in campaign_opts.lower():
-        html_file = 'EvalView/direct-mqm.html'
     else:
         html_file = 'EvalView/direct-assessment-context.html'
 
@@ -290,7 +282,6 @@ def direct_assessment(request, code=None, campaign_name=None):
         'campaign': campaign.campaignName,
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
-        'mqm': json.loads(current_item.mqm.replace("'", '"')) if "ai;" in campaign_opts.lower() else []
     }
     context.update(BASE_CONTEXT)
 

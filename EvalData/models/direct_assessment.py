@@ -308,7 +308,6 @@ class DirectAssessmentTask(BaseMetadata):
                     createdBy=batch_user,
                     itemID=item['itemID'],
                     itemType=item['itemType'],
-                    mqm=item['mqm'],
                 )
                 new_items.append(new_item)
 
@@ -367,9 +366,6 @@ class DirectAssessmentResult(BaseMetadata):
 
     score = models.PositiveSmallIntegerField(
         verbose_name=_('Score'), help_text=_('(value in range=[1,100])')
-    )
-    mqm = models.TextField(
-        verbose_name=_('MQM'), help_text=_('JSON-encoded MQM annotations')
     )
 
     start_time = models.FloatField(
@@ -461,7 +457,6 @@ class DirectAssessmentResult(BaseMetadata):
             'item__itemID',
             'item__metadata__market__sourceLanguageCode',
             'item__metadata__market__targetLanguageCode',
-            'mqm',
         )
         for result in qs.values_list(*value_names):
             systemID = result[0]
@@ -469,8 +464,7 @@ class DirectAssessmentResult(BaseMetadata):
             annotatorID = result[2]
             segmentID = result[3]
             marketID = '{0}-{1}'.format(result[4], result[5])
-            mqm = result[6]
-            system_scores[marketID].append((systemID, annotatorID, segmentID, score, mqm))
+            system_scores[marketID].append((systemID, annotatorID, segmentID, score))
 
         return system_scores
 
@@ -741,7 +735,6 @@ class DirectAssessmentResult(BaseMetadata):
             'item__metadata__market__sourceLanguageCode',  # Source language
             'item__metadata__market__targetLanguageCode',  # Target language
             'score',  # Score
-            'mqm',  # MQM
         )
 
         if extended_csv:
