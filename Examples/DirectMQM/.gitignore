@@ -1,2 +1,2 @@
-batches_wmt23.json
-batches_demo.json
+batches_*.json
+manifest_wmt_demo.json

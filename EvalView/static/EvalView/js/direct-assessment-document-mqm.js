@@ -35,8 +35,11 @@ String.prototype.capitalize = function () {
 }
 
 var MQM_HANDLERS = {}
+var MQM_TYPE;
 
 $(document).ready(() => {
+    MQM_TYPE = JSON.parse($('#mqm-type-payload').html())
+
     // This sets the same starting time for all items, but it is set again when
     // an item is expanded by clicking on it.
     $('input[name="start_timestamp"]').val(Date.now());

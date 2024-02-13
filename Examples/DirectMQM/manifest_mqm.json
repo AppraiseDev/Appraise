@@ -1,0 +1,14 @@
+{
+    "CAMPAIGN_URL": "http://127.0.0.1:8000/dashboard/sso/",
+    "CAMPAIGN_NAME": "example15mqm",
+    "CAMPAIGN_KEY": "c6",
+    "CAMPAIGN_NO": 6,
+    "REDUNDANCY": 2,
+
+    "TASKS_TO_ANNOTATORS": [
+        ["eng", "deu", "uniform",  56, 28]
+    ],
+
+    "TASK_TYPE": "Document",
+    "TASK_OPTIONS": "MQM;StaticContext;"
+}

@@ -256,7 +256,7 @@ def direct_assessment(request, code=None, campaign_name=None):
             '(middle) or preference for <em>Candidate B</em> (right).'
         )
 
-    campaign_opts = campaign.campaignOptions or ""
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
 
     if 'sqm' in campaign_opts.lower():
         html_file = 'EvalView/direct-assessment-sqm.html'
@@ -647,7 +647,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             campaign = current_task.campaign
 
     # hijack this function if it uses MQM
-    campaign_opts = (campaign.campaignOptions or "").lower()
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
     if 'mqm' in campaign_opts:
         return direct_assessment_document_mqm(campaign, current_task, request)
 
@@ -1091,14 +1091,13 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
 def direct_assessment_document_mqm(campaign, current_task, request):
     """
-    Direct assessment document annotation view.
+    Direct assessment document annotation view with MQM.
     """
-    t1 = datetime.now()
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
 
     # Handling POST requests differs from the original direct_assessment/
     # direct_assessment_context view, but the input is the same: a score for the
     # single submitted item
-    t2 = datetime.now()
     ajax = False
     item_saved = False
     error_msg = ''
@@ -1248,8 +1247,6 @@ def direct_assessment_document_mqm(campaign, current_task, request):
                     'please reload the page and try again.'
                 )
 
-    t3 = datetime.now()
-
     # Get all items from the document that the first unannotated item in the
     # task belongs to, and collect some additional statistics
     (
@@ -1299,8 +1296,6 @@ def direct_assessment_document_mqm(campaign, current_task, request):
     source_language = current_task.marketSourceLanguage()
     target_language = current_task.marketTargetLanguage()
 
-    t4 = datetime.now()
-
     # By default, source and target items are text segments
     source_item_type = 'text'
     target_item_type = 'text'
@@ -1323,14 +1318,13 @@ def direct_assessment_document_mqm(campaign, current_task, request):
         'target_language': target_language,
         'source_item_type': source_item_type,
         'target_item_type': target_item_type,
-        'debug_times': (t2 - t1, t3 - t2, t4 - t3, t4 - t1),
         'template_debug': 'debug' in request.GET,
         'campaign': campaign.campaignName,
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
         # Task variations
-        'mqm': current_item.mqm,
         'ui_lang': ui_language,
+        'mqm_type': 'LQM' if 'lqm' in campaign_opts else "MQM"
     }
 
     if ajax:
@@ -1734,7 +1728,7 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         candidate2_text,
     ) = current_item.target_texts_with_diffs()
 
-    campaign_opts = (campaign.campaignOptions or "").lower()
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
     use_sqm = False
     critical_error = False
     source_error = False
@@ -2031,7 +2025,7 @@ def data_assessment(request, code=None, campaign_name=None):
 
     parallel_data = list(current_item.get_sentence_pairs())
 
-    campaign_opts = (campaign.campaignOptions or "").lower()
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
     use_sqm = 'sqm' in campaign_opts
 
     if any(opt in campaign_opts for opt in ['disablemtlabel', 'disablemtrank']):
@@ -2419,7 +2413,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'in {1} (left column)? '.format(target_language, source_language),
     ]
 
-    campaign_opts = (campaign.campaignOptions or "").lower()
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
     monolingual_task = 'monolingual' in campaign_opts
     use_sqm = 'sqm' in campaign_opts
     static_context = 'staticcontext' in campaign_opts
