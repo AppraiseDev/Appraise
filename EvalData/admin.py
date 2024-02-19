@@ -5,6 +5,7 @@ See LICENSE for usage details
 """
 # pylint: disable=C0330
 from datetime import timezone
+
 utc = timezone.utc
 from datetime import datetime
 
