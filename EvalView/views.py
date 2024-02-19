@@ -639,8 +639,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     # hijack this function if it uses MQM
     campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
-    if 'mqm' in campaign_opts:
-        return direct_assessment_document_mqm(campaign, current_task, request)
+    if 'mqm' in campaign_opts or  'lqm' in campaign_opts:
+        return direct_assessment_document_mqm_lqm(campaign, current_task, request)
 
     # Handling POST requests differs from the original direct_assessment/
     # direct_assessment_context view, but the input is the same: a score for the
@@ -1080,7 +1080,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     return render(request, 'EvalView/direct-assessment-document.html', context)
 
 
-def direct_assessment_document_mqm(campaign, current_task, request):
+def direct_assessment_document_mqm_lqm(campaign, current_task, request):
     """
     Direct assessment document annotation view with MQM.
     """
@@ -1333,7 +1333,7 @@ def direct_assessment_document_mqm(campaign, current_task, request):
     context.update(page_context)
     context.update(BASE_CONTEXT)
 
-    return render(request, 'EvalView/direct-assessment-document-mqm.html', context)
+    return render(request, 'EvalView/direct-assessment-document-mqm-lqm.html', context)
 
 
 # pylint: disable=C0103,C0330

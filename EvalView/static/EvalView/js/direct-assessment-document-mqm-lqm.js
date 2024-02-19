@@ -131,6 +131,11 @@ async function get_error_type() {
 $(document).ready(() => {
     MQM_TYPE = JSON.parse($('#mqm-type-payload').html())
 
+    // sliders are present only for LQM
+    if(MQM_TYPE != "LQM") {
+        $(".lqm_slider").toggle(false)
+    }
+
     // This sets the same starting time for all items, but it is set again when
     // an item is expanded by clicking on it.
     $('input[name="start_timestamp"]').val(Date.now());
@@ -343,9 +348,7 @@ class MQMItemHandler {
                 el.css("background-color", SEVERITY_TO_COLOR[active_mqm[0]["severity"]])
                 el.attr("in_mqm", active_mqm[1])
                 
-                console.log(active_mqm[0]["severity"], "x")
                 let tooltip_message = active_mqm[0]["severity"].capitalize();
-                console.log(active_mqm[0])
                 if ("error_type" in active_mqm[0]) {
                     (active_mqm[0]["error_type"] || []).forEach((x) => {
                         tooltip_message += " > " + x
@@ -431,7 +434,7 @@ class MQMItemHandler {
         if (this.mqm.length == 0 && !confirm("There are no annotated text fragments. Are you sure you want to submit?")) {
             return false
         }
-        if (this.current_mqm_score(true) == Number.parseFloat(this.el.find("input[name='score']").val()) && !confirm("You did not change the original translation score. Are you sure you want to submit?")) {
+        if (MQM_TYPE == "LQM" && this.current_mqm_score(true) == Number.parseFloat(this.el.find("input[name='score']").val()) && !confirm("You did not change the original translation score. Are you sure you want to submit?")) {
             return false
         }
         return true;

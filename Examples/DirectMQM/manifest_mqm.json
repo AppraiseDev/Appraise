@@ -10,5 +10,5 @@
     ],
 
     "TASK_TYPE": "Document",
-    "TASK_OPTIONS": "MQM;StaticContext;"
+    "TASK_OPTIONS": "MQM;StaticContext"
 }

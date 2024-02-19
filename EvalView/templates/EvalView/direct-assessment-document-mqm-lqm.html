@@ -2,11 +2,11 @@
 {% load static %}
 
 {% block head %}
-<link rel="stylesheet" href="{% static 'EvalView/css/direct-assessment-document-mqm.css' %}">
+<link rel="stylesheet" href="{% static 'EvalView/css/direct-assessment-document-mqm-lqm.css' %}">
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
 <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/themes/smoothness/jquery-ui.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.1/js.cookie.min.js"></script>
-<script src="{% static 'EvalView/js/direct-assessment-document-mqm.js' %}"></script>
+<script src="{% static 'EvalView/js/direct-assessment-document-mqm-lqm.js' %}"></script>
 
 {% endblock %}
 
@@ -36,7 +36,7 @@
 </div>
 
 <div class="question-box">
-    {% include 'EvalView/_mqm_instructions.html' %}
+    {% include 'EvalView/_instructions-mqm-lqm.html' %}
 </div>
 
 {% for item,scores in items %}
@@ -76,8 +76,8 @@
         </div>
 
         <div class="target-box">
-            <div class="row">
-                {% include 'EvalView/_mqm_slider.html' %}
+            <div class="row lqm_slider">
+                {% include 'EvalView/_slider-mqm-lqm.html' %}
             </div>
 
             <table class="row action-box">
