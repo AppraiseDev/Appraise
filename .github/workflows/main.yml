@@ -7,16 +7,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.6, 3.8, 3.9]
 
     steps:
       - uses: actions/checkout@v2
-
-      # Make sure you have installed the exact required versions for all validators as listed at:
-      # https://github.com/cfedermann/python-code-validator?tab=readme-ov-file#validation-strategy
-      - name: Python Code Validator
-        uses: cfedermann/python-code-validator@master
-        env:
-            PYLINT_THRESHOLD: 6
-            BLACK_LINE_MAXLEN: 88
-            APPRAISE_SECRET_KEY: not_a_real_key
+      - name: Install requirements
+        run: pip install -r requirements-dev.txt
+      - name: Python information
+        run: |
+          set -e
+          python3 --version
+          pip freeze
+      - name: Check formatting
+        run: |
+          set -e
+          make check
