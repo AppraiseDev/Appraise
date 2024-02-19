@@ -85,7 +85,9 @@ class Command(BaseCommand):
             new_group.save()
 
         if number_of_tokens < 1 or number_of_tokens > 50:
-            _msg = f'{WARNING_MSG}Specified number of tokens is insane: {number_of_tokens}'
+            _msg = (
+                f'{WARNING_MSG}Specified number of tokens is insane: {number_of_tokens}'
+            )
             self.stdout.write(_msg)
             self.stdout.write('      You can request creation of up to 50 tokens.')
             self.stdout.write('\n[FAIL]\n\n')

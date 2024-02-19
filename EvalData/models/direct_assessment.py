@@ -331,7 +331,9 @@ class DirectAssessmentTask(BaseMetadata):
             new_task.items.add(*new_items)
             new_task.save()
 
-            LOGGER.info(f"Success processing batch {batch_data}, task {batch_task['task']['batchNo']}")
+            LOGGER.info(
+                f"Success processing batch {batch_data}, task {batch_task['task']['batchNo']}"
+            )
 
         LOGGER.info(f'Max length ID={max_length_id}, text={max_length_text}')
 
