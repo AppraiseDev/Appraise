@@ -651,6 +651,7 @@ class TextPair(EvalItem):
     mqm = models.TextField(
         blank=True,
         verbose_name=_('MQM Annotations'),
+        default="[]",
     )
 
     # pylint: disable=E1101

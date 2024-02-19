@@ -492,7 +492,9 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
         verbose_name=_('Score'), help_text=_('(value in range=[1,100])')
     )
 
-    mqm = models.TextField(verbose_name=_('MQM'), help_text=_('MQM JSON string'))
+    mqm = models.TextField(
+        verbose_name=_('MQM'), help_text=_('MQM JSON string'), default="[]"
+    )
 
     start_time = models.FloatField(
         verbose_name=_('Start time'), help_text=_('(in seconds)')
