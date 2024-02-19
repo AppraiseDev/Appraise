@@ -17,8 +17,6 @@ check-black:
 
 check-pylint:
 	pylint --version
-	pwd
-	ls -lah
 	$(FIND_PY_FILES) | xargs pylint --fail-under $(PYLINT_THRESHOLD) --rcfile setup.cfg
 	$(FIND_PY_FILES) | xargs reorder-python-imports --diff-only
 

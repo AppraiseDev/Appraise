@@ -5,3 +5,4 @@ pylint==2.9.6
 pylint-django
 reorder-python-imports==2.6.0
 safety==1.10.3
+astroid==2.9.1

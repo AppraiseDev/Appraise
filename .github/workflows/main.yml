@@ -19,6 +19,8 @@ jobs:
           python3 --version
           pip freeze
       - name: Check formatting
-        run: |
-          set -e
-          make check
+        run: make check-black
+      - name: Check pylint
+        run: make check-pylint
+      - name: Check safety
+        run: make check-safety
