@@ -818,9 +818,9 @@ class Command(BaseCommand):
                 h2h_data.append(head_to_head_ranks[sysID])
             h2h_latex.append(' & '.join(h2h_data) + '\\\\')
 
-            #            print(head_to_head_ranks)
+            #           print(head_to_head_ranks)
             #           print(head_to_head_score)
-            #            print(head_to_head_sigdata)
+            #           print(head_to_head_sigdata)
 
             latex_data.append('\\hline')
             latex_data.append('\\end{tabular}')
