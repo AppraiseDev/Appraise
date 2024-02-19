@@ -11,6 +11,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      # Make sure you have installed the exact required versions for all validators as listed at:
+      # https://github.com/cfedermann/python-code-validator?tab=readme-ov-file#validation-strategy
       - name: Python Code Validator
         uses: cfedermann/python-code-validator@master
         env:

@@ -54,7 +54,7 @@ class Command(BaseCommand):
         random_seed = (
             options['random_seed']
             if options['random_seed'] is not None
-            else int(datetime.now().timestamp() * 10**6)
+            else int(datetime.now().timestamp() * 10 ** 6)
         )
         filter_expr = options['filter_expr']
 

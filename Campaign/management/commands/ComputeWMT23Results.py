@@ -603,7 +603,7 @@ class Command(BaseCommand):
                 + target_language
                 + '} } \\\\[0.5mm] '
             )
-            h2h_latex.append('\\begin{tabular}{r|' + len(system_ids)*'c' + '}')
+            h2h_latex.append('\\begin{tabular}{r|' + len(system_ids) * 'c' + '}')
 
             if options["wmt22_format"]:
                 latex_data.append('\\begin{tabular}{cccrl}')
@@ -643,7 +643,7 @@ class Command(BaseCommand):
                     return 0
                 else:
                     return -1
-                
+
             head_to_head_ranks = {}
             head_to_head_score = {}
 
@@ -763,16 +763,19 @@ class Command(BaseCommand):
 
                 last_wins_count = wins
 
-            sorted_ids = tuple(x[2] for x in sorted(
-                sorted_by_wins,
-                key=cmp_to_key(sort_func),
-                reverse=True,
-            ))
+            sorted_ids = tuple(
+                x[2]
+                for x in sorted(
+                    sorted_by_wins,
+                    key=cmp_to_key(sort_func),
+                    reverse=True,
+                )
+            )
 
             h2h_data = ['']
             for sysID in sorted_ids:
                 fixedID = sysID.replace('_', '\\_')
-                h2h_data.append('\\rotatebox{90}{'+fixedID+'}')
+                h2h_data.append('\\rotatebox{90}{' + fixedID + '}')
 
             h2h_latex.append(' & '.join(h2h_data) + '\\\\')
             h2h_latex.append('\\\\')
@@ -815,9 +818,9 @@ class Command(BaseCommand):
                 h2h_data.append(head_to_head_ranks[sysID])
             h2h_latex.append(' & '.join(h2h_data) + '\\\\')
 
-#            print(head_to_head_ranks)
-#           print(head_to_head_score)
-#            print(head_to_head_sigdata)
+            #            print(head_to_head_ranks)
+            #           print(head_to_head_score)
+            #            print(head_to_head_sigdata)
 
             latex_data.append('\\hline')
             latex_data.append('\\end{tabular}')
