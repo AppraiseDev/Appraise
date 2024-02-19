@@ -12,9 +12,11 @@ run:
 check: check-black check-pylint check-safety
 
 check-black:
+	black --version
 	black -S -l $(BLACK_LINE_MAXLEN) --check . --force-exclude '/migrations/'
 
 check-pylint:
+	pylint --version
 	$(FIND_PY_FILES) | xargs pylint --fail-under $(PYLINT_THRESHOLD) --rcfile setup.cfg
 	$(FIND_PY_FILES) | xargs reorder-python-imports --diff-only
 
