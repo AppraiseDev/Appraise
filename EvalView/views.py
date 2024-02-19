@@ -4,6 +4,7 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 from datetime import timezone
+
 utc = timezone.utc
 from datetime import datetime
 
