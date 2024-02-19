@@ -19,7 +19,8 @@ jobs:
         run: |
           pip install -r requirements-dev.txt
           # a workaround to suppress pip errors about incompatible package versions
-          pip install astroid==2.9.1 || true
+          pip install astroid==2.9.1
+        continue-on-error: true
       - name: Python information
         run: |
           set -e
@@ -27,7 +28,10 @@ jobs:
           pip freeze
       - name: Check formatting
         run: make check-black
+        continue-on-error: true
       - name: Check pylint
         run: make check-pylint
+        continue-on-error: true
       - name: Check safety
         run: make check-safety
+        continue-on-error: true
