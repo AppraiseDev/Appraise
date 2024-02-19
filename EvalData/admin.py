@@ -4,13 +4,14 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=C0330
+from datetime import timezone
+utc = timezone.utc
 from datetime import datetime
 
 from django.contrib import admin
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.utils.timezone import utc
 
 from .models import *
 
