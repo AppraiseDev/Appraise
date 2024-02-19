@@ -170,6 +170,11 @@ class Command(BaseCommand):
             action='store_true',
             help='Use approximate randomization',
         )
+        parser.add_argument(
+            '--wmt22-format',
+            action='store_true',
+            help='Print output in WMT22 format, including z scores',
+        )
 
         # TODO: add argument to specify batch user
 
@@ -269,6 +274,7 @@ class Command(BaseCommand):
 
         latex_data = []
         tsv_data = []
+        h2h_latex = []
 
         for language_pair, language_data in data_by_language_pair.items():
             user_scores = defaultdict(list)
@@ -428,7 +434,12 @@ class Command(BaseCommand):
                     len(averaged_scores) or 1
                 )
 
-                normalized_scores[normalized_score] = (
+                # WMT23: sort by decreasing raw score instead of normalised
+                sort_score = averaged_raw_score
+                if options['wmt22_format']:
+                    sort_score = normalized_score
+
+                normalized_scores[averaged_raw_score] = (
                     key,
                     len(value),
                     normalized_score,
@@ -443,6 +454,8 @@ class Command(BaseCommand):
             if options['no_sigtest']:
                 continue
 
+            head_to_head_sigdata = {}
+
             # if scipy is available, perform sigtest for all pairs of systems
             try:
                 import scipy  # type: ignore
@@ -452,7 +465,7 @@ class Command(BaseCommand):
                 continue
 
             from scipy.stats import mannwhitneyu, bayes_mvs  # type: ignore
-            from itertools import combinations_with_replacement
+            from itertools import combinations, combinations_with_replacement
 
             system_ids = []
             for key in sorted(normalized_scores, reverse=True):
@@ -463,41 +476,41 @@ class Command(BaseCommand):
             wins_for_system = defaultdict(list)
             losses_for_system = defaultdict(list)
             p_level = 0.05
-            for (sysA, sysB) in combinations_with_replacement(system_ids, 2):
-                sysA_ids = set([x[0] for x in system_z_scores[sysA]])
-                sysB_ids = set([x[0] for x in system_z_scores[sysB]])
+            for sysA, sysB in combinations_with_replacement(system_ids, 2):
+                sysA_ids = set([x[0] for x in system_raw_scores[sysA]])
+                sysB_ids = set([x[0] for x in system_raw_scores[sysB]])
                 good_ids = set.intersection(sysA_ids, sysB_ids)
 
                 # print("LEN(good_ids) = {0:d}".format(len(good_ids)))
 
                 sysA_scores = []
                 sbsA = defaultdict(list)
-                for x in system_z_scores[sysA]:
+                for x in system_raw_scores[sysA]:
                     if not x[0] in good_ids:
                         continue
                     segmentID = x[0]
-                    zScore = x[1]
+                    rScore = x[1]
                     # print(zScore)
-                    sbsA[segmentID].append((segmentID, zScore))
+                    sbsA[segmentID].append((segmentID, rScore))
                 for segmentID in sbsA.keys():
-                    average_z_score_for_segment = sum(
+                    average_raw_score_for_segment = sum(
                         [x[1] for x in sbsA[segmentID]]
                     ) / float(len(sbsA[segmentID]))
-                    sysA_scores.append((segmentID, average_z_score_for_segment))
+                    sysA_scores.append((segmentID, average_raw_score_for_segment))
 
                 sysB_scores = []
                 sbsB = defaultdict(list)
-                for x in system_z_scores[sysB]:
+                for x in system_raw_scores[sysB]:
                     if not x[0] in good_ids:
                         continue
                     segmentID = x[0]
-                    zScore = x[1]
-                    sbsB[segmentID].append((segmentID, zScore))
+                    rScore = x[1]
+                    sbsB[segmentID].append((segmentID, rScore))
                 for segmentID in sbsB.keys():
-                    average_z_score_for_segment = sum(
+                    average_raw_score_for_segment = sum(
                         [x[1] for x in sbsB[segmentID]]
                     ) / float(len(sbsB[segmentID]))
-                    sysB_scores.append((segmentID, average_z_score_for_segment))
+                    sysB_scores.append((segmentID, average_raw_score_for_segment))
 
                 sysA_sorted = [x[1] for x in sorted(sysA_scores, key=lambda x: x[0])]
                 sysB_sorted = [x[1] for x in sorted(sysB_scores, key=lambda x: x[0])]
@@ -523,12 +536,14 @@ class Command(BaseCommand):
                 if options['use_ar']:
                     if p_value < p_level:
                         if sysA != sysB:
-                            wins_for_system[sysA].append(sysB)
-                            losses_for_system[sysB].append(sysA)
+                            wins_for_system[sysA].append((sysB, p_value))
+                            losses_for_system[sysB].append((sysA, p_value))
                 else:
                     if p_value < p_level:
-                        wins_for_system[sysA].append(sysB)
-                        losses_for_system[sysB].append(sysA)
+                        wins_for_system[sysA].append((sysB, p_value))
+                        losses_for_system[sysB].append((sysA, p_value))
+
+                head_to_head_sigdata[(sysA, sysB)] = p_value
 
                 if show_p_values:
                     if options['use_ar']:
@@ -580,15 +595,38 @@ class Command(BaseCommand):
                 + target_language
                 + '} } \\\\[0.5mm] '
             )
-            latex_data.append('\\begin{tabular}{cccrl}')
-            latex_data.append('& Rank & Ave. & Ave. z & System\\\\ \\hline')
 
-            tsv_data.append('pair\tsystem\trank\tave\tave_z')
-
-            print('-' * 80)
-            print(
-                'Wins                                         System ID  Z Score H Score  R Score'
+            h2h_latex.append(
+                '{\\bf  \\tto{'
+                + source_language
+                + '}{'
+                + target_language
+                + '} } \\\\[0.5mm] '
             )
+            h2h_latex.append('\\begin{tabular}{r|' + len(system_ids) * 'c' + '}')
+
+            if options["wmt22_format"]:
+                latex_data.append('\\begin{tabular}{cccrl}')
+                latex_data.append('& Rank & Ave. & Ave. z & System\\\\ \\hline')
+
+                tsv_data.append('pair\tsystem\trank\tave\tave_z')
+
+                print('-' * 80)
+                print(
+                    'Wins                                         System ID  Z Score H Score  R Score'
+                )
+
+            else:
+                latex_data.append('\\begin{tabular}{ccrl}')
+                latex_data.append('& Rank & Ave. & System\\\\ \\hline')
+
+                tsv_data.append('pair\tsystem\trank\tave')
+
+                print('-' * 80)
+                print(
+                    'Wins                                         System ID  ↓ Ave Score'
+                )
+            print('-' * 80)
 
             def sort_by_z_score(x, y):
                 if x[4] > y[4]:
@@ -598,13 +636,27 @@ class Command(BaseCommand):
                 else:
                     return -1
 
+            def sort_by_score(x, y):
+                if x[5] > y[5]:
+                    return 1
+                elif x[5] == y[5]:
+                    return 0
+                else:
+                    return -1
+
+            head_to_head_ranks = {}
+            head_to_head_score = {}
+
             total_systems = len(sorted_by_wins)
             min_wins_current_cluster = total_systems
             current_system = 0
+            sort_func = sort_by_score
+            if options["wmt22_format"]:
+                sort_func = sort_by_z_score
             last_wins_count = None
             for values in sorted(
                 sorted_by_wins,
-                key=cmp_to_key(sort_by_z_score),
+                key=cmp_to_key(sort_func),
                 reverse=True,
             ):
                 current_system += 1
@@ -629,9 +681,14 @@ class Command(BaseCommand):
                 #                if last_wins_count != wins:
                 #                    print('-' * 80)
 
-                output = '{0:02d} {1:>51} {2:>+2.5f} {3:>1.5f} {4:>2.5f}'.format(
-                    wins, systemID[:51], zScore, hScore, rScore
-                ).replace('+', ' ')
+                if options["wmt22_format"]:
+                    output = '{0:02d} {1:>51} {2:>+2.5f} {3:>1.5f} {4:>2.5f}'.format(
+                        wins, systemID[:51], zScore, hScore, rScore
+                    ).replace('+', ' ')
+                else:
+                    output = '{0:02d} {1:>51} {2:>+2.1f}'.format(
+                        wins, systemID[:51], rScore
+                    ).replace('+', ' ')
                 print(output)
 
                 min_wins_current_cluster = min(wins, min_wins_current_cluster)
@@ -654,33 +711,123 @@ class Command(BaseCommand):
                     if top_rank != worst_rank
                     else str(top_rank)
                 )
-                _latex_data = (
-                    '\\Uncon{}',
-                    ranks,
-                    '{0:.1f}'.format(rScore),
-                    '{0:.3f}'.format(zScore),
-                    systemID[:51].replace('_', '\\_'),
-                    '\\\\ \\hline' if add_cluster_boundary else '\\\\',
-                )
-                latex_data.append('{0} & {1} & {2} & {3} & {4}{5}'.format(*_latex_data))
 
-                tsv_data.append(
-                    '\t'.join(
-                        (
-                            pair,
-                            systemID[:51].replace('_', '\\_'),
-                            ranks,
-                            '{0:.1f}'.format(rScore),
-                            '{0:.3f}'.format(zScore),
+                head_to_head_ranks[systemID] = ranks
+                head_to_head_score[systemID] = rScore
+
+                if options["wmt22_format"]:
+                    _latex_data = (
+                        '\\Uncon{}',
+                        ranks,
+                        '{0:.1f}'.format(rScore),
+                        '{0:.3f}'.format(zScore),
+                        systemID[:51].replace('_', '\\_'),
+                        '\\\\ \\hline' if add_cluster_boundary else '\\\\',
+                    )
+                    latex_data.append(
+                        '{0} & {1} & {2} & {3} & {4}{5}'.format(*_latex_data)
+                    )
+
+                    tsv_data.append(
+                        '\t'.join(
+                            (
+                                pair,
+                                systemID[:51].replace('_', '\\_'),
+                                ranks,
+                                '{0:.1f}'.format(rScore),
+                                '{0:.3f}'.format(zScore),
+                            )
                         )
                     )
-                )
+
+                else:
+                    _latex_data = (
+                        '\\Uncon{}',
+                        ranks,
+                        '{0:.1f}'.format(rScore),
+                        systemID[:51].replace('_', '\\_'),
+                        '\\\\ \\hline' if add_cluster_boundary else '\\\\',
+                    )
+                    latex_data.append('{0} & {1} & {2} & {3}{4}'.format(*_latex_data))
+
+                    tsv_data.append(
+                        '\t'.join(
+                            (
+                                pair,
+                                systemID[:51].replace('_', '\\_'),
+                                ranks,
+                                '{0:.1f}'.format(rScore),
+                            )
+                        )
+                    )
 
                 last_wins_count = wins
+
+            sorted_ids = tuple(
+                x[2]
+                for x in sorted(
+                    sorted_by_wins,
+                    key=cmp_to_key(sort_func),
+                    reverse=True,
+                )
+            )
+
+            h2h_data = ['']
+            for sysID in sorted_ids:
+                fixedID = sysID.replace('_', '\\_')
+                h2h_data.append('\\rotatebox{90}{' + fixedID + '}')
+
+            h2h_latex.append(' & '.join(h2h_data) + '\\\\')
+            h2h_latex.append('\\\\')
+            h2h_latex.append('\\hline')
+            h2h_latex.append('\\\\')
+
+            for sysA in sorted_ids:
+                h2h_data = [sysA.replace('_', '\\_')]
+                for sysB in sorted_ids:
+                    if sysA == sysB:
+                        h2h_data.append('---')
+                    else:
+                        sysA_score = head_to_head_score[sysA]
+                        sysB_score = head_to_head_score[sysB]
+                        cell_delta = sysA_score - sysB_score
+
+                        sig_level = ''
+                        try:
+                            if head_to_head_sigdata[(sysA, sysB)] < 0.001:
+                                sig_level = '\\textdaggerdbl'
+                            elif head_to_head_sigdata[(sysA, sysB)] < 0.01:
+                                sig_level = '\\textdagger'
+                            elif head_to_head_sigdata[(sysA, sysB)] < 0.05:
+                                sig_level = '\\star'
+                        except KeyError:
+                            sig_level = ''
+
+                        h2h_data.append(str(round(cell_delta, 1)) + sig_level)
+                h2h_latex.append(' & '.join(h2h_data) + '\\\\')
+
+            h2h_latex.append('\\\\')
+
+            h2h_data = ['score']
+            for sysID in sorted_ids:
+                h2h_data.append(str(round(head_to_head_score[sysID], 1)))
+            h2h_latex.append(' & '.join(h2h_data) + '\\\\')
+
+            h2h_data = ['rank']
+            for sysID in sorted_ids:
+                h2h_data.append(head_to_head_ranks[sysID])
+            h2h_latex.append(' & '.join(h2h_data) + '\\\\')
+
+            #            print(head_to_head_ranks)
+            #           print(head_to_head_score)
+            #            print(head_to_head_sigdata)
 
             latex_data.append('\\hline')
             latex_data.append('\\end{tabular}')
             latex_data.append('')
+
+            h2h_latex.append('\\end{tabular}')
+            h2h_latex.append('')
 
         print()
         print('\n'.join(latex_data))
@@ -688,4 +835,8 @@ class Command(BaseCommand):
 
         print()
         print('\n'.join(tsv_data))
+        print()
+
+        print()
+        print('\n'.join(h2h_latex))
         print()

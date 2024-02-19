@@ -25,10 +25,16 @@
       <li><strong>6: Perfect meaning and motion</strong>: The meaning of the translation is completely consistent with the source and the surrounding context. Motion is natural.</li>
 
       {% elif mono %}
-      <li><strong>0: Nonsense/No meaning</strong>: Nearly all information and discourse coherence is lost. Grammar is irrelevant.</li>
-      <li><strong>2: Some discourse preserved</strong>: The text preserves some of the discourse coherence. The narrative is hard to follow due to fundamental errors. Grammar may be poor.</li>
-      <li><strong>4: Most discourse preserved and few grammar mistakes</strong>: The text retains most of the discourse coherence. It may have some grammar mistakes or stylistic contextual inconsistencies.</li>
-      <li><strong>6: Perfect discourse and grammar</strong>: The text is completely consistent with the surrounding context and the discourse coherence is perfect. The grammar is also correct.</li>
+      <li><strong>0: No meaning/No consistency</strong>: Nearly all meaning or lexical and grammatical consistency is lost. Grammar is irrelevant.</li>
+      <li><strong>2: Some consistency preserved</strong>: The text preserves only some level of contextual consistency. The narrative is hard to follow due to fundamental errors. Grammar may be poor.</li>
+      <li><strong>4: Most consistency preserved</strong>: The text retains most of lexical and grammatical consistency. It may have some grammar mistakes or minor contextual inconsistencies.</li>
+      <li><strong>6: Perfect lexical and grammatical consistency</strong>: The text is completely lexically and grammatically consistent with the document context. The grammar is also correct.</li>
+
+      {% elif doclvl %}
+      <li><strong>0: No meaning/No consistency</strong>: Nearly all meaning or lexical and grammatical consistency is lost. Grammar is irrelevant.</li>
+      <li><strong>2: Some consistency preserved</strong>: The text preserves only some level of contextual consistency. The narrative is hard to follow due to fundamental errors. Grammar may be poor.</li>
+      <li><strong>4: Most consistency preserved</strong>: The text retains most of lexical and grammatical consistency. It may have some grammar mistakes or minor contextual inconsistencies.</li>
+      <li><strong>6: Perfect lexical and grammatical consistency</strong>: The text perfectly captures the meaning of the source, and is grammatically correct and consistent.</li>
 
       {% elif ui_lang == 'deu' %}
       <li><strong>0: Unsinn/Bedeutung nicht erhalten</strong>: Fast alle Informationen zwischen Übersetzung und Eingabevideo sind verloren gegangen. Die Grammatik ist irrelevant.</li>
@@ -43,5 +49,15 @@
 
       {% endif %}
     </ul>
+
+    {% if ui_lang == 'deu' %}
+    {% else %}
+    <p>The numeric labels on the slider are there to help you to adjust the score more precisely, but the slider can be stopped at any position along the track.
+    Try to use the full range of the scale when scoring segments and not limit yourself only to the values around the numeric labels.</p>
+
+      {% if doclvl %}
+      <p>Note that sentences in each paragraph can be separated by the <code>&lt;eos&gt;</code> or <code>&lt;br/&gt;</code> tags for convenience and this should not impact your assessment.</p>
+      {% endif %}
+    {% endif %}
   </div>
 </div>

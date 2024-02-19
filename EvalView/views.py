@@ -10,11 +10,13 @@ from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.utils.timezone import utc
+from django.utils.html import escape
 
 from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Campaign.models import Campaign
 from Dashboard.models import SIGN_LANGUAGE_CODES
+from EvalData.error_types import ERROR_TYPES
 from EvalData.models import DataAssessmentResult
 from EvalData.models import DataAssessmentTask
 from EvalData.models import DirectAssessmentContextResult
@@ -859,10 +861,13 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     static_context = 'staticcontext' in campaign_opts
     use_sqm = 'sqm' in campaign_opts
     ui_language = 'enu'
+    doc_guidelines = 'doclvlguideline' in campaign_opts
+
+    error_types = None
+    critical_error = None
 
     if 'wmt22signlt' in campaign_opts:
         sign_translation = True
-        static_context = True
         use_sqm = True
         ui_language = 'deu'
 
@@ -921,6 +926,22 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         ]
         candidate_label = None
 
+    if doc_guidelines:
+        priming_question_texts = [
+            'Below you see a document with {0} partial paragraphs in {1} (left columns) '
+            'and their corresponding two candidate translations in {2} (middle and right column). '
+            'Please score each paragraph of both candidate translations '
+            '<u><b>paying special attention to document-level properties, '
+            'such as consistency of style, selection of translation terms, formality, '
+            'and so on</b></u>, in addition to the usual correctness criteria. '
+            'Note that sentences in each paragraph may be separated by <i>&lt;eos&gt;</i> tags '
+            'for convenience. These tags, if present, should not impact your assessment. '.format(
+                len(block_items) - 1,
+                source_language,
+                target_language,
+            ),
+        ]
+
     # German instructions for WMT22 sign language task
     if 'wmt22signlt' in campaign_opts:
         if 'text2sign' in campaign_opts:
@@ -931,6 +952,16 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                 'Übersetzung des Satzes im Kontext des Dokuments. '
                 'Sie können bereits bewertete Sätze jederzeit durch Anklicken eines '
                 'Quelltextes erneut aufrufen und die Bewertung aktualisieren.'.format(
+                    len(block_items) - 1,
+                ),
+            ]
+        elif 'sign2text-seglvl' in campaign_opts:
+            priming_question_texts = [
+                'Unten sehen Sie ein Set von {0} unzusammenhängenden Sätzen in Deutschschweizer '
+                'Gebärdensprache (DSGS) (linke Spalten) und die entsprechenden möglichen '
+                'Übersetzungen auf Deutsch (rechte Spalten). '
+                'Sie können bereits bewertete Sätze jederzeit durch Anklicken eines '
+                'Eingabevideos erneut aufrufen und die Bewertung aktualisieren.'.format(
                     len(block_items) - 1,
                 ),
             ]
@@ -1010,11 +1041,13 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
         # Task variations
-        'sqm': use_sqm,
-        'speech': speech_translation,
-        'signlt': sign_translation,
+        'errortypes': error_types,
+        'criticalerror': critical_error,
         'monolingual': monolingual_task,
+        'signlt': sign_translation,
+        'speech': speech_translation,
         'static_context': static_context,
+        'sqm': use_sqm,
         'ui_lang': ui_language,
     }
 
@@ -1321,7 +1354,15 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
 
-        print('score1={0}, score2={1}, item_id={2}'.format(score1, score2, item_id))
+        source_error = request.POST.get('source_error', None)
+        error1 = request.POST.get('error1', None)
+        error2 = request.POST.get('error2', None)
+
+        print(
+            'score1={0}, score2={1}, item_id={2}, src_err={3}, error1={4}, error2={5}'.format(
+                score1, score2, item_id, source_error, error1, error2
+            )
+        )
         LOGGER.info('score1=%s, score2=%s, item_id=%s', score1, score2, item_id)
 
         if score1 and item_id and start_timestamp and end_timestamp:
@@ -1355,6 +1396,9 @@ def pairwise_assessment(request, code=None, campaign_name=None):
                     activated=False,
                     completed=True,
                     dateCompleted=utc_now,
+                    sourceErrors=source_error,
+                    errors1=error1,
+                    errors2=error2,
                 )
 
     t3 = datetime.now()
@@ -1407,10 +1451,71 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         candidate2_text,
     ) = current_item.target_texts_with_diffs()
 
+    campaign_opts = (campaign.campaignOptions or "").lower()
+    use_sqm = False
+    critical_error = False
+    source_error = False
+    extra_guidelines = False
+    doc_guidelines = False
+    guidelines_popup = False
+
+    if 'reportcriticalerror' in campaign_opts:
+        critical_error = True
+        extra_guidelines = True
+    if 'reportsourceerror' in campaign_opts:
+        source_error = True
+        extra_guidelines = True
+    if 'sqm' in campaign_opts:
+        use_sqm = True
+        extra_guidelines = True
+
+    if 'gamingdomainnote' in campaign_opts:
+        priming_question_text = (
+            'The presented text is a message from an online video game chat. '
+            'Please take into account the video gaming genre when making your assessments. </br> '
+            + priming_question_text
+        )
+
+    if extra_guidelines:
+        # note this is not needed if DocLvlGuideline is enabled
+        priming_question_text += '<br/> (Please see the detailed guidelines below)'
+
+    if 'doclvlguideline' in campaign_opts:
+        use_sqm = True
+        doc_guidelines = True
+        guidelines_popup = (
+            'guidelinepopup' in campaign_opts or 'guidelinespopup' in campaign_opts
+        )
+
+    segment_text = current_item.segmentText
+
+    if doc_guidelines:
+        priming_question_text = (
+            'Above you see a paragraph in {0} and below its corresponding one or two candidate translations in {1}. '
+            'Please score the candidate translation(s) below following the detailed guidelines at the bottom of the page '
+            '<u><b>paying special attention to document-level properties, '
+            'such as consistency of style, selection of translation terms, formality, '
+            'and so on</b></u>, in addition to the usual correctness criteria. '.format(
+                source_language,
+                target_language,
+            )
+        )
+
+        # process <eos>s and unescape <br/>s
+        segment_text = segment_text.replace(
+            "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+        ).replace("&lt;br/&gt;", "<br/>")
+        candidate1_text = candidate1_text.replace(
+            "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+        ).replace("&lt;br/&gt;", "<br/>")
+        candidate2_text = candidate2_text.replace(
+            "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+        ).replace("&lt;br/&gt;", "<br/>")
+
     context = {
         'active_page': 'pairwise-assessment',
         'reference_label': reference_label,
-        'reference_text': current_item.segmentText,
+        'reference_text': segment_text,
         'context_left': current_item.context_left(),
         'context_right': current_item.context_right(),
         'candidate_label': candidate1_label,
@@ -1429,16 +1534,15 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         'campaign': campaign.campaignName,
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
+        'sqm': use_sqm,
+        'critical_error': critical_error,
+        'source_error': source_error,
+        'guidelines_popup': guidelines_popup,
+        'doc_guidelines': doc_guidelines,
     }
     context.update(BASE_CONTEXT)
 
-    campaign_opts = campaign.campaignOptions or ""
-    if 'sqm' in campaign_opts.lower():
-        html_file = 'EvalView/pairwise-assessment-sqm.html'
-    else:
-        html_file = 'EvalView/pairwise-assessment.html'
-
-    return render(request, html_file, context)
+    return render(request, 'EvalView/pairwise-assessment.html', context)
 
 
 # pylint: disable=C0103,C0330
@@ -1980,8 +2084,15 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             'current_item': bool(item.id == current_item.id),
             'score1': result.score1 if result else -1,
             'score2': result.score2 if result else -1,
-            'candidate1_text': _candidate1_text,
-            'candidate2_text': _candidate2_text,
+            'candidate1_text': _candidate1_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            ).replace("&lt;br/&gt;", "<br/>"),
+            'candidate2_text': _candidate2_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            ).replace("&lt;br/&gt;", "<br/>"),
+            'segment_text': escape(item.segmentText)
+            .replace("&lt;eos&gt;", "<code>&lt;eos&gt;</code>")
+            .replace("&lt;br/&gt;", "<br/>"),
         }
         block_scores.append(item_scores)
 
@@ -2027,6 +2138,11 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     monolingual_task = 'monolingual' in campaign_opts
     use_sqm = 'sqm' in campaign_opts
     static_context = 'staticcontext' in campaign_opts
+    doc_guidelines = 'doclvlguideline' in campaign_opts
+    guidelines_popup = (
+        'guidelinepopup' in campaign_opts or 'guidelinespopup' in campaign_opts
+    )
+    gaming_domain = 'gamingdomainnote' in campaign_opts
 
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
@@ -2050,6 +2166,26 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         candidate1_label = 'Sentence A'
         candidate2_label = 'Sentence B'
 
+    if doc_guidelines:
+        priming_question_texts = [
+            'Below you see a document with {0} partial paragraphs in {1} (left columns) '
+            'and their corresponding two candidate translations in {2} (middle and right column). '
+            'Please score each paragraph of both candidate translations '
+            '<u><b>paying special attention to document-level properties, '
+            'such as consistency of formality and style, selection of translation terms, pronoun choice, '
+            'and so on</b></u>, in addition to the usual correctness criteria. '.format(
+                len(block_items) - 1,
+                source_language,
+                target_language,
+            ),
+        ]
+
+    if gaming_domain:
+        priming_question_texts += [
+            'The presented texts are messages from an online video game chat. '
+            'Please take into account the video gaming genre when making your assessments. </br> '
+        ]
+
     # A part of context used in responses to both Ajax and standard POST
     # requests
     context = {
@@ -2070,6 +2206,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'monolingual': monolingual_task,
         'sqm': use_sqm,
         'static_context': static_context,
+        'guidelines_popup': guidelines_popup,
+        'doc_guidelines': doc_guidelines,
     }
 
     if ajax:

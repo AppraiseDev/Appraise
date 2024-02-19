@@ -58,6 +58,11 @@ class Command(BaseCommand):
             default=0.0,
             help='Prints user IDs who did not pass the quality control',
         )
+        parser.add_argument(
+            '--wmt22-format',
+            action='store_true',
+            help='Use z scores for reliability checking (pre-WMT23)',
+        )
         # TODO: add argument to specify batch user
 
     def handle(self, *args, **options):
@@ -169,14 +174,19 @@ class Command(BaseCommand):
         user_z_scores = defaultdict(list)
         for key, values in user_scores.items():
             for value in values:
-                z_score = (value[3] - user_means[key]) / user_stdev[key]
+                z_score = (value[3] - user_means[key]) / (user_stdev[key] or 1.0)
                 user_z_scores[key].append((value[0], value[1], value[2], z_score))
 
-        user_scores = user_z_scores
+        # WMT23 drops use of z scores; if you still want reliablity to be computed
+        # using z scores, specify --wmt22-format when calling this command.
+        if options["wmt22_format"]:
+            print("Using z scores for annotator reliability computation")
+            user_scores = user_z_scores
 
         if DEBUG:
-            _msg = "Computed standardized scores for {} users\n".format(
-                len(user_scores)
+            score_mode = "standardised" if options["wmt22_format"] else "raw"
+            _msg = "Computed {} scores for {} users\n".format(
+                score_mode, len(user_scores)
             )
             sys.stderr.write(_msg)
             _k = list(user_scores.keys())[0]

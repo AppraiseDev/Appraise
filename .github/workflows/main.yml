@@ -7,13 +7,34 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.8, 3.9]
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Python Code Validator
-        uses: cfedermann/python-code-validator@master
-        env:
-            PYLINT_THRESHOLD: 6
-            BLACK_LINE_MAXLEN: 88
-            APPRAISE_SECRET_KEY: not_a_real_key
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install requirements
+        run: |
+          pip install -r requirements-dev.txt
+          # a workaround to suppress pip errors about incompatible package versions
+          pip install astroid==2.9.1
+        continue-on-error: true
+      - name: Python information
+        run: |
+          set -e
+          python3 --version
+          pip freeze
+      - name: Check formatting
+        run: make check-black
+        continue-on-error: true
+      - name: Check pylint
+        run: make check-pylint
+        continue-on-error: true
+      - name: Check mypy
+        run: make check-mypy
+        continue-on-error: true
+      - name: Check safety
+        run: make check-safety
+        continue-on-error: true

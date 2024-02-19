@@ -1,0 +1,30 @@
+<div class="modal fade" id="guidelines-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Important Annotation Guidelines</h4>
+            </div>
+            <div class="modal-body">
+                {% if priming_question_text %}
+                <p>{{priming_question_text|safe}}</p>
+                {% else %}
+                    {% for text in priming_question_texts %}
+                    <p>{{text|safe}}</p>
+                    {% endfor %}
+                {% endif %}
+
+                {% if sqm %}
+                {% with mono=monolingual doclvl=doc_guidelines %}
+                <small>
+                {% include 'EvalView/_sqm_instructions.html' %}
+                </small>
+                {% endwith %}
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Acknowledge</button>
+            </div>
+        </div>
+    </div>
+</div>

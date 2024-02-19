@@ -17,3 +17,9 @@ Generating an example campaign with direct assessment tasks:
     # Collect some annotations, then export annotation scores...
 
     python manage.py ExportSystemScoresToCSV example1
+
+Alternatively run this single command to create the campaign:
+
+    python manage.py StartNewCampaign Examples/Direct/manifest.json \
+        --batches-json Examples/Direct/batches.json \
+        --csv-output Examples/Direct/output.csv

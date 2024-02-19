@@ -1,6 +1,7 @@
 -r requirements.txt
 black==22.3.0
-pylint==2.9.6
+mypy==0.900
+pylint
 pylint-django
 reorder-python-imports==2.6.0
 safety==1.10.3
