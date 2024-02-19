@@ -1,8 +1,8 @@
 {
     "CAMPAIGN_URL": "http://127.0.0.1:8000/dashboard/sso/",
-    "CAMPAIGN_NAME": "example15mqm",
-    "CAMPAIGN_KEY": "c6",
-    "CAMPAIGN_NO": 6,
+    "CAMPAIGN_NAME": "example15lqm",
+    "CAMPAIGN_KEY": "example15lqm",
+    "CAMPAIGN_NO": 15,
     "REDUNDANCY": 2,
 
     "TASKS_TO_ANNOTATORS": [
