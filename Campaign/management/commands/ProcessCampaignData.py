@@ -69,5 +69,7 @@ def _process_campaign_data(campaign, batch_user, campaign_type, max_count):
             batch_data.activate()
             batch_data.save()
 
+    print('Campaign activated')
+
     campaign.activate()
     campaign.save()
