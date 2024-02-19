@@ -1,0 +1,14 @@
+{
+    "CAMPAIGN_URL": "http://127.0.0.1:8000/dashboard/sso/",
+    "CAMPAIGN_NAME": "example15lqm",
+    "CAMPAIGN_KEY": "example15lqm",
+    "CAMPAIGN_NO": 15,
+    "REDUNDANCY": 2,
+
+    "TASKS_TO_ANNOTATORS": [
+        ["eng", "deu", "uniform",  2, 1]
+    ],
+
+    "TASK_TYPE": "Document",
+    "TASK_OPTIONS": "LQM;StaticContext"
+}

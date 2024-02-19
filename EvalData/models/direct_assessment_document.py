@@ -4,6 +4,7 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=C0103,C0330,no-member
+import json
 import sys
 from collections import defaultdict
 from json import loads
@@ -235,15 +236,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         ).count()
         total_blocks = self.items.filter(isCompleteDocument=True).count()
 
-        print(
-            'Completed {}/{} documents, {}/{} items in the current document, completed {} items in total'.format(
-                completed_blocks,
-                total_blocks,
-                completed_items_in_block,
-                len(block_items),
-                completed_items,
-            )
-        )
+        print(f'Completed {completed_blocks}/{total_blocks} documents, {completed_items_in_block}/{len(block_items)} items in the current document, completed {completed_items} items in total')
 
         return (
             next_item,  # the first unannotated item for the user
@@ -421,6 +414,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
                     itemType=item['itemType'],
                     documentID=item['documentID'],
                     isCompleteDocument=item['isCompleteDocument'],
+                    mqm=json.dumps(item['mqm']),
                 )
                 new_items.append(new_item)
                 if item['isCompleteDocument']:
@@ -494,6 +488,10 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
 
     score = models.PositiveSmallIntegerField(
         verbose_name=_('Score'), help_text=_('(value in range=[1,100])')
+    )
+
+    mqm = models.TextField(
+        verbose_name=_('MQM'), help_text=_('MQM JSON string')
     )
 
     start_time = models.FloatField(
@@ -584,6 +582,7 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
             'item__itemID',
             'item__metadata__market__sourceLanguageCode',
             'item__metadata__market__targetLanguageCode',
+            'mqm'
         )
         for result in qs.values_list(*value_names):
             systemID = result[0]
@@ -591,7 +590,8 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
             annotatorID = result[2]
             segmentID = result[3]
             marketID = '{0}-{1}'.format(result[4], result[5])
-            system_scores[marketID].append((systemID, annotatorID, segmentID, score))
+            mqm = result[6]
+            system_scores[marketID].append((systemID, annotatorID, segmentID, score, mqm))
 
         return system_scores
 
@@ -661,6 +661,7 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
             'task__campaign__campaignName',
             'item__documentID',
             'item__isCompleteDocument',
+            'mqm'
         )
         for result in qs.values_list(*value_names):
 
@@ -678,6 +679,7 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
             campaignName = result[11]
             documentID = result[12]
             isCompleteDocument = result[13]
+            mqm = result[14]
 
             if annotatorID in user_data:
                 username = user_data[annotatorID][0]
@@ -716,13 +718,14 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
                     campaignName,
                     documentID,
                     isCompleteDocument,
+                    mqm,
                 )
             )
 
         # TODO: this is very intransparent... and needs to be fixed!
         x = system_scores
         s = [
-            'taskID,systemID,username,email,groups,segmentID,score,startTime,endTime,durationInSeconds,itemType,campaignName,documentID,isCompleteDocument'
+            'taskID,systemID,username,email,groups,segmentID,score,startTime,endTime,durationInSeconds,itemType,campaignName,documentID,isCompleteDocument,mqm'
         ]
         for l in x:
             for i in x[l]:
@@ -755,6 +758,7 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
             'item__itemType',
             'item__documentID',
             'item__isCompleteDocument',
+            'mqm',
         )
         for result in qs.values_list(*value_names):
 
@@ -777,6 +781,7 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
             itemType = result[9]
             documentID = result[10]
             isCompleteDocument = result[11]
+            mqm = result[12]
             user = User.objects.get(pk=annotatorID)
             username = user.username
             useremail = user.email
@@ -791,6 +796,7 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
                     itemType,
                     documentID,
                     isCompleteDocument,
+                    mqm
                 )
             )
 
@@ -888,6 +894,7 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
             'score',  # Score
             'item__documentID',  # Document ID
             'item__isCompleteDocument',  # isCompleteDocument
+            'mqm',  # MQM
         )
 
         if extended_csv:
