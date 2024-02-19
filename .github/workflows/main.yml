@@ -32,6 +32,9 @@ jobs:
       - name: Check pylint
         run: make check-pylint
         continue-on-error: true
+      - name: Check mypy
+        run: make check-mypy
+        continue-on-error: true
       - name: Check safety
         run: make check-safety
         continue-on-error: true

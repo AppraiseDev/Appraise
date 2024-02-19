@@ -9,7 +9,7 @@ run:
 	python manage.py runserver
 
 # Check code formatting and run static type checker
-check: check-black check-pylint check-safety
+check: check-black check-pylint check-mypy check-safety
 
 check-black:
 	black --version
@@ -19,6 +19,9 @@ check-pylint:
 	pylint --version
 	$(FIND_PY_FILES) | xargs pylint --fail-under $(PYLINT_THRESHOLD) --rcfile setup.cfg
 	$(FIND_PY_FILES) | xargs reorder-python-imports --diff-only
+
+check-mypy:
+	$(FIND_PY_FILES) | xargs mypy
 
 check-safety:
 	cat requirements.txt | safety check --stdin
@@ -31,4 +34,4 @@ test:
 install: requirements-dev.txt
 	pip install -r $<
 
-.PHONY: all check check-black check-pylint check-safety run test
+.PHONY: all check check-black check-pylint check-mypy check-safety run test
