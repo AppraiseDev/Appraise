@@ -252,15 +252,15 @@ def direct_assessment(request, code=None, campaign_name=None):
 
     campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
 
-    if 'sqm' in campaign_opts.lower():
+    if 'sqm' in campaign_opts:
         html_file = 'EvalView/direct-assessment-sqm.html'
     else:
         html_file = 'EvalView/direct-assessment-context.html'
 
-    if 'namedentit' in campaign_opts.lower():
+    if 'namedentit' in campaign_opts:
         html_file = 'EvalView/direct-assessment-named-entities.html'
 
-    if 'reference' in campaign_opts.lower():
+    if 'reference' in campaign_opts:
         reference_label = 'Reference text in {}'.format(target_language)
         candidate_label = 'Candidate translation in {}'.format(target_language)
 
