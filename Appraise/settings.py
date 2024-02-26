@@ -37,6 +37,8 @@ if SECRET_KEY == _SECRET_KEY_DEFAULT:
 
 ALLOWED_HOSTS = os.environ.get('APPRAISE_ALLOWED_HOSTS', '127.0.0.1').split(',')
 
+CSRF_TRUSTED_ORIGINS = os.environ.get('APPRAISE_CSRF_TRUSTED_ORIGINS', 'https://*.127.0.0.1').split(',')
+
 WSGI_APPLICATION = os.environ.get(
     'APPRAISE_WSGI_APPLICATION', 'Appraise.wsgi.application'
 )
