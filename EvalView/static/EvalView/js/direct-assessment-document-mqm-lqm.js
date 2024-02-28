@@ -136,10 +136,6 @@ $(document).ready(() => {
         $(".lqm_slider").toggle(false)
     }
 
-    // This sets the same starting time for all items, but it is set again when
-    // an item is expanded by clicking on it.
-    $('input[name="start_timestamp"]').val(Date.now());
-
     // bind UI events
     // TODO: this does not work very well because of 
     $('.button-reset').on("click", (event) => {
@@ -155,8 +151,9 @@ $(document).ready(() => {
 
     $(".item-box").each((_i, el) => {
         MQM_HANDLERS[$(el).attr("data-item-id")] = new MQMItemHandler(el)
-        $(el).find('input[name="start_timestamp"]').val(Date.now());
     })
+
+    $("#form-next-doc > input[name='start_timestamp']").val(Date.now())
 
     // highlight instructions
     Object.keys(SEVERITY_TO_COLOR).map((key) => {
@@ -188,14 +185,12 @@ function submit_form_local(event) {
     }
 
     // update counters
+    mqm_handler.update_item_times()
     item_box.attr("data-item-completed", "True")
     mqm_handler.check_status()
 
     // hide document submit for now
-    item_box.find('button[name="next_button"]').toggle(false);
-
-    // Add end timestamp
-    item_box.find('input[name="end_timestamp"]').val(Date.now());
+    item_box.find('button[name="next_button"]').toggle(false)
 
     if (_all_sentences_scored()) {
         $("#button-next-doc").toggle(true)
@@ -207,6 +202,8 @@ function submit_form_local(event) {
 }
 
 function submit_form_ajax(item_box) {
+    $("#form-next-doc > input[name='end_timestamp']").val(Date.now())
+
     // let item_box = $(event.target).closest('.item-box');
     let promise = $.ajax({
         data: item_box.find('form').serialize(),
@@ -277,7 +274,8 @@ class MQMItemHandler {
         if (!Array.isArray(this.mqm)) {
             this.tutorial = this.mqm["tutorial"]
             this.mqm = this.mqm["payload"]
-            this.el.find(".tutorial-text").html(this.tutorial["instruction"])
+
+            this.el.find(".tutorial-text").html("<b>TUTORIAL:</b> " + this.tutorial["instruction"])
         } else {
             this.tutorial = false
         }
@@ -293,9 +291,10 @@ class MQMItemHandler {
             orientation: "horizontal", range: "min", change: (event) => {
                 // update score in the form
                 this.el.find("input[name='score']").val(this.el_slider.slider('value'))
-
+                
                 // if this was triggered by human then mark it as unsaved
                 if (event.originalEvent) {
+                    this.update_item_times()
                     this.check_status()
                 }
             }
@@ -446,6 +445,14 @@ class MQMItemHandler {
         this.SELECTION_STATE = []
     }
 
+    update_item_times() {
+        // set the start timestamp if it hasn't been touched yet
+        $(this.el).find('input[name="start_timestamp"]').val($(this.el).find('input[name="start_timestamp"]').val() || Date.now())
+
+        // end timestamp is the latest interaction
+        $(this.el).find('input[name="end_timestamp"]').val(Date.now())
+    }
+
     // call only once
     setup_span_click_handlers() {
         this.el_target.children(".mqm_char").each((i, el) => {
@@ -476,6 +483,7 @@ class MQMItemHandler {
                     event.preventDefault()
                     return
                 }
+                this.update_item_times()
                 this.LAST_MOUSE_TIMESTAMP = event.timeStamp
 
                 if (el.attr("char_id") == "missing") {

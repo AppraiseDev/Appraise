@@ -4,7 +4,7 @@
       {
         "mqm": {
           "tutorial": {
-            "instruction": "The word <em>walked</em> is incorrect. Mark it yellow using the instructions above.",
+            "instruction": "The word <u>walked</u> is incorrect. Mark it minor error (yellow) using the instructions above.",
             "mqm_target": [
               {
                 "start_i": 8,
@@ -29,7 +29,7 @@
       {
         "mqm": {
           "tutorial": {
-            "instruction": "The words <em>stayed inside</em> are critically wrong. Mark them using the instructions and raise its severity to <em>critical</em>.",
+            "instruction": "The words <u>stayed inside</u> are critically wrong. Mark them using the instructions and raise its severity to <u>critical</u>.",
             "mqm_target": [
               {
                 "start_i": 8,
@@ -54,7 +54,7 @@
       {
         "mqm": {
           "tutorial": {
-            "instruction": "While the translation is technically correct, it does not sound very natural. Mark the error fragments but at the end, use the slider to evaluate the overall translation quality to 70%.",
+            "instruction": "While the translation is technically correct, it does not sound very natural. Mark the erroneous words but at the end, use the slider to evaluate the overall translation quality to around 7 out of 10.",
             "score_target": 70
           },
           "payload": []
@@ -73,7 +73,7 @@
       {
         "mqm": {
           "tutorial": {
-            "instruction": "The word <em>Hund (dog)</em> is not present in the translation. Mark the <em>[MISSING]</em> text with critical severity.",
+            "instruction": "The word <u>Hund (dog)</u> is not present in the translation. Mark the <u>[MISSING]</u> text with critical severity.",
             "mqm_target": [
               {
                 "start_i": "missing",
@@ -98,7 +98,7 @@
       {
         "mqm": {
           "tutorial": {
-            "instruction": "The word <em>ran</em> is mistakenly marked as incorrect. Fix it by removing it according to the instructions.",
+            "instruction": "The word <u>ran</u> is mistakenly marked as incorrect. Fix it by removing it according to the instructions.",
             "mqm_target": []
           },
           "payload": [
