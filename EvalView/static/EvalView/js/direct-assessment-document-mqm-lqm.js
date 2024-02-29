@@ -409,7 +409,7 @@ class MQMItemHandler {
         }
         if ("score_target" in this.tutorial) {
             // tolerate range of 10, quite a lot
-            if (!fuzzy_abs_match(this.tutorial["score_target"], Number.parseFloat(this.el.find("input[name='score']").val()), 10)) {
+            if (!fuzzy_abs_match(this.tutorial["score_target"], Number.parseFloat(this.el.find("input[name='score']").val()), 20)) {
                 return false
             }
         }
@@ -430,12 +430,14 @@ class MQMItemHandler {
             alert('There are some segments without severity (in blue). Click on them to change their severities.');
             return false
         }
-        if (this.mqm.length == 0 && !confirm("There are no annotated text fragments. Are you sure you want to submit?")) {
-            return false
-        }
-        if (MQM_TYPE == "LQM" && this.current_mqm_score(true) == Number.parseFloat(this.el.find("input[name='score']").val()) && !confirm("You did not change the original translation score. Are you sure you want to submit?")) {
-            return false
-        }
+        
+        // remove dialogs
+        // if (this.mqm.length == 0 && !confirm("There are no annotated text fragments. Are you sure you want to submit?")) {
+        //     return false
+        // }
+        // if (MQM_TYPE == "LQM" && this.current_mqm_score(true) == Number.parseFloat(this.el.find("input[name='score']").val()) && !confirm("You did not change the original translation score. Are you sure you want to submit?")) {
+        //     return false
+        // }
         return true;
     }
 
