@@ -3,8 +3,6 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
-import json
-
 from datetime import datetime
 from datetime import timezone
 
@@ -20,7 +18,6 @@ from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Campaign.models import Campaign
 from Dashboard.models import SIGN_LANGUAGE_CODES
-from EvalData.error_types import ERROR_TYPES
 from EvalData.models import DataAssessmentResult
 from EvalData.models import DataAssessmentTask
 from EvalData.models import DirectAssessmentContextResult
@@ -1090,17 +1087,14 @@ def direct_assessment_document_mqm_lqm(campaign, current_task, request):
         task_id = request.POST.get('task_id', None)
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
-        perform_save = bool(request.POST.get('ajax', None) == 'True')
+        ajax = bool(request.POST.get('ajax', None) == 'True')
 
 
         db_item = current_task.items.filter(
-            id=item_id
-        ).order_by('id')
+            itemID=item_id
+        ).order_by('itemID')
 
-        if not perform_save:
-            error_msg = "Only loading page"
-            item_saved = False
-        elif len(db_item) == 0:
+        if len(db_item) == 0:
             error_msg = (
                 f'We could not find item {item_id} in task {task_id}.'
             )
@@ -1127,13 +1121,13 @@ def direct_assessment_document_mqm_lqm(campaign, current_task, request):
                 dateCompleted=datetime.utcnow().replace(tzinfo=utc),
             )
             error_msg = f'Item {task_id} (itemID={item_id}) saved'
-            LOGGER.debug(error_msg)
+            LOGGER.info(error_msg)
             item_saved = True
 
         LOGGER.info(f'score={score}, item_id={item_id}, mqm={mqm}')
-        print(f'Got request score={score}, item_id={item_id}, ajax={perform_save}, mqm={mqm}')
+        print(f'Got request score={score}, item_id={item_id}, ajax={ajax}, mqm={mqm}')
     else:
-        perform_save = False
+        ajax = False
 
     # Get all items from the document that the first unannotated item in the
     # task belongs to, and collect some additional statistics
@@ -1145,7 +1139,7 @@ def direct_assessment_document_mqm_lqm(campaign, current_task, request):
         doc_items,
         doc_items_results,
         total_blocks,
-    ) = current_task.next_document_for_user_nocompletedoc(request.user)
+    ) = current_task.next_document_for_user_mqmlqm(request.user)
 
     if not next_item:
         LOGGER.info('No next item detected, redirecting to dashboard')
@@ -1192,7 +1186,7 @@ def direct_assessment_document_mqm_lqm(campaign, current_task, request):
         'mqm_type': 'LQM' if 'lqm' in campaign_opts else "MQM",
     }
 
-    if perform_save:
+    if ajax:
         ajax_context = {'saved': item_saved, 'error_msg': error_msg}
         context.update(ajax_context)
         context.update(BASE_CONTEXT)

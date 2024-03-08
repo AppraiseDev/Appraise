@@ -252,7 +252,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
             total_blocks,  # the total number of documents in the task
         )
 
-    def next_document_for_user_nocompletedoc(self, user):
+    def next_document_for_user_mqmlqm(self, user):
         """
         Returns the next item and all items from its document.
         Used for MQM/LQM views
@@ -266,18 +266,18 @@ class DirectAssessmentDocumentTask(BaseMetadata):
             total_docs,
         """
         # Retrieve all items from the document which next_item belongs to
-        all_items = self.items.order_by('id')
+        all_items = self.items.order_by('itemID')
 
         # TODO: this is super compute heavy and inefficient
         # should actually be table JOIN
         def get_item_result(id):
             return DirectAssessmentDocumentResult.objects.filter(
-                item__id=id,
+                item__itemID=id,
                 createdBy=user,
-                task=self,
+                task=self
             ).last()
 
-        all_items = [(item, get_item_result(item.id)) for item in all_items]
+        all_items = [(item, get_item_result(item.itemID)) for item in all_items]
         unfinished_items = [i for i, r in all_items if not r]
         if not unfinished_items:
             # TODO: the None might not be the correct type
@@ -307,7 +307,9 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         ]
 
         print(
-            f'Completed {completed_docs}/{docs_all} documents, {completed_items_in_doc}/{len(doc_items)} items in the current document, completed {completed_items} items in total'
+            f'Completed {completed_docs}/{docs_all} documents, '
+            f'{completed_items_in_doc}/{len(doc_items)} items in the current document, '
+            f'completed {completed_items} items in total'
         )
 
         return (
