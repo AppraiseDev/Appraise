@@ -122,7 +122,6 @@ async function get_error_type() {
         }
         error_stack.push(result)
         possible_errors = possible_errors[result]
-        console.log(result)
     }
 
     return error_stack
@@ -202,9 +201,6 @@ function submit_form_local(event) {
 }
 
 function submit_form_ajax(item_box) {
-    $("#form-next-doc > input[name='end_timestamp']").val(Date.now())
-
-    // let item_box = $(event.target).closest('.item-box');
     let promise = $.ajax({
         data: item_box.find('form').serialize(),
         type: 'POST',
@@ -216,9 +212,9 @@ function submit_form_ajax(item_box) {
             _change_item_status_icon(item_box, 'refresh', "Uploading");
         },
         success: function (data) {
-            console.log('Success, saved=', data.saved, 'next_item=', data.item_id);
+            console.log(`Success, saved=${data.saved} next_item=${data.item_id}`);
             if (data.saved) {
-
+                _change_item_status_icon(item_box, 'ok', "Completed");
 
             } else {
                 _change_item_status_icon(item_box, 'none', "Upload failed");
@@ -240,9 +236,12 @@ function submit_form_ajax(item_box) {
 }
 
 async function submit_finish_document() {
+    $("#form-next-doc > input[name='end_timestamp']").val(Date.now())
+
     // wait for individual items to be submitted
-    let promises = [...$(".item-box").map((_i, el) => submit_form_ajax($(el)))]
-    await Promise.all(promises)
+    for (const el of $(".item-box")) {
+        await submit_form_ajax($(el))
+    }
 
     // trigger hidden form
     $("#form-next-doc").trigger("submit")
@@ -271,6 +270,7 @@ class MQMItemHandler {
         this.el_slider = this.el.find('.slider')
         // for Appraise reasons it's a JSON string encoding JSON
         this.mqm = JSON.parse(JSON.parse(this.el.children('#mqm-payload').html()))
+        
         if (!Array.isArray(this.mqm)) {
             this.tutorial = this.mqm["tutorial"]
             this.mqm = this.mqm["payload"]
@@ -299,6 +299,7 @@ class MQMItemHandler {
                 }
             }
         })
+        let score = parseFloat(this.el.children('#score-payload').html())
 
         // setup_span_structure
         let split_text = this.text_target_orig.split("")
@@ -314,6 +315,11 @@ class MQMItemHandler {
 
         // call setup only once
         this.setup_span_click_handlers()
+
+        // set previous value
+        if (score != -1) {
+            this.el_slider.slider('value', score);
+        }
     }
 
     current_mqm_score(modified) {
@@ -386,6 +392,7 @@ class MQMItemHandler {
     check_status() {
         if (this.el.attr("data-item-completed") == "True") {
             _change_item_status_icon(this.el, "ok", "Completed")
+            this.el.find(".button-submit").hide()
         } else {
             _change_item_status_icon(this.el, "flag", "Unfinished")
         }

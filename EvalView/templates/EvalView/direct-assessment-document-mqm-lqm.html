@@ -22,12 +22,11 @@
             <td style="width:33%;text-align:left;">
                 <strong id="task_progress">
                     document {{completed_blocks}} / {{total_blocks}}
+                    &nbsp;&nbsp;&nbsp;
+                    segment {{item_id}}/100
                 </strong>
             </td>
-            <td style="width:33%;text-align:center;">
-                <strong>{{campaign}} #{{datask_id}}:Document #{{document_id}}-<span
-                        id="current-item-id">{{item_id}}</span></strong>
-            </td>
+            <td style="width:33%;text-align:center;"></td>
             <td style="width:33%;text-align:right;">
                 <strong>{{source_language}} &rarr; {{target_language}}</strong>
             </td>
@@ -50,12 +49,13 @@
     {{ scores.mqm|json_script:"mqm-payload" }}
     {{ scores.mqm_orig|json_script:"mqm-payload-orig" }}
     {{ item.targetText|json_script:"text-target-payload" }}
+    {{ scores.score|json_script:"score-payload" }}
 
     <form action="{{action_url}}" method="post"  item_id="{{ item.itemID }}">
         {% csrf_token %}
 
-        <input name="start_timestamp" type="hidden" value="" />
-        <input name="end_timestamp" type="hidden" value="" />
+        <input name="start_timestamp" type="hidden" value="{{ scores.start_timestamp }}" />
+        <input name="end_timestamp" type="hidden" value="{{ scores.end_timestamp }}" />
         <input name="item_id" type="hidden" value="{{ item.itemID }}" />
         <input name="task_id" type="hidden" value="{{ item.id }}" />
         <input name="document_id" type="hidden" value="{{ item.documentID }}" />
@@ -104,10 +104,10 @@
 
 <form id="form-next-doc" action="{{action_url}}" method="post">
     {% csrf_token %}
-    <input name="start_timestamp" type="hidden" value="" />
+    <!-- <input name="start_timestamp" type="hidden" value="" />
     <input name="end_timestamp" type="hidden" value="" />
     <input name="task_id" type="hidden" value="{{ item.id }}" />
-    <input name="document_id" type="hidden" value="{{ item.documentID }}" />
+    <input name="document_id" type="hidden" value="{{ item.documentID }}" /> -->
     <input name="ajax" type="hidden" value="False" />
 </form>
 
