@@ -236,6 +236,9 @@ function submit_form_ajax(item_box) {
 }
 
 async function submit_finish_document() {
+    // prevent multiclicks
+    $("#button-next-doc").prop('disabled', true);
+    
     $("#form-next-doc > input[name='end_timestamp']").val(Date.now())
 
     // wait for individual items to be submitted
@@ -245,6 +248,9 @@ async function submit_finish_document() {
 
     // trigger hidden form
     $("#form-next-doc").trigger("submit")
+
+    await new Promise(resolve => setTimeout(resolve, 5_000))
+    $("#button-next-doc").prop('disabled', false);
 }
 
 function _show_error_box(text, timeout = 2000) {
