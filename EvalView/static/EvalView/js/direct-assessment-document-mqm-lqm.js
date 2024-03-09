@@ -475,7 +475,7 @@ class MQMItemHandler {
                     // wait for a bit in case mouse enter adds to this
                     await waitout_js_loop()
                     if (this.HOVER_UNDECIDED_SPANS.size == 0)
-                        this.MQM_DELETE_TIMER = setTimeout(() => this.remove_undecided(this), 1000)
+                        this.MQM_DELETE_TIMER = setTimeout(() => this.remove_undecided(this), 400)
                     else
                         clearTimeout(this.MQM_DELETE_TIMER)
                 }
