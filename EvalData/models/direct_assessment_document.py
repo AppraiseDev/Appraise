@@ -281,7 +281,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         unfinished_items = [i for i, r in all_items if not r]
         if not unfinished_items:
             # TODO: the None might not be the correct type
-            return (None, completed_items, 0, 0, [], [], 0)
+            return (None, all_items, 0, 0, [], [], 0)
         # things are ordered by ID
         next_item = unfinished_items[0]
 

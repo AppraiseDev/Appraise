@@ -1142,8 +1142,16 @@ def direct_assessment_document_mqm_lqm(campaign, current_task, request):
     ) = current_task.next_document_for_user_mqmlqm(request.user)
 
     if not next_item:
-        LOGGER.info('No next item detected, redirecting to dashboard')
-        return redirect('dashboard')
+        if not ajax:
+            LOGGER.info('No next item detected, redirecting to dashboard')
+            return redirect('dashboard')
+        else:
+            context = {}
+            ajax_context = {'saved': item_saved, 'error_msg': error_msg}
+            context.update(ajax_context)
+            context.update(BASE_CONTEXT)
+            # Send response to the Ajax POST request
+            return JsonResponse(context)
 
     # Get item scores from the latest corresponding results
     doc_items_results = [
