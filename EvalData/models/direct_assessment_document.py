@@ -252,10 +252,10 @@ class DirectAssessmentDocumentTask(BaseMetadata):
             total_blocks,  # the total number of documents in the task
         )
 
-    def next_document_for_user_mqmlqm(self, user):
+    def next_document_for_user_mqmesa(self, user):
         """
         Returns the next item and all items from its document.
-        Used for MQM/LQM views
+        Used for MQM/ESA views
         Specifically a tuple with:
             next_item,
             completed_items,

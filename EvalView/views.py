@@ -632,8 +632,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     # hijack this function if it uses MQM
     campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
-    if 'mqm' in campaign_opts or 'lqm' in campaign_opts:
-        return direct_assessment_document_mqm_lqm(campaign, current_task, request)
+    if 'mqm' in campaign_opts or 'esa' in campaign_opts:
+        return direct_assessment_document_mqm_esa(campaign, current_task, request)
 
     # Handling POST requests differs from the original direct_assessment/
     # direct_assessment_context view, but the input is the same: a score for the
@@ -1073,9 +1073,9 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     return render(request, 'EvalView/direct-assessment-document.html', context)
 
 
-def direct_assessment_document_mqm_lqm(campaign, current_task, request):
+def direct_assessment_document_mqm_esa(campaign, current_task, request):
     """
-    Direct assessment document annotation view with MQM/LQM.
+    Direct assessment document annotation view with MQM/ESA.
     """
     campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
 
@@ -1139,7 +1139,7 @@ def direct_assessment_document_mqm_lqm(campaign, current_task, request):
         doc_items,
         doc_items_results,
         total_blocks,
-    ) = current_task.next_document_for_user_mqmlqm(request.user)
+    ) = current_task.next_document_for_user_mqmesa(request.user)
 
     if not next_item:
         if not ajax:
@@ -1191,7 +1191,7 @@ def direct_assessment_document_mqm_lqm(campaign, current_task, request):
         'trusted_user': current_task.is_trusted_user(request.user),
         # Task variations
         'ui_lang': "enu",
-        'mqm_type': 'LQM' if 'lqm' in campaign_opts else "MQM",
+        'mqm_type': 'ESA' if 'esa' in campaign_opts else "MQM",
     }
 
     if ajax:
@@ -1209,7 +1209,7 @@ def direct_assessment_document_mqm_lqm(campaign, current_task, request):
     context.update(page_context)
     context.update(BASE_CONTEXT)
 
-    return render(request, 'EvalView/direct-assessment-document-mqm-lqm.html', context)
+    return render(request, 'EvalView/direct-assessment-document-mqm-esa.html', context)
 
 
 # pylint: disable=C0103,C0330

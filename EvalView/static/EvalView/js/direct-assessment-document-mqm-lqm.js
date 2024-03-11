@@ -93,8 +93,8 @@ var MQM_HANDLERS = {}
 var MQM_TYPE;
 
 async function get_error_type() {
-    // LQM doesn't have error types
-    if (MQM_TYPE == "LQM") {
+    // ESA doesn't have error types
+    if (MQM_TYPE == "ESA") {
         return null
     }
     let error_stack = []
@@ -130,9 +130,9 @@ async function get_error_type() {
 $(document).ready(() => {
     MQM_TYPE = JSON.parse($('#mqm-type-payload').html())
 
-    // sliders are present only for LQM
-    if (MQM_TYPE != "LQM") {
-        $(".lqm_slider").toggle(false)
+    // sliders are present only for ESA
+    if (MQM_TYPE != "ESA") {
+        $(".esa_slider").toggle(false)
     }
 
     // bind UI events
@@ -443,7 +443,7 @@ class MQMItemHandler {
         // if (this.mqm.length == 0 && !confirm("There are no annotated text fragments. Are you sure you want to submit?")) {
         //     return false
         // }
-        // if (MQM_TYPE == "LQM" && this.current_mqm_score(true) == Number.parseFloat(this.el.find("input[name='score']").val()) && !confirm("You did not change the original translation score. Are you sure you want to submit?")) {
+        // if (MQM_TYPE == "ESA" && this.current_mqm_score(true) == Number.parseFloat(this.el.find("input[name='score']").val()) && !confirm("You did not change the original translation score. Are you sure you want to submit?")) {
         //     return false
         // }
         return true;

@@ -3,10 +3,10 @@
 # Exit on error
 set -eo pipefail
 
-prefix=example_direct_mqmlqm
+prefix=example_direct_mqmesa
 
 # Create campaign from Examples/DirectMQM
-$APPRAISE_MANAGE StartNewCampaign $APPRAISE_EXAMPLES/DirectMQM/manifest_lqm.json \
+$APPRAISE_MANAGE StartNewCampaign $APPRAISE_EXAMPLES/DirectMQM/manifest_esa.json \
     --batches-json $APPRAISE_EXAMPLES/DirectMQM/batches_wmt23_en-de.json \
     --csv-output $prefix.users.csv
 
@@ -21,7 +21,7 @@ done
 
 # Export scores without timestamps and compare with the expected output
 # Escape quotes in MQM fields
-$APPRAISE_MANAGE ExportSystemScoresToCSV example15lqm | sed "s/, /| /g" | cut -f-10 -d, | sed "s/| /, /g" > $prefix.scores.csv
+$APPRAISE_MANAGE ExportSystemScoresToCSV example15esa | sed "s/, /| /g" | cut -f-10 -d, | sed "s/| /, /g" > $prefix.scores.csv
 diff $prefix.scores.csv $prefix.scores.csv.expected
 
 # Exit with success code
