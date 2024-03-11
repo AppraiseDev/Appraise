@@ -16,7 +16,7 @@ diff $prefix.users.csv $prefix.users.csv.expected > $prefix.diff
 
 # Make a few annotations
 for score in $( seq 10 10 50 ); do
-    $APPRAISE_MANAGE MakeAnnotation engdeu0f01:56719686 Document $score --mqm '[{"start_i": 0, "end_i": 50, "severity": "major"}]'
+    $APPRAISE_MANAGE MakeAnnotation engdeu0f01:e70c5a35 Document $score --mqm '[{"start_i": 0, "end_i": 50, "severity": "major"}]'
 done
 
 # Export scores without timestamps and compare with the expected output
