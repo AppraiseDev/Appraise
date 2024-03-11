@@ -439,10 +439,10 @@ class MQMItemHandler {
             return true
         }
 
-        if (this.mqm.some((x) => x["severity"] == "undecided")) {
-            alert('There are some segments without severity (in blue). Click on them to change their severities.');
-            return false
-        }
+        // if (this.mqm.some((x) => x["severity"] == "undecided")) {
+        //     alert('There are some segments without severity (in blue). Click on them to change their severities.');
+        //     return false
+        // }
         
         // remove dialogs
         // if (this.mqm.length == 0 && !confirm("There are no annotated text fragments. Are you sure you want to submit?")) {
