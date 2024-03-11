@@ -40,18 +40,15 @@
 
 {% for item,scores in items %}
 
-<div id="item-{{ item.itemID }}" class="item-box quotelike active" 
-    data-item-id="{{ item.itemID }}"
-    data-item-completed="{{ scores.completed }}"
-    data-item-score="{{ scores.score }}"
-    >
+<div id="item-{{ item.itemID }}" class="item-box quotelike active" data-item-id="{{ item.itemID }}"
+    data-item-completed="{{ scores.completed }}" data-item-score="{{ scores.score }}">
 
     {{ scores.mqm|json_script:"mqm-payload" }}
     {{ scores.mqm_orig|json_script:"mqm-payload-orig" }}
     {{ item.targetText|json_script:"text-target-payload" }}
     {{ scores.score|json_script:"score-payload" }}
 
-    <form action="{{action_url}}" method="post"  item_id="{{ item.itemID }}">
+    <form action="{{action_url}}" method="post" item_id="{{ item.itemID }}">
         {% csrf_token %}
 
         <input name="start_timestamp" type="hidden" value="{{ scores.start_timestamp }}" />
@@ -91,7 +88,8 @@
                     </td>
                     <td style="width:30%;text-align:right;">
                         <button class="btn button-submit btn-primary" name="next_button" accesskey="1" type="submit"
-                            value="{{ item.itemID }}"> Mark complete</button>
+                            value="{{ item.itemID }}"> Mark complete
+                        </button>
                     </td>
                 </tr>
             </table>
@@ -111,8 +109,7 @@
     <input name="ajax" type="hidden" value="False" />
 </form>
 
-<button class="btn btn-primary" style="margin-left: auto; margin-right: auto; display: block;"
-    id="button-next-doc">
+<button class="btn btn-primary" style="margin-left: auto; margin-right: auto; display: block;" id="button-next-doc">
     Continue to next document
 </button>
 
