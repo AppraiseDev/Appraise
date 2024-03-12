@@ -136,9 +136,11 @@ $(document).ready(() => {
     }
 
     // bind UI events
-    // TODO: this does not work very well because of 
+    // TODO: this does not work very well because of ???
     $('.button-reset').on("click", (event) => {
-        MQM_HANDLERS[$(event.target).parents('.item-box').attr("data-item-id")].reset()
+        if (confirm("Do you really want to reset the segment annotations?")) {
+            MQM_HANDLERS[$(event.target).parents('.item-box').attr("data-item-id")].reset()
+        }
     });
 
     // hide next doc button for now
