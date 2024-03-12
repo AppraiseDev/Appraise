@@ -1,23 +1,23 @@
 // constants and utils
 const SEVERITY_TO_COLOR = {
     "critical": "#f33c",
-    "major": "#f70a",
-    "minor": "#dd0a",
+    "major": "#c44a",
+    "minor": "#fbba",
     "neutral": "#f993",
     "undecided": "#99d9",
 }
 const SEVERITY_TO_SCORE = {
-    "critical": 15,
     "major": 5,
     "minor": 1,
     "neutral": 0,
+    "critical": Number.NaN,
     "undecided": Number.NaN,
 }
 const SEVERITY_TO_NEXT = {
     "neutral": "minor",
     "undecided": "minor",
     "minor": "major",
-    "major": "critical",
+    "major": "undecided",
     "critical": "undecided",
 }
 const ERROR_TYPES = {
