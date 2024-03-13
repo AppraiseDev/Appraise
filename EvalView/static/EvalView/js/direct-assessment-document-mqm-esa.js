@@ -165,6 +165,8 @@ $(document).ready(() => {
         $(".button-submit").trigger("click");
         submit_finish_document(override_tutorial_check=true)
     })
+
+    $("#form-next-doc > input[name='start_timestamp']").val(Date.now() / 1000)
 });
 
 function _all_sentences_scored() {
@@ -228,7 +230,7 @@ async function submit_finish_document(override_tutorial_check=false) {
     // prevent multiclicks
     $("#button-next-doc").prop('disabled', true);
 
-    $("#form-next-doc > input[name='end_timestamp']").val(Date.now())
+    $("#form-next-doc > input[name='end_timestamp']").val(Date.now() / 1000)
 
     // wait for individual items to be submitted
     for (const el of $(".item-box")) {

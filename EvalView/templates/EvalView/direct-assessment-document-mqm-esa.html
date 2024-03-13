@@ -109,8 +109,9 @@
 
 <form id="form-next-doc" action="{{action_url}}" method="post">
     {% csrf_token %}
+    <input name="start_timestamp" type="hidden" value="" />
     <input name="end_timestamp" type="hidden" value="" />
-    <!-- <input name="start_timestamp" type="hidden" value="" />
+    <!--
     <input name="task_id" type="hidden" value="{{ item.id }}" />
     <input name="document_id" type="hidden" value="{{ item.documentID }}" /> -->
     <input name="ajax" type="hidden" value="False" />
