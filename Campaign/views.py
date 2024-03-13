@@ -60,9 +60,7 @@ def campaign_status(request, campaign_name, sort_key=2):
 
             except KeyError as exc:
                 LOGGER.debug(
-                    'Invalid campaign type %s for campaign %s',
-                    campaign.get_campaign_type(),
-                    campaign.campaignName,
+                    f'Invalid campaign type {campaign.get_campaign_type()} for campaign {campaign.campaignName}'
                 )
                 LOGGER.error(exc)
                 continue
@@ -229,11 +227,12 @@ def campaign_status(request, campaign_name, sort_key=2):
     if request.user.is_staff:
         _header += ('random',)
 
-    _txt = ['\t'.join(_header)]
-    for _row in _out:
-        _local_fmt = '{0:>20}\t{1:3}\t{2}\t{3}\t{4}\t{5}'
+    _txt = []
+    # align everything with the same formatting
+    for _row in [_header]+_out:
+        _local_fmt = '|{0:>15}|{1:>6}|{2:>11}|{3:>20}|{4:>20}|{5:>15}|'
         if request.user.is_staff:
-            _local_fmt += '\t{6}'
+            _local_fmt += '{6:>10}|'
 
         _local_out = _local_fmt.format(*_row)
         _txt.append(_local_out)

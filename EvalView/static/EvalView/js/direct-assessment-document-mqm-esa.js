@@ -163,10 +163,14 @@ $(document).ready(() => {
         $("#skip-tutorial").prop('disabled', true);
 
         $(".button-submit").trigger("click");
+        $(".slider").slider('value', 0);
         submit_finish_document(override_tutorial_check=true)
     })
 
     $("#form-next-doc > input[name='start_timestamp']").val(Date.now() / 1000)
+
+    // show submit button only on MQM and not ESA
+    $(".button-submit").toggle(MQM_TYPE == "MQM")
 });
 
 function _all_sentences_scored() {
@@ -295,7 +299,7 @@ class MQMItemHandler {
                 // if this was triggered by human then mark it as unsaved
                 if (event.originalEvent) {
                     this.update_item_times()
-                    this.note_change()
+                    this.note_change(true)
                 }
             }
         })
@@ -316,6 +320,10 @@ class MQMItemHandler {
         // call setup only once
         this.setup_span_click_handlers()
 
+        // set fake MQM value
+        if (MQM_TYPE == "MQM") {
+            this.el_slider.slider('value', 0);   
+        }
         // set previous value
         if (score != -1) {
             this.el_slider.slider('value', score);
@@ -336,8 +344,10 @@ class MQMItemHandler {
     async redraw_mqm() {
         // store currently displayed version
         this.el.find('input[name="mqm"]').val(JSON.stringify(this.mqm));
+
+        // NOTE: do not automatically recompute
         // should be in range [0, 100]
-        this.el_slider.slider('value', this.current_mqm_score(true))
+        // this.el_slider.slider('value', this.current_mqm_score(true))
 
         // redraw
         this.el_target.children(".mqm_char").each((i, el) => {
@@ -372,7 +382,7 @@ class MQMItemHandler {
     }
 
     reset() {
-        this.el.find('.button-submit').toggle(true)
+        this.el.find('.button-submit').toggle(MQM_TYPE == "MQM")
         this.el.attr("data-item-completed", "False")
         this.initialize()
         // if we reset then we automatically hide the next doc button
@@ -400,15 +410,17 @@ class MQMItemHandler {
         }
     }
 
-    note_change() {
-        this.el.find('.button-submit').toggle(false)
+    note_change(mark_complete=true) {
+        if (mark_complete) {
+            this.el.find('.button-submit').toggle(false)
+            this.el.attr("data-item-completed", "True")
+        }
 
         // update counters
         this.update_item_times()
-        this.el.attr("data-item-completed", "True")
         this.check_status()
 
-        if (_all_sentences_scored()) {
+        if (mark_complete && _all_sentences_scored()) {
             $("#button-next-doc").toggle(true)
         }
 
@@ -510,7 +522,7 @@ class MQMItemHandler {
                     event.preventDefault()
                     return
                 }
-                this.note_change()
+                this.note_change(MQM_TYPE == "MQM")
                 this.LAST_MOUSE_TIMESTAMP = event.timeStamp
 
                 if (el.attr("char_id") == "missing") {
