@@ -157,6 +157,11 @@ $(document).ready(() => {
     Object.keys(SEVERITY_TO_COLOR).map((key) => {
         $(`#instruction_sev_${key}`).css("background-color", SEVERITY_TO_COLOR[key])
     })
+
+    $("#skip-tutorial").on("click", () => {
+        $(".button-submit").trigger("click");
+        submit_finish_document(override_tutorial_check=true)
+    })
 });
 
 function _all_sentences_scored() {
@@ -207,11 +212,13 @@ function submit_form_ajax(item_box) {
     return promise
 }
 
-async function submit_finish_document() {
+async function submit_finish_document(override_tutorial_check=false) {
     // make sure to bail if there's some tutorial issues
-    for (let el of $(".item-box")) {
-        if (!MQM_HANDLERS[$(el).attr("data-item-id")].validate_form()) {
-            return false
+    if (!override_tutorial_check) {
+        for (let el of $(".item-box")) {
+            if (!MQM_HANDLERS[$(el).attr("data-item-id")].validate_form()) {
+                return false
+            }
         }
     }
 
@@ -261,6 +268,9 @@ class MQMItemHandler {
             this.mqm = this.mqm["payload"]
 
             this.el.find(".tutorial-text").html("<b>TUTORIAL:</b> " + this.tutorial["instruction"])
+
+            // unhide multiple times but doesn't matter
+            $("#tutorial-text").toggle(true)
         } else {
             this.tutorial = false
         }
