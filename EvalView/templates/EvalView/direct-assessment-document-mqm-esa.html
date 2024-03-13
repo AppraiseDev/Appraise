@@ -42,7 +42,13 @@
 </div>
 
 <div class="question-box">
-    {% include 'EvalView/_instructions-mqm-esa.html' %}
+    {% if mqm_type == "MQM" %}
+    {% include 'EvalView/_instructions-mqm.html' %}
+    {% elif mqm_type == "ESA" %}
+    {% include 'EvalView/_instructions-esa.html' %}
+    {% else %}
+    Unknown instructions for "{{ mqm_type }}"".
+    {% endif %}
 </div>
 
 {% for item,scores in items %}
