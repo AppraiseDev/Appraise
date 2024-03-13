@@ -145,7 +145,7 @@ $(document).ready(() => {
 
     // hide next doc button for now
     $("#button-next-doc").toggle(false)
-    $("#button-next-doc").on("click", submit_finish_document)
+    $("#button-next-doc").on("click", () => submit_finish_document(false))
 
     $(".item-box").each((_i, el) => {
         MQM_HANDLERS[$(el).attr("data-item-id")] = new MQMItemHandler(el)
@@ -223,6 +223,7 @@ function submit_form_ajax(item_box) {
 
 async function submit_finish_document(override_tutorial_check=false) {
     // make sure to bail if there's some tutorial issues
+    console.log("OVERRIDE", override_tutorial_check)
     if (!override_tutorial_check) {
         for (let el of $(".item-box")) {
             if (!MQM_HANDLERS[$(el).attr("data-item-id")].validate_form()) {
