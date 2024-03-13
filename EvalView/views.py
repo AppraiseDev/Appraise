@@ -633,7 +633,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     # hijack this function if it uses MQM
     campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
     if 'mqm' in campaign_opts or 'esa' in campaign_opts:
-        return direct_assessment_document_mqm_esa(campaign, current_task, request)
+        return direct_assessment_document_mqmesa(campaign, current_task, request)
 
     # Handling POST requests differs from the original direct_assessment/
     # direct_assessment_context view, but the input is the same: a score for the
@@ -1073,7 +1073,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     return render(request, 'EvalView/direct-assessment-document.html', context)
 
 
-def direct_assessment_document_mqm_esa(campaign, current_task, request):
+def direct_assessment_document_mqmesa(campaign, current_task, request):
     """
     Direct assessment document annotation view with MQM/ESA.
     """
