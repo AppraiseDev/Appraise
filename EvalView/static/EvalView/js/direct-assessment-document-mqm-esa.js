@@ -159,6 +159,9 @@ $(document).ready(() => {
     })
 
     $("#skip-tutorial").on("click", () => {
+        // prevent multiclick
+        $("#skip-tutorial").prop('disabled', true);
+
         $(".button-submit").trigger("click");
         submit_finish_document(override_tutorial_check=true)
     })
