@@ -13,11 +13,11 @@ DJANGO_SUPERUSER_USERNAME=test DJANGO_SUPERUSER_PASSWORD=test python3 manage.py 
 python3 manage.py collectstatic --no-post-process;
 
 python3 manage.py StartNewCampaign Examples/DirectMQM/manifest_esa.json \
-    --batches-json Examples/DirectMQM/batches_wmt23_en-de.json \
+    --batches-json Examples/DirectMQM/batches_wmt23_en-de_esa.json \
     --csv-output Examples/DirectMQM/output_esa.csv;
 
 python3 manage.py StartNewCampaign Examples/DirectMQM/manifest_mqm.json \
-   --batches-json Examples/DirectMQM/batches_wmt23_en-de.json \
+   --batches-json Examples/DirectMQM/batches_wmt23_en-de_mqm.json \
    --csv-output Examples/DirectMQM/output_mqm.csv;
 
 python3 manage.py runserver;
@@ -25,5 +25,5 @@ python3 manage.py runserver;
 # See Examples/DirectMQM/outputs.csv for a SSO login for the annotator account
 # Collect some annotations, then export annotation scores...
 
-python3 manage.py ExportSystemScoresToCSV example15mqm
+python3 manage.py ExportSystemScoresToCSV example16mqm
 ```

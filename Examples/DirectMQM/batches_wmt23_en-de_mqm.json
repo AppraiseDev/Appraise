@@ -4,8 +4,7 @@
       {
         "mqm": {
           "tutorial": {
-            "instruction": "This translation seems to be all correct. Please set the slider to 100% and continue.",
-            "score_target": 100
+            "instruction": "This translation seems to be all correct. Please click 'mark complete' and continue."
           },
           "payload": []
         },
@@ -21,7 +20,7 @@
       {
         "mqm": {
           "tutorial": {
-            "instruction": "The word <u>\"walked\"</u> is incorrect. Mark it minor error (light pink) using the instructions above.",
+            "instruction": "The word <u>\"walked\"</u> is incorrect. Mark it minor error (light pink) using the instructions above. The error type should be <u>Accuracy > Mistranslation</u>.",
             "mqm_target": [
               {
                 "start_i": 8,
@@ -44,7 +43,7 @@
       {
         "mqm": {
           "tutorial": {
-            "instruction": "The words <u>\"stayed inside\"</u> are very wrong. Mark them using the instructions and raise its severity to <u>major</u>.",
+            "instruction": "The words <u>\"stayed inside\"</u> are very wrong. Mark them using the instructions and raise its severity to <u>major</u>. The error type should again be <u>Accuracy > Mistranslation</u>.",
             "mqm_target": [
               {
                 "start_i": 8,
@@ -67,8 +66,14 @@
       {
         "mqm": {
           "tutorial": {
-            "instruction": "While the translation is technically correct, it does not sound very natural. Don't mark any erroneous words but at the end, use the slider to evaluate the overall translation quality to around 70%.",
-            "score_target": 70
+            "instruction": "While the translation is technically correct, it does not sound very natural. Mark the word <u>\"erfuhren\"</u> with <u>minor</u> error of the type <u>Style > Awkward style</u>.",
+            "mqm_target": [
+              {
+                "start_i": 55,
+                "end_i": 63,
+                "severity": "minor"
+              }
+            ]
           },
           "payload": []
         },
@@ -84,7 +89,7 @@
       {
         "mqm": {
           "tutorial": {
-            "instruction": "The word <u>\"Hund\" (dog)</u> is not present in the translation. Mark the <u>[MISSING]</u> text with major severity.",
+            "instruction": "The word <u>\"Hund\" (dog)</u> is not present in the translation. Mark the <u>[MISSING]</u> text with major severity. The error type should be <u>Accuracy > Omission</u>.",
             "mqm_target": [
               {
                 "start_i": "missing",

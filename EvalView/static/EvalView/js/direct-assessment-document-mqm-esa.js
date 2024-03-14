@@ -223,7 +223,6 @@ function submit_form_ajax(item_box) {
 
 async function submit_finish_document(override_tutorial_check=false) {
     // make sure to bail if there's some tutorial issues
-    console.log("OVERRIDE", override_tutorial_check)
     if (!override_tutorial_check) {
         for (let el of $(".item-box")) {
             if (!MQM_HANDLERS[$(el).attr("data-item-id")].validate_form()) {
