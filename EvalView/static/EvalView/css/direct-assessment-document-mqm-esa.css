@@ -37,14 +37,14 @@
 .target-text {
     line-height: 1.5em;
     font-size: 1.2em;
-    text-align: justify;
+    text-align: left;
     padding: 10px;
     user-select: none;
 }
 
 .source-text {
     padding: 10px;
-    text-align: justify;
+    text-align: left;
     font-style: italic;
     line-height: 120%;
 }

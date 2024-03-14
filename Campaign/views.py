@@ -92,6 +92,30 @@ def campaign_status(request, campaign_name, sort_key=2):
                     'item__itemType',
                     'item__id',
                 )
+            elif "mqm" in campaign_opts:
+                _data = _data.values_list(
+                    'start_time',
+                    'end_time',
+                    'mqm',
+                    'item__itemID',
+                    'item__targetID',
+                    'item__itemType',
+                    'item__sourceText',
+                )
+                _data = [
+                    (x[0], x[1], -len(json.loads(x[2])), x[3], x[4], x[5], x[6])
+                    for x in _data
+                ]
+            elif "esa" in campaign_opts:
+                _data = _data.values_list(
+                    'start_time',
+                    'end_time',
+                    'score',
+                    'item__itemID',
+                    'item__targetID',
+                    'item__itemType',
+                    'item__sourceText',
+                )
             else:
                 _data = _data.values_list(
                     'start_time',
@@ -103,11 +127,7 @@ def campaign_status(request, campaign_name, sort_key=2):
                     'item__id',
                 )
 
-            # ESA/MQM protocols handle the testing differently
-            if "esa" in campaign_opts or "mqm" in campaign_opts:
-                _reliable = stat_reliable_testing_mqmesa(result_type, user, campaign, "esa" in campaign_opts)
-            else:
-                _reliable = stat_reliable_testing(_data, result_type)
+            _reliable = stat_reliable_testing(_data, campaign_opts, result_type)
 
             _annotations = len(set([x[6] for x in _data]))
             _start_times = [x[0] for x in _data]
@@ -184,38 +204,7 @@ def campaign_status(request, campaign_name, sort_key=2):
 
     return HttpResponse(u'\n'.join(_txt), content_type='text/plain')
 
-
-def stat_reliable_testing_mqmesa(result_type, user, campaign, score_available):
-    _data = result_type.objects.filter(
-        createdBy=user, completed=True, task__campaign=campaign.id
-    )
-
-    results = []
-    for result in _data.all():
-        itemType = result.item.itemType
-        if itemType.startswith("BAD."):
-            action = itemType.removeprefix("BAD.")
-            mqm = json.loads(result.mqm)
-            if action == "nothing":
-                pass
-            elif action == "scorebad":
-                if score_available:
-                    results.append(result.score < 40)
-                else:
-                    results.append(sum([x["severity"] == "major" for x in mqm]) >= 2)
-            elif action == "scoregood":
-                if score_available:
-                    results.append(result.score > 60)
-                else:
-                    results.append(sum([x["severity"] == "major" for x in mqm]) <= 2)
-
-    if results:
-        return f"{sum(results)/len(results):.0%}"
-    else:
-        return "n/a"
-
-
-def stat_reliable_testing(_data, result_type):
+def stat_reliable_testing(_data, campaign_opts, result_type):
     _annotations = len(set([x[6] for x in _data]))
     _user_mean = sum([x[2] for x in _data]) / (_annotations or 1)
     _cs = _annotations - 1  # Corrected sample size for stdev.
@@ -231,7 +220,8 @@ def stat_reliable_testing(_data, result_type):
     for _x in _data:
         if _x[-2] == 'TGT':
             _dst = _tgt
-        elif _x[-2] == 'BAD':
+        elif _x[-2] == "BAD" or _x[-2].startswith('BAD.'):
+            # ESA/MQM have extra payload in itemType
             _dst = _bad
         else:
             continue
@@ -240,7 +230,9 @@ def stat_reliable_testing(_data, result_type):
         # Script generating batches for data assessment task does not
         # keep equal itemIDs for respective TGT and BAD items, so it
         # cannot be used as a key.
-        if result_type is DataAssessmentResult:
+        if "esa" in campaign_opts or "mqm" in campaign_opts:
+            _key = str(_x[6]) + " ||| " + _x[4]
+        elif result_type is DataAssessmentResult:
             _key = str(_x[4])
         else:
             _key = '{0}-{1}'.format(_x[3], _x[4])
