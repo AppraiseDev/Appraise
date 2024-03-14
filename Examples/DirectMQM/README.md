@@ -19,6 +19,10 @@ python3 manage.py StartNewCampaign Examples/DirectMQM/manifest_esa.json \
 python3 manage.py StartNewCampaign Examples/DirectMQM/manifest_mqm.json \
    --batches-json Examples/DirectMQM/batches_wmt23_en-de_mqm.json \
    --csv-output Examples/DirectMQM/output_mqm.csv;
+   
+python3 manage.py StartNewCampaign Examples/DirectMQM/manifest_esa_gemba.json \
+    --batches-json Examples/DirectMQM/batches_wmt23_en-de_esa_gemba.json \
+    --csv-output Examples/DirectMQM/output_esa.csv;
 
 python3 manage.py runserver;
 
