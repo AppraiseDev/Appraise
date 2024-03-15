@@ -1,23 +1,23 @@
 // constants and utils
 const SEVERITY_TO_COLOR = {
     "critical": "#f33c",
-    "major": "#f70a",
-    "minor": "#dd0a",
+    "major": "#c44a",
+    "minor": "#fbba",
     "neutral": "#f993",
     "undecided": "#99d9",
 }
 const SEVERITY_TO_SCORE = {
-    "critical": 15,
     "major": 5,
     "minor": 1,
     "neutral": 0,
+    "critical": Number.NaN,
     "undecided": Number.NaN,
 }
 const SEVERITY_TO_NEXT = {
     "neutral": "minor",
     "undecided": "minor",
     "minor": "major",
-    "major": "critical",
+    "major": "undecided",
     "critical": "undecided",
 }
 const ERROR_TYPES = {
@@ -73,7 +73,7 @@ const ERROR_TYPES = {
         "Missing text": {},
         "Link/cross-reference": {},
     },
-    "Other": {    },
+    "Other": {},
 }
 Object.keys(SEVERITY_TO_COLOR).map((key) => {
     $(`#instruction_sev_${key}`).css("background-color", SEVERITY_TO_COLOR[key])
@@ -93,8 +93,8 @@ var MQM_HANDLERS = {}
 var MQM_TYPE;
 
 async function get_error_type() {
-    // LQM doesn't have error types
-    if (MQM_TYPE == "LQM") {
+    // ESA doesn't have error types
+    if (MQM_TYPE == "ESA") {
         return null
     }
     let error_stack = []
@@ -122,7 +122,6 @@ async function get_error_type() {
         }
         error_stack.push(result)
         possible_errors = possible_errors[result]
-        console.log(result)
     }
 
     return error_stack
@@ -131,34 +130,47 @@ async function get_error_type() {
 $(document).ready(() => {
     MQM_TYPE = JSON.parse($('#mqm-type-payload').html())
 
-    // sliders are present only for LQM
-    if(MQM_TYPE != "LQM") {
-        $(".lqm_slider").toggle(false)
+    // sliders are present only for ESA
+    if (MQM_TYPE != "ESA") {
+        $(".esa_slider").toggle(false)
     }
 
     // bind UI events
-    // TODO: this does not work very well because of 
+    // TODO: this does not work very well because of ???
     $('.button-reset').on("click", (event) => {
-        MQM_HANDLERS[$(event.target).parents('.item-box').attr("data-item-id")].reset()
+        if (confirm("Do you really want to reset the segment annotations?")) {
+            MQM_HANDLERS[$(event.target).parents('.item-box').attr("data-item-id")].reset()
+        }
     });
-
-    // all except the document-level item send Ajax POST request
-    $('.button-submit').on("click", submit_form_local);
 
     // hide next doc button for now
     $("#button-next-doc").toggle(false)
-    $("#button-next-doc").on("click", submit_finish_document)
+    $("#button-next-doc").on("click", () => submit_finish_document(false))
 
     $(".item-box").each((_i, el) => {
         MQM_HANDLERS[$(el).attr("data-item-id")] = new MQMItemHandler(el)
     })
 
-    $("#form-next-doc > input[name='start_timestamp']").val(Date.now())
+    $("#form-next-doc > input[name='start_timestamp']").val(Date.now() / 1000)
 
     // highlight instructions
     Object.keys(SEVERITY_TO_COLOR).map((key) => {
         $(`#instruction_sev_${key}`).css("background-color", SEVERITY_TO_COLOR[key])
     })
+
+    $("#skip-tutorial").on("click", () => {
+        // prevent multiclick
+        $("#skip-tutorial").prop('disabled', true);
+
+        $(".button-submit").trigger("click");
+        $(".slider").slider('value', 0);
+        submit_finish_document(override_tutorial_check=true)
+    })
+
+    $("#form-next-doc > input[name='start_timestamp']").val(Date.now() / 1000)
+
+    // show submit button only on MQM and not ESA
+    $(".button-submit").toggle(MQM_TYPE == "MQM")
 });
 
 function _all_sentences_scored() {
@@ -173,38 +185,8 @@ function _change_item_status_icon(item_box, icon_name, status_text) {
     icon_box.addClass(`glyphicon-${icon_name}`)
 }
 
-function submit_form_local(event) {
-    // We are doing a manual AJAX request, so stop this
-    event.preventDefault();
-
-    let item_box = $(event.target).closest('.item-box');
-    let mqm_handler = MQM_HANDLERS[item_box.attr("data-item-id")]
-
-    if (!mqm_handler.validate_form()) {
-        return
-    }
-
-    // update counters
-    mqm_handler.update_item_times()
-    item_box.attr("data-item-completed", "True")
-    mqm_handler.check_status()
-
-    // hide document submit for now
-    item_box.find('button[name="next_button"]').toggle(false)
-
-    if (_all_sentences_scored()) {
-        $("#button-next-doc").toggle(true)
-    } else {
-        // $(`#item-${data.item_id}`).get(0).scrollIntoView({ behavior: "smooth" })
-    }
-
-    return true
-}
 
 function submit_form_ajax(item_box) {
-    $("#form-next-doc > input[name='end_timestamp']").val(Date.now())
-
-    // let item_box = $(event.target).closest('.item-box');
     let promise = $.ajax({
         data: item_box.find('form').serialize(),
         type: 'POST',
@@ -216,9 +198,9 @@ function submit_form_ajax(item_box) {
             _change_item_status_icon(item_box, 'refresh', "Uploading");
         },
         success: function (data) {
-            console.log('Success, saved=', data.saved, 'next_item=', data.item_id);
+            console.log(`Success, saved=${data.saved} next_item=${data.item_id}`);
             if (data.saved) {
-
+                _change_item_status_icon(item_box, 'ok', "Completed");
 
             } else {
                 _change_item_status_icon(item_box, 'none', "Upload failed");
@@ -239,13 +221,31 @@ function submit_form_ajax(item_box) {
     return promise
 }
 
-async function submit_finish_document() {
+async function submit_finish_document(override_tutorial_check=false) {
+    // make sure to bail if there's some tutorial issues
+    if (!override_tutorial_check) {
+        for (let el of $(".item-box")) {
+            if (!MQM_HANDLERS[$(el).attr("data-item-id")].validate_form()) {
+                return false
+            }
+        }
+    }
+
+    // prevent multiclicks
+    $("#button-next-doc").prop('disabled', true);
+
+    $("#form-next-doc > input[name='end_timestamp']").val(Date.now() / 1000)
+
     // wait for individual items to be submitted
-    let promises = [...$(".item-box").map((_i, el) => submit_form_ajax($(el)))]
-    await Promise.all(promises)
+    for (const el of $(".item-box")) {
+        await submit_form_ajax($(el))
+    }
 
     // trigger hidden form
     $("#form-next-doc").trigger("submit")
+
+    await new Promise(resolve => setTimeout(resolve, 5_000))
+    $("#button-next-doc").prop('disabled', false);
 }
 
 function _show_error_box(text, timeout = 2000) {
@@ -271,11 +271,15 @@ class MQMItemHandler {
         this.el_slider = this.el.find('.slider')
         // for Appraise reasons it's a JSON string encoding JSON
         this.mqm = JSON.parse(JSON.parse(this.el.children('#mqm-payload').html()))
+
         if (!Array.isArray(this.mqm)) {
             this.tutorial = this.mqm["tutorial"]
             this.mqm = this.mqm["payload"]
 
             this.el.find(".tutorial-text").html("<b>TUTORIAL:</b> " + this.tutorial["instruction"])
+
+            // unhide multiple times but doesn't matter
+            $("#tutorial-text").toggle(true)
         } else {
             this.tutorial = false
         }
@@ -291,14 +295,15 @@ class MQMItemHandler {
             orientation: "horizontal", range: "min", change: (event) => {
                 // update score in the form
                 this.el.find("input[name='score']").val(this.el_slider.slider('value'))
-                
+
                 // if this was triggered by human then mark it as unsaved
                 if (event.originalEvent) {
                     this.update_item_times()
-                    this.check_status()
+                    this.note_change(true)
                 }
             }
         })
+        let score = parseFloat(this.el.children('#score-payload').html())
 
         // setup_span_structure
         let split_text = this.text_target_orig.split("")
@@ -314,6 +319,17 @@ class MQMItemHandler {
 
         // call setup only once
         this.setup_span_click_handlers()
+
+        // set fake MQM value
+        if (MQM_TYPE == "MQM") {
+            this.el_slider.slider('value', 0);   
+        }
+        // set previous value
+        if (score != -1) {
+            this.el_slider.slider('value', score);
+        }
+
+        this.el.find('.button-submit').on("click", (event) => { event.preventDefault(); this.note_change() });
     }
 
     current_mqm_score(modified) {
@@ -328,8 +344,10 @@ class MQMItemHandler {
     async redraw_mqm() {
         // store currently displayed version
         this.el.find('input[name="mqm"]').val(JSON.stringify(this.mqm));
+
+        // NOTE: do not automatically recompute
         // should be in range [0, 100]
-        this.el_slider.slider('value', this.current_mqm_score(true))
+        // this.el_slider.slider('value', this.current_mqm_score(true))
 
         // redraw
         this.el_target.children(".mqm_char").each((i, el) => {
@@ -346,7 +364,7 @@ class MQMItemHandler {
                 active_mqm = active_mqm[0]
                 el.css("background-color", SEVERITY_TO_COLOR[active_mqm[0]["severity"]])
                 el.attr("in_mqm", active_mqm[1])
-                
+
                 let tooltip_message = active_mqm[0]["severity"].capitalize();
                 if ("error_type" in active_mqm[0]) {
                     (active_mqm[0]["error_type"] || []).forEach((x) => {
@@ -364,7 +382,7 @@ class MQMItemHandler {
     }
 
     reset() {
-        this.el.find('button[name="next_button"]').toggle(true);
+        this.el.find('.button-submit').toggle(MQM_TYPE == "MQM")
         this.el.attr("data-item-completed", "False")
         this.initialize()
         // if we reset then we automatically hide the next doc button
@@ -386,10 +404,29 @@ class MQMItemHandler {
     check_status() {
         if (this.el.attr("data-item-completed") == "True") {
             _change_item_status_icon(this.el, "ok", "Completed")
+            this.el.find(".button-submit").hide()
         } else {
             _change_item_status_icon(this.el, "flag", "Unfinished")
         }
     }
+
+    note_change(mark_complete=true) {
+        if (mark_complete) {
+            this.el.find('.button-submit').toggle(false)
+            this.el.attr("data-item-completed", "True")
+        }
+
+        // update counters
+        this.update_item_times()
+        this.check_status()
+
+        if (mark_complete && _all_sentences_scored()) {
+            $("#button-next-doc").toggle(true)
+        }
+
+        return true
+    }
+
 
     validate_tutorial() {
         if ("mqm_target" in this.tutorial) {
@@ -418,24 +455,24 @@ class MQMItemHandler {
 
     validate_form() {
         if (this.tutorial && !this.validate_tutorial()) {
-            alert('Please follow the tutorial instructions.');
+            alert(`Please follow the tutorial instructions.\n(${this.text_target_orig.substring(0, 60)}...)`);
             return false
         }
         // skip other messages in the tutorial
-        if (this.tutorial) {
-            return true
-        }
+        // if (this.tutorial) {
+        //     return true
+        // }
 
-        if (this.mqm.some((x) => x["severity"] == "undecided")) {
-            alert('There are some segments without severity (in blue). Click on them to change their severities.');
-            return false
-        }
-        
+        // if (this.mqm.some((x) => x["severity"] == "undecided")) {
+        //     alert('There are some segments without severity (in blue). Click on them to change their severities.');
+        //     return false
+        // }
+
         // remove dialogs
         // if (this.mqm.length == 0 && !confirm("There are no annotated text fragments. Are you sure you want to submit?")) {
         //     return false
         // }
-        // if (MQM_TYPE == "LQM" && this.current_mqm_score(true) == Number.parseFloat(this.el.find("input[name='score']").val()) && !confirm("You did not change the original translation score. Are you sure you want to submit?")) {
+        // if (MQM_TYPE == "ESA" && this.current_mqm_score(true) == Number.parseFloat(this.el.find("input[name='score']").val()) && !confirm("You did not change the original translation score. Are you sure you want to submit?")) {
         //     return false
         // }
         return true;
@@ -449,10 +486,10 @@ class MQMItemHandler {
 
     update_item_times() {
         // set the start timestamp if it hasn't been touched yet
-        $(this.el).find('input[name="start_timestamp"]').val($(this.el).find('input[name="start_timestamp"]').val() || Date.now())
+        $(this.el).find('input[name="start_timestamp"]').val($(this.el).find('input[name="start_timestamp"]').val() || Date.now() / 1000)
 
         // end timestamp is the latest interaction
-        $(this.el).find('input[name="end_timestamp"]').val(Date.now())
+        $(this.el).find('input[name="end_timestamp"]').val(Date.now() / 1000)
     }
 
     // call only once
@@ -468,7 +505,7 @@ class MQMItemHandler {
                     // wait for a bit in case mouse enter adds to this
                     await waitout_js_loop()
                     if (this.HOVER_UNDECIDED_SPANS.size == 0)
-                        this.MQM_DELETE_TIMER = setTimeout(() => this.remove_undecided(this), 1000)
+                        this.MQM_DELETE_TIMER = setTimeout(() => this.remove_undecided(this), 400)
                     else
                         clearTimeout(this.MQM_DELETE_TIMER)
                 }
@@ -485,7 +522,7 @@ class MQMItemHandler {
                     event.preventDefault()
                     return
                 }
-                this.update_item_times()
+                this.note_change(MQM_TYPE == "MQM")
                 this.LAST_MOUSE_TIMESTAMP = event.timeStamp
 
                 if (el.attr("char_id") == "missing") {

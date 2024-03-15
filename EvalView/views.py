@@ -3,8 +3,6 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
-import json
-
 from datetime import datetime
 from datetime import timezone
 
@@ -20,7 +18,6 @@ from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Campaign.models import Campaign
 from Dashboard.models import SIGN_LANGUAGE_CODES
-from EvalData.error_types import ERROR_TYPES
 from EvalData.models import DataAssessmentResult
 from EvalData.models import DataAssessmentTask
 from EvalData.models import DirectAssessmentContextResult
@@ -635,8 +632,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     # hijack this function if it uses MQM
     campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
-    if 'mqm' in campaign_opts or 'lqm' in campaign_opts:
-        return direct_assessment_document_mqm_lqm(campaign, current_task, request)
+    if 'mqm' in campaign_opts or 'esa' in campaign_opts:
+        return direct_assessment_document_mqmesa(campaign, current_task, request)
 
     # Handling POST requests differs from the original direct_assessment/
     # direct_assessment_context view, but the input is the same: a score for the
@@ -1076,248 +1073,125 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     return render(request, 'EvalView/direct-assessment-document.html', context)
 
 
-def direct_assessment_document_mqm_lqm(campaign, current_task, request):
+def direct_assessment_document_mqmesa(campaign, current_task, request):
     """
-    Direct assessment document annotation view with MQM.
+    Direct assessment document annotation view with MQM/ESA.
     """
     campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
 
-    # Handling POST requests differs from the original direct_assessment/
-    # direct_assessment_context view, but the input is the same: a score for the
-    # single submitted item
-    ajax = False
-    item_saved = False
-    error_msg = ''
+    # POST means that we want to store
     if request.method == "POST":
         score = request.POST.get('score', None)
         mqm = request.POST.get('mqm', None)
         item_id = request.POST.get('item_id', None)
         task_id = request.POST.get('task_id', None)
-        document_id = request.POST.get('document_id', None)
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
         ajax = bool(request.POST.get('ajax', None) == 'True')
 
+
+        db_item = current_task.items.filter(
+            itemID=item_id
+        ).order_by('itemID')
+
+        if len(db_item) == 0:
+            error_msg = (
+                f'We could not find item {item_id} in task {task_id}.'
+            )
+            LOGGER.error(error_msg)
+            item_saved = False
+        elif len(db_item) > 1:
+            error_msg = (
+                f'Found more than one item {item_id} in task {task_id}.'
+                'This is from incorrectly set up batches'
+            )
+            LOGGER.error(error_msg)
+            item_saved = False
+        else:
+            DirectAssessmentDocumentResult.objects.create(
+                score=score,
+                mqm=mqm,
+                start_time=float(start_timestamp),
+                end_time=float(end_timestamp),
+                item=list(db_item)[0],
+                task=current_task,
+                createdBy=request.user,
+                activated=False,
+                completed=True,
+                dateCompleted=datetime.utcnow().replace(tzinfo=utc),
+            )
+            error_msg = f'Item {task_id} (itemID={item_id}) saved'
+            LOGGER.info(error_msg)
+            item_saved = True
+
         LOGGER.info(f'score={score}, item_id={item_id}, mqm={mqm}')
         print(f'Got request score={score}, item_id={item_id}, ajax={ajax}, mqm={mqm}')
-
-        # If all required information was provided in the POST request
-        if score and mqm and item_id and start_timestamp and end_timestamp:
-            duration = float(end_timestamp) - float(start_timestamp)
-            LOGGER.debug(float(start_timestamp))
-            LOGGER.debug(float(end_timestamp))
-            LOGGER.info(
-                'start=%s, end=%s, duration=%s',
-                start_timestamp,
-                end_timestamp,
-                duration,
-            )
-
-            # Get all items from the document that the submitted item belongs
-            # to, and all already collected scores for this document
-            (
-                current_item,
-                block_items,
-                block_results,
-            ) = current_task.next_document_for_user(
-                request.user, return_statistics=False
-            )
-
-            # An item from the right document was submitted
-            if current_item.documentID == document_id:
-                # This is the item that we expected to be annotated first,
-                # which means that there is no score for the current item, so
-                # create new score
-                if current_item.itemID == int(item_id) and current_item.id == int(
-                    task_id
-                ):
-                    utc_now = datetime.utcnow().replace(tzinfo=utc)
-                    # pylint: disable=E1101
-                    DirectAssessmentDocumentResult.objects.create(
-                        score=score,
-                        mqm=mqm,
-                        start_time=float(start_timestamp),
-                        end_time=float(end_timestamp),
-                        item=current_item,
-                        task=current_task,
-                        createdBy=request.user,
-                        activated=False,
-                        completed=True,
-                        dateCompleted=utc_now,
-                    )
-                    print('Item {} (itemID={}) saved'.format(task_id, item_id))
-                    item_saved = True
-
-                # It is not the current item, so check if the result for it
-                # exists
-                else:
-                    # Check if there is a score result for the submitted item
-                    # TODO: this could be a single query, would it be better or
-                    # more effective?
-                    current_result = None
-                    for result in block_results:
-                        if not result:
-                            continue
-                        if result.item.itemID == int(item_id) and result.item.id == int(
-                            task_id
-                        ):
-                            current_result = result
-                            break
-
-                    # If already scored, update the result
-                    # TODO: consider adding new score, not updating the
-                    # previous one
-                    if current_result:
-                        prev_score = current_result.score
-                        current_result.score = score
-                        current_result.mqm = mqm
-                        current_result.start_time = float(start_timestamp)
-                        current_result.end_time = float(end_timestamp)
-                        utc_now = datetime.utcnow().replace(tzinfo=utc)
-                        current_result.dateCompleted = utc_now
-                        current_result.save()
-                        LOGGER.debug(
-                            f'Item {task_id} (itemID={item_id}) updated {prev_score}->{score}'
-                        )
-                        item_saved = True
-
-                    # If not yet scored, check if the submitted item is from
-                    # the expected document. Note that document ID is **not**
-                    # sufficient, because there can be multiple documents with
-                    # the same ID in the task.
-                    else:
-                        found_item = False
-                        for item in block_items:
-                            if item.itemID == int(item_id) and item.id == int(task_id):
-                                found_item = item
-                                break
-
-                        # The submitted item is from the same document as the
-                        # first unannotated item. It is fine, so save it
-                        if found_item:
-                            utc_now = datetime.utcnow().replace(tzinfo=utc)
-                            # pylint: disable=E1101
-                            DirectAssessmentDocumentResult.objects.create(
-                                score=score,
-                                mqm=mqm,
-                                start_time=float(start_timestamp),
-                                end_time=float(end_timestamp),
-                                item=found_item,
-                                task=current_task,
-                                createdBy=request.user,
-                                activated=False,
-                                completed=True,
-                                dateCompleted=utc_now,
-                            )
-                            LOGGER.debug(
-                                f'Item {task_id} (itemID={item_id}) saved, although it was not the next item'
-                            )
-                            item_saved = True
-                        else:
-                            error_msg = (
-                                'We did not expect this item to be submitted. '
-                                'If you used backward/forward buttons in your browser, '
-                                'please reload the page and try again.'
-                            )
-
-                            LOGGER.debug(
-                                f'Item ID {item_id} does not match item {current_item.itemID}, will not save!'
-                            )
-
-            # An item from a wrong document was submitted
-            else:
-                print(
-                    f'Different document IDs: {current_item.documentID} != {document_id}, will not save!'
-                )
-
-                error_msg = (
-                    'We did not expect an item from this document to be submitted. '
-                    'If you used backward/forward buttons in your browser, '
-                    'please reload the page and try again.'
-                )
+    else:
+        ajax = False
 
     # Get all items from the document that the first unannotated item in the
     # task belongs to, and collect some additional statistics
     (
-        current_item,
+        next_item,
         completed_items,
-        completed_blocks,
-        completed_items_in_block,
-        block_items,
-        block_results,
+        completed_docs,
+        completed_items_in_doc,
+        doc_items,
+        doc_items_results,
         total_blocks,
-    ) = current_task.next_document_for_user(request.user)
+    ) = current_task.next_document_for_user_mqmesa(request.user)
 
-    # the total blocks and completed blocks that we are getting from the above call are not correct
-    # this is a HOTFIX
-    # mark document as complete if at least one item is complete
-    # for document-level MQM the only way to achieve this is for the whole document to be done
-    completed_blocks = (
-        len(
-            {
-                item.item.documentID
-                for item in DirectAssessmentDocumentResult.objects.filter(
-                    task=current_task, completed=True, createdBy=request.user
-                ).all()
-            }
-        )
-        + 1
-    )
-    total_blocks = len({item.documentID for item in current_task.items.all()})
-
-    if not current_item:
-        LOGGER.info('No current item detected, redirecting to dashboard')
-        return redirect('dashboard')
+    if not next_item:
+        if not ajax:
+            LOGGER.info('No next item detected, redirecting to dashboard')
+            return redirect('dashboard')
+        else:
+            context = {}
+            ajax_context = {'saved': item_saved, 'error_msg': error_msg}
+            context.update(ajax_context)
+            context.update(BASE_CONTEXT)
+            # Send response to the Ajax POST request
+            return JsonResponse(context)
 
     # Get item scores from the latest corresponding results
-    block_scores = []
-    for item, result in zip(block_items, block_results):
-        item_scores = {
-            'completed': bool(result and result.score > -1),
-            'current_item': bool(item.id == current_item.id),
+    doc_items_results = [
+        {
+            'completed': bool(result and result.completed),
             # will be recomputed user-side anyway
             'score': result.score if result else -1,
             'mqm': result.mqm if result else item.mqm,
             'mqm_orig': item.mqm,
+            'start_timestamp': result.start_time if result else "",
+            'end_timestamp': result.end_time if result else "",
         }
+        for item, result in zip(doc_items, doc_items_results)
+    ]
 
-        block_scores.append(item_scores)
-
-    _msg = 'completed_items=%s, completed_blocks=%s'
-    LOGGER.info(_msg, completed_items, completed_blocks)
+    LOGGER.info(f'completed_items={completed_items}, completed_docs={completed_docs}')
 
     source_language = current_task.marketSourceLanguage()
     target_language = current_task.marketTargetLanguage()
 
-    # By default, source and target items are text segments
-    source_item_type = 'text'
-    target_item_type = 'text'
-    reference_label = 'Source text'
-    candidate_label = 'Candidate translation'
-
-    ui_language = 'enu'
-
-    # A part of context used in responses to both Ajax and standard POST
-    # requests
+    # A part of context used in responses to both Ajax and standard POST requests
     context = {
         'active_page': 'direct-assessment-document',
-        'item_id': current_item.itemID,
-        'task_id': current_item.id,
-        'document_id': current_item.documentID,
-        'completed_blocks': completed_blocks,
+        'item_id': next_item.itemID,
+        'task_id': next_item.id,
+        'document_id': next_item.documentID,
+        'completed_blocks': completed_docs,
         'total_blocks': total_blocks,
-        'items_left_in_block': len(block_items) - completed_items_in_block,
+        'items_left_in_block': len(doc_items) - completed_items_in_doc,
         'source_language': source_language,
         'target_language': target_language,
-        'source_item_type': source_item_type,
-        'target_item_type': target_item_type,
+        'source_item_type': "text",
+        'target_item_type': "text",
         'template_debug': 'debug' in request.GET,
         'campaign': campaign.campaignName,
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
         # Task variations
-        'ui_lang': ui_language,
-        'mqm_type': 'LQM' if 'lqm' in campaign_opts else "MQM",
+        'ui_lang': "enu",
+        'mqm_type': 'ESA' if 'esa' in campaign_opts else "MQM",
     }
 
     if ajax:
@@ -1328,14 +1202,14 @@ def direct_assessment_document_mqm_lqm(campaign, current_task, request):
         return JsonResponse(context)
 
     page_context = {
-        'items': zip(block_items, block_scores),
-        'reference_label': reference_label,
-        'candidate_label': candidate_label,
+        'items': zip(doc_items, doc_items_results),
+        'reference_label': 'Source text',
+        'candidate_label': 'Candidate translation',
     }
     context.update(page_context)
     context.update(BASE_CONTEXT)
 
-    return render(request, 'EvalView/direct-assessment-document-mqm-lqm.html', context)
+    return render(request, 'EvalView/direct-assessment-document-mqm-esa.html', context)
 
 
 # pylint: disable=C0103,C0330

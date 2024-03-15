@@ -11,7 +11,6 @@ import json
 import django
 from django.core.management.base import BaseCommand
 from django.core.management.base import CommandError
-from django.template.response import SimpleTemplateResponse
 from django.test import Client
 
 from Campaign.utils import CAMPAIGN_TASK_TYPES
@@ -34,7 +33,7 @@ class Command(BaseCommand):
             "campaign_type",
             metavar="campaign-type",
             type=str,
-            help="Campaign type: {0}".format(_valid_task_types),
+            help=f"Campaign type: {_valid_task_types}",
         )
 
         parser.add_argument(
@@ -98,36 +97,34 @@ class Command(BaseCommand):
         is_logged_in = client.login(username=username, password=password)
         if not is_logged_in:
             raise CommandError("Incorrect username or password.")
-        self.stdout.write("User {0!r} has successfully signed in".format(username))
+        self.stdout.write(f"User {username!r} has successfully signed in")
 
         campaign_type = options["campaign_type"]
         if campaign_type not in CAMPAIGN_TASK_TYPES:
-            raise CommandError('Task type "{0}" does not exist'.format(campaign_type))
-        self.stdout.write("Task type: {0!r}".format(campaign_type))
+            raise CommandError(f'Task type "{campaign_type}" does not exist')
+        self.stdout.write(f"Task type: {campaign_type!r}")
         campaign_url = _get_task_url(campaign_type)
 
-        task_url = "http://127.0.0.1:8000/{}/".format(campaign_url)
-        self.stdout.write("Task URL: {0!r}".format(task_url))
+        task_url = f"http://127.0.0.1:8000/{campaign_url}/"
+        self.stdout.write(f"Task URL: {task_url!r}")
 
         try:
             response = client.get(task_url)
         except:
-            raise CommandError("Invalid campaign URL for user {0!r}".format(username))
+            raise CommandError(f"Invalid campaign URL for user {username!r}")
         if response.status_code == 400:
-            raise CommandError("Invalid campaign URL for user {0!r}".format(username))
+            raise CommandError(f"Invalid campaign URL for user {username!r}")
 
         # No context means no more items
         if response.context is None:
             self.stdout.write(
-                'Unsuccesful annotation: user "{}" does not have more items'.format(
-                    username
-                )
+                f'Unsuccesful annotation: user "{username}" does not have more items'
             )
             exit()
 
         if options["verbosity"] > 1:
             self.stdout.write(
-                "Available context keys: {}".format(response.context.keys())
+                f"Available context keys: {response.context.keys()}"
             )
 
         # Each task has different context, so the POST request needs to be
@@ -183,9 +180,9 @@ class Command(BaseCommand):
                 response.context["item_id"], response.context["task_id"], scores[0]
             )
             if response.context["candidate2_text"] is not None:
-                msg_info += ", {}".format(scores[1])
+                msg_info += f", {scores[1]}"
 
-            msg_info += " for user {}".format(username)
+            msg_info += f" for user {username}"
 
         ##################################################################
         elif campaign_type == "PairwiseDocument":
@@ -210,7 +207,7 @@ class Command(BaseCommand):
                 scores[1],
             )
 
-            msg_info += " for user {}".format(username)
+            msg_info += f" for user {username}"
 
         ##################################################################
         elif campaign_type == "Document":
@@ -263,13 +260,11 @@ class Command(BaseCommand):
         ##################################################################
         else:
             raise CommandError(
-                'Task type "{}" is not yet supported in this script yet'.format(
-                    campaign_type
-                )
+                f'Task type "{campaign_type}" is not yet supported in this script yet'
             )
 
         # Final call
-        self.stdout.write("Created data: {0}".format(data))
+        self.stdout.write(f"Created data: {data}")
         response = client.post(task_url, data, follow=True)
 
         if response.status_code != 200:

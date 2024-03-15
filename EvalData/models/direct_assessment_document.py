@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 # pylint: disable=C0103,C0330,no-member
 import json
 import sys
@@ -200,7 +201,8 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         if not next_item:
             if not return_statistics:
                 return (next_item, [], [])
-            return (next_item, completed_items, 0, 0, [], [], 0)
+            else:
+                return (next_item, completed_items, 0, 0, [], [], 0)
 
         # Retrieve all items from the document which next_item belongs to
         _items = self.items.filter(
@@ -250,6 +252,76 @@ class DirectAssessmentDocumentTask(BaseMetadata):
             total_blocks,  # the total number of documents in the task
         )
 
+    def next_document_for_user_mqmesa(self, user):
+        """
+        Returns the next item and all items from its document.
+        Used for MQM/ESA views
+        Specifically a tuple with:
+            next_item,
+            completed_items,
+            completed_docs,
+            completed_items_in_doc,
+            doc_items,
+            doc_items_results,
+            total_docs,
+        """
+        # Retrieve all items from the document which next_item belongs to
+        all_items = self.items.order_by('itemID')
+
+        # TODO: this is super compute heavy and inefficient
+        # should actually be table JOIN
+        def get_item_result(id):
+            return DirectAssessmentDocumentResult.objects.filter(
+                item__itemID=id,
+                createdBy=user,
+                task=self
+            ).last()
+
+        all_items = [(item, get_item_result(item.itemID)) for item in all_items]
+        unfinished_items = [i for i, r in all_items if not r]
+        if not unfinished_items:
+            # TODO: the None might not be the correct type
+            return (None, all_items, 0, 0, [], [], 0)
+        # things are ordered by ID
+        next_item = unfinished_items[0]
+
+        docs_all = len({i.documentID for i, r in all_items})
+        completed_items = len(
+            [i for i, r in all_items if r is not None and r.completed]
+        )
+        completed_docs = docs_all - len(
+            {i.documentID for i, r in all_items if r is None or not r.completed}
+        )
+        completed_items_in_doc = len(
+            [
+                i
+                for i, r in all_items
+                if r is not None
+                and r.completed
+                and i.documentID == next_item.documentID
+            ]
+        )
+        doc_items = [i for i, r in all_items if i.documentID == next_item.documentID]
+        doc_items_results = [
+            r for i, r in all_items if i.documentID == next_item.documentID
+        ]
+
+        print(
+            f'Completed {completed_docs}/{docs_all} documents, '
+            f'{completed_items_in_doc}/{len(doc_items)} items in the current document, '
+            f'completed {completed_items} items in total'
+        )
+
+        return (
+            next_item,  # the first unannotated item for the user
+            completed_items,  # the number of completed items in the task
+            completed_docs,  # the number of completed documents in the task
+            completed_items_in_doc,  # the number of completed items in the current document
+            doc_items,  # all items from the current document
+            doc_items_results,  # all score results from the current document
+            docs_all,  # the total number of documents in the task
+        )
+
     def get_results_for_each_item(self, block_items, user):
         """Returns the latest result object for each item or none."""
         # TODO: optimize, this possibly makes too many individual queries
@@ -260,7 +332,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
                 DirectAssessmentDocumentResult.objects.filter(
                     item__id=item.id,
                     completed=True,
-                    createdBy=user,  # TODO: is passing user as an argument needed?
+                    createdBy=user,
                     task=self,
                 )
                 .order_by('item__id', 'dateModified')
@@ -272,7 +344,6 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         if len(block_items) != len(block_results):
             print('Warning: incorrect number of retrieved results!')
         for item, result in zip(block_items, block_results):
-            # print(f'  >> item={item} result={result}')
             if result and item.id != result.item.id:
                 print('Warning: incorrect order of items and results!')
 

@@ -2,11 +2,11 @@
 {% load static %}
 
 {% block head %}
-<link rel="stylesheet" href="{% static 'EvalView/css/direct-assessment-document-mqm-lqm.css' %}">
+<link rel="stylesheet" href="{% static 'EvalView/css/direct-assessment-document-mqm-esa.css' %}">
 <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
 <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/themes/smoothness/jquery-ui.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.1/js.cookie.min.js"></script>
-<script src="{% static 'EvalView/js/direct-assessment-document-mqm-lqm.js' %}"></script>
+<script src="{% static 'EvalView/js/direct-assessment-document-mqm-esa.js' %}"></script>
 
 {% endblock %}
 
@@ -22,12 +22,11 @@
             <td style="width:33%;text-align:left;">
                 <strong id="task_progress">
                     document {{completed_blocks}} / {{total_blocks}}
+                    &nbsp;&nbsp;&nbsp;
+                    segment {{item_id}}/100
                 </strong>
             </td>
-            <td style="width:33%;text-align:center;">
-                <strong>{{campaign}} #{{datask_id}}:Document #{{document_id}}-<span
-                        id="current-item-id">{{item_id}}</span></strong>
-            </td>
+            <td style="width:33%;text-align:center;"></td>
             <td style="width:33%;text-align:right;">
                 <strong>{{source_language}} &rarr; {{target_language}}</strong>
             </td>
@@ -35,27 +34,38 @@
     </table>
 </div>
 
+<div class="question-box" id="tutorial-text" style="display: none; font-size: large; font-weight: bold;">
+    In the first two pages we will walk you through the tutorial.
+    It is available only in English to German but knowledge of German is not needed.
+    If you already went through the tutorial you can
+    <input type="button" value="skip the tutorial" id="skip-tutorial">.
+</div>
+
 <div class="question-box">
-    {% include 'EvalView/_instructions-mqm-lqm.html' %}
+    {% if mqm_type == "MQM" %}
+    {% include 'EvalView/_instructions-mqm.html' %}
+    {% elif mqm_type == "ESA" %}
+    {% include 'EvalView/_instructions-esa.html' %}
+    {% else %}
+    Unknown instructions for "{{ mqm_type }}"".
+    {% endif %}
 </div>
 
 {% for item,scores in items %}
 
-<div id="item-{{ item.itemID }}" class="item-box quotelike active" 
-    data-item-id="{{ item.itemID }}"
-    data-item-completed="{{ scores.completed }}"
-    data-item-score="{{ scores.score }}"
-    >
+<div id="item-{{ item.itemID }}" class="item-box quotelike active" data-item-id="{{ item.itemID }}"
+    data-item-completed="{{ scores.completed }}" data-item-score="{{ scores.score }}">
 
     {{ scores.mqm|json_script:"mqm-payload" }}
     {{ scores.mqm_orig|json_script:"mqm-payload-orig" }}
     {{ item.targetText|json_script:"text-target-payload" }}
+    {{ scores.score|json_script:"score-payload" }}
 
-    <form action="{{action_url}}" method="post"  item_id="{{ item.itemID }}">
+    <form action="{{action_url}}" method="post" item_id="{{ item.itemID }}">
         {% csrf_token %}
 
-        <input name="start_timestamp" type="hidden" value="" />
-        <input name="end_timestamp" type="hidden" value="" />
+        <input name="start_timestamp" type="hidden" value="{{ scores.start_timestamp }}" />
+        <input name="end_timestamp" type="hidden" value="{{ scores.end_timestamp }}" />
         <input name="item_id" type="hidden" value="{{ item.itemID }}" />
         <input name="task_id" type="hidden" value="{{ item.id }}" />
         <input name="document_id" type="hidden" value="{{ item.documentID }}" />
@@ -76,8 +86,8 @@
         </div>
 
         <div class="target-box">
-            <div class="row lqm_slider">
-                {% include 'EvalView/_slider-mqm-lqm.html' %}
+            <div class="row esa_slider">
+                {% include 'EvalView/_slider-mqm-esa.html' %}
             </div>
 
             <table class="row action-box">
@@ -91,7 +101,8 @@
                     </td>
                     <td style="width:30%;text-align:right;">
                         <button class="btn button-submit btn-primary" name="next_button" accesskey="1" type="submit"
-                            value="{{ item.itemID }}"> Mark complete</button>
+                            value="{{ item.itemID }}"> Mark complete
+                        </button>
                     </td>
                 </tr>
             </table>
@@ -106,13 +117,13 @@
     {% csrf_token %}
     <input name="start_timestamp" type="hidden" value="" />
     <input name="end_timestamp" type="hidden" value="" />
+    <!--
     <input name="task_id" type="hidden" value="{{ item.id }}" />
-    <input name="document_id" type="hidden" value="{{ item.documentID }}" />
+    <input name="document_id" type="hidden" value="{{ item.documentID }}" /> -->
     <input name="ajax" type="hidden" value="False" />
 </form>
 
-<button class="btn btn-primary" style="margin-left: auto; margin-right: auto; display: block;"
-    id="button-next-doc">
+<button class="btn btn-primary" style="margin-left: auto; margin-right: auto; display: block;" id="button-next-doc">
     Continue to next document
 </button>
 
