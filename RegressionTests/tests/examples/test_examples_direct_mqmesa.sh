@@ -7,7 +7,7 @@ prefix=example_direct_mqmesa
 
 # Create campaign from Examples/DirectMQM
 $APPRAISE_MANAGE StartNewCampaign $APPRAISE_EXAMPLES/DirectMQM/manifest_esa.json \
-    --batches-json $APPRAISE_EXAMPLES/DirectMQM/batches_wmt23_en-de.json \
+    --batches-json $APPRAISE_EXAMPLES/DirectMQM/batches_wmt23_en-de_esa.json \
     --csv-output $prefix.users.csv
 
 # Check generated credentials
