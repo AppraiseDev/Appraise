@@ -260,6 +260,7 @@ class TextPairAdmin(BaseMetadataAdmin):
         'sourceText',
         'targetID',
         'targetText',
+        'mqm',
     ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'metadata__corpusName',
@@ -274,6 +275,7 @@ class TextPairAdmin(BaseMetadataAdmin):
         'sourceText',
         'targetID',
         'targetText',
+        'mqm',
     ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (
@@ -289,6 +291,7 @@ class TextPairAdmin(BaseMetadataAdmin):
                         'sourceText',
                         'targetID',
                         'targetText',
+                        'mqm',
                     ]
                 )
             },

@@ -20,7 +20,7 @@ ignore-patterns=
 # Use multiple processes to speed up Pylint.
 jobs=1
 
-# List of plugins (as comma separated values of python modules names) to load,
+# List of plugins (as comma separated values of python3 modules names) to load,
 # usually to register additional checkers.
 load-plugins=
 
@@ -145,7 +145,7 @@ enable=c-extension-no-member
 # (RP0004).
 evaluation=10.0 - ((float(5 * error + warning + refactor + convention) / statement) * 10)
 
-# Template used to display messages. This is a python new-style format string
+# Template used to display messages. This is a python3 new-style format string
 # used to format the message information. See doc for all details
 #msg-template=
 
@@ -289,7 +289,7 @@ redefining-builtins-modules=six.moves,past.builtins,future.builtins
 [FORMAT]
 
 # Expected format of line ending, e.g. empty (any line ending), LF or CRLF.
-expected-line-ending-format=
+expected-line-ending-format=LR
 
 # Regexp for a line that is allowed to be longer than the limit.
 ignore-long-lines=^\s*(# )?<?https?://\S+>?$

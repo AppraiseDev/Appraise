@@ -1,13 +1,13 @@
 # Appraise Evaluation System
 
-    python manage.py StartNewCampaign Examples/MonolingualPairwise/manifest.json \
+    python3 manage.py StartNewCampaign Examples/MonolingualPairwise/manifest.json \
         --batches-json Examples/PairwiseDocument/batches.json \
         --csv-output Examples/MonolingualPairwise/output.csv
 
     # See Examples/PairwiseDocument/outputs.csv for a SSO login for the annotator account
     # Collect some annotations, then export annotation scores...
 
-    python manage.py ExportSystemScoresToCSV example13monopair
+    python3 manage.py ExportSystemScoresToCSV example13monopair
 
 You can use the same batches as for the `PairwiseDocument` task type. Source
 texts and contexts will be ignored.

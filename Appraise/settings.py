@@ -37,6 +37,8 @@ if SECRET_KEY == _SECRET_KEY_DEFAULT:
 
 ALLOWED_HOSTS = os.environ.get('APPRAISE_ALLOWED_HOSTS', '127.0.0.1').split(',')
 
+CSRF_TRUSTED_ORIGINS = os.environ.get('APPRAISE_CSRF_TRUSTED_ORIGINS', 'https://*.127.0.0.1').split(',')
+
 WSGI_APPLICATION = os.environ.get(
     'APPRAISE_WSGI_APPLICATION', 'Appraise.wsgi.application'
 )
@@ -117,7 +119,7 @@ if DEBUG:
         INSTALLED_APPS.append('debug_toolbar')
         warnings.warn('Enabled Django Debug Toolbar in installed apps')
     except ImportError:
-        warnings.warn('Django Debug Toolbar not installed')
+        pass
 
 MIDDLEWARE = []
 if DEBUG:
@@ -206,7 +208,7 @@ if MEDIA_ROOT and MEDIA_ROOT[-1] != '/':
 
 # Base context for all views.
 BASE_CONTEXT = {
-    'commit_tag': '#wmt23dev',
+    'commit_tag': '#wmt24dev',
     'title': 'Appraise evaluation system',
     'static_url': STATIC_URL,
 }

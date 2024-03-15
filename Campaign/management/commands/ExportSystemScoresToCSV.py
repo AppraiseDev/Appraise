@@ -44,7 +44,7 @@ class Command(BaseCommand):
         system_scores = []
         for task_cls, result_cls in CAMPAIGN_TASK_PAIRS:
             qs_name = task_cls.__name__.lower()
-            qs_attr = 'evaldata_{0}_campaign'.format(qs_name)
+            qs_attr = f'evaldata_{qs_name}_campaign'
             qs_obj = getattr(campaign, qs_attr, None)
 
             # Constrain to only completed tasks, if requested.
