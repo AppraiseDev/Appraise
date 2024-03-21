@@ -2218,11 +2218,17 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         LOGGER.info('No current item detected, redirecting to dashboard')
         return redirect('dashboard')
 
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
+    new_ui = 'newui' in campaign_opts
+
     # Get item scores from the latest corresponding results
     block_scores = []
     for item, result in zip(block_items, block_results):
         # Get target texts with injected HTML tags showing diffs
-        _candidate1_text, _candidate2_text = item.target_texts_with_diffs()
+        _candidate1_text, _candidate2_text = item.target_texts_with_diffs(
+            escape_html=not new_ui
+        )
+        _source_text = escape(item.segmentText) if not new_ui else item.segmentText
         item_scores = {
             'completed': bool(result and result.score1 > -1),
             'current_item': bool(item.id == current_item.id),
@@ -2234,7 +2240,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             'candidate2_text': _candidate2_text.replace(
                 "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
             ).replace("&lt;br/&gt;", "<br/>"),
-            'segment_text': escape(item.segmentText)
+            'segment_text': _source_text 
             .replace("&lt;eos&gt;", "<code>&lt;eos&gt;</code>")
             .replace("&lt;br/&gt;", "<br/>"),
         }
@@ -2278,7 +2284,6 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'in {1} (left column)? '.format(target_language, source_language),
     ]
 
-    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
     monolingual_task = 'monolingual' in campaign_opts
     use_sqm = 'sqm' in campaign_opts
     static_context = 'staticcontext' in campaign_opts
@@ -2371,4 +2376,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     context.update(page_context)
     context.update(BASE_CONTEXT)
 
-    return render(request, 'EvalView/pairwise-assessment-document.html', context)
+    template = 'EvalView/pairwise-assessment-document.html'
+    if new_ui:
+        template = 'EvalView/pairwise-assessment-document-newui.html'
+    return render(request, template, context)

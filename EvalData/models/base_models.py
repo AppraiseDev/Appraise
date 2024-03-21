@@ -748,7 +748,7 @@ class TextSegmentWithTwoTargets(TextSegment):
             else ''
         )
 
-    def target_texts_with_diffs(self):
+    def target_texts_with_diffs(self, escape_html=True):
         """
         Returns the pair of texts with HTML tags highlighting token differences.
         Both texts must be non empty.
@@ -763,8 +763,12 @@ class TextSegmentWithTwoTargets(TextSegment):
         if not self.target1Text or not self.target2Text:
             return (self.target1Text, self.target2Text)
 
-        toks1 = escape(self.target1Text).split()
-        toks2 = escape(self.target2Text).split()
+        if escape_html:
+            toks1 = escape(self.target1Text).split()
+            toks2 = escape(self.target2Text).split()
+        else:
+            toks1 = self.target1Text.split()
+            toks2 = self.target2Text.split()
         matcher = SequenceMatcher(None, toks1, toks2)
 
         text1 = ''
