@@ -2229,11 +2229,12 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             escape_html=not new_ui
         )
         _source_text = escape(item.segmentText) if not new_ui else item.segmentText
+        _default_score = 0 if new_ui else -1
         item_scores = {
             'completed': bool(result and result.score1 > -1),
             'current_item': bool(item.id == current_item.id),
-            'score1': result.score1 if result else -1,
-            'score2': result.score2 if result else -1,
+            'score1': result.score1 if result else _default_score,
+            'score2': result.score2 if result else _default_score,
             'candidate1_text': _candidate1_text.replace(
                 "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
             ).replace("&lt;br/&gt;", "<br/>"),
