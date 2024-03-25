@@ -335,6 +335,9 @@ function submit_form(item_id) {
 }
 
 function last_form(e) {
+    // For debugging
+    //e.preventDefault();
+
     var item_box = $(this).closest('.item-box');
     // Validate form
     var score1 = item_box.find('input[name="score1"]').val();
@@ -345,7 +348,7 @@ function last_form(e) {
         // for each item box with data-item-completed=False, submit the form
         $('.item-box').not(':last').each(function() {
             var item_box = $(this);
-            console.log('Checking item:', item_box.data('item-id'), item_box.data('item-completed'));
+            //console.log('Checking item:', item_box.data('item-id'), item_box.data('item-completed'));
             if(item_box.data('item-completed') == "False") {
                 // click submit button in this item box
                 // TODO: this is slow, so at least show loading icon
@@ -353,7 +356,7 @@ function last_form(e) {
 
                 var item_id = item_box.data('item-id');
                 console.log('Submitting item:', item_id);
-                submit_form.click(item_id);
+                submit_form(item_id);
             }
         });
     }
@@ -417,7 +420,7 @@ function _show_error_box(item_box, msg) {
     {% include 'EvalView/_guidelines_popup.html' %}
 {% endif %}
 
-<div class="item-box item-odd item-static-content pseudoquotelike">
+<div class="item-static-content pseudoquotelike">
     <div class="row">
         {% if not monolingual %}
         <div class="col-sm-4">
