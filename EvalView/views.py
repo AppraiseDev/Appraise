@@ -2031,8 +2031,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             campaign = current_task.campaign
 
     # Handling POST requests differs from the original direct_assessment/
-    # direct_assessment_context view, but the input is the same: a score for the
-    # single submitted item
+    # direct_assessment_context view
     t2 = datetime.now()
     ajax = False
     item_saved = False
@@ -2220,6 +2219,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
 
     campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
     new_ui = 'newui' in campaign_opts
+    escape_eos = 'escapeeos' in campaign_opts
+    escape_br = 'escapebr' in campaign_opts
 
     # Get item scores from the latest corresponding results
     block_scores = []
@@ -2228,22 +2229,41 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         _candidate1_text, _candidate2_text = item.target_texts_with_diffs(
             escape_html=not new_ui
         )
-        _source_text = escape(item.segmentText) if not new_ui else item.segmentText
-        _default_score = 0 if new_ui else -1
+        if not new_ui:
+            _source_text = escape(item.segmentText)
+            _default_score = -1
+        else:
+            _source_text = item.segmentText
+            _default_score = 50
+
+        if escape_eos:
+            _source_text = _source_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            )
+            _candidate1_text = _candidate1_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            )
+            _candidate2_text = _candidate2_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            )
+
+        if escape_br:
+            _source_text = _source_text.replace("&lt;br/&gt;", "<br/>")
+            _candidate1_text = _candidate1_text.replace(
+                "&lt;br/&gt;", "<br/>"
+            )
+            _candidate2_text = _candidate2_text.replace(
+                "&lt;br/&gt;", "<br/>"
+            )
+
         item_scores = {
             'completed': bool(result and result.score1 > -1),
             'current_item': bool(item.id == current_item.id),
             'score1': result.score1 if result else _default_score,
             'score2': result.score2 if result else _default_score,
-            'candidate1_text': _candidate1_text.replace(
-                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
-            ).replace("&lt;br/&gt;", "<br/>"),
-            'candidate2_text': _candidate2_text.replace(
-                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
-            ).replace("&lt;br/&gt;", "<br/>"),
-            'segment_text': _source_text 
-            .replace("&lt;eos&gt;", "<code>&lt;eos&gt;</code>")
-            .replace("&lt;br/&gt;", "<br/>"),
+            'candidate1_text': _candidate1_text,
+            'candidate2_text': _candidate2_text,
+            'segment_text': _source_text,
         }
         block_scores.append(item_scores)
 
@@ -2368,6 +2388,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
 
     page_context = {
         'items': zip(block_items, block_scores),
+        'num_items': len(block_items),
         'reference_label': reference_label,
         'candidate1_label': candidate1_label,
         'candidate2_label': candidate2_label,

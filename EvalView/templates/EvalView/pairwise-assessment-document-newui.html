@@ -17,35 +17,35 @@
 .half-slider .slider-grid td:last-of-type { padding-right:0; }
 .half-slider .slider { margin-top:5px !important; }
 
-.quotelike { }
 .quotelike .row, .pseudoquotelike .row { font-size: 16px; margin: 0; }
 .quotelike.active { background-color: #f7f7f7; }
 
-.question-box { margin-bottom:10px; }
-.question-box p { font-size: 120%; margin: 10px 0 20px; font-style: italic; color: #31708f; }
+.question-box { }
+.question-box p { font-size: 120%; margin: 10px 0; font-style: italic; color: #31708f; }
 .question-box li { font-size: 100%; font-style: italic; color: #31708f; }
 .document-box { padding-top: 10px; }
 .document-box p { font-size: 16px; }
 
-.item-box { margin-bottom: 20px; }
-/*
-.item-odd { }
-.item-even { background-color:#f8f8f8; }
-*/
-.item-box:last-of-type { background-color:inherit; }
-.item-box emph { font-weight:bold; }
+.item-box emph { font-weight:bold; font-style: italic; }
 
 .item-static-content p { opacity:0.5; font-style:italic; }
 .thumb-up, .thumb-down { cursor:pointer; }
 .thumb-up.active { color: #4CAF50; }
 .thumb-down.active { color: #F44336; }
 
+.source-box { color:#31708f; font-style:italic;}
+.source-box, .candidate-text-a, .candidate-text-b { padding-top: 10px; padding-bottom: 10px; }
+/*
+.candidate-text-a { background: #f0f0f0; }
+.candidate-text-b { background: #f7f7f7; }
+*/
+
 .source-box-hoverable:hover { background: #f5f5f5; cursor: pointer; }
 .source-btn-toggle { float: right; padding-right:10px; }
 .source-btn-done { float: right; display: none; padding-bottom:5px; padding-left:5px; }
 .preview-box .row { padding-top:0; font-size:95%; /*font-weight:bold;*/ }
 
-.candidate-text.active .diff { background: #ff06 !important; }
+.candidate-text.active .diff { background: #F0E8A6 !important; }
 .segment-label { display:block; font-size:small; font-style:italic; }
 
 .toggleable { display:none; }
@@ -118,19 +118,19 @@ $(document).ready(function() {
     // Bind thumbs up/down click events to update score1/score2
     $('.thumb-up').click(click_thumb_up);
     $('.thumb-down').click(click_thumb_down);
-    
+
     // Bind click events
     // TODO: remove as there will be no slider here
     $('.slider').slider({orientation: "horizontal", range: "min", change: update_score });
-    if (ENABLE_UNRESTRICTED_ANNOTATION) {
-        $('.source-btn-toggle').hide(0);
-    } else {
+    if (! ENABLE_UNRESTRICTED_ANNOTATION) {
         $('.source-box').removeClass('source-box-hoverable');
-        $('.source-btn-toggle').hide(0);
         $('.control-box').hide(0);
     }
+
+    // TODO: not needed
     // All except the document-level item send Ajax POST request
-    $('.button-next').not(':last').click(submit_form);
+   // $('.button-next').not(':last').click(submit_form);
+
     // The last item doesn't send Ajax request
     $('.button-next').last().click(last_form);
 
@@ -144,33 +144,21 @@ $(document).ready(function() {
             // Which candidate translation is it?
             var candidate_num = $(this).attr('name').slice(-1);
             var score = $(this).val();
-            // Score eq 0 is default, scores eq 1 is thumbs-down, scores eq 2 is thumbs-up
-            if(score == 2){
+            // Score eq 50 is default, scores eq 40 is thumbs-down, scores eq 60 is thumbs-up
+            if(score > 50){
                 item_box.find('.thumb-up.slider' + candidate_num).addClass('active');
-            } else if(score == 1){
+            } else if(score < 50){
                 item_box.find('.thumb-down.slider' + candidate_num).addClass('active');
             }
-            item_box.find('button[name="next_button"]').text('Update');
         } else if(next_item === undefined) {
             next_item = item_box;
         }
     });
 
-    // Activate current item; this will have no effect for the document-level item
-    // next_item.find('.source-box').click();
-    _show_target_box.call(next_item);
-
-    // Disable document-level item unless all individual sentences are scored
-    if (! _all_sentences_scored())
-        _disable_document_box();
-
     $('#button-full-screen').click(toggle_full_screen);
     if (Cookies.get('full-screen') != 'no') {
       $('.container').addClass('full-screen');
     }
-
-    // TODO: keep all thumbs up/down expanded all the time, i.e., remove toggling of sliders
-    open_all_items();
 
     // Show guidelines in a popup box
     $('#guidelines-modal').modal('show');
@@ -180,34 +168,42 @@ function click_thumb_up() {
     var thumb_up = $(this);
     var thumb_down = $(this).siblings('.thumb-down');
 
-    var item = thumb_up.closest('.item-box').find('input[name="score' + thumb_up.attr('class').slice(-1) + '"]');
+    var item_box = thumb_up.closest('.item-box');
+    var item = item_box.find('input[name="score' + thumb_up.attr('class').slice(-1) + '"]');
+
     if (thumb_up.hasClass('active')) {
         thumb_up.removeClass('active');
-        item.val(0);
+        item.val(50);
     } else if (thumb_down.hasClass('active')) {
         thumb_down.removeClass('active');
-        item.val(0);
+        item.val(50);
     } else {
         thumb_up.addClass('active');
-        item.val(2);
+        item.val(60);
     }
+
+    submit_form(item_box.data('item-id'));
 }
 
 function click_thumb_down() {
     var thumb_down = $(this);
     var thumb_up = $(this).siblings('.thumb-up');
 
-    var item = thumb_down.closest('.item-box').find('input[name="score' + thumb_down.attr('class').slice(-1) + '"]');
+    var item_box = thumb_down.closest('.item-box');
+    var item = item_box.find('input[name="score' + thumb_down.attr('class').slice(-1) + '"]');
+
     if (thumb_down.hasClass('active')) {
         thumb_down.removeClass('active');
-        item.val(0);
+        item.val(50);
     } else if (thumb_up.hasClass('active')) {
         thumb_up.removeClass('active');
-        item.val(0);
+        item.val(50);
     } else {
         thumb_down.addClass('active');
-        item.val(1);
+        item.val(40);
     }
+
+    submit_form(item_box.data('item-id'));
 }
 
 function _all_sentences_scored() {
@@ -217,37 +213,6 @@ function _all_sentences_scored() {
     console.log('Items left:', num);
     // 1 because the document-level score is also counted
     return num <= 1;
-}
-
-function _enable_document_box() {
-    // Enable buttons and slider for document evaluation if they were disabled
-    $('.document-box').find('button').attr('disabled', false);
-    $('.document-box').find('.slider').slider('enable');
-}
-function _disable_document_box() {
-    $('.document-box').find('button').attr('disabled', true);
-    $('.document-box').find('.slider').slider('disable');
-}
-
-function _show_target_box() {
-    var item_box = $(this).closest('.item-box');
-    // Show only if not shown yet
-    if(item_box.find('.target-box').is(':hidden')) {
-        item_box.find('.toggleable').animate({height: 'toggle'}, 0);
-        item_box.addClass('active');
-        _change_item_toggle_icon(item_box, 'up');
-    }
-    // Reset start timestamp
-    item_box.find('input[name="start_timestamp"]').val(Date.now()/1000.0);
-}
-function _hide_target_box() {
-    var item_box = $(this).closest('.item-box');
-    // Hide only if not hidden yet
-    if(!item_box.find('.target-box.toggleable').is(':hidden')) {
-        item_box.find('.toggleable').animate({height: 'toggle'}, 0);
-        item_box.removeClass('active');
-        _change_item_toggle_icon(item_box, 'down');
-    }
 }
 
 function toggle_diff() {
@@ -284,19 +249,14 @@ function _change_item_status_icon(item_box, icon_name) {
         icon_box.addClass('glyphicon-refresh').show();
     }
 }
-function _change_item_toggle_icon(item_box, icon_name) {
-    var icon_box = item_box.find('.source-btn-toggle').removeClass('glyphicon-menu-down glyphicon-menu-up');
-    if ('down' == icon_name) {
-        icon_box.addClass('glyphicon-menu-down');
-    } else if ('up' == icon_name) {
-        icon_box.addClass('glyphicon-menu-up');
-    }
-}
 
-function submit_form(e) {
-    var item_box = $(this).closest('.item-box');
-    var button_type = $(this).attr('type');
-    var button_text = $(this).text();
+function submit_form(item_id) {
+    console.log('submit_form:', item_id);
+
+    //var item_box = $(this).closest('.item-box');
+
+    // get item-box from item_id
+    var item_box = $('.item-box[data-item-id="' + item_id + '"]');
 
     // Validate form
     var score1 = item_box.find('input[name="score1"]').val();
@@ -312,9 +272,8 @@ function submit_form(e) {
     item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
 
     // Ajax request
-    // Checking if the button type is submit is for debugging purposes
-    if (ENABLE_AJAX && button_type == 'submit') {
-        e.preventDefault();
+    if (ENABLE_AJAX) {
+        //e.preventDefault();
 
         // Say server that the client expect JSON response
         item_box.find('input[name="ajax"]').val('True');
@@ -346,11 +305,6 @@ function submit_form(e) {
                     item_box.data('item-completed', 'True');
                     item_box.data('item-score1', score1);
                     item_box.data('item-score2', score2);
-                    // Change submit button label to 'Update'
-                    item_box.find('button[name="next_button"]').text('Update');
-
-                    if (_all_sentences_scored())
-                        _enable_document_box();
                 } else {
                     _change_item_status_icon(item_box, 'none');
                     _show_error_box(item_box, data.error_msg);
@@ -375,39 +329,36 @@ function submit_form(e) {
         count_box.text( parseInt(count_box.text()) - 1 );
         var citem_idx = $('#current-item-id');
         citem_idx.text( parseInt(citem_idx.text()) + 1 );
-
-        if (_all_sentences_scored())
-            _enable_document_box();
     }
 
     return true;
 }
 
-function last_form() {
+function last_form(e) {
     var item_box = $(this).closest('.item-box');
     // Validate form
     var score1 = item_box.find('input[name="score1"]').val();
     var score2 = item_box.find('input[name="score2"]').val();
     var index = item_box.data('item-id');
-    if (score1 == -1 || score2 == -1) {
-        alert('Please score the document translations. Thanks!');
-        return false;
-    }
-    // It is a security check, but this should never occur, because the last
-    // item is disabled if there is at least one sentence that is not scored
+
     if (!_all_sentences_scored()) {
-        alert('Please score all sentences from the document first. Thanks!');
-        return false;
+        // for each item box with data-item-completed=False, submit the form
+        $('.item-box').not(':last').each(function() {
+            var item_box = $(this);
+            console.log('Checking item:', item_box.data('item-id'), item_box.data('item-completed'));
+            if(item_box.data('item-completed') == "False") {
+                // click submit button in this item box
+                // TODO: this is slow, so at least show loading icon
+                //item_box.find('button[name="next_button"]').click();
+
+                var item_id = item_box.data('item-id');
+                console.log('Submitting item:', item_id);
+                submit_form.click(item_id);
+            }
+        });
     }
     // Add end timestamp
     item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
-}
-
-function open_all_items() {
-    $('.item-box.quotelike').each(function() {
-        var item_box = $(this);
-        _show_target_box.call(item_box);
-    });
 }
 
 function _show_error_box(item_box, msg) {
@@ -432,12 +383,9 @@ function _show_error_box(item_box, msg) {
         <tr>
             <td style="width:33%;text-align:left;">
                 <strong id="task_progress">
-                    {% if trusted_user %}
-                    <span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span>
-                    {% endif %}
                     {{completed_blocks}}/{{total_blocks}} documents,
-                    <span id="items-left-counter">{{items_left_in_block}}</span>
-                    items left in document
+                    <span id="items-left-counter">{{num_items}}</span>
+                    segment(s) in document
                 </strong>
             </td>
             <td style="width:33%;text-align:center;">
@@ -450,7 +398,7 @@ function _show_error_box(item_box, msg) {
     </table>
 </div>
 
-<div class="question-box">
+<div class="question-box alert alert-info">
     <div class="row">
         <div class="col-sm-12">
             <p>Instructions will be shown here.</p>
@@ -458,9 +406,9 @@ function _show_error_box(item_box, msg) {
     </div>
     <div class="row">
         <div class="col-sm-12">
-            <p class="pull-left control-box">
-                <button id="button-full-screen" class="btn btn-info btn-sm">Wide/Narrow screen</button>
-            </p>
+            <span class="pull-right control-box">
+            <button id="button-full-screen" class="btn btn-info btn-sm">Wide/Narrow screen</button>
+            </span>
         </div>
     </div>
 </div>
@@ -470,29 +418,20 @@ function _show_error_box(item_box, msg) {
 {% endif %}
 
 <div class="item-box item-odd item-static-content pseudoquotelike">
-        <div class="source-box">
-            <div class="row">
-                {% if not monolingual %}
-                <div class="col-sm-3">
-                    <p>{{ reference_label }}</p>
-                </div>
-                <div class="col-sm-4">
-                    <p>{{ candidate1_label }}</p>
-                </div>
-                <div class="col-sm-4">
-                    <p>{{ candidate2_label }}</p>
-                </div>
-
-                {% else %}
-                <div class="col-sm-6">
-                    <p>{{ candidate1_label }}</p>
-                </div>
-                <div class="col-sm-6">
-                    <p>{{ candidate2_label }}</p>
-                </div>
-                {% endif %}
-            </div>
+    <div class="row">
+        {% if not monolingual %}
+        <div class="col-sm-4">
+            <p>{{ reference_label }}</p>
         </div>
+        {% endif %}
+
+        <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %}">
+            <p>{{ candidate1_label }}</p>
+        </div>
+        <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %}">
+            <p>{{ candidate2_label }}</p>
+        </div>
+    </div>
 </div>
 
 {% for item,scores in items %}
@@ -523,43 +462,29 @@ function _show_error_box(item_box, msg) {
         <div class="source-box-hoverable">
             <div class="row">
                 {% if not monolingual %}
-                <div class="source-box col-sm-3">
-                    <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
-                    <p>{{ scores.segment_text|safe }}</p>
-                </div>
-                {% else %}
-                <div class="source-box col-sm-1">
-                    <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
+                <div class="source-box col-sm-4">
+                    <span>{{ scores.segment_text|safe }}</span>
                 </div>
                 {% endif %}
 
-                <div class="{% if monolingual %}col-sm-5{% else %}col-sm-4{% endif %}">
-                    <span class="source-box candidate-text">{{scores.candidate1_text|safe}}</span>
+                <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %} candidate-text-a">
+                    <span class="candidate-text">{{scores.candidate1_text|safe}}</span>
 
-            <div class="row half-slider target-box toggleable">
-            {% with sliderid=item.itemID slidernum=1 %}
-            {% include 'EvalView/_thumbs.html' %}
-            {% endwith %}
-            </div>
-
-                </div>
-                <div class="{% if monolingual %}col-sm-5{% else %}col-sm-4{% endif %}">
-                    <p class="source-box candidate-text"><span>{{scores.candidate2_text|safe}}</span></p>
-
-            <div class="row half-slider target-box toggleable">
-            {% with sliderid=item.itemID slidernum=2 %}
-            {% include 'EvalView/_thumbs.html' %}
-            {% endwith %}
-            </div>
+                    <div class="row half-slider target-box">
+                    {% with sliderid=item.itemID slidernum=1 %}
+                    {% include 'EvalView/_thumbs.html' %}
+                    {% endwith %}
+                    </div>
 
                 </div>
-                <div class="col-sm-1">
-                    <span class="source-btn-done glyphicon glyphicon-ok"></span>
+                <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %} candidate-text-b">
+                    <span class="candidate-text candidate-text-b">{{scores.candidate2_text|safe}}</span>
 
-                    <div class="target-box toggleable">
-                        <button class="btn button-next btn-primary" name="next_button" accesskey="1"
-                                type="submit" value="{{ item.itemID }}">Submit</button>
-                     </div>
+                    <div class="row half-slider target-box">
+                    {% with sliderid=item.itemID slidernum=2 %}
+                    {% include 'EvalView/_thumbs.html' %}
+                    {% endwith %}
+                    </div>
 
                 </div>
             </div>
@@ -567,9 +492,9 @@ function _show_error_box(item_box, msg) {
 
         {% else %} <!-- item.isCompleteDocument -->
 
-        <div class="question-box">
+        <div class="question-box alert alert-info">
             <div class="row">
-                <div class="col-sm-12 question-box">
+                <div class="col-sm-12">
                     <p>Instructions will be shown here.</p>
                 </div>
             </div>
