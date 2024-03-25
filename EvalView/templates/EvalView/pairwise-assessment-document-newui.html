@@ -4,12 +4,6 @@
 {% block head %}
 <style>
 .full-screen { width:100% !important; }
-.slider .ui-slider-range { background: #729fcf; }
-.slider .ui-slider-handle { border-color: #729fcf; }
-.slider { margin-top: 10px; }
-.slider small { font-size:80%; }
-.slider-box { font-size:16px; width:100%; }
-.slider-box .slider-grid { font-size:14px; width:100%; color:#777; }
 
 .half-slider { padding:0 !important; }
 .half-slider .col-sm-12 { padding:0; }
@@ -55,12 +49,9 @@
 .target-box.active { display:block; }
 .target-box .btn { margin-top:10px; min-width:71px; margin-right:5px; }
 
-.system-label { display:none; }
+#preference-box label { margin-left:40px; }
 
-.action-box  { width: 100%; }
-.action-box td { padding-bottom:10px; }
-.action-box .btn { margin: 0 40px; }
-/*.document-box .btn { margin: 10px 5px 0; }*/
+/* .loading-icon{width:32px;height:32px;border:4px solid #0078d4;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;} */
 
 /* .col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9 { padding-left:10px; padding-right:10px; } */
 
@@ -131,11 +122,12 @@ $(document).ready(function() {
     // All except the document-level item send Ajax POST request
    // $('.button-next').not(':last').click(submit_form);
 
+    // Bind changing preference radio buttons to setting score1/score2
+    $('#preference-box input[type="radio"]').change(change_preference);
+
     // The last item doesn't send Ajax request
     $('.button-next').last().click(last_form);
 
-    // First unannotated item-box, i.e. with data-item-completed=False
-    var next_item;
     // Update thumbs up/down for annotated items
     $('input[name^="score"]').each(function() {
         var item_box = $(this).closest('.item-box');
@@ -150,11 +142,15 @@ $(document).ready(function() {
             } else if(score < 50){
                 item_box.find('.thumb-down.slider' + candidate_num).addClass('active');
             }
-        } else if(next_item === undefined) {
-            next_item = item_box;
         }
     });
 
+    /*
+    $('#button-show-diff').click(toggle_diff);
+    if (Cookies.get('show-diff') != 'no') {
+      $('.candidate-text').addClass('active');
+    }
+    */
     $('#button-full-screen').click(toggle_full_screen);
     if (Cookies.get('full-screen') != 'no') {
       $('.container').addClass('full-screen');
@@ -206,13 +202,24 @@ function click_thumb_down() {
     submit_form(item_box.data('item-id'));
 }
 
-function _all_sentences_scored() {
-    var num = $('.item-box').filter(function() {
-        return $(this).data('item-completed') == "False";
-    }).length;
-    console.log('Items left:', num);
-    // 1 because the document-level score is also counted
-    return num <= 1;
+function change_preference() {
+    var preference = $(this).val();
+    var item_box = $(this).closest('.item-box');
+    var score1 = item_box.find('input[name="score1"]');
+    var score2 = item_box.find('input[name="score2"]');
+    if (preference == 'A') {
+        score1.val(60);
+        score2.val(40);
+    } else if (preference == 'B') {
+        score1.val(40);
+        score2.val(60);
+    } else {
+        score1.val(50);
+        score2.val(50);
+    }
+    console.log('Preference changed to:', preference, 'scores:', score1.val(), score2.val());
+    // enable button-doc
+    $('#button-doc').prop('disabled', false);
 }
 
 function toggle_diff() {
@@ -223,7 +230,7 @@ function toggle_diff() {
     } else {
         $('.candidate-text').addClass('active');
     }
-   // Cookies.set('show-diff', isActive ? 'no' : 'yes', { sameSite: 'strict' });
+   Cookies.set('show-diff', isActive ? 'no' : 'yes', { sameSite: 'strict' });
 }
 
 function toggle_full_screen() {
@@ -243,18 +250,7 @@ function update_score() {
     new_input.val(new_score);
 }
 
-function _change_item_status_icon(item_box, icon_name) {
-    var icon_box = item_box.find('.source-btn-done').removeClass('glyphicon-refresh glyphicon-ok');
-    if ('refresh' == icon_name) {
-        icon_box.addClass('glyphicon-refresh').show();
-    }
-}
-
 function submit_form(item_id) {
-    console.log('submit_form:', item_id);
-
-    //var item_box = $(this).closest('.item-box');
-
     // get item-box from item_id
     var item_box = $('.item-box[data-item-id="' + item_id + '"]');
 
@@ -273,8 +269,6 @@ function submit_form(item_id) {
 
     // Ajax request
     if (ENABLE_AJAX) {
-        //e.preventDefault();
-
         // Say server that the client expect JSON response
         item_box.find('input[name="ajax"]').val('True');
 
@@ -291,12 +285,12 @@ function submit_form(item_id) {
             dataType: 'json',
             beforeSend: function() {
                 console.log('Sending Ajax request, item-id=', item_box.data('item-id'));
-                _change_item_status_icon(item_box, 'refresh');
+                //_change_item_status_icon(item_box, 'refresh');
             },
             success: function(data) {
-                console.log('Success, saved=', data.saved, 'next_item=', data.item_id);
+                console.log('Success, saved=', data.saved, 'next-item-id=', data.item_id);
                 if (data.saved) {
-                    _change_item_status_icon(item_box, 'ok');
+                    //_change_item_status_icon(item_box, 'ok');
                     // Update counters
                     $('#items-left-counter').text(data.items_left_in_block);
                     $('#current-item-id').text(data.item_id);
@@ -306,14 +300,14 @@ function submit_form(item_id) {
                     item_box.data('item-score1', score1);
                     item_box.data('item-score2', score2);
                 } else {
-                    _change_item_status_icon(item_box, 'none');
+                    //_change_item_status_icon(item_box, 'none');
                     _show_error_box(item_box, data.error_msg);
                 }
             },
             error: function(x,s,t) {
                 console.log('Error:', x, s, t);
 
-                _change_item_status_icon(item_box, 'none');
+                //_change_item_status_icon(item_box, 'none');
                 _show_error_box(item_box,
                     'An unrecognized error has occured. ' +
                     'Please reload the page or try again in a moment. ' +
@@ -323,7 +317,6 @@ function submit_form(item_id) {
         });
 
     } else {
-        _change_item_status_icon(item_box, 'ok');
         // Update counters
         var count_box = $('#items-left-counter');
         count_box.text( parseInt(count_box.text()) - 1 );
@@ -344,22 +337,27 @@ function last_form(e) {
     var score2 = item_box.find('input[name="score2"]').val();
     var index = item_box.data('item-id');
 
-    if (!_all_sentences_scored()) {
-        // for each item box with data-item-completed=False, submit the form
-        $('.item-box').not(':last').each(function() {
-            var item_box = $(this);
-            //console.log('Checking item:', item_box.data('item-id'), item_box.data('item-completed'));
-            if(item_box.data('item-completed') == "False") {
-                // click submit button in this item box
-                // TODO: this is slow, so at least show loading icon
-                //item_box.find('button[name="next_button"]').click();
-
-                var item_id = item_box.data('item-id');
-                console.log('Submitting item:', item_id);
-                submit_form(item_id);
-            }
-        });
+    // check if preference is made and if not, show alert
+    var preference = $('input[name="preference"]:checked').val();
+    if (preference == undefined) {
+        alert('Please choose your preference before moving to the next document.');
+        return false;
     }
+
+    // display loading message
+    $('#button-doc').after('<p>Submitting your answer(s). You will be redirected to the next document shortly...</p>');
+
+    // for each item box with data-item-completed=False, submit the form
+    $('.item-box').not(':last').each(function() {
+        var item_box = $(this);
+        if(item_box.data('item-completed') == "False") {
+            // click submit button in this item box
+            // TODO: this is slow, so at least show loading icon
+            var item_id = item_box.data('item-id');
+            submit_form(item_id);
+        }
+    });
+
     // Add end timestamp
     item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
 }
@@ -404,13 +402,21 @@ function _show_error_box(item_box, msg) {
 <div class="question-box alert alert-info">
     <div class="row">
         <div class="col-sm-12">
-            <p>Instructions will be shown here.</p>
+            {% if monolingual %}
+            <p>Below you see two translations A and B into {{ target_language }}.
+            Please read and compare both translations and decide which one is preferrable.</p>
+            {% else %}
+            <p>Below you see the original text in {{ source_language }} and two alternative translations A and B into {{ target_language }}.
+            Please read and compare both translations and decide which one is preferrable.</p>
+            {% endif %}
+            <p>You can use thumb up/down icons to independently upvote or downvote specific fragments to guide you in the final decision, but they are not required.</p>
         </div>
     </div>
     <div class="row">
         <div class="col-sm-12">
             <span class="pull-right control-box">
-            <button id="button-full-screen" class="btn btn-info btn-sm">Wide/Narrow screen</button>
+                <!--<button id="button-show-diff" class="btn btn-info btn-sm">Show/Hide diff.</button>-->
+                <button id="button-full-screen" class="btn btn-info btn-sm">Wide/Narrow screen</button>
             </span>
         </div>
     </div>
@@ -498,37 +504,20 @@ function _show_error_box(item_box, msg) {
         <div class="question-box alert alert-info">
             <div class="row">
                 <div class="col-sm-12">
-                    <p>Instructions will be shown here.</p>
+                    <p>Which translation do you prefer?</p>
+
+                    <div id="preference-box">
+                        <p>
+                        <label class="radio"> <input type="radio" name="preference" id="preference-1" value="A"> {{ candidate1_label }} </label>
+                        <label class="radio"> <input type="radio" name="preference" id="preference-2" value="B"> {{ candidate2_label }} </label>
+                        <label class="radio"> <input type="radio" name="preference" id="preference-0" value="0"> No difference </label>
+                        </p>
+                    </div>
+
+                    <button id="button-doc" class="btn button-next btn-primary" name="next_button" accesskey="1"
+                            type="submit" value="{{ item.itemID }}" disabled>Submit</button>
                 </div>
             </div>
-        </div>
-
-        <div class="target-box document-box quotelike">
-            <div class="row">
-            <div class="col-sm-6">
-                <small class="segment-label">{{ candidate1_label }}</small>
-            <!-- TODO: replace the slider with voting -->
-            {% with sliderid=item.itemID slidernum=1 %}
-            {% include 'EvalView/_slider.html' %}
-            {% endwith %}
-            </div>
-            <div class="col-sm-6">
-                <small class="segment-label">{{ candidate2_label }}</small>
-            <!-- TODO: replace the slider with voting -->
-            {% with sliderid=item.itemID slidernum=2 %}
-            {% include 'EvalView/_slider.html' %}
-            {% endwith %}
-            </div>
-            </div>
-
-            <table class="action-box">
-                <tr>
-                    <td style="width:30%;text-align:right;">
-                        <button id="button-doc" class="btn button-next btn-primary" name="next_button" accesskey="1"
-                                type="submit" value="{{ item.itemID }}">Submit</button>
-                    </td>
-                </tr>
-            </table>
         </div>
 
         {% endif %}

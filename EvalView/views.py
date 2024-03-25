@@ -2278,8 +2278,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     t4 = datetime.now()
 
     reference_label = 'Source text'
-    candidate1_label = 'Candidate translation (A)'
-    candidate2_label = 'Candidate translation (B)'
+    candidate1_label = 'Translation A'
+    candidate2_label = 'Translation B'
 
     priming_question_texts = [
         'Below you see a document with {0} sentences in {1} (left columns) '
@@ -2333,8 +2333,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             'the whole document only after scoring all individual sentences from all '
             'documents first).',
         ]
-        candidate1_label = 'Sentence A'
-        candidate2_label = 'Sentence B'
+        candidate1_label = 'Translation A'
+        candidate2_label = 'Translation B'
 
     if doc_guidelines:
         priming_question_texts = [
