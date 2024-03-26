@@ -6,7 +6,7 @@
     "REDUNDANCY": 1,
 
     "TASKS_TO_ANNOTATORS": [
-        ["eng", "deu", "uniform",  1, 1]
+        ["deu", "eng", "uniform",  1, 1]
     ],
 
     "TASK_TYPE": "PairwiseDocument",
