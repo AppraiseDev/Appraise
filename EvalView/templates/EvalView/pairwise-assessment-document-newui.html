@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block head %}
+<link rel="icon" href="data:;base64,=">
 <style>
 .full-screen { width:100% !important; }
 
@@ -12,9 +13,7 @@
 .half-slider .slider { margin-top:5px !important; }
 
 .quotelike .row, .pseudoquotelike .row { font-size: 16px; margin: 0; }
-.quotelike.active { background-color: #f7f7f7; }
 
-.question-box { }
 .question-box p { font-size: 120%; margin: 10px 0; font-style: italic; color: #31708f; }
 .question-box li { font-size: 100%; font-style: italic; color: #31708f; }
 .document-box { padding-top: 10px; }
@@ -26,6 +25,10 @@
 .thumb-up, .thumb-down { cursor:pointer; }
 .thumb-up.active { color: #4CAF50; }
 .thumb-down.active { color: #F44336; }
+.thumbs-box { padding:0; }
+@media (max-width: 767px) {
+  .thumbs-box { font-size:150%; }
+}
 
 .source-box { color:#31708f; font-style:italic;}
 .source-box, .candidate-text-a, .candidate-text-b { padding-top: 10px; padding-bottom: 10px; }
@@ -51,9 +54,22 @@
 
 #preference-box label { margin-left:40px; }
 
-/* .loading-icon{width:32px;height:32px;border:4px solid #0078d4;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;} */
+#loading-box { display:none; }
+.loading-icon {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #ccc;
+    border-top: 4px solid #007bff; /* Change color as needed */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    transform: translate(-50%, -50%);
+    margin-left: 10px;
+}
 
-/* .col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9 { padding-left:10px; padding-right:10px; } */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
 
 /* Uncomment if ENABLE_UNRESTRICTED_ANNOTATION is set to false */
 /*.source-btn-toggle, .control-box { display:none; }*/
@@ -145,12 +161,13 @@ $(document).ready(function() {
         }
     });
 
-    /*
-    $('#button-show-diff').click(toggle_diff);
-    if (Cookies.get('show-diff') != 'no') {
-      $('.candidate-text').addClass('active');
+    {% if not monolingual %}
+    $('#button-source-column').click(toggle_source_column);
+    if (Cookies.get('show-source') == 'no') {
+        toggle_source_column();
     }
-    */
+    {% endif %}
+
     $('#button-full-screen').click(toggle_full_screen);
     if (Cookies.get('full-screen') != 'no') {
       $('.container').addClass('full-screen');
@@ -233,6 +250,21 @@ function toggle_diff() {
    Cookies.set('show-diff', isActive ? 'no' : 'yes', { sameSite: 'strict' });
 }
 
+function toggle_source_column() {
+    // check if .source-box are visible
+    var isVisible = $('.source-box').first().is(':visible');
+    if (isVisible) {
+        $('.source-box').hide();
+        $('.candidate-text-a').removeClass('col-sm-4').addClass('col-sm-6');
+        $('.candidate-text-b').removeClass('col-sm-4').addClass('col-sm-6');
+    } else {
+        $('.source-box').show();
+        $('.candidate-text-a').removeClass('col-sm-6').addClass('col-sm-4');
+        $('.candidate-text-b').removeClass('col-sm-6').addClass('col-sm-4');
+    }
+    Cookies.set('show-source', isVisible ? 'no' : 'yes', { sameSite: 'strict' });
+}
+
 function toggle_full_screen() {
     var isFullScreen = $('.container').first().hasClass('full-screen');
     if (isFullScreen) {
@@ -285,12 +317,10 @@ function submit_form(item_id) {
             dataType: 'json',
             beforeSend: function() {
                 console.log('Sending Ajax request, item-id=', item_box.data('item-id'));
-                //_change_item_status_icon(item_box, 'refresh');
             },
             success: function(data) {
                 console.log('Success, saved=', data.saved, 'next-item-id=', data.item_id);
                 if (data.saved) {
-                    //_change_item_status_icon(item_box, 'ok');
                     // Update counters
                     $('#items-left-counter').text(data.items_left_in_block);
                     $('#current-item-id').text(data.item_id);
@@ -300,14 +330,12 @@ function submit_form(item_id) {
                     item_box.data('item-score1', score1);
                     item_box.data('item-score2', score2);
                 } else {
-                    //_change_item_status_icon(item_box, 'none');
                     _show_error_box(item_box, data.error_msg);
                 }
             },
             error: function(x,s,t) {
                 console.log('Error:', x, s, t);
 
-                //_change_item_status_icon(item_box, 'none');
                 _show_error_box(item_box,
                     'An unrecognized error has occured. ' +
                     'Please reload the page or try again in a moment. ' +
@@ -345,7 +373,7 @@ function last_form(e) {
     }
 
     // display loading message
-    $('#button-doc').after('<p>Submitting your answer(s). You will be redirected to the next document shortly...</p>');
+    $('#loading-box').show();
 
     // for each item box with data-item-completed=False, submit the form
     $('.item-box').not(':last').each(function() {
@@ -415,7 +443,9 @@ function _show_error_box(item_box, msg) {
     <div class="row">
         <div class="col-sm-12">
             <span class="pull-right control-box">
-                <!--<button id="button-show-diff" class="btn btn-info btn-sm">Show/Hide diff.</button>-->
+                {% if not monolingual %}
+                <button id="button-source-column" class="btn btn-info btn-sm">Hide/Show source text</button>
+                {% endif %}
                 <button id="button-full-screen" class="btn btn-info btn-sm">Wide/Narrow screen</button>
             </span>
         </div>
@@ -429,15 +459,15 @@ function _show_error_box(item_box, msg) {
 <div class="item-static-content pseudoquotelike">
     <div class="row">
         {% if not monolingual %}
-        <div class="col-sm-4">
+        <div class="source-box col-sm-4">
             <p>{{ reference_label }}</p>
         </div>
         {% endif %}
 
-        <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %}">
+        <div class="candidate-text-a {% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %}">
             <p>{{ candidate1_label }}</p>
         </div>
-        <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %}">
+        <div class="candidate-text-b {% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %}">
             <p>{{ candidate2_label }}</p>
         </div>
     </div>
@@ -479,7 +509,7 @@ function _show_error_box(item_box, msg) {
                 <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %} candidate-text-a">
                     <span class="candidate-text">{{scores.candidate1_text|safe}}</span>
 
-                    <div class="row half-slider target-box">
+                    <div class="row">
                     {% with sliderid=item.itemID slidernum=1 %}
                     {% include 'EvalView/_thumbs.html' %}
                     {% endwith %}
@@ -487,9 +517,9 @@ function _show_error_box(item_box, msg) {
 
                 </div>
                 <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %} candidate-text-b">
-                    <span class="candidate-text candidate-text-b">{{scores.candidate2_text|safe}}</span>
+                    <span class="candidate-text">{{scores.candidate2_text|safe}}</span>
 
-                    <div class="row half-slider target-box">
+                    <div class="row">
                     {% with sliderid=item.itemID slidernum=2 %}
                     {% include 'EvalView/_thumbs.html' %}
                     {% endwith %}
@@ -516,6 +546,11 @@ function _show_error_box(item_box, msg) {
 
                     <button id="button-doc" class="btn button-next btn-primary" name="next_button" accesskey="1"
                             type="submit" value="{{ item.itemID }}" disabled>Submit</button>
+
+                    <div id="loading-box">
+                        <p class="pull-left">Submitting your answer(s). You will be redirected to the next document in few seconds...</p>
+                        <div class="pull-left loading-icon"></div>
+                    </div>
                 </div>
             </div>
         </div>
