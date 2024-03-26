@@ -163,7 +163,7 @@ $(document).ready(function() {
 
     {% if not monolingual %}
     $('#button-source-column').click(toggle_source_column);
-    if (Cookies.get('show-source') == 'no') {
+    if (Cookies.get('show-source') != 'yes') {
         toggle_source_column();
     }
     {% endif %}
@@ -437,14 +437,14 @@ function _show_error_box(item_box, msg) {
             <p>Below you see the original text in {{ source_language }} and two alternative translations A and B into {{ target_language }}.
             Please read and compare both translations and decide which one is preferrable.</p>
             {% endif %}
-            <p>You can use thumb up/down icons to independently upvote or downvote specific fragments to guide you in the final decision, but they are not required.</p>
+            <p>You can use thumbs up/down to independently upvote/downvote translations of specific fragments to guide you in the final decision later.</p>
         </div>
     </div>
     <div class="row">
         <div class="col-sm-12">
             <span class="pull-right control-box">
                 {% if not monolingual %}
-                <button id="button-source-column" class="btn btn-info btn-sm">Hide/Show source text</button>
+                <button id="button-source-column" class="btn btn-info btn-sm">Show/Hide source text</button>
                 {% endif %}
                 <button id="button-full-screen" class="btn btn-info btn-sm">Wide/Narrow screen</button>
             </span>
