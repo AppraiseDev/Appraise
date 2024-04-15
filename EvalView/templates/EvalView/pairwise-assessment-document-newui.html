@@ -22,9 +22,6 @@
 .item-box emph { font-weight:bold; font-style: italic; }
 
 .item-static-content p { opacity:0.5; font-style:italic; }
-.thumb-up, .thumb-down { cursor:pointer; }
-.thumb-up.active { color: #4CAF50; }
-.thumb-down.active { color: #F44336; }
 .thumbs-box { padding:0; }
 @media (max-width: 767px) {
   .thumbs-box { font-size:150%; }
@@ -69,6 +66,10 @@
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+.selected {
+    background-color: #b7ffdd;
 }
 
 /* Uncomment if ENABLE_UNRESTRICTED_ANNOTATION is set to false */
@@ -123,8 +124,6 @@ $(document).ready(function() {
     });
 
     // Bind thumbs up/down click events to update score1/score2
-    $('.thumb-up').click(click_thumb_up);
-    $('.thumb-down').click(click_thumb_down);
 
     // Bind click events
     // TODO: remove as there will be no slider here
@@ -148,11 +147,9 @@ $(document).ready(function() {
             // Which candidate translation is it?
             var candidate_num = $(this).attr('name').slice(-1);
             var score = $(this).val();
-            // Score eq 50 is default, scores eq 40 is thumbs-down, scores eq 60 is thumbs-up
+            // Score eq 50 is default, scores eq 60 is highlighted
             if(score > 50){
-                item_box.find('.thumb-up.slider' + candidate_num).addClass('active');
-            } else if(score < 50){
-                item_box.find('.thumb-down.slider' + candidate_num).addClass('active');
+                item_box.find('.candidate-text-' + (candidate_num === '1' ? 'a' : 'b')).addClass('selected');
             }
         }
     });
@@ -173,46 +170,33 @@ $(document).ready(function() {
     $('#guidelines-modal').modal('show');
 });
 
-function click_thumb_up() {
-    var thumb_up = $(this);
-    var thumb_down = $(this).siblings('.thumb-down');
+function selectTranslation(candidateNum, itemId) {
+    var itemBox = $('#item-' + itemId);
+    var score1Input = itemBox.find('input[name="score1"]');
+    var score2Input = itemBox.find('input[name="score2"]');
+    var candidateTextA = itemBox.find('.candidate-text-a');
+    var candidateTextB = itemBox.find('.candidate-text-b');
 
-    var item_box = thumb_up.closest('.item-box');
-    var item = item_box.find('input[name="score' + thumb_up.attr('class').slice(-1) + '"]');
+    candidateTextA.removeClass('selected');
+    candidateTextB.removeClass('selected');
 
-    if (thumb_up.hasClass('active')) {
-        thumb_up.removeClass('active');
-        item.val(50);
-    } else if (thumb_down.hasClass('active')) {
-        thumb_down.removeClass('active');
-        item.val(50);
+    if (candidateNum === 1 && score1Input.val() === '60') {
+        score1Input.val('50');
+    } else if (candidateNum === 2 && score2Input.val() === '60') {
+        score2Input.val('50');
     } else {
-        thumb_up.addClass('active');
-        item.val(60);
+        if (candidateNum === 1) {
+            candidateTextA.addClass('selected');
+            score1Input.val('60');
+            score2Input.val('50');
+        } else {
+            candidateTextB.addClass('selected');
+            score1Input.val('50');
+            score2Input.val('60');
+        }
     }
 
-    submit_form(item_box.data('item-id'));
-}
-
-function click_thumb_down() {
-    var thumb_down = $(this);
-    var thumb_up = $(this).siblings('.thumb-up');
-
-    var item_box = thumb_down.closest('.item-box');
-    var item = item_box.find('input[name="score' + thumb_down.attr('class').slice(-1) + '"]');
-
-    if (thumb_down.hasClass('active')) {
-        thumb_down.removeClass('active');
-        item.val(50);
-    } else if (thumb_up.hasClass('active')) {
-        thumb_up.removeClass('active');
-        item.val(50);
-    } else {
-        thumb_down.addClass('active');
-        item.val(40);
-    }
-
-    submit_form(item_box.data('item-id'));
+    submit_form(itemId);
 }
 
 function change_preference() {
@@ -509,25 +493,11 @@ function _show_error_box(item_box, msg) {
                 </div>
                 {% endif %}
 
-                <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %} candidate-text-a">
+                <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %} candidate-text-a" onclick="selectTranslation(1, {{ item.itemID }})">
                     <span class="candidate-text">{{scores.candidate1_text|safe}}</span>
-
-                    <div class="row">
-                    {% with sliderid=item.itemID slidernum=1 %}
-                    {% include 'EvalView/_thumbs.html' %}
-                    {% endwith %}
-                    </div>
-
                 </div>
-                <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %} candidate-text-b">
+                <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %} candidate-text-b" onclick="selectTranslation(2, {{ item.itemID }})">
                     <span class="candidate-text">{{scores.candidate2_text|safe}}</span>
-
-                    <div class="row">
-                    {% with sliderid=item.itemID slidernum=2 %}
-                    {% include 'EvalView/_thumbs.html' %}
-                    {% endwith %}
-                    </div>
-
                 </div>
             </div>
         </div>
