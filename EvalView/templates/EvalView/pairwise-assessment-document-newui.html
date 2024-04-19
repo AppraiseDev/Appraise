@@ -71,6 +71,10 @@
     100% { transform: rotate(360deg); }
 }
 
+.selected {
+    background-color: #b7ffdd;
+}
+
 /* Uncomment if ENABLE_UNRESTRICTED_ANNOTATION is set to false */
 /*.source-btn-toggle, .control-box { display:none; }*/
 </style>
@@ -148,12 +152,20 @@ $(document).ready(function() {
             // Which candidate translation is it?
             var candidate_num = $(this).attr('name').slice(-1);
             var score = $(this).val();
+
+            {% if highlight_style %}
+            // Score eq 50 is default, scores eq 60 is highlighted
+            if(score > 50){
+                item_box.find('.candidate-text-' + (candidate_num === '1' ? 'a' : 'b')).addClass('selected');
+            }
+            {% else %}
             // Score eq 50 is default, scores eq 40 is thumbs-down, scores eq 60 is thumbs-up
             if(score > 50){
                 item_box.find('.thumb-up.slider' + candidate_num).addClass('active');
             } else if(score < 50){
                 item_box.find('.thumb-down.slider' + candidate_num).addClass('active');
             }
+            {% endif %}
         }
     });
 
@@ -213,6 +225,35 @@ function click_thumb_down() {
     }
 
     submit_form(item_box.data('item-id'));
+}
+
+function selectTranslation(candidateNum, itemId) {
+    var itemBox = $('#item-' + itemId);
+    var score1Input = itemBox.find('input[name="score1"]');
+    var score2Input = itemBox.find('input[name="score2"]');
+    var candidateTextA = itemBox.find('.candidate-text-a');
+    var candidateTextB = itemBox.find('.candidate-text-b');
+
+    candidateTextA.removeClass('selected');
+    candidateTextB.removeClass('selected');
+
+    if (candidateNum === 1 && score1Input.val() === '60') {
+        score1Input.val('50');
+    } else if (candidateNum === 2 && score2Input.val() === '60') {
+        score2Input.val('50');
+    } else {
+        if (candidateNum === 1) {
+            candidateTextA.addClass('selected');
+            score1Input.val('60');
+            score2Input.val('50');
+        } else {
+            candidateTextB.addClass('selected');
+            score1Input.val('50');
+            score2Input.val('60');
+        }
+    }
+
+    submit_form(itemId);
 }
 
 function change_preference() {
@@ -440,7 +481,11 @@ function _show_error_box(item_box, msg) {
         <div class="col-sm-12">
             <p>Below you see two translated texts in {{ target_language }}: {{ candidate1_label }} and {{ candidate2_label }}.
             Please read and compare both translations and decide which one is preferrable.</p>
+            {% if highlight_style %}
+            <p>You can click and highlight each paragraph to independently mark your preferred translation to guide you in the final decision later.</p>
+            {% else %}
             <p>You can use thumbs up/down to independently upvote/downvote translations of specific fragments to guide you in the final decision later.</p>
+            {% endif %}
         </div>
     </div>
     <div class="row">
@@ -509,24 +554,28 @@ function _show_error_box(item_box, msg) {
                 </div>
                 {% endif %}
 
-                <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %} candidate-text-a">
+                <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %} candidate-text-a" {% if highlight_style %}onclick="selectTranslation(1, {{ item.itemID }})"{% endif %}>
                     <span class="candidate-text">{{scores.candidate1_text|safe}}</span>
 
+                    {% if not highlight_style %}
                     <div class="row">
                     {% with sliderid=item.itemID slidernum=1 %}
                     {% include 'EvalView/_thumbs.html' %}
                     {% endwith %}
                     </div>
+                    {% endif %}
 
                 </div>
-                <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %} candidate-text-b">
+                <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %} candidate-text-b" {% if highlight_style %}onclick="selectTranslation(2, {{ item.itemID }})"{% endif %}>
                     <span class="candidate-text">{{scores.candidate2_text|safe}}</span>
 
+                    {% if not highlight_style %}
                     <div class="row">
                     {% with sliderid=item.itemID slidernum=2 %}
                     {% include 'EvalView/_thumbs.html' %}
                     {% endwith %}
                     </div>
+                    {% endif %}
 
                 </div>
             </div>

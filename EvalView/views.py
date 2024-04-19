@@ -2221,6 +2221,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     new_ui = 'newui' in campaign_opts
     escape_eos = 'escapeeos' in campaign_opts
     escape_br = 'escapebr' in campaign_opts
+    highlight_style ='highlightstyle' in campaign_opts
 
     # Get item scores from the latest corresponding results
     block_scores = []
@@ -2378,6 +2379,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'static_context': static_context,
         'guidelines_popup': guidelines_popup,
         'doc_guidelines': doc_guidelines,
+        'highlight_style': highlight_style,
     }
 
     if ajax:
