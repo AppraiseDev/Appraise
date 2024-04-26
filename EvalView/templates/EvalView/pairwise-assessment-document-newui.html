@@ -102,6 +102,8 @@ var ENABLE_COLOR_LABELS = false;
 // (see line 51). This is purely esthetics.
 var ENABLE_UNRESTRICTED_ANNOTATION = true;
 
+var sourceVisible = true;
+
 String.prototype.rot13 = function() {
     return this.replace(/[a-zA-Z]/g, function(c) {
         return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
@@ -142,7 +144,10 @@ $(document).ready(function() {
     $('#preference-box input[type="radio"]').change(change_preference);
 
     // The last item doesn't send Ajax request
-    $('#button-doc').click(last_form);
+    $('#button-doc').on('mousedown', function() {
+        // show loading box
+        $('#loading-box').css('display', 'block');
+    }).on('click', last_form);
 
     // Update thumbs up/down for annotated items
     $('input[name^="score"]').each(function() {
@@ -155,12 +160,12 @@ $(document).ready(function() {
 
             {% if highlight_style %}
             // Score eq 50 is default, scores eq 60 is highlighted
-            if(score > 50){
+            if(score > 51){
                 item_box.find('.candidate-text-' + (candidate_num === '1' ? 'a' : 'b')).addClass('selected');
             }
             {% else %}
             // Score eq 50 is default, scores eq 40 is thumbs-down, scores eq 60 is thumbs-up
-            if(score > 50){
+            if(score > 51){
                 item_box.find('.thumb-up.slider' + candidate_num).addClass('active');
             } else if(score < 50){
                 item_box.find('.thumb-down.slider' + candidate_num).addClass('active');
@@ -190,7 +195,10 @@ function click_thumb_up() {
     var thumb_down = $(this).siblings('.thumb-down');
 
     var item_box = thumb_up.closest('.item-box');
-    var item = item_box.find('input[name="score' + thumb_up.attr('class').slice(-1) + '"]');
+    var slider_class = thumb_up.attr('class').split(' ').find(function(cls) {
+        return cls.startsWith('slider');
+    });
+    var item = item_box.find('input[name="score' + slider_class.slice(-1) + '"]');
 
     if (thumb_up.hasClass('active')) {
         thumb_up.removeClass('active');
@@ -211,7 +219,10 @@ function click_thumb_down() {
     var thumb_up = $(this).siblings('.thumb-up');
 
     var item_box = thumb_down.closest('.item-box');
-    var item = item_box.find('input[name="score' + thumb_down.attr('class').slice(-1) + '"]');
+    var slider_class = thumb_down.attr('class').split(' ').find(function(cls) {
+        return cls.startsWith('slider');
+    });
+    var item = item_box.find('input[name="score' + slider_class.slice(-1) + '"]');
 
     if (thumb_down.hasClass('active')) {
         thumb_down.removeClass('active');
@@ -237,9 +248,9 @@ function selectTranslation(candidateNum, itemId) {
     candidateTextA.removeClass('selected');
     candidateTextB.removeClass('selected');
 
-    if (candidateNum === 1 && score1Input.val() === '60') {
+    if ((candidateNum === 1 && score1Input.val() >= 60) ||
+        (candidateNum === 2 && score2Input.val() >= 60)) {
         score1Input.val('50');
-    } else if (candidateNum === 2 && score2Input.val() === '60') {
         score2Input.val('50');
     } else {
         if (candidateNum === 1) {
@@ -262,14 +273,14 @@ function change_preference() {
     var score1 = item_box.find('input[name="score1"]');
     var score2 = item_box.find('input[name="score2"]');
     if (preference == 'A') {
-        score1.val(60);
-        score2.val(40);
+        score1.val(sourceVisible ? 61 : 60);
+        score2.val(sourceVisible ? 41 : 40);
     } else if (preference == 'B') {
-        score1.val(40);
-        score2.val(60);
+        score1.val(sourceVisible ? 41 : 40);
+        score2.val(sourceVisible ? 61 : 60);
     } else {
-        score1.val(50);
-        score2.val(50);
+        score1.val(sourceVisible ? 51 : 50);
+        score2.val(sourceVisible ? 51 : 50);
     }
     console.log('Preference changed to:', preference, 'scores:', score1.val(), score2.val());
     // enable button-doc
@@ -299,6 +310,8 @@ function toggle_source_column() {
         $('.candidate-text-a').removeClass('col-sm-6').addClass('col-sm-4');
         $('.candidate-text-b').removeClass('col-sm-6').addClass('col-sm-4');
     }
+    // update sourceVisible
+    sourceVisible = !isVisible;
     Cookies.set('show-source', isVisible ? 'no' : 'yes', { sameSite: 'strict' });
 }
 
@@ -335,6 +348,14 @@ function submit_form(item_id, async=true) {
 
     // Add end timestamp
     item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
+
+    // Adjust scores if source text is visible
+    if (sourceVisible) {
+        score1 = (score1 >= 60 ? 61 : (score1 >= 50 ? 51 : 41));
+        score2 = (score2 >= 60 ? 61 : (score2 >= 50 ? 51 : 41));
+        item_box.find('input[name="score1"]').val(score1);
+        item_box.find('input[name="score2"]').val(score2);
+    }
 
     // Ajax request
     if (ENABLE_AJAX) {
@@ -404,13 +425,10 @@ function last_form(e) {
     // check if preference is made and if not, show alert
     var preference = $('input[name="preference"]:checked').val();
     if (preference == undefined) {
+        $('#loading-box').css('display', 'none');
         alert('Please choose your preference before moving to the next document.');
         return false;
     }
-
-    // show loading box
-    // TODO: fix, this doesn't show until all scores are submitted
-    $('#loading-box').css('display', 'block');
 
     // for each item box with data-item-completed=False, submit the form
     $('.item-box').not(':last').each(function() {
