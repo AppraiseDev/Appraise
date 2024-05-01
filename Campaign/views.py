@@ -17,6 +17,7 @@ from django.http import HttpResponse
 
 from Appraise.utils import _get_logger
 from Campaign.utils import _get_campaign_instance
+from Campaign.utils import _compute_user_total_annotation_time
 from EvalData.models import DataAssessmentResult
 from EvalData.models import DirectAssessmentDocumentResult
 from EvalData.models import PairwiseAssessmentDocumentResult
@@ -129,37 +130,41 @@ def campaign_status(request, campaign_name, sort_key=2):
 
             _reliable = stat_reliable_testing(_data, campaign_opts, result_type)
 
+            # Compute number of annotations
             _annotations = len(set([x[6] for x in _data]))
+
             _start_times = [x[0] for x in _data]
             _end_times = [x[1] for x in _data]
-            _durations = [x[1] - x[0] for x in _data]
+
+            # Compute first modified time
             _first_modified = (
                 seconds_to_timedelta(min(_start_times)) if _start_times else None
             )
-            _last_modified = (
-                seconds_to_timedelta(max(_end_times)) if _end_times else None
-            )
-            _annotation_time = sum(_durations) if _durations else None
-
             if _first_modified:
                 _date_modified = datetime(1970, 1, 1) + _first_modified
                 _first_modified = str(_date_modified).split('.')[0]
-
             else:
                 _first_modified = 'Never'
 
+            # Compute last modified time
+            _last_modified = (
+                seconds_to_timedelta(max(_end_times)) if _end_times else None
+            )
             if _last_modified:
                 _date_modified = datetime(1970, 1, 1) + _last_modified
                 _last_modified = str(_date_modified).split('.')[0]
-
             else:
                 _last_modified = 'Never'
 
+            # Compute total annotation time
+            _time_pairs = list(zip(_start_times, _end_times))
+            _annotation_time = _compute_user_total_annotation_time(_time_pairs)
+
+            # Format total annotation time
             if _annotation_time:
                 _hours = int(floor(_annotation_time / 3600))
                 _minutes = int(floor((_annotation_time % 3600) / 60))
                 _annotation_time = '{0:0>2d}h{1:0>2d}m'.format(_hours, _minutes)
-
             else:
                 _annotation_time = 'n/a'
 
@@ -203,6 +208,7 @@ def campaign_status(request, campaign_name, sort_key=2):
         _txt.append(_local_out)
 
     return HttpResponse(u'\n'.join(_txt), content_type='text/plain')
+
 
 def stat_reliable_testing(_data, campaign_opts, result_type):
     _annotations = len(set([x[6] for x in _data]))
@@ -259,7 +265,6 @@ def stat_reliable_testing(_data, campaign_opts, result_type):
         # Possible for mannwhitneyu() to throw in some scenarios
         except ValueError:
             pass
-
 
     if _reliable:
         _reliable = f'{_reliable:1.6f}'

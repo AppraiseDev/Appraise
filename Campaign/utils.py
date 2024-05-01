@@ -23,6 +23,36 @@ from EvalData.models import ObjectID
 from EvalData.models import TaskAgenda
 
 
+def _compute_user_total_annotation_time(timestamps):
+    """
+    Computes total annotation time for a single user based on pairs of start and
+    end timestamps excluding overlapping portions of annotations.
+
+    :param timestamps: list of (start_timestamp, end_timestamp) pairs
+    :return: total annotation time in seconds
+    """
+    # Sort timestamps by start timestamp
+    timestamps = sorted(timestamps, key=lambda x: x[0])
+
+    total_annotation_time = 0
+    previous_end_timestamp = None
+    for start_timestamp, end_timestamp in timestamps:
+        # If there is no previous end timestamp or the current start timestamp is after the previous end timestamp
+        if previous_end_timestamp is None or start_timestamp >= previous_end_timestamp:
+            # Add the duration of the current annotation to the total annotation time
+            total_annotation_time += end_timestamp - start_timestamp
+
+        # If the current start timestamp is before the previous end timestamp
+        else:
+            # Add the duration of the non-overlapping portion of the current annotation to the total annotation time
+            total_annotation_time += end_timestamp - previous_end_timestamp
+
+        # Update the previous end timestamp
+        previous_end_timestamp = end_timestamp
+
+    return total_annotation_time
+
+
 def _create_uniform_task_map(annotators, tasks, redudancy):
     """
     Creates task maps, uniformly distributed across given annotators.
