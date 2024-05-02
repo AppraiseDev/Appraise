@@ -487,7 +487,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
                     itemType=item['itemType'],
                     documentID=item['documentID'],
                     isCompleteDocument=item['isCompleteDocument'],
-                    mqm=json.dumps(item['mqm']),
+                    mqm=json.dumps(item.get('mqm', '[]')),
                 )
                 new_items.append(new_item)
                 if item['isCompleteDocument']:
