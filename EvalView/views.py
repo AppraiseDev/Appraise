@@ -2031,8 +2031,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             campaign = current_task.campaign
 
     # Handling POST requests differs from the original direct_assessment/
-    # direct_assessment_context view, but the input is the same: a score for the
-    # single submitted item
+    # direct_assessment_context view
     t2 = datetime.now()
     ajax = False
     item_saved = False
@@ -2218,25 +2217,54 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         LOGGER.info('No current item detected, redirecting to dashboard')
         return redirect('dashboard')
 
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
+    new_ui = 'newui' in campaign_opts
+    escape_eos = 'escapeeos' in campaign_opts
+    escape_br = 'escapebr' in campaign_opts
+    highlight_style ='highlightstyle' in campaign_opts
+
     # Get item scores from the latest corresponding results
     block_scores = []
     for item, result in zip(block_items, block_results):
         # Get target texts with injected HTML tags showing diffs
-        _candidate1_text, _candidate2_text = item.target_texts_with_diffs()
+        _candidate1_text, _candidate2_text = item.target_texts_with_diffs(
+            escape_html=not new_ui
+        )
+        if not new_ui:
+            _source_text = escape(item.segmentText)
+            _default_score = -1
+        else:
+            _source_text = item.segmentText
+            _default_score = 50
+
+        if escape_eos:
+            _source_text = _source_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            )
+            _candidate1_text = _candidate1_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            )
+            _candidate2_text = _candidate2_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            )
+
+        if escape_br:
+            _source_text = _source_text.replace("&lt;br/&gt;", "<br/>")
+            _candidate1_text = _candidate1_text.replace(
+                "&lt;br/&gt;", "<br/>"
+            )
+            _candidate2_text = _candidate2_text.replace(
+                "&lt;br/&gt;", "<br/>"
+            )
+
         item_scores = {
             'completed': bool(result and result.score1 > -1),
             'current_item': bool(item.id == current_item.id),
-            'score1': result.score1 if result else -1,
-            'score2': result.score2 if result else -1,
-            'candidate1_text': _candidate1_text.replace(
-                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
-            ).replace("&lt;br/&gt;", "<br/>"),
-            'candidate2_text': _candidate2_text.replace(
-                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
-            ).replace("&lt;br/&gt;", "<br/>"),
-            'segment_text': escape(item.segmentText)
-            .replace("&lt;eos&gt;", "<code>&lt;eos&gt;</code>")
-            .replace("&lt;br/&gt;", "<br/>"),
+            'score1': result.score1 if result else _default_score,
+            'score2': result.score2 if result else _default_score,
+            'candidate1_text': _candidate1_text,
+            'candidate2_text': _candidate2_text,
+            'segment_text': _source_text,
         }
         block_scores.append(item_scores)
 
@@ -2251,8 +2279,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     t4 = datetime.now()
 
     reference_label = 'Source text'
-    candidate1_label = 'Candidate translation (A)'
-    candidate2_label = 'Candidate translation (B)'
+    candidate1_label = 'Translation A'
+    candidate2_label = 'Translation B'
 
     priming_question_texts = [
         'Below you see a document with {0} sentences in {1} (left columns) '
@@ -2278,7 +2306,6 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'in {1} (left column)? '.format(target_language, source_language),
     ]
 
-    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
     monolingual_task = 'monolingual' in campaign_opts
     use_sqm = 'sqm' in campaign_opts
     static_context = 'staticcontext' in campaign_opts
@@ -2307,8 +2334,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             'the whole document only after scoring all individual sentences from all '
             'documents first).',
         ]
-        candidate1_label = 'Sentence A'
-        candidate2_label = 'Sentence B'
+        candidate1_label = 'Translation A'
+        candidate2_label = 'Translation B'
 
     if doc_guidelines:
         priming_question_texts = [
@@ -2352,6 +2379,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'static_context': static_context,
         'guidelines_popup': guidelines_popup,
         'doc_guidelines': doc_guidelines,
+        'highlight_style': highlight_style,
     }
 
     if ajax:
@@ -2362,6 +2390,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
 
     page_context = {
         'items': zip(block_items, block_scores),
+        'num_items': len(block_items),
         'reference_label': reference_label,
         'candidate1_label': candidate1_label,
         'candidate2_label': candidate2_label,
@@ -2371,4 +2400,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     context.update(page_context)
     context.update(BASE_CONTEXT)
 
-    return render(request, 'EvalView/pairwise-assessment-document.html', context)
+    template = 'EvalView/pairwise-assessment-document.html'
+    if new_ui:
+        template = 'EvalView/pairwise-assessment-document-newui.html'
+    return render(request, template, context)
