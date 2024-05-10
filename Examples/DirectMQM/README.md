@@ -22,7 +22,7 @@ python3 manage.py StartNewCampaign Examples/DirectMQM/manifest_mqm.json \
    
 python3 manage.py StartNewCampaign Examples/DirectMQM/manifest_esa_gemba.json \
     --batches-json Examples/DirectMQM/batches_wmt23_en-de_esa_gemba.json \
-    --csv-output Examples/DirectMQM/output_esa.csv;
+    --csv-output Examples/DirectMQM/output_esa_gemba.csv;
 
 python3 manage.py runserver;
 
