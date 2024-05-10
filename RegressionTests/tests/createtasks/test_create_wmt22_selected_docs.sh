@@ -7,7 +7,7 @@ prefix=wmt22_selected
 
 rm -f $prefix*.{log,csv,json,stats,diff}
 
-$APPRAISE_PYTHON $APPRAISE_ROOT/create_wmt22_tasks.py \
+$APPRAISE_PYTHON $APPRAISE_ROOT/Scripts/create_wmt22_tasks.py \
     -f newstest2021.de-fr.example.xml -o $prefix -s deu -t fra --rng-seed 2222 \
     --selected-docs selected_docids.tsv --static-context 5 \
     | tee $prefix.full.log

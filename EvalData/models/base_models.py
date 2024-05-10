@@ -647,6 +647,13 @@ class TextPair(EvalItem):
         verbose_name=_('Target text'),
     )
 
+    # user for AI-assisted annotation
+    mqm = models.TextField(
+        blank=True,
+        verbose_name=_('MQM Annotations'),
+        default="[]",
+    )
+
     # pylint: disable=E1101
     def is_valid(self):
         """
@@ -741,7 +748,7 @@ class TextSegmentWithTwoTargets(TextSegment):
             else ''
         )
 
-    def target_texts_with_diffs(self):
+    def target_texts_with_diffs(self, escape_html=True):
         """
         Returns the pair of texts with HTML tags highlighting token differences.
         Both texts must be non empty.
@@ -756,8 +763,12 @@ class TextSegmentWithTwoTargets(TextSegment):
         if not self.target1Text or not self.target2Text:
             return (self.target1Text, self.target2Text)
 
-        toks1 = escape(self.target1Text).split()
-        toks2 = escape(self.target2Text).split()
+        if escape_html:
+            toks1 = escape(self.target1Text).split()
+            toks2 = escape(self.target2Text).split()
+        else:
+            toks1 = self.target1Text.split()
+            toks2 = self.target2Text.split()
         matcher = SequenceMatcher(None, toks1, toks2)
 
         text1 = ''
@@ -796,7 +807,7 @@ class TextSegmentWithTwoTargets(TextSegment):
         if _len < 1 or _len > MAX_SEGMENTTEXT_LENGTH:
             return False
 
-        if target2Text and len(target2Text) > 0:
+        if self.target2Text and len(self.target2Text) > 0:
             if isinstance(self.target2Text, type('This is a test sentence.')):
                 return False
 

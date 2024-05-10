@@ -3,10 +3,10 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+from datetime import datetime
 from datetime import timezone
 
 utc = timezone.utc
-from datetime import datetime
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -18,7 +18,6 @@ from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Campaign.models import Campaign
 from Dashboard.models import SIGN_LANGUAGE_CODES
-from EvalData.error_types import ERROR_TYPES
 from EvalData.models import DataAssessmentResult
 from EvalData.models import DataAssessmentTask
 from EvalData.models import DirectAssessmentContextResult
@@ -40,6 +39,8 @@ from EvalData.models import TaskAgenda
 LOGGER = _get_logger(name=__name__)
 
 # pylint: disable=C0103,C0330
+
+
 @login_required
 def direct_assessment(request, code=None, campaign_name=None):
     """
@@ -144,26 +145,26 @@ def direct_assessment(request, code=None, campaign_name=None):
         task_id = request.POST.get('task_id', None)
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
-        LOGGER.info('score=%s, item_id=%s', score, item_id)
+
+        LOGGER.info(f'score={score}, item_id={item_id}')
+        if not score or score == -1:
+            LOGGER.debug(f"Score not submitted ({score}).")
+
         if score and item_id and start_timestamp and end_timestamp:
             duration = float(end_timestamp) - float(start_timestamp)
             LOGGER.debug(float(start_timestamp))
             LOGGER.debug(float(end_timestamp))
             LOGGER.info(
-                'start=%s, end=%s, duration=%s',
-                start_timestamp,
-                end_timestamp,
-                duration,
+                f'start={start_timestamp,}, end={end_timestamp}, duration={duration}',
             )
 
             current_item = current_task.next_item_for_user(request.user)
             if current_item.itemID != int(item_id) or current_item.id != int(task_id):
-                _msg = 'Item ID %s does not match item %s, will not save!'
-                LOGGER.debug(_msg, item_id, current_item.itemID)
-
+                LOGGER.debug(
+                    f'Item ID {item_id} does not match item {current_item.itemID}, will not save!'
+                )
             else:
                 utc_now = datetime.utcnow().replace(tzinfo=utc)
-
                 # pylint: disable=E1101
                 DirectAssessmentResult.objects.create(
                     score=score,
@@ -246,16 +247,17 @@ def direct_assessment(request, code=None, campaign_name=None):
             '(middle) or preference for <em>Candidate B</em> (right).'
         )
 
-    campaign_opts = campaign.campaignOptions or ""
-    if 'sqm' in campaign_opts.lower():
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
+
+    if 'sqm' in campaign_opts:
         html_file = 'EvalView/direct-assessment-sqm.html'
     else:
         html_file = 'EvalView/direct-assessment-context.html'
 
-    if 'namedentit' in campaign_opts.lower():
+    if 'namedentit' in campaign_opts:
         html_file = 'EvalView/direct-assessment-named-entities.html'
 
-    if 'reference' in campaign_opts.lower():
+    if 'reference' in campaign_opts:
         reference_label = 'Reference text in {}'.format(target_language)
         candidate_label = 'Candidate translation in {}'.format(target_language)
 
@@ -400,7 +402,6 @@ def direct_assessment_context(request, code=None, campaign_name=None):
                 end_timestamp,
                 duration,
             )
-
             current_item = current_task.next_item_for_user(request.user)
             if (
                 current_item.itemID != int(item_id)
@@ -412,7 +413,6 @@ def direct_assessment_context(request, code=None, campaign_name=None):
 
             else:
                 utc_now = datetime.utcnow().replace(tzinfo=utc)
-
                 # pylint: disable=E1101
                 DirectAssessmentContextResult.objects.create(
                     score=score,
@@ -501,7 +501,6 @@ def direct_assessment_context(request, code=None, campaign_name=None):
             'preference for <em>Candidate A</em> (left), no difference '
             '(middle) or preference for <em>Candidate B</em> (right).'
         )
-
     context = {
         'active_page': 'direct-assessment',
         'reference_label': reference_label,
@@ -538,6 +537,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     """
     Direct assessment document annotation view.
     """
+
     t1 = datetime.now()
 
     campaign = None
@@ -630,6 +630,11 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             LOGGER.info(_msg)
             campaign = current_task.campaign
 
+    # hijack this function if it uses MQM
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
+    if 'mqm' in campaign_opts or 'esa' in campaign_opts:
+        return direct_assessment_document_mqmesa(campaign, current_task, request)
+
     # Handling POST requests differs from the original direct_assessment/
     # direct_assessment_context view, but the input is the same: a score for the
     # single submitted item
@@ -647,9 +652,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         ajax = bool(request.POST.get('ajax', None) == 'True')
 
         LOGGER.info('score=%s, item_id=%s', score, item_id)
-        print(
-            'Got request score={0}, item_id={1}, ajax={2}'.format(score, item_id, ajax)
-        )
+        print(f'Got request score={score}, item_id={item_id}, ajax={ajax}')
 
         # If all required information was provided in the POST request
         if score and item_id and start_timestamp and end_timestamp:
@@ -793,8 +796,6 @@ def direct_assessment_document(request, code=None, campaign_name=None):
                 )
 
     t3 = datetime.now()
-
-    campaign_opts = (campaign.campaignOptions or "").lower()
 
     # Get all items from the document that the first unannotated item in the
     # task belongs to, and collect some additional statistics
@@ -1070,6 +1071,145 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     context.update(BASE_CONTEXT)
 
     return render(request, 'EvalView/direct-assessment-document.html', context)
+
+
+def direct_assessment_document_mqmesa(campaign, current_task, request):
+    """
+    Direct assessment document annotation view with MQM/ESA.
+    """
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
+
+    # POST means that we want to store
+    if request.method == "POST":
+        score = request.POST.get('score', None)
+        mqm = request.POST.get('mqm', None)
+        item_id = request.POST.get('item_id', None)
+        task_id = request.POST.get('task_id', None)
+        start_timestamp = request.POST.get('start_timestamp', None)
+        end_timestamp = request.POST.get('end_timestamp', None)
+        ajax = bool(request.POST.get('ajax', None) == 'True')
+
+
+        db_item = current_task.items.filter(
+            itemID=item_id
+        ).order_by('itemID')
+
+        if len(db_item) == 0:
+            error_msg = (
+                f'We could not find item {item_id} in task {task_id}.'
+            )
+            LOGGER.error(error_msg)
+            item_saved = False
+        elif len(db_item) > 1:
+            error_msg = (
+                f'Found more than one item {item_id} in task {task_id}.'
+                'This is from incorrectly set up batches'
+            )
+            LOGGER.error(error_msg)
+            item_saved = False
+        else:
+            DirectAssessmentDocumentResult.objects.create(
+                score=score,
+                mqm=mqm,
+                start_time=float(start_timestamp),
+                end_time=float(end_timestamp),
+                item=list(db_item)[0],
+                task=current_task,
+                createdBy=request.user,
+                activated=False,
+                completed=True,
+                dateCompleted=datetime.utcnow().replace(tzinfo=utc),
+            )
+            error_msg = f'Item {task_id} (itemID={item_id}) saved'
+            LOGGER.info(error_msg)
+            item_saved = True
+
+        LOGGER.info(f'score={score}, item_id={item_id}, mqm={mqm}')
+        print(f'Got request score={score}, item_id={item_id}, ajax={ajax}, mqm={mqm}')
+    else:
+        ajax = False
+
+    # Get all items from the document that the first unannotated item in the
+    # task belongs to, and collect some additional statistics
+    (
+        next_item,
+        completed_items,
+        completed_docs,
+        completed_items_in_doc,
+        doc_items,
+        doc_items_results,
+        total_blocks,
+    ) = current_task.next_document_for_user_mqmesa(request.user)
+
+    if not next_item:
+        if not ajax:
+            LOGGER.info('No next item detected, redirecting to dashboard')
+            return redirect('dashboard')
+        else:
+            context = {}
+            ajax_context = {'saved': item_saved, 'error_msg': error_msg}
+            context.update(ajax_context)
+            context.update(BASE_CONTEXT)
+            # Send response to the Ajax POST request
+            return JsonResponse(context)
+
+    # Get item scores from the latest corresponding results
+    doc_items_results = [
+        {
+            'completed': bool(result and result.completed),
+            # will be recomputed user-side anyway
+            'score': result.score if result else -1,
+            'mqm': result.mqm if result else item.mqm,
+            'mqm_orig': item.mqm,
+            'start_timestamp': result.start_time if result else "",
+            'end_timestamp': result.end_time if result else "",
+        }
+        for item, result in zip(doc_items, doc_items_results)
+    ]
+
+    LOGGER.info(f'completed_items={completed_items}, completed_docs={completed_docs}')
+
+    source_language = current_task.marketSourceLanguage()
+    target_language = current_task.marketTargetLanguage()
+
+    # A part of context used in responses to both Ajax and standard POST requests
+    context = {
+        'active_page': 'direct-assessment-document',
+        'item_id': next_item.itemID,
+        'task_id': next_item.id,
+        'document_id': next_item.documentID,
+        'completed_blocks': completed_docs,
+        'total_blocks': total_blocks,
+        'items_left_in_block': len(doc_items) - completed_items_in_doc,
+        'source_language': source_language,
+        'target_language': target_language,
+        'source_item_type': "text",
+        'target_item_type': "text",
+        'template_debug': 'debug' in request.GET,
+        'campaign': campaign.campaignName,
+        'datask_id': current_task.id,
+        'trusted_user': current_task.is_trusted_user(request.user),
+        # Task variations
+        'ui_lang': "enu",
+        'mqm_type': 'ESA' if 'esa' in campaign_opts else "MQM",
+    }
+
+    if ajax:
+        ajax_context = {'saved': item_saved, 'error_msg': error_msg}
+        context.update(ajax_context)
+        context.update(BASE_CONTEXT)
+        # Send response to the Ajax POST request
+        return JsonResponse(context)
+
+    page_context = {
+        'items': zip(doc_items, doc_items_results),
+        'reference_label': 'Source text',
+        'candidate_label': 'Candidate translation',
+    }
+    context.update(page_context)
+    context.update(BASE_CONTEXT)
+
+    return render(request, 'EvalView/direct-assessment-document-mqm-esa.html', context)
 
 
 # pylint: disable=C0103,C0330
@@ -1453,7 +1593,8 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         candidate2_text,
     ) = current_item.target_texts_with_diffs()
 
-    campaign_opts = (campaign.campaignOptions or "").lower()
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
+
     use_sqm = False
     critical_error = False
     source_error = False
@@ -1750,13 +1891,14 @@ def data_assessment(request, code=None, campaign_name=None):
 
     parallel_data = list(current_item.get_sentence_pairs())
 
-    campaign_opts = (campaign.campaignOptions or "").lower()
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
     use_sqm = 'sqm' in campaign_opts
 
     if any(opt in campaign_opts for opt in ['disablemtlabel', 'disablemtrank']):
         ranks = None
         rank_question_text = None
-        score_question_text[0] = score_question_text[0][13:]  # remove 'Question #1: '
+        # remove 'Question #1: '
+        score_question_text[0] = score_question_text[0][13:]
 
     context = {
         'active_page': 'data-assessment',
@@ -1889,8 +2031,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             campaign = current_task.campaign
 
     # Handling POST requests differs from the original direct_assessment/
-    # direct_assessment_context view, but the input is the same: a score for the
-    # single submitted item
+    # direct_assessment_context view
     t2 = datetime.now()
     ajax = False
     item_saved = False
@@ -2076,25 +2217,54 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         LOGGER.info('No current item detected, redirecting to dashboard')
         return redirect('dashboard')
 
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
+    new_ui = 'newui' in campaign_opts
+    escape_eos = 'escapeeos' in campaign_opts
+    escape_br = 'escapebr' in campaign_opts
+    highlight_style ='highlightstyle' in campaign_opts
+
     # Get item scores from the latest corresponding results
     block_scores = []
     for item, result in zip(block_items, block_results):
         # Get target texts with injected HTML tags showing diffs
-        _candidate1_text, _candidate2_text = item.target_texts_with_diffs()
+        _candidate1_text, _candidate2_text = item.target_texts_with_diffs(
+            escape_html=not new_ui
+        )
+        if not new_ui:
+            _source_text = escape(item.segmentText)
+            _default_score = -1
+        else:
+            _source_text = item.segmentText
+            _default_score = 50
+
+        if escape_eos:
+            _source_text = _source_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            )
+            _candidate1_text = _candidate1_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            )
+            _candidate2_text = _candidate2_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            )
+
+        if escape_br:
+            _source_text = _source_text.replace("&lt;br/&gt;", "<br/>")
+            _candidate1_text = _candidate1_text.replace(
+                "&lt;br/&gt;", "<br/>"
+            )
+            _candidate2_text = _candidate2_text.replace(
+                "&lt;br/&gt;", "<br/>"
+            )
+
         item_scores = {
             'completed': bool(result and result.score1 > -1),
             'current_item': bool(item.id == current_item.id),
-            'score1': result.score1 if result else -1,
-            'score2': result.score2 if result else -1,
-            'candidate1_text': _candidate1_text.replace(
-                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
-            ).replace("&lt;br/&gt;", "<br/>"),
-            'candidate2_text': _candidate2_text.replace(
-                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
-            ).replace("&lt;br/&gt;", "<br/>"),
-            'segment_text': escape(item.segmentText)
-            .replace("&lt;eos&gt;", "<code>&lt;eos&gt;</code>")
-            .replace("&lt;br/&gt;", "<br/>"),
+            'score1': result.score1 if result else _default_score,
+            'score2': result.score2 if result else _default_score,
+            'candidate1_text': _candidate1_text,
+            'candidate2_text': _candidate2_text,
+            'segment_text': _source_text,
         }
         block_scores.append(item_scores)
 
@@ -2109,8 +2279,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     t4 = datetime.now()
 
     reference_label = 'Source text'
-    candidate1_label = 'Candidate translation (A)'
-    candidate2_label = 'Candidate translation (B)'
+    candidate1_label = 'Translation A'
+    candidate2_label = 'Translation B'
 
     priming_question_texts = [
         'Below you see a document with {0} sentences in {1} (left columns) '
@@ -2136,7 +2306,6 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'in {1} (left column)? '.format(target_language, source_language),
     ]
 
-    campaign_opts = (campaign.campaignOptions or "").lower()
     monolingual_task = 'monolingual' in campaign_opts
     use_sqm = 'sqm' in campaign_opts
     static_context = 'staticcontext' in campaign_opts
@@ -2165,8 +2334,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             'the whole document only after scoring all individual sentences from all '
             'documents first).',
         ]
-        candidate1_label = 'Sentence A'
-        candidate2_label = 'Sentence B'
+        candidate1_label = 'Translation A'
+        candidate2_label = 'Translation B'
 
     if doc_guidelines:
         priming_question_texts = [
@@ -2210,6 +2379,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'static_context': static_context,
         'guidelines_popup': guidelines_popup,
         'doc_guidelines': doc_guidelines,
+        'highlight_style': highlight_style,
     }
 
     if ajax:
@@ -2220,6 +2390,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
 
     page_context = {
         'items': zip(block_items, block_scores),
+        'num_items': len(block_items),
         'reference_label': reference_label,
         'candidate1_label': candidate1_label,
         'candidate2_label': candidate2_label,
@@ -2229,4 +2400,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     context.update(page_context)
     context.update(BASE_CONTEXT)
 
-    return render(request, 'EvalView/pairwise-assessment-document.html', context)
+    template = 'EvalView/pairwise-assessment-document.html'
+    if new_ui:
+        template = 'EvalView/pairwise-assessment-document-newui.html'
+    return render(request, template, context)
