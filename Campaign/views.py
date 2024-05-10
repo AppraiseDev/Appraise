@@ -15,9 +15,8 @@ from django.contrib.auth.decorators import login_required
 from django.core.management.base import CommandError
 from django.http import HttpResponse
 
-from Appraise.utils import _get_logger
+from Appraise.utils import _get_logger, _compute_user_total_annotation_time
 from Campaign.utils import _get_campaign_instance
-from Campaign.utils import _compute_user_total_annotation_time
 from EvalData.models import DataAssessmentResult
 from EvalData.models import DirectAssessmentDocumentResult
 from EvalData.models import PairwiseAssessmentDocumentResult
