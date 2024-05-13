@@ -40,7 +40,6 @@ def campaign_status(request, campaign_name, sort_key=2):
         'Rendering campaign status view for user "%s".',
         request.user.username or "Anonymous",
     )
-
     if sort_key is None:
         sort_key = 2
 
@@ -223,10 +222,7 @@ def campaign_status(request, campaign_name, sort_key=2):
         'annotation_time',
     )
     if request.user.is_staff:
-        if "esa" in campaign_opts or "mqm" in campaign_opts:
-            _header += ('quality',)
-        else:
-            _header += ('random',)
+        _header += ('random',)
 
     _txt = []
     # align everything with the same formatting
@@ -255,11 +251,9 @@ def stat_reliable_testing(_data, campaign_opts, result_type):
     _tgt = defaultdict(list)
     _bad = defaultdict(list)
     for _x in _data:
-        # TODO: the negative indexing will lead to indexing errors at some point
-        # This whole function should be refactored
-        if _x[-2] == 'TGT':
+        if _x[5] == 'TGT':
             _dst = _tgt
-        elif _x[-2] == "BAD" or _x[-2].startswith('BAD.'):
+        elif _x[5] == "BAD" or _x[5].startswith('BAD.'):
             # ESA/MQM have extra payload in itemType
             _dst = _bad
         else:
