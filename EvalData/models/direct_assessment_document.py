@@ -633,10 +633,29 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
     @classmethod
     def get_time_for_user(cls, user):
         results = cls.objects.filter(createdBy=user, activated=False, completed=True)
+        is_esa_or_mqm = any([
+            "esa" in result.task.campaign.campaignOptions.lower().split(";") or
+            "mqm" in result.task.campaign.campaignOptions.lower().split(";")
+            for result in results
+        ])
 
-        timestamps = []
-        for result in results:
-            timestamps.append((result.start_time, result.end_time))
+        if is_esa_or_mqm:
+            # for ESA or MQM, do minimum and maximum from each doc
+            import collections
+            timestamps = collections.defaultdict(list)
+            for result in results:
+                timestamps[result.item.documentID].append((result.start_time, result.end_time))
+
+            # timestamps are document-level now, but that does not change anything later on
+            timestamps = [
+                (min([x[0] for x in doc_v]), max([x[1] for x in doc_v]))
+                for doc, doc_v in timestamps.items()
+            ]
+        else:
+            timestamps = []
+            for result in results:
+                timestamps.append((result.start_time, result.end_time))
+
 
         return seconds_to_timedelta(_compute_user_total_annotation_time(timestamps))
 
