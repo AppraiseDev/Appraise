@@ -13,7 +13,7 @@ from django.test import TestCase
 
 from Campaign.models import _validate_package_file
 from Campaign.models import Campaign
-from Campaign.utils import _compute_user_total_annotation_time
+from Appraise.utils import _compute_user_total_annotation_time
 
 
 class TestInitCampaign(TestCase):
