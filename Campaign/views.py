@@ -157,7 +157,7 @@ def campaign_status(request, campaign_name, sort_key=2):
             _reliable = stat_reliable_testing(_data, campaign_opts, result_type)
 
             # Compute number of annotations
-            _annotations = len(set([x[6] for x in _data]))
+            _annotations = len(set([x[3] for x in _data]))
 
             _start_times = [x[0] for x in _data]
             _end_times = [x[1] for x in _data]
