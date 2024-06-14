@@ -40,7 +40,6 @@ def campaign_status(request, campaign_name, sort_key=2):
         'Rendering campaign status view for user "%s".',
         request.user.username or "Anonymous",
     )
-
     if sort_key is None:
         sort_key = 2
 
@@ -69,6 +68,8 @@ def campaign_status(request, campaign_name, sort_key=2):
             _data = result_type.objects.filter(
                 createdBy=user, completed=True, task__campaign=campaign.id
             )
+            is_mqm_or_esa = False
+
 
             # Exclude document scores in document-level tasks, because we want to keep
             # the numbers reported on the campaign status page consistent across
@@ -93,6 +94,7 @@ def campaign_status(request, campaign_name, sort_key=2):
                     'item__id',
                 )
             elif "mqm" in campaign_opts:
+                is_mqm_or_esa = True
                 _data = _data.values_list(
                     'start_time',
                     'end_time',
@@ -101,12 +103,23 @@ def campaign_status(request, campaign_name, sort_key=2):
                     'item__targetID',
                     'item__itemType',
                     'item__sourceText',
+                    'item__documentID',
                 )
+                # compute time override based on document times
+                import collections
+                _time_pairs = collections.defaultdict(list)
+                for x in _data:
+                    _time_pairs[x[7]].append((x[0], x[1]))
+                _time_pairs = [
+                    (min([x[0] for x in doc_v]), max([x[1] for x in doc_v]))
+                    for doc, doc_v in _time_pairs.items()
+                ]
                 _data = [
                     (x[0], x[1], -len(json.loads(x[2])), x[3], x[4], x[5], x[6])
                     for x in _data
                 ]
             elif "esa" in campaign_opts:
+                is_mqm_or_esa = True
                 _data = _data.values_list(
                     'start_time',
                     'end_time',
@@ -115,7 +128,21 @@ def campaign_status(request, campaign_name, sort_key=2):
                     'item__targetID',
                     'item__itemType',
                     'item__sourceText',
+                    'item__documentID',
                 )
+                # compute time override based on document times
+                import collections
+                _time_pairs = collections.defaultdict(list)
+                for x in _data:
+                    _time_pairs[x[7]].append((x[0], x[1]))
+                _time_pairs = [
+                    (min([x[0] for x in doc_v]), max([x[1] for x in doc_v]))
+                    for doc, doc_v in _time_pairs.items()
+                ]
+                _data = [
+                    (x[0], x[1], x[2], x[3], x[4], x[5], x[6])
+                    for x in _data
+                ]
             else:
                 _data = _data.values_list(
                     'start_time',
@@ -156,7 +183,11 @@ def campaign_status(request, campaign_name, sort_key=2):
                 _last_modified = 'Never'
 
             # Compute total annotation time
-            _time_pairs = list(zip(_start_times, _end_times))
+            if is_mqm_or_esa:
+                # if MQM or ESA, then let's use the manually computed times
+                pass
+            else:
+                _time_pairs = list(zip(_start_times, _end_times))
             _annotation_time = _compute_user_total_annotation_time(_time_pairs)
 
             # Format total annotation time
@@ -191,10 +222,7 @@ def campaign_status(request, campaign_name, sort_key=2):
         'annotation_time',
     )
     if request.user.is_staff:
-        if "esa" in campaign_opts or "mqm" in campaign_opts:
-            _header += ('quality',)
-        else:
-            _header += ('random',)
+        _header += ('random',)
 
     _txt = []
     # align everything with the same formatting
@@ -223,9 +251,9 @@ def stat_reliable_testing(_data, campaign_opts, result_type):
     _tgt = defaultdict(list)
     _bad = defaultdict(list)
     for _x in _data:
-        if _x[-2] == 'TGT':
+        if _x[5] == 'TGT':
             _dst = _tgt
-        elif _x[-2] == "BAD" or _x[-2].startswith('BAD.'):
+        elif _x[5] == "BAD" or _x[5].startswith('BAD.'):
             # ESA/MQM have extra payload in itemType
             _dst = _bad
         else:
