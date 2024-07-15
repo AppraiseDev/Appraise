@@ -65,6 +65,7 @@ def run_quality_control(username):
         _data = _type.objects.filter(createdBy__username=username, completed=True)
         # Get the first result task type available: might not work in all scenarios
         if _data:
+            campaign_opts = set((_data[0].task.campaign.campaignOptions or "").lower().split(";"))
             result_type = _type
             break
 
@@ -83,6 +84,7 @@ def run_quality_control(username):
             'item__target1ID',
             'item__itemType',
             'item__id',
+            'item__sourceText',
         )
     else:
         _data = _data.values_list(
@@ -93,6 +95,7 @@ def run_quality_control(username):
             'item__targetID',
             'item__itemType',
             'item__id',
+            'item__sourceText',
         )
 
     _annotations = len(set([x[6] for x in _data]))
@@ -111,15 +114,21 @@ def run_quality_control(username):
     _tgt = defaultdict(list)
     _bad = defaultdict(list)
     for _x in _data:
-        if _x[-2] == 'TGT':
+        if _x[5] == 'TGT':
             _dst = _tgt
-        elif _x[-2] == 'BAD':
+        elif _x[5] == 'BAD' or _x[5].startswith("BAD."):
+            # ESA/MQM have extra payload in itemType
             _dst = _bad
         else:
             continue
 
         _z_score = (_x[2] - _user_mean) / _user_stdev
-        _key = '{0}-{1}'.format(_x[3], _x[4])
+
+        if "esa" in campaign_opts:
+            _key = f"{_x[7]} ||| {_x[4]}"
+        else:
+            _key = f'{_x[3]}-{_x[4]}'
+
         _dst[_key].append(_z_score)
 
     _x = []
@@ -147,9 +156,7 @@ def run_quality_control(username):
     annotation_time = sum(_durations) if _durations else None
 
     print(
-        "User '{}', items= {}, p-value= {}, time= {}".format(
-            username, len(_x), pvalue, annotation_time
-        )
+        f"User '{username}', items= {len(_x)}, p-value= {pvalue}, time= {annotation_time}"
     )
 
     return (
