@@ -1,0 +1,841 @@
+{% extends "Dashboard/base.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="icon" href="data:;base64,=">
+<style>
+.full-screen { width:100% !important; }
+
+.half-slider { padding:0 !important; }
+.half-slider .col-sm-12 { padding:0; }
+.half-slider .slider-grid td:first-of-type { padding-left:0; }
+.half-slider .slider-grid td:last-of-type { padding-right:0; }
+.half-slider .slider { margin-top:5px !important; }
+
+.quotelike .row, .pseudoquotelike .row { font-size: 16px; margin: 0; }
+
+.question-box p { font-size: 120%; margin: 10px 0; font-style: italic; color: #31708f; }
+.question-box li { font-size: 100%; font-style: italic; color: #31708f; }
+.document-box { padding-top: 10px; }
+.document-box p { font-size: 16px; }
+
+.item-box emph { font-weight:bold; font-style: italic; }
+
+.item-static-content p { opacity:0.5; font-style:italic; }
+
+.source-box { color:#31708f; font-style:italic;}
+.source-box, .candidate-text-a, .candidate-text-b { padding-top: 10px; padding-bottom: 10px; }
+/*
+.candidate-text-a { background: #f0f0f0; }
+.candidate-text-b { background: #f7f7f7; }
+*/
+
+.source-box-hoverable:hover { background: #f5f5f5; cursor: pointer; }
+.source-btn-toggle { float: right; padding-right:10px; }
+.source-btn-done { float: right; display: none; padding-bottom:5px; padding-left:5px; }
+.preview-box .row { padding-top:0; font-size:95%; /*font-weight:bold;*/ }
+
+.candidate-text.active .diff { background: #F0E8A6 !important; }
+.segment-label { display:block; font-size:small; font-style:italic; }
+
+.toggleable { display:none; }
+.toggleable.active { display:block; }
+
+.target-box .row { padding-top:0; }
+.target-box.active { display:block; }
+.target-box .btn { margin-top:10px; min-width:71px; margin-right:5px; }
+
+#preference-box label { margin-left:40px; }
+
+#loading-box { display:none; }
+.loading-icon {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #ccc;
+    border-top: 4px solid #007bff; /* Change color as needed */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    transform: translate(-50%, -50%);
+    margin-left: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.selected {
+    background-color: #b7ffdd;
+}
+
+.mqm_char:hover:not([selected]):not([in_mqm]) {
+    outline: 2px solid #ccc;
+}
+
+.mqm_char[selected] {
+    background-color: #ccc;
+}
+
+.mqm_char {
+    cursor: pointer;
+    display: inline;
+}
+
+.instruction_sev {
+    border-radius: 4px;
+    padding: 0px 2px;
+    font-weight: bold;
+}
+
+.tutorial-text {
+    color: #257;
+}
+
+.alert_message {
+    position: fixed;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2000;
+    text-align: center;
+
+    background-color: #bbb;
+    border: 1px solid #999;
+    border-radius: 4px;
+
+    font-size: 16pt;
+    padding: 2px 10px;
+    min-width: 130px;
+}
+
+/* Uncomment if ENABLE_UNRESTRICTED_ANNOTATION is set to false */
+/*.source-btn-toggle, .control-box { display:none; }*/
+</style>
+
+<link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}">
+<script src="{% static 'EvalView/js/jquery-ui.min.js' %}"></script>
+<script src="{% static 'EvalView/js/js.cookie-2.2.1.min.js' %}"></script>
+<script>
+    <!--
+var idleTime = 0;
+
+// Enable submitting scores for individual items using Ajax POST. If disabled,
+// the page will be reloaded each time an item is annotated. Note that the
+// document-level score is always submitted without Ajax.
+var ENABLE_AJAX = true;
+// Hint scores of already annotated items with small red-to-green color
+// circles.
+var ENABLE_COLOR_LABELS = false;
+// Allow unrestricted annotation of items in the document. If disabled,
+// expanding and hiding of sentences is disabled and the user must score items
+// following their order, one-by-one.
+// Note: If set to false, some HTML elements are disabled via javascript
+// after the page is loaded, which may result in a flashing effect. To prevent
+// this, add the CSS rule: .source-btn-toggle, .control-box {display:none;}
+// (see line 51). This is purely esthetics.
+var ENABLE_UNRESTRICTED_ANNOTATION = true;
+
+var sourceVisible = true;
+
+let globalCharIndex = 0;
+
+String.prototype.rot13 = function() {
+    return this.replace(/[a-zA-Z]/g, function(c) {
+        return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
+    });
+};
+
+// https://stackoverflow.com/a/21520499
+jQuery.fn.clickToggle = function(a, b) {
+    return this.on("click", function(ev) { [b, a][this.$_io ^= 1].call(this, ev) })
+};
+
+// constants and utils
+const SEVERITY_TO_COLOR = {
+    "critical": "#f33c",
+    "major": "#c44a",
+    "minor": "#fbba",
+    "neutral": "#f993",
+    "undecided": "#99d9",
+}
+const SEVERITY_TO_SCORE = {
+    "major": 5,
+    "minor": 1,
+    "neutral": 0,
+    "critical": Number.NaN,
+    "undecided": Number.NaN,
+}
+const SEVERITY_TO_NEXT = {
+    "neutral": "minor",
+    "undecided": "minor",
+    "minor": "major",
+    "major": "undecided",
+    "critical": "undecided",
+}
+
+Object.keys(SEVERITY_TO_COLOR).map((key) => {
+    $(`#instruction_sev_${key}`).css("background-color", SEVERITY_TO_COLOR[key])
+})
+
+$(document).ready(function() {
+    // This sets the same starting time for all items, but it is set again when
+    // an item is expanded by clicking on it.
+    // TODO: this may need to be changed
+    $('input[name="start_timestamp"]').val(Date.now()/1000.0);
+
+    // Show diffs between candidate translations when hovering
+    $(".source-box-hoverable").hover(function(){
+        $(this).find('.candidate-text').addClass('active');
+    }, function(){
+        $(this).find('.candidate-text').removeClass('active');
+    });
+
+    $('.item-box').each(function() {
+        new MQMItemHandler(this, ".candidate-text-a");
+        new MQMItemHandler(this, ".candidate-text-b");
+    });
+
+    // Bind click events
+    // TODO: remove as there will be no slider here
+    $('.slider').slider({orientation: "horizontal", range: "min", change: update_score });
+    if (! ENABLE_UNRESTRICTED_ANNOTATION) {
+        $('.source-box').removeClass('source-box-hoverable');
+        $('.control-box').hide(0);
+    }
+
+    // Bind changing preference radio buttons to setting score1/score2
+    $('#preference-box input[type="radio"]').change(change_preference);
+
+    // The last item doesn't send Ajax request
+    $('#button-doc').on('mousedown', function() {
+        // show loading box
+        $('#loading-box').css('display', 'block');
+    }).on('click', last_form);
+
+
+    {% if not monolingual %}
+    $('#button-source-column').click(toggle_source_column);
+    if (Cookies.get('show-source') != 'yes') {
+        toggle_source_column();
+    }
+    {% endif %}
+
+    $('#button-full-screen').click(toggle_full_screen);
+    if (Cookies.get('full-screen') != 'no') {
+      $('.container').addClass('full-screen');
+    }
+
+    // Show guidelines in a popup box
+    $('#guidelines-modal').modal('show');
+
+    // highlight instructions
+    Object.keys(SEVERITY_TO_COLOR).map((key) => {
+        $(`#instruction_sev_${key}`).css("background-color", SEVERITY_TO_COLOR[key])
+    })
+});
+
+function waitout_js_loop() {
+    return new Promise(resolve => setTimeout(resolve, 1))
+}
+
+String.prototype.capitalize = function () {
+    return this.charAt(0).toUpperCase() + this.slice(1);
+}
+
+function _show_error_box(text, timeout = 2000) {
+    let obj = $(`<div class="alert_message" style="display: none">${text}</div>`)
+    $("body").append(obj);
+    obj.fadeIn(200);
+    setTimeout(() => { obj.fadeOut(700, () => { obj.remove() }) }, timeout);
+}
+
+function processElement(element) {
+    element.contents().each(function() {
+        var child = $(this);
+        if (child[0].nodeType === 3) {
+            var text = child.text();
+            var wrappedText = '';
+            for (var i = 0; i < text.length; i++) {
+                wrappedText += `<span class="mqm_char" id="candidate_char_${globalCharIndex}" char_id="${globalCharIndex}">${text.charAt(i)}</span>`;
+                globalCharIndex++;
+            }
+            child.replaceWith($(wrappedText));
+        } else if (child[0].nodeType === 1) {
+            processElement(child, globalCharIndex);
+        }
+    });
+}
+
+class MQMItemHandler {
+    constructor(el, targetClass) {
+        this.el = $(el);
+        this.targetClass = targetClass;
+        this.targetLetter = this.targetClass.match(/-([ab])/)[1];
+        this.initialize();
+    }
+    
+    initialize() {
+        this.SELECTION_STATE = []
+        this.HOVER_UNDECIDED_SPANS = new Set()
+        this.LAST_MOUSE_TIMESTAMP = 0
+        this.MQM_DELETE_TIMER = null
+
+        // Get the value of the mqm1 or mqm2 field
+        let mqmField = this.targetLetter == 'a' ? 'mqm1' : 'mqm2';
+        this.mqm = JSON.parse(this.el.find('input[name="' + mqmField + '"]').val());
+
+        if (!Array.isArray(this.mqm)) {
+            this.tutorial = this.mqm["tutorial"]
+            this.mqm = this.mqm["payload"]
+
+            // Determine whether to assign to tutorial-text-a or tutorial-text-b
+            this.el.find('#tutorial-text-' + this.targetLetter).html("<b>TUTORIAL:</b> " + this.tutorial["instruction"])
+
+            // unhide multiple times but doesn't matter
+            $("#tutorial-text-" + this.targetLetter).toggle(true)
+        } else {
+            this.tutorial = false
+        }
+        
+        // this.mqm=[]
+        this.el_target = this.el.find('#text-target-payload-' + this.targetLetter);
+        globalCharIndex = 0; 
+        this.el_target.each(function() {
+            processElement($(this));
+        });
+
+        this.redraw_mqm();
+        this.setup_span_click_handlers();
+    }
+
+    async redraw_mqm() {
+        this.score = this.calculateScore(this.mqm);
+        
+        if(this.targetLetter == 'a')
+        {
+            this.el.find('input[name="mqm1"]').val(JSON.stringify(this.mqm));
+            this.el.find('input[name="score1"]').val(this.score);
+        }
+        else if(this.targetLetter == 'b')
+        {
+            this.el.find('input[name="mqm2"]').val(JSON.stringify(this.mqm));
+            this.el.find('input[name="score2"]').val(this.score);
+        }
+
+        // redraw
+        this.el_target.find(".mqm_char").each((i, el) => {
+            el = $(el)
+            let char_id = Number.parseInt(el.attr("char_id"))
+
+            let active_mqm = this.mqm.map((v, i) => [v, i]).filter((v) => (
+                (v[0]["start_i"] <= char_id && v[0]["end_i"] >= char_id) ||
+                (el.attr("char_id") == "missing" && v[0]["start_i"] == "missing" && v[0]["end_i"] == "missing")
+            ))
+			
+            if (active_mqm.length > 0) {
+                active_mqm = active_mqm[0]
+                el.css("background-color", SEVERITY_TO_COLOR[active_mqm[0]["severity"]])
+                el.attr("in_mqm", active_mqm[1])
+
+                let tooltip_message = active_mqm[0]["severity"].capitalize();
+                if ("error_type" in active_mqm[0]) {
+                    (active_mqm[0]["error_type"] || []).forEach((x) => {
+                        tooltip_message += " > " + x
+                    });
+                }
+                el.attr("title", tooltip_message)
+            } else if (!this.SELECTION_STATE.includes(i)) {
+                el.css("background-color", "")
+            }
+        })
+    }
+
+    remove_undecided(mqm_object) {
+        mqm_object.el_target.find(".mqm_char").each((i, el) => {
+            if ($(el).attr("in_mqm") && mqm_object.mqm[Number.parseInt($(el).attr("in_mqm"))]["severity"] == "undecided") {
+                $(el).removeAttr("in_mqm")
+            }
+        })
+        mqm_object.mqm = mqm_object.mqm.filter(v => v["severity"] != "undecided");
+        mqm_object.redraw_mqm()
+
+        submit_form(mqm_object.el.data('item-id'));
+    }
+	
+    abort_selection() {
+        this.el_target.find(".mqm_char[selected]").each((_, el) => $(el).attr("selected", false))
+        this.SELECTION_STATE = []
+    }
+	
+    setup_span_click_handlers() {
+        this.el_target.find(".mqm_char").each((i, el) => {
+            el = $(el)
+            let char_id = Number.parseInt(el.attr("char_id"))
+
+            el.on("mouseout", async () => {
+                if (el.attr("in_mqm") && this.mqm[Number.parseInt(el.attr("in_mqm"))]["severity"] == "undecided") {
+                    this.HOVER_UNDECIDED_SPANS.delete(i)
+                    await waitout_js_loop()
+                    if (this.HOVER_UNDECIDED_SPANS.size == 0)
+                        this.MQM_DELETE_TIMER = setTimeout(() => this.remove_undecided(this), 400)
+                    else
+                        clearTimeout(this.MQM_DELETE_TIMER)
+                }
+            })
+            el.on("mouseenter", async () => {
+                if (el.attr("in_mqm") && this.mqm[Number.parseInt(el.attr("in_mqm"))]["severity"] == "undecided") {
+                    this.HOVER_UNDECIDED_SPANS.add(i)
+                }
+            })
+            el.on("click mousedown mouseup", async (event) => {
+                if (event.timeStamp < this.LAST_MOUSE_TIMESTAMP + 250) {
+                    event.preventDefault()
+                    return
+                }
+                this.LAST_MOUSE_TIMESTAMP = event.timeStamp
+
+                if (el.attr("char_id") == "missing") {
+                    this.abort_selection()
+                    let mqm_missing = this.mqm.filter(v => v["start_i"] == "missing" && v["end_i"] == "missing")
+                    if (mqm_missing.length == 0) {
+                        mqm_missing = {
+                            "start_i": "missing",
+                            "end_i": "missing",
+                            "severity": "minor",
+                            "error_type": null,
+                        }
+                        this.mqm.push(mqm_missing)
+                        _show_error_box("Minor")
+                    } else {
+                        mqm_missing = mqm_missing[0]
+                        mqm_missing["severity"] = SEVERITY_TO_NEXT[mqm_missing["severity"]]
+                        _show_error_box(mqm_missing["severity"].capitalize())
+                    }
+                    this.redraw_mqm()
+                    submit_form(this.el.data('item-id'));
+                    return
+                }
+
+                if (el.attr("in_mqm")) {
+                    if (this.SELECTION_STATE.length != 0) {
+                        this.abort_selection()
+                        return
+                    }
+                    let mqm_i = Number.parseInt(el.attr("in_mqm"))
+                    this.mqm[mqm_i]["severity"] = SEVERITY_TO_NEXT[this.mqm[mqm_i]["severity"]]
+                    _show_error_box(this.mqm[mqm_i]["severity"].capitalize())
+                    this.redraw_mqm()
+                    this.abort_selection()
+                    submit_form(this.el.data('item-id'));
+                } else {
+                    el.attr("selected", true)
+                    this.SELECTION_STATE.push(char_id)
+                    if (this.SELECTION_STATE.length == 2) {
+                        let start_i = Math.min(...this.SELECTION_STATE)
+                        let end_i = Math.max(...this.SELECTION_STATE)
+                        if (this.mqm.some((v) =>
+                            (v["start_i"] > start_i && v["start_i"] < end_i) ||
+                            (v["end_i"] > start_i && v["end_i"] < end_i)
+                        )) {
+                            this.abort_selection()
+                            _show_error_box("Overlapping error fragments are not allowed.")
+                            return
+                        }
+
+                        this.mqm.push({
+                            "start_i": start_i,
+                            "end_i": end_i,
+                            "severity": "minor",
+                            "error_type": null
+                        })
+                        _show_error_box("Minor")
+
+
+                        this.abort_selection()
+                        this.redraw_mqm()
+                        submit_form(this.el.data('item-id'));
+                    }
+                }
+            })
+        })
+    }
+
+    // Calculate the score
+    calculateScore() {
+        var number_of_minor_errors  = 0;
+        var number_of_major_errors = 0;
+        for (var i = 0; i < this.mqm.length; i++) {
+            if (this.mqm[i].severity == 'minor') {
+                number_of_minor_errors ++;
+            } else if (this.mqm[i].severity == 'major') {
+                number_of_major_errors++;
+            }
+        }
+        return Math.max(0, 100 - 4 * number_of_minor_errors  - 20 * number_of_major_errors);
+    }
+}
+
+function change_preference() {
+    var preference = $(this).val();
+    var item_box = $(this).closest('.item-box');
+    var score1 = item_box.find('input[name="score1"]');
+    var score2 = item_box.find('input[name="score2"]');
+    if (preference == 'A') {
+        score1.val(sourceVisible ? 61 : 60);
+        score2.val(sourceVisible ? 41 : 40);
+    } else if (preference == 'B') {
+        score1.val(sourceVisible ? 41 : 40);
+        score2.val(sourceVisible ? 61 : 60);
+    } else {
+        score1.val(sourceVisible ? 51 : 50);
+        score2.val(sourceVisible ? 51 : 50);
+    }
+    console.log('Preference changed to:', preference, 'scores:', score1.val(), score2.val());
+    // enable button-doc
+    $('#button-doc').prop('disabled', false);
+}
+
+function toggle_diff() {
+    var item_box = $(this).closest('.item-box');
+    var isActive = $('.candidate-text').first().hasClass('active');
+    if (isActive) {
+        $('.candidate-text').removeClass('active');
+    } else {
+        $('.candidate-text').addClass('active');
+    }
+   Cookies.set('show-diff', isActive ? 'no' : 'yes', { sameSite: 'strict' });
+}
+
+function toggle_source_column() {
+    // check if .source-box are visible
+    var isVisible = $('.source-box').first().is(':visible');
+    if (isVisible) {
+        $('.source-box').hide();
+        $('.candidate-text-a').removeClass('col-sm-4').addClass('col-sm-6');
+        $('.candidate-text-b').removeClass('col-sm-4').addClass('col-sm-6');
+    } else {
+        $('.source-box').show();
+        $('.candidate-text-a').removeClass('col-sm-6').addClass('col-sm-4');
+        $('.candidate-text-b').removeClass('col-sm-6').addClass('col-sm-4');
+    }
+    // update sourceVisible
+    sourceVisible = !isVisible;
+    Cookies.set('show-source', isVisible ? 'no' : 'yes', { sameSite: 'strict' });
+}
+
+function toggle_full_screen() {
+    var isFullScreen = $('.container').first().hasClass('full-screen');
+    if (isFullScreen) {
+        $('.container').removeClass('full-screen');
+    } else {
+        $('.container').addClass('full-screen');
+    }
+    Cookies.set('full-screen', isFullScreen ? 'no' : 'yes', { sameSite: 'strict' });
+}
+
+function update_score() {
+    // Assign new score to the corresponding input
+    var new_score = $(this).slider('value');
+    var new_input = $('#' + this.id.replace('slider', 'score'));
+    new_input.val(new_score);
+}
+
+function submit_form(item_id, async=true) {
+    // get item-box from item_id
+    var item_box = $('.item-box[data-item-id="' + item_id + '"]');
+
+    // Validate form
+    var score1 = item_box.find('input[name="score1"]').val();
+    var score2 = item_box.find('input[name="score2"]').val();
+    var index = item_box.data('item-id');
+    if ((score1 == -1) || (score2 == -1)) {
+        alert('Sentence #' + (index + 1) + ' misses a score. ' +
+            'Please score all candidate sentences. Thanks!');
+        return false;
+    }
+
+    // Add end timestamp
+    item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
+
+    // Ajax request
+    if (ENABLE_AJAX) {
+        var succeeded = false;
+
+        // Say server that the client expect JSON response
+        item_box.find('input[name="ajax"]').val('True');
+        //console.log('Sending data: ', item_box.find('form').serialize());
+
+        // Workflow: Immediately after an Ajax request is sent, annotation
+        // moves to the next element opening the next slider; if Ajax request
+        // returns an error or the item was not saved, annotation moves back
+        // to the previous item.
+        $.ajax({
+            async: async,
+            data: item_box.find('form').serialize(),
+            type: 'POST',
+            url: '{% url active_page %}',
+            dataType: 'json',
+            beforeSend: function() {
+                console.log('Sending Ajax request, item-id=', item_box.data('item-id'));
+            },
+            success: function(data) {
+                console.log('Success, saved=', data.saved, 'next-item-id=', data.item_id);
+                if (data.saved) {
+                    // Update counters
+                    $('#items-left-counter').text(data.items_left_in_block);
+                    $('#current-item-id').text(data.item_id);
+
+                    // Update data- attributes in the scored item
+                    item_box.data('item-completed', 'True');
+                    item_box.data('item-score1', score1);
+                    item_box.data('item-score2', score2);
+                } else {
+                    _show_errormessage_box(item_box, data.error_msg);
+                }
+                succeeded = data.saved;
+            },
+            error: function(x,s,t) {
+                console.log('Error:', x, s, t);
+
+                _show_errormessage_box(item_box,
+                    'An unrecognized error has occured. ' +
+                    'Please reload the page or try again in a moment. ' +
+                    'Make sure you use a relatively modern browser.'
+                );
+            },
+        });
+
+        return succeeded;
+
+    } else {
+        // Update counters
+        var count_box = $('#items-left-counter');
+        count_box.text( parseInt(count_box.text()) - 1 );
+        var citem_idx = $('#current-item-id');
+        citem_idx.text( parseInt(citem_idx.text()) + 1 );
+    }
+
+    return true;
+}
+
+function last_form(e) {
+    // For debugging
+    //e.preventDefault();
+
+    // check if preference is made and if not, show alert
+    var preference = $('input[name="preference"]:checked').val();
+    if (preference == undefined) {
+        $('#loading-box').css('display', 'none');
+        alert('Please choose your preference before moving to the next document.');
+        return false;
+    }
+
+    // for each item box with data-item-completed=False, submit the form
+    $('.item-box').not(':last').each(function() {
+        var item_box = $(this);
+        if(item_box.data('item-completed') == "False") {
+            // async=false to wait for the response before moving to the next item
+            submit_form(item_box.data('item-id'), false);
+        }
+    });
+
+    // count number of items left to complete except the last item-box
+    var items_left = $('.item-box').not(':last').filter(function() {
+        return $(this).data('item-completed') == "False";
+    }).length;
+
+    if(items_left > 0) {
+        e.preventDefault();
+        console.log('Warning: there are still', items_left, 'items left to complete.');
+        $('#loading-box').css('display', 'none');
+        alert('We could not submit your answer(s). Please reload the page and try again.');
+        return false;
+    }
+
+    // Add end timestamp
+    var item_box = $(this).closest('.item-box');
+    item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
+}
+
+function _show_errormessage_box(item_box, msg) {
+    // A hideable error box with a custom message displayed right above the item box
+    item_box.before(
+        '<div class="alert alert-danger alert-dismissible" role="alert">' +
+        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+        '<span aria-hidden="true">&times;</span>' +
+        '</button>Oops... ' + msg + '</div>'
+    );
+}
+
+-->
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="alert alert-info">
+    <table style="width:100%">
+        <tr>
+            <td style="width:33%;text-align:left;">
+                <strong id="task_progress">
+                    {{completed_blocks}}/{{total_blocks}} documents,
+                    <span id="items-left-counter">{{num_items}}</span>
+                    segment(s) in document
+                </strong>
+            </td>
+            <td style="width:33%;text-align:center;">
+                <strong>{{campaign}} #{{datask_id}}:Document #{{document_id}}-<span id="current-item-id">{{item_id}}</span></strong>
+            </td>
+            <td style="width:33%;text-align:right;">
+                <strong>{% if source_language %}{{source_language}} &rarr; {% endif %}{{target_language}}</strong>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="question-box alert alert-info">
+    <div class="row">
+        <div class="col-sm-12">
+            <p>Below you see two translated texts in {{ target_language }}: {{ candidate1_label }} and {{ candidate2_label }}.
+            Please read and compare both translations and decide which one is preferrable.</p>
+            {% comment %} <p>You can click and highlight each paragraph to independently mark your preferred translation to guide you in the final decision later.</p> {% endcomment %}
+            <ul class="list-unstyled">
+                <li><strong>Higlighting errors:</strong>
+                  <ul>
+                    <li>
+                      Highlight the text fragment where you have identified a translation error (drag or click start & end).
+                    </li>
+                    <li>Click repeatedly on the highlighted fragment to increase its severity level or to remove the selection.</li>
+                    <li><span class="instruction_sev" id="instruction_sev_minor">Minor Severity:</span>
+                      Style/grammar/lexical choice could be better/more natural.
+                      <!-- Does not seriously impede the usability, understandability, or reliability of the content for its
+                        intended purpose, but has a limited impact on, for example, accuracy, stylistic quality, consistency,
+                        fluency, clarity, or general appeal of the content. -->
+                      </li>
+                      <li><span class="instruction_sev" id="instruction_sev_major">Major Severity:</span>
+                        Seriously changed meaning, difficult to read, decreases usability.
+                        <!-- Seriously affects the understandability, reliability, or usability of the content for its intended
+                        purpose or hinders the proper use of the product or service due to a significant loss or change in
+                        meaning or because the error appears in a highly visible or important part of the content. -->
+                      </li>
+                    </li>
+                    <li>The highlights do not have to have character-level precision. It's sufficient if you highlight the word or rough area where the error appears.</li>
+                    <li>Each error should have a separate highlight.</li>
+                  </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <span class="pull-right control-box">
+                {% if not monolingual %}
+                <button id="button-source-column" class="btn btn-info btn-sm">Show/Hide original {{ source_language }} text</button>
+                {% endif %}
+                <button id="button-full-screen" class="btn btn-info btn-sm">Wide/Narrow screen</button>
+            </span>
+        </div>
+    </div>
+</div>
+
+{% if guidelines_popup %}
+    {% include 'EvalView/_guidelines_popup.html' %}
+{% endif %}
+
+<div class="item-static-content pseudoquotelike">
+    <div class="row">
+        {% if not monolingual %}
+        <div class="source-box col-sm-4">
+            <p>{{ reference_label }}</p>
+        </div>
+        {% endif %}
+
+        <div class="candidate-text-a {% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %}">
+            <p>{{ candidate1_label }}</p>
+        </div>
+        <div class="candidate-text-b {% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %}">
+            <p>{{ candidate2_label }}</p>
+        </div>
+    </div>
+</div>
+
+{% for item,scores in items %}
+
+<div id="item-{{ item.itemID }}"
+     class="item-box item-{% cycle 'odd' 'even' %}
+             {% if not item.isCompleteDocument %} quotelike{% endif %}
+             {% if scores.current_item %} active{% endif %}"
+     data-item-id="{{ item.itemID }}"
+     data-item-completed="{{ scores.completed }}"
+     data-item-score1="{{ scores.score1 }}"
+     data-item-score2="{{ scores.score2 }}">
+
+    <form action="{{action_url}}" method="post">
+        {% csrf_token %}
+
+        <input name="start_timestamp" type="hidden" value="" />
+        <input name="end_timestamp" type="hidden" value="" />
+        <input name="item_id" type="hidden" value="{{ item.itemID }}" />
+        <input name="task_id" type="hidden" value="{{ item.id }}" />
+        <input name="document_id" type="hidden" value="{{ item.documentID }}" />
+        <input name="score1" type="hidden" value="{{ scores.score1 }}" id="score1{{ item.itemID }}" />
+        <input name="score2" type="hidden" value="{{ scores.score2 }}" id="score2{{ item.itemID }}" />
+        <input name="mqm1" type="hidden" value="{{ scores.mqm1 }}" id="mqm1{{ item.itemID }}" />
+        <input name="mqm2" type="hidden" value="{{ scores.mqm2 }}" id="mqm2{{ item.itemID }}" />
+        <input name="ajax" type="hidden" value="False" />
+
+        {% if not item.isCompleteDocument %}
+
+        <div class="source-box-hoverable">
+            <div class="row">
+                {% if not monolingual %}
+                <div class="source-box col-sm-4">
+                    <span>{{ scores.segment_text|safe }}</span>
+                </div>
+                {% endif %}
+
+                <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %} candidate-text-a">
+                    <div class="tutorial-text" id="tutorial-text-a"></div>
+                    <span class="candidate-text" id="text-target-payload-a">{{scores.candidate1_text|safe}}</span>
+                </div>
+                <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %} candidate-text-b">
+                    <div class="tutorial-text" id="tutorial-text-b"></div>
+                    <span class="candidate-text" id="text-target-payload-b">{{scores.candidate2_text|safe}}</span>
+                </div>
+            </div>
+        </div>
+
+        {% else %} <!-- item.isCompleteDocument -->
+
+        <div class="question-box alert alert-info">
+            <div class="row">
+                <div class="col-sm-12">
+                    <p>Which translation do you prefer?</p>
+
+                    <div id="preference-box">
+                        <p>
+                        <label class="radio"> <input type="radio" name="preference" id="preference-1" value="A"> {{ candidate1_label }} </label>
+                        <label class="radio"> <input type="radio" name="preference" id="preference-2" value="B"> {{ candidate2_label }} </label>
+                        <label class="radio"> <input type="radio" name="preference" id="preference-0" value="0"> No difference </label>
+                        </p>
+                    </div>
+
+                    <button id="button-doc" class="btn button-next btn-primary" name="next_button" accesskey="1"
+                            type="submit" value="{{ item.itemID }}" disabled>Submit</button>
+
+                    <div id="loading-box">
+                        <p class="pull-left">Submitting your answer(s). You will be redirected to the next document in few seconds...</p>
+                        <div class="pull-left loading-icon"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
+    </form>
+</div>
+
+{% endfor %}
+
+{% endblock %}

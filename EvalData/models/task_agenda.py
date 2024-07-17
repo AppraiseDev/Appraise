@@ -30,6 +30,7 @@ from EvalData.models.multi_modal_assessment import (
 from EvalData.models.pairwise_assessment import PairwiseAssessmentResult
 from EvalData.models.pairwise_assessment_document import (
     PairwiseAssessmentDocumentResult,
+    PairwiseAssessmentDocumentESAResult,
 )
 
 # TODO: Unclear if these are needed?
@@ -161,6 +162,7 @@ class TaskAgenda(models.Model):
             'MultiModalAssessmentTask': MultiModalAssessmentResult,
             'PairwiseAssessmentDocumentTask': PairwiseAssessmentDocumentResult,
             'PairwiseAssessmentTask': PairwiseAssessmentResult,
+            'PairwiseAssessmentDocumentESATask': PairwiseAssessmentDocumentESAResult,
         }
 
         result_class = type_to_result_class_mapping.get(

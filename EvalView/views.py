@@ -30,6 +30,8 @@ from EvalData.models import MultiModalAssessmentResult
 from EvalData.models import MultiModalAssessmentTask
 from EvalData.models import PairwiseAssessmentDocumentResult
 from EvalData.models import PairwiseAssessmentDocumentTask
+from EvalData.models import PairwiseAssessmentDocumentESAResult
+from EvalData.models import PairwiseAssessmentDocumentESATask
 from EvalData.models import PairwiseAssessmentResult
 from EvalData.models import PairwiseAssessmentTask
 from EvalData.models import TaskAgenda
@@ -2403,4 +2405,481 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     template = 'EvalView/pairwise-assessment-document.html'
     if new_ui:
         template = 'EvalView/pairwise-assessment-document-newui.html'
+    return render(request, template, context)
+
+
+# pylint: disable=C0103,C0330
+@login_required
+def pairwise_assessment_document_esa(request, code=None, campaign_name=None):
+    """
+    Pairwise direct assessment document annotation view.
+    """
+    t1 = datetime.now()
+
+    campaign = None
+    if campaign_name:
+        campaign = Campaign.objects.filter(campaignName=campaign_name)
+        if not campaign.exists():
+            _msg = 'No campaign named "%s" exists, redirecting to dashboard'
+            LOGGER.info(_msg, campaign_name)
+            return redirect('dashboard')
+
+        campaign = campaign[0]
+
+    LOGGER.info(
+        'Rendering direct assessment document view for user "%s".',
+        request.user.username or "Anonymous",
+    )
+
+    current_task = None
+
+    # Try to identify TaskAgenda for current user.
+    agendas = TaskAgenda.objects.filter(user=request.user)
+
+    if campaign:
+        agendas = agendas.filter(campaign=campaign)
+
+    for agenda in agendas:
+        LOGGER.info('Identified work agenda %s', agenda)
+
+        tasks_to_complete = []
+        for serialized_open_task in agenda.serialized_open_tasks():
+            open_task = serialized_open_task.get_object_instance()
+
+            # Skip tasks which are not available anymore
+            if open_task is None:
+                continue
+
+            if open_task.next_item_for_user(request.user) is not None:
+                current_task = open_task
+                if not campaign:
+                    campaign = agenda.campaign
+            else:
+                tasks_to_complete.append(serialized_open_task)
+
+        modified = False
+        for task in tasks_to_complete:
+            modified = agenda.complete_open_task(task) or modified
+
+        if modified:
+            agenda.save()
+
+    if not current_task and agendas.count() > 0:
+        LOGGER.info('Work agendas completed, redirecting to dashboard')
+        LOGGER.info('- code=%s, campaign=%s', code, campaign)
+        return redirect('dashboard')
+
+    # If language code has been given, find a free task and assign to user.
+    if not current_task:
+        current_task = PairwiseAssessmentDocumentESATask.get_task_for_user(
+            user=request.user
+        )
+
+    if not current_task:
+        if code is None or campaign is None:
+            LOGGER.info('No current task detected, redirecting to dashboard')
+            LOGGER.info('- code=%s, campaign=%s', code, campaign)
+            return redirect('dashboard')
+
+        LOGGER.info(
+            'Identifying next task for code "%s", campaign="%s"',
+            code,
+            campaign,
+        )
+        next_task = PairwiseAssessmentDocumentESATask.get_next_free_task_for_language(
+            code, campaign, request.user
+        )
+
+        if next_task is None:
+            LOGGER.info('No next task detected, redirecting to dashboard')
+            return redirect('dashboard')
+
+        next_task.assignedTo.add(request.user)
+        next_task.save()
+
+        current_task = next_task
+
+    if current_task:
+        if not campaign:
+            campaign = current_task.campaign
+
+        elif campaign.campaignName != current_task.campaign.campaignName:
+            _msg = 'Incompatible campaign given, using item campaign instead!'
+            LOGGER.info(_msg)
+            campaign = current_task.campaign
+
+    # Handling POST requests differs from the original direct_assessment/
+    # direct_assessment_context view
+    t2 = datetime.now()
+    ajax = False
+    item_saved = False
+    error_msg = ''
+    if request.method == "POST":
+        score1 = request.POST.get('score1', None)
+        score2 = request.POST.get('score2', None)
+        mqm1 = request.POST.get('mqm1', None)
+        mqm2 = request.POST.get('mqm2', None)
+        item_id = request.POST.get('item_id', None)
+        task_id = request.POST.get('task_id', None)
+        document_id = request.POST.get('document_id', None)
+        start_timestamp = request.POST.get('start_timestamp', None)
+        end_timestamp = request.POST.get('end_timestamp', None)
+        ajax = bool(request.POST.get('ajax', None) == 'True')
+
+        LOGGER.info('score1=%s, score2=%s, item_id=%s', score1, score2, item_id)
+        print(
+            'Got request score1={0}, score2={1}, item_id={2}, ajax={3}'.format(
+                score1, score2, item_id, ajax
+            )
+        )
+
+        # If all required information was provided in the POST request
+        if score1 and item_id and start_timestamp and end_timestamp:
+            duration = float(end_timestamp) - float(start_timestamp)
+            LOGGER.debug(float(start_timestamp))
+            LOGGER.debug(float(end_timestamp))
+            LOGGER.info(
+                'start=%s, end=%s, duration=%s',
+                start_timestamp,
+                end_timestamp,
+                duration,
+            )
+
+            # Get all items from the document that the submitted item belongs
+            # to, and all already collected scores for this document
+            (
+                current_item,
+                block_items,
+                block_results,
+            ) = current_task.next_document_for_user(
+                request.user, return_statistics=False
+            )
+
+            # An item from the right document was submitted
+            if current_item.documentID == document_id:
+                # This is the item that we expected to be annotated first,
+                # which means that there is no score for the current item, so
+                # create new score
+                if current_item.itemID == int(item_id) and current_item.id == int(
+                    task_id
+                ):
+
+                    utc_now = datetime.utcnow().replace(tzinfo=utc)
+                    # pylint: disable=E1101
+                    PairwiseAssessmentDocumentESAResult.objects.create(
+                        score1=score1,
+                        score2=score2,
+                        mqm1=mqm1,
+                        mqm2=mqm2,
+                        start_time=float(start_timestamp),
+                        end_time=float(end_timestamp),
+                        item=current_item,
+                        task=current_task,
+                        createdBy=request.user,
+                        activated=False,
+                        completed=True,
+                        dateCompleted=utc_now,
+                    )
+                    print('Item {} (itemID={}) saved'.format(task_id, item_id))
+                    item_saved = True
+
+                # It is not the current item, so check if the result for it
+                # exists
+                else:
+                    # Check if there is a score result for the submitted item
+                    # TODO: this could be a single query, would it be better or
+                    # more effective?
+                    current_result = None
+                    for result in block_results:
+                        if not result:
+                            continue
+                        if result.item.itemID == int(item_id) and result.item.id == int(
+                            task_id
+                        ):
+                            current_result = result
+                            break
+
+                    # If already scored, update the result
+                    # TODO: consider adding new score, not updating the
+                    # previous one
+                    if current_result:
+                        prev_score1 = current_result.score1
+                        prev_score2 = current_result.score2
+                        current_result.score1 = score1
+                        current_result.score2 = score2
+                        current_result.mqm1 = mqm1
+                        current_result.mqm2 = mqm2
+                        current_result.start_time = float(start_timestamp)
+                        current_result.end_time = float(end_timestamp)
+                        utc_now = datetime.utcnow().replace(tzinfo=utc)
+                        current_result.dateCompleted = utc_now
+                        current_result.save()
+                        _msg = 'Item {} (itemID={}) updated {}->{} and {}->{}'.format(
+                            task_id, item_id, prev_score1, score1, prev_score2, score2
+                        )
+                        LOGGER.debug(_msg)
+                        print(_msg)
+                        item_saved = True
+
+                    # If not yet scored, check if the submitted item is from
+                    # the expected document. Note that document ID is **not**
+                    # sufficient, because there can be multiple documents with
+                    # the same ID in the task.
+                    else:
+                        found_item = False
+                        for item in block_items:
+                            if item.itemID == int(item_id) and item.id == int(task_id):
+                                found_item = item
+                                break
+
+                        # The submitted item is from the same document as the
+                        # first unannotated item. It is fine, so save it
+                        if found_item:
+                            utc_now = datetime.utcnow().replace(tzinfo=utc)
+                            # pylint: disable=E1101
+                            PairwiseAssessmentDocumentESAResult.objects.create(
+                                score1=score1,
+                                score2=score2,
+                                mqm1=mqm1,
+                                mqm2=mqm2,
+                                start_time=float(start_timestamp),
+                                end_time=float(end_timestamp),
+                                item=found_item,
+                                task=current_task,
+                                createdBy=request.user,
+                                activated=False,
+                                completed=True,
+                                dateCompleted=utc_now,
+                            )
+                            _msg = 'Item {} (itemID={}) saved, although it was not the next item'.format(
+                                task_id, item_id
+                            )
+                            LOGGER.debug(_msg)
+                            print(_msg)
+                            item_saved = True
+
+                        else:
+                            error_msg = (
+                                'We did not expect this item to be submitted. '
+                                'If you used backward/forward buttons in your browser, '
+                                'please reload the page and try again.'
+                            )
+
+                            _msg = 'Item ID {} does not match item {}, will not save!'.format(
+                                item_id, current_item.itemID
+                            )
+                            LOGGER.debug(_msg)
+                            print(_msg)
+
+            # An item from a wrong document was submitted
+            else:
+                print(
+                    'Different document IDs: {} != {}, will not save!'.format(
+                        current_item.documentID, document_id
+                    )
+                )
+
+                error_msg = (
+                    'We did not expect an item from this document to be submitted. '
+                    'If you used backward/forward buttons in your browser, '
+                    'please reload the page and try again.'
+                )
+
+    t3 = datetime.now()
+
+    # Get all items from the document that the first unannotated item in the
+    # task belongs to, and collect some additional statistics
+    (
+        current_item,
+        completed_items,
+        completed_blocks,
+        completed_items_in_block,
+        block_items,
+        block_results,
+        total_blocks,
+    ) = current_task.next_document_for_user(request.user)
+
+    if not current_item:
+        LOGGER.info('No current item detected, redirecting to dashboard')
+        return redirect('dashboard')
+
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
+    escape_eos = 'escapeeos' in campaign_opts
+    escape_br = 'escapebr' in campaign_opts
+
+    # Get item scores from the latest corresponding results
+    block_scores = []
+    for item, result in zip(block_items, block_results):
+        # Get target texts with injected HTML tags showing diffs
+        _candidate1_text, _candidate2_text = item.target_texts_with_diffs(
+            escape_html=False
+        )
+        _source_text = item.segmentText
+        _default_score = 50
+
+        if escape_eos:
+            _source_text = _source_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            )
+            _candidate1_text = _candidate1_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            )
+            _candidate2_text = _candidate2_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            )
+
+        if escape_br:
+            _source_text = _source_text.replace("&lt;br/&gt;", "<br/>")
+            _candidate1_text = _candidate1_text.replace(
+                "&lt;br/&gt;", "<br/>"
+            )
+            _candidate2_text = _candidate2_text.replace(
+                "&lt;br/&gt;", "<br/>"
+            )
+
+        item_scores = {
+            'completed': bool(result and result.score1 > -1),
+            'current_item': bool(item.id == current_item.id),
+            'score1': result.score1 if result else _default_score,
+            'score2': result.score2 if result else _default_score,
+            'mqm1': result.mqm1 if result else item.mqm1,
+            'mqm2': result.mqm2 if result else item.mqm2,
+            'candidate1_text': _candidate1_text,
+            'candidate2_text': _candidate2_text,
+            'segment_text': _source_text,
+        }
+        block_scores.append(item_scores)
+
+    # completed_items_check = current_task.completed_items_for_user(
+    #     request.user)
+    _msg = 'completed_items=%s, completed_blocks=%s'
+    LOGGER.info(_msg, completed_items, completed_blocks)
+
+    source_language = current_task.marketSourceLanguage()
+    target_language = current_task.marketTargetLanguage()
+
+    t4 = datetime.now()
+
+    reference_label = 'Source text'
+    candidate1_label = 'Translation A'
+    candidate2_label = 'Translation B'
+
+    priming_question_texts = [
+        'Below you see a document with {0} sentences in {1} (left columns) '
+        'and their corresponding candidate translations from two different systems '
+        'in {2} (right columns). '
+        'Score each candidate sentence translation in the system\'s document context. '
+        'You may revisit already scored sentences and update their scores at any time '
+        'by clicking at a source text.'.format(
+            len(block_items), source_language, target_language
+        ),
+        'Assess the translation quality answering the question: ',
+        'How accurately does the candidate text for each system (right column, in bold) '
+        'convey the original semantics of the source text (left column) in the '
+        'system\'s document context? ',
+    ]
+    document_question_texts = [
+        'Please score the overall document translation quality for each system '
+        '(you can score the whole documents only after scoring all individual '
+        'sentences first).',
+        'Assess the translation quality answering the question: ',
+        'How accurately does the <strong>entire</strong> candidate document translation '
+        'in {0} (right column) convey the original semantics of the source document '
+        'in {1} (left column)? '.format(target_language, source_language),
+    ]
+
+    monolingual_task = 'monolingual' in campaign_opts
+    use_sqm = 'sqm' in campaign_opts
+    static_context = 'staticcontext' in campaign_opts
+    doc_guidelines = 'doclvlguideline' in campaign_opts
+    guidelines_popup = (
+        'guidelinepopup' in campaign_opts or 'guidelinespopup' in campaign_opts
+    )
+    gaming_domain = 'gamingdomainnote' in campaign_opts
+
+    if use_sqm:
+        priming_question_texts = priming_question_texts[:1]
+        document_question_texts = document_question_texts[:1]
+
+    if monolingual_task:
+        source_language = None
+        priming_question_texts = [
+            'Below you see two documents, each with {0} sentences in {1}. '
+            'Score each sentence in both documents in their respective document context. '
+            'You may revisit already scored sentences and update their scores at any time '
+            'by clicking at a source text.'.format(
+                len(block_items) - 1, target_language
+            ),
+        ]
+        document_question_texts = [
+            'Please score the overall quality of each document (you can score '
+            'the whole document only after scoring all individual sentences from all '
+            'documents first).',
+        ]
+        candidate1_label = 'Translation A'
+        candidate2_label = 'Translation B'
+
+    if doc_guidelines:
+        priming_question_texts = [
+            'Below you see a document with {0} partial paragraphs in {1} (left columns) '
+            'and their corresponding two candidate translations in {2} (middle and right column). '
+            'Please score each paragraph of both candidate translations '
+            '<u><b>paying special attention to document-level properties, '
+            'such as consistency of formality and style, selection of translation terms, pronoun choice, '
+            'and so on</b></u>, in addition to the usual correctness criteria. '.format(
+                len(block_items) - 1,
+                source_language,
+                target_language,
+            ),
+        ]
+
+    if gaming_domain:
+        priming_question_texts += [
+            'The presented texts are messages from an online video game chat. '
+            'Please take into account the video gaming genre when making your assessments. </br> '
+        ]
+
+    # A part of context used in responses to both Ajax and standard POST
+    # requests
+    context = {
+        'active_page': 'pairwise-assessment-document-newui-esa',
+        'item_id': current_item.itemID,
+        'task_id': current_item.id,
+        'document_id': current_item.documentID,
+        'completed_blocks': completed_blocks,
+        'total_blocks': total_blocks,
+        'items_left_in_block': len(block_items) - completed_items_in_block,
+        'source_language': source_language,
+        'target_language': target_language,
+        'debug_times': (t2 - t1, t3 - t2, t4 - t3, t4 - t1),
+        'template_debug': 'debug' in request.GET,
+        'campaign': campaign.campaignName,
+        'datask_id': current_task.id,
+        'trusted_user': current_task.is_trusted_user(request.user),
+        'monolingual': monolingual_task,
+        'sqm': use_sqm,
+        'static_context': static_context,
+        'guidelines_popup': guidelines_popup,
+        'doc_guidelines': doc_guidelines,
+    }
+
+    if ajax:
+        ajax_context = {'saved': item_saved, 'error_msg': error_msg}
+        context.update(ajax_context)
+        context.update(BASE_CONTEXT)
+        return JsonResponse(context)  # Sent response to the Ajax POST request
+
+    page_context = {
+        'items': zip(block_items, block_scores),
+        'num_items': len(block_items),
+        'reference_label': reference_label,
+        'candidate1_label': candidate1_label,
+        'candidate2_label': candidate2_label,
+        'priming_question_texts': priming_question_texts,
+        'document_question_texts': document_question_texts,
+    }
+    context.update(page_context)
+    context.update(BASE_CONTEXT)
+
+    template = 'EvalView/pairwise-assessment-document-newui-esa.html'
     return render(request, template, context)
