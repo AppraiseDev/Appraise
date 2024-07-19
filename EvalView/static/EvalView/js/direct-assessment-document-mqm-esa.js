@@ -175,7 +175,6 @@ $(document).ready(() => {
 
 function _all_sentences_scored() {
     let items_left = $('.item-box').filter((_i, el) => $(el).attr('data-item-completed') == "False").length;
-    console.log('Items left:', items_left);
     return items_left == 0;
 }
 
@@ -334,6 +333,29 @@ class MQMItemHandler {
             this.el_slider.slider('value', score);
         }
 
+        // slider bubble handling
+        this.el_slider.find(".ui-slider-handle").append("<div class='slider-bubble'>100</div>")
+        let refresh_bubble = () => {
+            this.el_slider.find(".slider-bubble").text(this.el_slider.slider('value'))
+        }
+        this.el_slider.find(".ui-slider-handle").on("mousedown ontouchstart", () => {
+            this.el_slider.find(".slider-bubble").toggle(true);
+            refresh_bubble();
+        })
+        this.el_slider.find(".ui-slider-handle").on("mouseup focusout ontouchend", async () => {
+            await waitout_js_loop()
+            this.el_slider.find(".slider-bubble").toggle(false);
+            refresh_bubble();
+        })
+        this.el_slider.on("slide", async () => {
+            this.el_slider.find(".slider-bubble").toggle(true);
+            refresh_bubble()
+            await waitout_js_loop()
+            refresh_bubble()
+        });
+        // hide by default
+        this.el_slider.find(".slider-bubble").toggle(false);
+
         this.el.find('.button-submit').on("click", (event) => { event.preventDefault(); this.note_change() });
     }
 
@@ -389,6 +411,7 @@ class MQMItemHandler {
     reset() {
         this.el.find('.button-submit').toggle(MQM_TYPE == "MQM")
         this.el.attr("data-item-completed", "False")
+        this.el_slider.find(".slider-bubble").remove()
         this.initialize()
         // if we reset then we automatically hide the next doc button
         toggle_doc_button(false)
