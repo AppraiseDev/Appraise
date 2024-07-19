@@ -1,0 +1,634 @@
+{% extends "Dashboard/base.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="icon" href="data:;base64,=">
+<style>
+.full-screen { width:100% !important; }
+
+.half-slider { padding:0 !important; }
+.half-slider .col-sm-12 { padding:0; }
+.half-slider .slider-grid td:first-of-type { padding-left:0; }
+.half-slider .slider-grid td:last-of-type { padding-right:0; }
+.half-slider .slider { margin-top:5px !important; }
+
+.quotelike .row, .pseudoquotelike .row { font-size: 16px; margin: 0; }
+
+.question-box p { font-size: 120%; margin: 10px 0; font-style: italic; color: #31708f; }
+.question-box li { font-size: 100%; font-style: italic; color: #31708f; }
+.document-box { padding-top: 10px; }
+.document-box p { font-size: 16px; }
+
+.item-box emph { font-weight:bold; font-style: italic; }
+
+.item-static-content p { opacity:0.5; font-style:italic; }
+.thumb-up, .thumb-down { cursor:pointer; }
+.thumb-up.active { color: #4CAF50; }
+.thumb-down.active { color: #F44336; }
+.thumbs-box { padding:0; }
+@media (max-width: 767px) {
+  .thumbs-box { font-size:150%; }
+}
+
+.source-box { color:#31708f; font-style:italic;}
+.source-box, .candidate-text-a, .candidate-text-b { padding-top: 10px; padding-bottom: 10px; }
+/*
+.candidate-text-a { background: #f0f0f0; }
+.candidate-text-b { background: #f7f7f7; }
+*/
+
+.source-box-hoverable:hover { background: #f5f5f5; cursor: pointer; }
+.source-btn-toggle { float: right; padding-right:10px; }
+.source-btn-done { float: right; display: none; padding-bottom:5px; padding-left:5px; }
+.preview-box .row { padding-top:0; font-size:95%; /*font-weight:bold;*/ }
+
+.candidate-text.active .diff { background: #F0E8A6 !important; }
+.segment-label { display:block; font-size:small; font-style:italic; }
+
+.toggleable { display:none; }
+.toggleable.active { display:block; }
+
+.target-box .row { padding-top:0; }
+.target-box.active { display:block; }
+.target-box .btn { margin-top:10px; min-width:71px; margin-right:5px; }
+
+#preference-box label { margin-left:40px; }
+
+#loading-box { display:none; }
+.loading-icon {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #ccc;
+    border-top: 4px solid #007bff; /* Change color as needed */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    transform: translate(-50%, -50%);
+    margin-left: 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.selected {
+    background-color: #b7ffdd;
+}
+
+/* Uncomment if ENABLE_UNRESTRICTED_ANNOTATION is set to false */
+/*.source-btn-toggle, .control-box { display:none; }*/
+</style>
+
+<link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}">
+<script src="{% static 'EvalView/js/jquery-ui.min.js' %}"></script>
+<script src="{% static 'EvalView/js/js.cookie-2.2.1.min.js' %}"></script>
+<script>
+    <!--
+var idleTime = 0;
+
+// Enable submitting scores for individual items using Ajax POST. If disabled,
+// the page will be reloaded each time an item is annotated. Note that the
+// document-level score is always submitted without Ajax.
+var ENABLE_AJAX = true;
+// Hint scores of already annotated items with small red-to-green color
+// circles.
+var ENABLE_COLOR_LABELS = false;
+// Allow unrestricted annotation of items in the document. If disabled,
+// expanding and hiding of sentences is disabled and the user must score items
+// following their order, one-by-one.
+// Note: If set to false, some HTML elements are disabled via javascript
+// after the page is loaded, which may result in a flashing effect. To prevent
+// this, add the CSS rule: .source-btn-toggle, .control-box {display:none;}
+// (see line 51). This is purely esthetics.
+var ENABLE_UNRESTRICTED_ANNOTATION = true;
+
+var sourceVisible = true;
+
+String.prototype.rot13 = function() {
+    return this.replace(/[a-zA-Z]/g, function(c) {
+        return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
+    });
+};
+
+// https://stackoverflow.com/a/21520499
+jQuery.fn.clickToggle = function(a, b) {
+    return this.on("click", function(ev) { [b, a][this.$_io ^= 1].call(this, ev) })
+};
+
+$(document).ready(function() {
+    // This sets the same starting time for all items, but it is set again when
+    // an item is expanded by clicking on it.
+    // TODO: this may need to be changed
+    $('input[name="start_timestamp"]').val(Date.now()/1000.0);
+
+    // Show diffs between candidate translations when hovering
+    $(".source-box-hoverable").hover(function(){
+        $(this).find('.candidate-text').addClass('active');
+    }, function(){
+        $(this).find('.candidate-text').removeClass('active');
+    });
+
+    // Bind thumbs up/down click events to update score1/score2
+    $('.thumb-up').click(click_thumb_up);
+    $('.thumb-down').click(click_thumb_down);
+
+    // Bind click events
+    // TODO: remove as there will be no slider here
+    $('.slider').slider({orientation: "horizontal", range: "min", change: update_score });
+    if (! ENABLE_UNRESTRICTED_ANNOTATION) {
+        $('.source-box').removeClass('source-box-hoverable');
+        $('.control-box').hide(0);
+    }
+
+    // Bind changing preference radio buttons to setting score1/score2
+    $('#preference-box input[type="radio"]').change(change_preference);
+
+    // The last item doesn't send Ajax request
+    $('#button-doc').on('mousedown', function() {
+        // show loading box
+        $('#loading-box').css('display', 'block');
+    }).on('click', last_form);
+
+    // Update thumbs up/down for annotated items
+    $('input[name^="score"]').each(function() {
+        var item_box = $(this).closest('.item-box');
+        var is_completed = item_box.data('item-completed');
+        if(is_completed == "True") {
+            // Which candidate translation is it?
+            var candidate_num = $(this).attr('name').slice(-1);
+            var score = $(this).val();
+
+            {% if highlight_style %}
+            // Score eq 50 is default, scores eq 60 is highlighted
+            if(score > 51){
+                item_box.find('.candidate-text-' + (candidate_num === '1' ? 'a' : 'b')).addClass('selected');
+            }
+            {% else %}
+            // Score eq 50 is default, scores eq 40 is thumbs-down, scores eq 60 is thumbs-up
+            if(score > 51){
+                item_box.find('.thumb-up.slider' + candidate_num).addClass('active');
+            } else if(score < 50){
+                item_box.find('.thumb-down.slider' + candidate_num).addClass('active');
+            }
+            {% endif %}
+        }
+    });
+
+    {% if not monolingual %}
+    $('#button-source-column').click(toggle_source_column);
+    if (Cookies.get('show-source') != 'yes') {
+        toggle_source_column();
+    }
+    {% endif %}
+
+    $('#button-full-screen').click(toggle_full_screen);
+    if (Cookies.get('full-screen') != 'no') {
+      $('.container').addClass('full-screen');
+    }
+
+    // Show guidelines in a popup box
+    $('#guidelines-modal').modal('show');
+});
+
+function click_thumb_up() {
+    var thumb_up = $(this);
+    var thumb_down = $(this).siblings('.thumb-down');
+
+    var item_box = thumb_up.closest('.item-box');
+    var slider_class = thumb_up.attr('class').split(' ').find(function(cls) {
+        return cls.startsWith('slider');
+    });
+    var item = item_box.find('input[name="score' + slider_class.slice(-1) + '"]');
+
+    if (thumb_up.hasClass('active')) {
+        thumb_up.removeClass('active');
+        item.val(50);
+    } else if (thumb_down.hasClass('active')) {
+        thumb_down.removeClass('active');
+        item.val(50);
+    } else {
+        thumb_up.addClass('active');
+        item.val(60);
+    }
+
+    submit_form(item_box.data('item-id'));
+}
+
+function click_thumb_down() {
+    var thumb_down = $(this);
+    var thumb_up = $(this).siblings('.thumb-up');
+
+    var item_box = thumb_down.closest('.item-box');
+    var slider_class = thumb_down.attr('class').split(' ').find(function(cls) {
+        return cls.startsWith('slider');
+    });
+    var item = item_box.find('input[name="score' + slider_class.slice(-1) + '"]');
+
+    if (thumb_down.hasClass('active')) {
+        thumb_down.removeClass('active');
+        item.val(50);
+    } else if (thumb_up.hasClass('active')) {
+        thumb_up.removeClass('active');
+        item.val(50);
+    } else {
+        thumb_down.addClass('active');
+        item.val(40);
+    }
+
+    submit_form(item_box.data('item-id'));
+}
+
+function selectTranslation(candidateNum, itemId) {
+    var itemBox = $('#item-' + itemId);
+    var score1Input = itemBox.find('input[name="score1"]');
+    var score2Input = itemBox.find('input[name="score2"]');
+    var candidateTextA = itemBox.find('.candidate-text-a');
+    var candidateTextB = itemBox.find('.candidate-text-b');
+
+    candidateTextA.removeClass('selected');
+    candidateTextB.removeClass('selected');
+
+    if ((candidateNum === 1 && score1Input.val() >= 60) ||
+        (candidateNum === 2 && score2Input.val() >= 60)) {
+        score1Input.val('50');
+        score2Input.val('50');
+    } else {
+        if (candidateNum === 1) {
+            candidateTextA.addClass('selected');
+            score1Input.val('60');
+            score2Input.val('50');
+        } else {
+            candidateTextB.addClass('selected');
+            score1Input.val('50');
+            score2Input.val('60');
+        }
+    }
+
+    submit_form(itemId);
+}
+
+function change_preference() {
+    var preference = $(this).val();
+    var item_box = $(this).closest('.item-box');
+    var score1 = item_box.find('input[name="score1"]');
+    var score2 = item_box.find('input[name="score2"]');
+    if (preference == 'A') {
+        score1.val(sourceVisible ? 61 : 60);
+        score2.val(sourceVisible ? 41 : 40);
+    } else if (preference == 'B') {
+        score1.val(sourceVisible ? 41 : 40);
+        score2.val(sourceVisible ? 61 : 60);
+    } else {
+        score1.val(sourceVisible ? 51 : 50);
+        score2.val(sourceVisible ? 51 : 50);
+    }
+    console.log('Preference changed to:', preference, 'scores:', score1.val(), score2.val());
+    // enable button-doc
+    $('#button-doc').prop('disabled', false);
+}
+
+function toggle_diff() {
+    var item_box = $(this).closest('.item-box');
+    var isActive = $('.candidate-text').first().hasClass('active');
+    if (isActive) {
+        $('.candidate-text').removeClass('active');
+    } else {
+        $('.candidate-text').addClass('active');
+    }
+   Cookies.set('show-diff', isActive ? 'no' : 'yes', { sameSite: 'strict' });
+}
+
+function toggle_source_column() {
+    // check if .source-box are visible
+    var isVisible = $('.source-box').first().is(':visible');
+    if (isVisible) {
+        $('.source-box').hide();
+        $('.candidate-text-a').removeClass('col-sm-4').addClass('col-sm-6');
+        $('.candidate-text-b').removeClass('col-sm-4').addClass('col-sm-6');
+    } else {
+        $('.source-box').show();
+        $('.candidate-text-a').removeClass('col-sm-6').addClass('col-sm-4');
+        $('.candidate-text-b').removeClass('col-sm-6').addClass('col-sm-4');
+    }
+    // update sourceVisible
+    sourceVisible = !isVisible;
+    Cookies.set('show-source', isVisible ? 'no' : 'yes', { sameSite: 'strict' });
+}
+
+function toggle_full_screen() {
+    var isFullScreen = $('.container').first().hasClass('full-screen');
+    if (isFullScreen) {
+        $('.container').removeClass('full-screen');
+    } else {
+        $('.container').addClass('full-screen');
+    }
+    Cookies.set('full-screen', isFullScreen ? 'no' : 'yes', { sameSite: 'strict' });
+}
+
+function update_score() {
+    // Assign new score to the corresponding input
+    var new_score = $(this).slider('value');
+    var new_input = $('#' + this.id.replace('slider', 'score'));
+    new_input.val(new_score);
+}
+
+function submit_form(item_id, async=true) {
+    // get item-box from item_id
+    var item_box = $('.item-box[data-item-id="' + item_id + '"]');
+
+    // Validate form
+    var score1 = item_box.find('input[name="score1"]').val();
+    var score2 = item_box.find('input[name="score2"]').val();
+    var index = item_box.data('item-id');
+    if ((score1 == -1) || (score2 == -1)) {
+        alert('Sentence #' + (index + 1) + ' misses a score. ' +
+            'Please score all candidate sentences. Thanks!');
+        return false;
+    }
+
+    // Add end timestamp
+    item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
+
+    // Adjust scores if source text is visible
+    if (sourceVisible) {
+        score1 = (score1 >= 60 ? 61 : (score1 >= 50 ? 51 : 41));
+        score2 = (score2 >= 60 ? 61 : (score2 >= 50 ? 51 : 41));
+        item_box.find('input[name="score1"]').val(score1);
+        item_box.find('input[name="score2"]').val(score2);
+    }
+
+    // Ajax request
+    if (ENABLE_AJAX) {
+        var succeeded = false;
+
+        // Say server that the client expect JSON response
+        item_box.find('input[name="ajax"]').val('True');
+        //console.log('Sending data: ', item_box.find('form').serialize());
+
+        // Workflow: Immediately after an Ajax request is sent, annotation
+        // moves to the next element opening the next slider; if Ajax request
+        // returns an error or the item was not saved, annotation moves back
+        // to the previous item.
+        $.ajax({
+            async: async,
+            data: item_box.find('form').serialize(),
+            type: 'POST',
+            url: '{% url active_page %}',
+            dataType: 'json',
+            beforeSend: function() {
+                console.log('Sending Ajax request, item-id=', item_box.data('item-id'));
+            },
+            success: function(data) {
+                console.log('Success, saved=', data.saved, 'next-item-id=', data.item_id);
+                if (data.saved) {
+                    // Update counters
+                    $('#items-left-counter').text(data.items_left_in_block);
+                    $('#current-item-id').text(data.item_id);
+
+                    // Update data- attributes in the scored item
+                    item_box.data('item-completed', 'True');
+                    item_box.data('item-score1', score1);
+                    item_box.data('item-score2', score2);
+                } else {
+                    _show_error_box(item_box, data.error_msg);
+                }
+                succeeded = data.saved;
+            },
+            error: function(x,s,t) {
+                console.log('Error:', x, s, t);
+
+                _show_error_box(item_box,
+                    'An unrecognized error has occured. ' +
+                    'Please reload the page or try again in a moment. ' +
+                    'Make sure you use a relatively modern browser.'
+                );
+            },
+        });
+
+        return succeeded;
+
+    } else {
+        // Update counters
+        var count_box = $('#items-left-counter');
+        count_box.text( parseInt(count_box.text()) - 1 );
+        var citem_idx = $('#current-item-id');
+        citem_idx.text( parseInt(citem_idx.text()) + 1 );
+    }
+
+    return true;
+}
+
+function last_form(e) {
+    // For debugging
+    //e.preventDefault();
+
+    // check if preference is made and if not, show alert
+    var preference = $('input[name="preference"]:checked').val();
+    if (preference == undefined) {
+        $('#loading-box').css('display', 'none');
+        alert('Please choose your preference before moving to the next document.');
+        return false;
+    }
+
+    // for each item box with data-item-completed=False, submit the form
+    $('.item-box').not(':last').each(function() {
+        var item_box = $(this);
+        if(item_box.data('item-completed') == "False") {
+            // async=false to wait for the response before moving to the next item
+            submit_form(item_box.data('item-id'), false);
+        }
+    });
+
+    // count number of items left to complete except the last item-box
+    var items_left = $('.item-box').not(':last').filter(function() {
+        return $(this).data('item-completed') == "False";
+    }).length;
+
+    if(items_left > 0) {
+        e.preventDefault();
+        console.log('Warning: there are still', items_left, 'items left to complete.');
+        $('#loading-box').css('display', 'none');
+        alert('We could not submit your answer(s). Please reload the page and try again.');
+        return false;
+    }
+
+    // Add end timestamp
+    var item_box = $(this).closest('.item-box');
+    item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
+}
+
+function _show_error_box(item_box, msg) {
+    // A hideable error box with a custom message displayed right above the item box
+    item_box.before(
+        '<div class="alert alert-danger alert-dismissible" role="alert">' +
+        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+        '<span aria-hidden="true">&times;</span>' +
+        '</button>Oops... ' + msg + '</div>'
+    );
+}
+
+-->
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="alert alert-info">
+    <table style="width:100%">
+        <tr>
+            <td style="width:33%;text-align:left;">
+                <strong id="task_progress">
+                    {{completed_blocks}}/{{total_blocks}} documents,
+                    <span id="items-left-counter">{{num_items}}</span>
+                    segment(s) in document
+                </strong>
+            </td>
+            <td style="width:33%;text-align:center;">
+                <strong>{{campaign}} #{{datask_id}}:Document #{{document_id}}-<span id="current-item-id">{{item_id}}</span></strong>
+            </td>
+            <td style="width:33%;text-align:right;">
+                <strong>{% if source_language %}{{source_language}} &rarr; {% endif %}{{target_language}}</strong>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="question-box alert alert-info">
+    <div class="row">
+        <div class="col-sm-12">
+            <p>Below you see two translated texts in {{ target_language }}: {{ candidate1_label }} and {{ candidate2_label }}.
+            Please read and compare both translations and decide which one is preferrable.</p>
+            {% if highlight_style %}
+            <p>You can click and highlight each paragraph to independently mark your preferred translation to guide you in the final decision later.</p>
+            {% else %}
+            <p>You can use thumbs up/down to independently upvote/downvote translations of specific fragments to guide you in the final decision later.</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <span class="pull-right control-box">
+                {% if not monolingual %}
+                <button id="button-source-column" class="btn btn-info btn-sm">Show/Hide original {{ source_language }} text</button>
+                {% endif %}
+                <button id="button-full-screen" class="btn btn-info btn-sm">Wide/Narrow screen</button>
+            </span>
+        </div>
+    </div>
+</div>
+
+{% if guidelines_popup %}
+    {% include 'EvalView/_guidelines_popup.html' %}
+{% endif %}
+
+<div class="item-static-content pseudoquotelike">
+    <div class="row">
+        {% if not monolingual %}
+        <div class="source-box col-sm-4">
+            <p>{{ reference_label }}</p>
+        </div>
+        {% endif %}
+
+        <div class="candidate-text-a {% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %}">
+            <p>{{ candidate1_label }}</p>
+        </div>
+        <div class="candidate-text-b {% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %}">
+            <p>{{ candidate2_label }}</p>
+        </div>
+    </div>
+</div>
+
+{% for item,scores in items %}
+
+<div id="item-{{ item.itemID }}"
+     class="item-box item-{% cycle 'odd' 'even' %}
+             {% if not item.isCompleteDocument %} quotelike{% endif %}
+             {% if scores.current_item %} active{% endif %}"
+     data-item-id="{{ item.itemID }}"
+     data-item-completed="{{ scores.completed }}"
+     data-item-score1="{{ scores.score1 }}"
+     data-item-score2="{{ scores.score2 }}">
+
+    <form action="{{action_url}}" method="post">
+        {% csrf_token %}
+
+        <input name="start_timestamp" type="hidden" value="" />
+        <input name="end_timestamp" type="hidden" value="" />
+        <input name="item_id" type="hidden" value="{{ item.itemID }}" />
+        <input name="task_id" type="hidden" value="{{ item.id }}" />
+        <input name="document_id" type="hidden" value="{{ item.documentID }}" />
+        <input name="score1" type="hidden" value="{{ scores.score1 }}" id="score1{{ item.itemID }}" />
+        <input name="score2" type="hidden" value="{{ scores.score2 }}" id="score2{{ item.itemID }}" />
+        <input name="ajax" type="hidden" value="False" />
+
+        {% if not item.isCompleteDocument %}
+
+        <div class="source-box-hoverable">
+            <div class="row">
+                {% if not monolingual %}
+                <div class="source-box col-sm-4">
+                    <span>{{ scores.segment_text|safe }}</span>
+                </div>
+                {% endif %}
+
+                <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %} candidate-text-a" {% if highlight_style %}onclick="selectTranslation(1, {{ item.itemID }})"{% endif %}>
+                    <span class="candidate-text">{{scores.candidate1_text|safe}}</span>
+
+                    {% if not highlight_style %}
+                    <div class="row">
+                    {% with sliderid=item.itemID slidernum=1 %}
+                    {% include 'EvalView/_thumbs.html' %}
+                    {% endwith %}
+                    </div>
+                    {% endif %}
+
+                </div>
+                <div class="{% if monolingual %}col-sm-6{% else %}col-sm-4{% endif %} candidate-text-b" {% if highlight_style %}onclick="selectTranslation(2, {{ item.itemID }})"{% endif %}>
+                    <span class="candidate-text">{{scores.candidate2_text|safe}}</span>
+
+                    {% if not highlight_style %}
+                    <div class="row">
+                    {% with sliderid=item.itemID slidernum=2 %}
+                    {% include 'EvalView/_thumbs.html' %}
+                    {% endwith %}
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+        {% else %} <!-- item.isCompleteDocument -->
+
+        <div class="question-box alert alert-info">
+            <div class="row">
+                <div class="col-sm-12">
+                    <p>Which translation do you prefer?</p>
+
+                    <div id="preference-box">
+                        <p>
+                        <label class="radio"> <input type="radio" name="preference" id="preference-1" value="A"> {{ candidate1_label }} </label>
+                        <label class="radio"> <input type="radio" name="preference" id="preference-2" value="B"> {{ candidate2_label }} </label>
+                        <label class="radio"> <input type="radio" name="preference" id="preference-0" value="0"> No difference </label>
+                        </p>
+                    </div>
+
+                    <button id="button-doc" class="btn button-next btn-primary" name="next_button" accesskey="1"
+                            type="submit" value="{{ item.itemID }}" disabled>Submit</button>
+
+                    <div id="loading-box">
+                        <p class="pull-left">Submitting your answer(s). You will be redirected to the next document in few seconds...</p>
+                        <div class="pull-left loading-icon"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
+    </form>
+</div>
+
+{% endfor %}
+
+{% endblock %}

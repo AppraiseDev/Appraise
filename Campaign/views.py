@@ -3,9 +3,11 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 # pylint: disable=E1101
 from collections import defaultdict
 from datetime import datetime
+import json
 from math import floor
 from math import sqrt
 
@@ -13,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.management.base import CommandError
 from django.http import HttpResponse
 
-from Appraise.utils import _get_logger
+from Appraise.utils import _get_logger, _compute_user_total_annotation_time
 from Campaign.utils import _get_campaign_instance
 from EvalData.models import DataAssessmentResult
 from EvalData.models import DirectAssessmentDocumentResult
@@ -38,7 +40,6 @@ def campaign_status(request, campaign_name, sort_key=2):
         'Rendering campaign status view for user "%s".',
         request.user.username or "Anonymous",
     )
-
     if sort_key is None:
         sort_key = 2
 
@@ -54,15 +55,12 @@ def campaign_status(request, campaign_name, sort_key=2):
     for team in campaign.teams.all():
         for user in team.members.all():
             try:
-                result_type = RESULT_TYPE_BY_CLASS_NAME[
-                    campaign.get_campaign_type()
-                ]  # May raise KeyError
-
+                campaign_opts = campaign.campaignOptions.lower().split(";")
+                # may raise KeyError
+                result_type = RESULT_TYPE_BY_CLASS_NAME[campaign.get_campaign_type()]
             except KeyError as exc:
                 LOGGER.debug(
-                    'Invalid campaign type %s for campaign %s',
-                    campaign.get_campaign_type(),
-                    campaign.campaignName,
+                    f'Invalid campaign type {campaign.get_campaign_type()} for campaign {campaign.campaignName}'
                 )
                 LOGGER.error(exc)
                 continue
@@ -70,6 +68,8 @@ def campaign_status(request, campaign_name, sort_key=2):
             _data = result_type.objects.filter(
                 createdBy=user, completed=True, task__campaign=campaign.id
             )
+            is_mqm_or_esa = False
+
 
             # Exclude document scores in document-level tasks, because we want to keep
             # the numbers reported on the campaign status page consistent across
@@ -79,7 +79,6 @@ def campaign_status(request, campaign_name, sort_key=2):
                 or result_type is PairwiseAssessmentDocumentResult
             ):
                 _data = _data.exclude(item__isCompleteDocument=True)
-
             # Contrastive tasks use different field names for target segments/scores
             if (
                 result_type is PairwiseAssessmentResult
@@ -94,7 +93,56 @@ def campaign_status(request, campaign_name, sort_key=2):
                     'item__itemType',
                     'item__id',
                 )
-
+            elif "mqm" in campaign_opts:
+                is_mqm_or_esa = True
+                _data = _data.values_list(
+                    'start_time',
+                    'end_time',
+                    'mqm',
+                    'item__itemID',
+                    'item__targetID',
+                    'item__itemType',
+                    'item__sourceText',
+                    'item__documentID',
+                )
+                # compute time override based on document times
+                import collections
+                _time_pairs = collections.defaultdict(list)
+                for x in _data:
+                    _time_pairs[x[7]].append((x[0], x[1]))
+                _time_pairs = [
+                    (min([x[0] for x in doc_v]), max([x[1] for x in doc_v]))
+                    for doc, doc_v in _time_pairs.items()
+                ]
+                _data = [
+                    (x[0], x[1], -len(json.loads(x[2])), x[3], x[4], x[5], x[6])
+                    for x in _data
+                ]
+            elif "esa" in campaign_opts:
+                is_mqm_or_esa = True
+                _data = _data.values_list(
+                    'start_time',
+                    'end_time',
+                    'score',
+                    'item__itemID',
+                    'item__targetID',
+                    'item__itemType',
+                    'item__sourceText',
+                    'item__documentID',
+                )
+                # compute time override based on document times
+                import collections
+                _time_pairs = collections.defaultdict(list)
+                for x in _data:
+                    _time_pairs[x[7]].append((x[0], x[1]))
+                _time_pairs = [
+                    (min([x[0] for x in doc_v]), max([x[1] for x in doc_v]))
+                    for doc, doc_v in _time_pairs.items()
+                ]
+                _data = [
+                    (x[0], x[1], x[2], x[3], x[4], x[5], x[6])
+                    for x in _data
+                ]
             else:
                 _data = _data.values_list(
                     'start_time',
@@ -106,102 +154,49 @@ def campaign_status(request, campaign_name, sort_key=2):
                     'item__id',
                 )
 
+            _reliable = stat_reliable_testing(_data, campaign_opts, result_type)
+
+            # Compute number of annotations
             _annotations = len(set([x[6] for x in _data]))
+
             _start_times = [x[0] for x in _data]
             _end_times = [x[1] for x in _data]
-            _durations = [x[1] - x[0] for x in _data]
 
-            _user_mean = sum([x[2] for x in _data]) / (_annotations or 1)
-
-            _cs = _annotations - 1  # Corrected sample size for stdev.
-            _user_stdev = 1
-            if _cs > 0:
-                _user_stdev = sqrt(sum(((x[2] - _user_mean) ** 2 / _cs) for x in _data))
-
-            if int(_user_stdev) == 0:
-                _user_stdev = 1
-
-            _tgt = defaultdict(list)
-            _bad = defaultdict(list)
-            for _x in _data:
-                if _x[-2] == 'TGT':
-                    _dst = _tgt
-                elif _x[-2] == 'BAD':
-                    _dst = _bad
-                else:
-                    continue
-
-                _z_score = (_x[2] - _user_mean) / _user_stdev
-                # Script generating batches for data assessment task does not
-                # keep equal itemIDs for respective TGT and BAD items, so it
-                # cannot be used as a key.
-                if result_type is DataAssessmentResult:
-                    _key = str(_x[4])
-                else:
-                    _key = '{0}-{1}'.format(_x[3], _x[4])
-                _dst[_key].append(_z_score)
-
+            # Compute first modified time
             _first_modified = (
                 seconds_to_timedelta(min(_start_times)) if _start_times else None
             )
-            _last_modified = (
-                seconds_to_timedelta(max(_end_times)) if _end_times else None
-            )
-            _annotation_time = sum(_durations) if _durations else None
-
-            _x = []
-            _y = []
-            for _key in set.intersection(set(_tgt.keys()), set(_bad.keys())):
-                _x.append(sum(_bad[_key]) / float(len(_bad[_key] or 1)))
-                _y.append(sum(_tgt[_key]) / float(len(_tgt[_key] or 1)))
-
-            _reliable = None
-            if _x and _y:
-                try:
-                    from scipy.stats import mannwhitneyu  # type: ignore
-
-                    _t, pvalue = mannwhitneyu(_x, _y, alternative='less')
-                    _reliable = pvalue
-
-                except ImportError:
-                    print("scipy is not installed")
-                    pass
-
-                # Possible for mannwhitneyu() to throw in some scenarios:
-                #
-                # File "scipy/stats/stats.py", line 4865, in mannwhitneyu
-                #   raise ValueError(
-                #     'All numbers are identical in mannwhitneyu')
-                except ValueError:
-                    pass
-
             if _first_modified:
                 _date_modified = datetime(1970, 1, 1) + _first_modified
                 _first_modified = str(_date_modified).split('.')[0]
-
             else:
                 _first_modified = 'Never'
 
+            # Compute last modified time
+            _last_modified = (
+                seconds_to_timedelta(max(_end_times)) if _end_times else None
+            )
             if _last_modified:
                 _date_modified = datetime(1970, 1, 1) + _last_modified
                 _last_modified = str(_date_modified).split('.')[0]
-
             else:
                 _last_modified = 'Never'
 
+            # Compute total annotation time
+            if is_mqm_or_esa:
+                # if MQM or ESA, then let's use the manually computed times
+                pass
+            else:
+                _time_pairs = list(zip(_start_times, _end_times))
+            _annotation_time = _compute_user_total_annotation_time(_time_pairs)
+
+            # Format total annotation time
             if _annotation_time:
                 _hours = int(floor(_annotation_time / 3600))
                 _minutes = int(floor((_annotation_time % 3600) / 60))
                 _annotation_time = '{0:0>2d}h{1:0>2d}m'.format(_hours, _minutes)
-
             else:
                 _annotation_time = 'n/a'
-
-            if _reliable:
-                _reliable = '{0:1.6f}'.format(_reliable)
-
-            else:
-                _reliable = 'n/a'
 
             _item = (
                 user.username,
@@ -229,13 +224,77 @@ def campaign_status(request, campaign_name, sort_key=2):
     if request.user.is_staff:
         _header += ('random',)
 
-    _txt = ['\t'.join(_header)]
-    for _row in _out:
-        _local_fmt = '{0:>20}\t{1:3}\t{2}\t{3}\t{4}\t{5}'
+    _txt = []
+    # align everything with the same formatting
+    for _row in [_header] + _out:
+        _local_fmt = '|{0:>15}|{1:>6}|{2:>11}|{3:>20}|{4:>20}|{5:>15}|'
         if request.user.is_staff:
-            _local_fmt += '\t{6}'
+            _local_fmt += '{6:>10}|'
 
         _local_out = _local_fmt.format(*_row)
         _txt.append(_local_out)
 
     return HttpResponse(u'\n'.join(_txt), content_type='text/plain')
+
+
+def stat_reliable_testing(_data, campaign_opts, result_type):
+    _annotations = len(set([x[6] for x in _data]))
+    _user_mean = sum([x[2] for x in _data]) / (_annotations or 1)
+    _cs = _annotations - 1  # Corrected sample size for stdev.
+    _user_stdev = 1
+    if _cs > 0:
+        _user_stdev = sqrt(sum(((x[2] - _user_mean) ** 2 / _cs) for x in _data))
+
+    if int(_user_stdev) == 0:
+        _user_stdev = 1
+
+    _tgt = defaultdict(list)
+    _bad = defaultdict(list)
+    for _x in _data:
+        if _x[5] == 'TGT':
+            _dst = _tgt
+        elif _x[5] == "BAD" or _x[5].startswith('BAD.'):
+            # ESA/MQM have extra payload in itemType
+            _dst = _bad
+        else:
+            continue
+
+        _z_score = (_x[2] - _user_mean) / _user_stdev
+        # Script generating batches for data assessment task does not
+        # keep equal itemIDs for respective TGT and BAD items, so it
+        # cannot be used as a key.
+        if "esa" in campaign_opts or "mqm" in campaign_opts:
+            _key = str(_x[6]) + " ||| " + _x[4]
+        elif result_type is DataAssessmentResult:
+            _key = str(_x[4])
+        else:
+            _key = '{0}-{1}'.format(_x[3], _x[4])
+        _dst[_key].append(_z_score)
+
+    _x = []
+    _y = []
+    for _key in set.intersection(set(_tgt.keys()), set(_bad.keys())):
+        _x.append(sum(_bad[_key]) / float(len(_bad[_key] or 1)))
+        _y.append(sum(_tgt[_key]) / float(len(_tgt[_key] or 1)))
+
+    _reliable = None
+    if _x and _y:
+        try:
+            from scipy.stats import mannwhitneyu  # type: ignore
+
+            _t, pvalue = mannwhitneyu(_x, _y, alternative='less')
+            _reliable = pvalue
+
+        except ImportError:
+            print("scipy is not installed")
+            pass
+
+        # Possible for mannwhitneyu() to throw in some scenarios
+        except ValueError:
+            pass
+
+    if _reliable:
+        _reliable = f'{_reliable:1.6f}'
+    else:
+        _reliable = 'n/a'
+    return _reliable
