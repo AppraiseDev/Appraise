@@ -144,7 +144,7 @@ $(document).ready(() => {
     });
 
     // hide next doc button for now
-    $("#button-next-doc").toggle(false)
+    toggle_doc_button(false)
     $("#button-next-doc").on("click", () => submit_finish_document(false))
 
     $(".item-box").each((_i, el) => {
@@ -258,6 +258,11 @@ function _show_error_box(text, timeout = 2000) {
 
 function fuzzy_abs_match(a, b, tol) {
     return a == b || Math.abs(a - b) <= tol
+}
+
+function toggle_doc_button(visible) {
+    $("#button-next-doc").toggle(visible)
+    $("#button-next-doc-fake").toggle(!visible)
 }
 
 class MQMItemHandler {
@@ -386,7 +391,8 @@ class MQMItemHandler {
         this.el.attr("data-item-completed", "False")
         this.initialize()
         // if we reset then we automatically hide the next doc button
-        $("#button-next-doc").toggle(false)
+        toggle_doc_button(false)
+        this.el_slider.slider('value', 0)
     }
 
     remove_undecided(mqm_object) {
@@ -421,7 +427,7 @@ class MQMItemHandler {
         this.check_status()
 
         if (mark_complete && _all_sentences_scored()) {
-            $("#button-next-doc").toggle(true)
+            toggle_doc_button(true)
         }
 
         return true

@@ -70,6 +70,14 @@
     background-color: #ccc;
 }
 
+#button-next-doc-fake {
+    background: #a77;
+    border-color: #944;
+    color: #ecc;
+    font-size: 18pt;
+    cursor: not-allowed;
+}
+
 #button-next-doc {
     background: #7a7;
     border-color: #494;
