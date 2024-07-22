@@ -1,7 +1,8 @@
-# Appraise Evaluation System
+# Direct MQM/ESA
 
-Generating an example campaign with direct assessment tasks with SQM quality
-levels. Note it uses exact same batches as standard direct assessment tasks:
+## Setup
+
+This is an example of 3 campaigns with MQM/ESA/ESAAI (three different batches).
 
 ```
 # clean up previous iteration
@@ -30,4 +31,27 @@ python3 manage.py runserver;
 # Collect some annotations, then export annotation scores...
 
 python3 manage.py ExportSystemScoresToCSV example16mqm
+```
+
+## Audio/Video
+
+The source field accepts HTML, so it's very easy to add multimodal support by including HTML snippets in the `sourceText` field like so:
+
+HTML for video:
+```
+<video
+    src="https://samplelib.com/lib/preview/mp4/sample-5s.mp4"
+    controls
+    disablepictureinpicture
+    preload="auto"
+    controlslist="nodownload"
+></video>
+```
+
+HTML for audio:
+```
+<audio
+    src='https://samplelib.com/lib/preview/mp3/sample-3s.mp3'
+    controls controlslist='nodownload'
+></audio>
 ```

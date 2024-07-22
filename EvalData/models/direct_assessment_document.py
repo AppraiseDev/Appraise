@@ -260,21 +260,20 @@ class DirectAssessmentDocumentTask(BaseMetadata):
             next_item,
             completed_items,
             completed_docs,
-            completed_items_in_doc,
             doc_items,
             doc_items_results,
             total_docs,
         """
         # Retrieve all items from the document which next_item belongs to
-        all_items = self.items.order_by('itemID')
-
+        all_items = self.items.all()
+        
         # TODO: this is super compute heavy and inefficient
         # should actually be table JOIN
         def get_item_result(id):
             return DirectAssessmentDocumentResult.objects.filter(
                 item__itemID=id,
                 createdBy=user,
-                task=self
+                task=self,
             ).last()
 
         all_items = [(item, get_item_result(item.itemID)) for item in all_items]
@@ -282,7 +281,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         if not unfinished_items:
             # TODO: the None might not be the correct type
             return (None, all_items, 0, 0, [], [], 0)
-        # things are ordered by ID
+        # things are ordered with batch order
         next_item = unfinished_items[0]
 
         docs_all = len({i.documentID for i, r in all_items})
@@ -292,15 +291,6 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         completed_docs = docs_all - len(
             {i.documentID for i, r in all_items if r is None or not r.completed}
         )
-        completed_items_in_doc = len(
-            [
-                i
-                for i, r in all_items
-                if r is not None
-                and r.completed
-                and i.documentID == next_item.documentID
-            ]
-        )
         doc_items = [i for i, r in all_items if i.documentID == next_item.documentID]
         doc_items_results = [
             r for i, r in all_items if i.documentID == next_item.documentID
@@ -308,7 +298,6 @@ class DirectAssessmentDocumentTask(BaseMetadata):
 
         print(
             f'Completed {completed_docs}/{docs_all} documents, '
-            f'{completed_items_in_doc}/{len(doc_items)} items in the current document, '
             f'completed {completed_items} items in total'
         )
 
@@ -316,7 +305,6 @@ class DirectAssessmentDocumentTask(BaseMetadata):
             next_item,  # the first unannotated item for the user
             completed_items,  # the number of completed items in the task
             completed_docs,  # the number of completed documents in the task
-            completed_items_in_doc,  # the number of completed items in the current document
             doc_items,  # all items from the current document
             doc_items_results,  # all score results from the current document
             docs_all,  # the total number of documents in the task
