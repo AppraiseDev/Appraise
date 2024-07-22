@@ -32,10 +32,10 @@ The admin panel is available at http://127.0.0.1:8000/admin
 4. Start a campaign:
 
 ```
-# See Examples/DirectMQM/README.md
-python3 manage.py StartNewCampaign Examples/DirectMQM/manifest.json \
-    --batches-json Examples/DirectMQM/batches.json \
-    --csv-output Examples/DirectMQM/output.csv
+# See Examples/MQM+ESA/README.md
+python3 manage.py StartNewCampaign Examples/MQM+ESA/manifest.json \
+    --batches-json Examples/MQM+ESA/batches.json \
+    --csv-output Examples/MQM+ESA/output.csv
 python3 manage.py CreateInviteTokens test_group 20 --create-group test_group
 ```
 
