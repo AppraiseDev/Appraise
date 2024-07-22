@@ -129,14 +129,6 @@ class TaskAgenda(models.Model):
             self._completed_tasks.count(),
         )
 
-    # pylint: disable=protected-access,missing-docstring
-    @classmethod
-    @add_deprecated_method
-    def reassign_tasks(cls, old_username, new_username):
-        _method = getframeinfo(currentframe()).function
-        _msg = '{0}.{1} deprecated as of 5/27/2019.'.format(cls, _method)
-        raise NotImplementedError(_msg)
-
     # pylint: disable=undefined-variable
     def reset_taskagenda(self):
         """
