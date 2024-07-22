@@ -14,6 +14,22 @@
     font-size: 80%;
 }
 
+.slider-bubble {
+    z-index: 100;
+    position: relative;
+    top: -35px;
+    left: -10px;
+
+    width: 40px;
+    height: 30px;
+    background-color: #79c;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 19px;
+
+    color: black;
+}
+
 .quotelike {
     border-left: 5px solid #ddd;
 }
@@ -72,6 +88,14 @@
 
 .button-reset:not(:hover) {
     background-color: #ccc;
+}
+
+#button-next-doc-fake {
+    background: #a77;
+    border-color: #944;
+    color: #ecc;
+    font-size: 18pt;
+    cursor: not-allowed;
 }
 
 #button-next-doc {

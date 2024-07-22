@@ -144,7 +144,7 @@ $(document).ready(() => {
     });
 
     // hide next doc button for now
-    $("#button-next-doc").toggle(false)
+    toggle_doc_button(false)
     $("#button-next-doc").on("click", () => submit_finish_document(false))
 
     $(".item-box").each((_i, el) => {
@@ -175,7 +175,6 @@ $(document).ready(() => {
 
 function _all_sentences_scored() {
     let items_left = $('.item-box').filter((_i, el) => $(el).attr('data-item-completed') == "False").length;
-    console.log('Items left:', items_left);
     return items_left == 0;
 }
 
@@ -260,6 +259,11 @@ function fuzzy_abs_match(a, b, tol) {
     return a == b || Math.abs(a - b) <= tol
 }
 
+function toggle_doc_button(visible) {
+    $("#button-next-doc").toggle(visible)
+    $("#button-next-doc-fake").toggle(!visible)
+}
+
 class MQMItemHandler {
     constructor(el) {
         this.el = $(el)
@@ -329,6 +333,29 @@ class MQMItemHandler {
             this.el_slider.slider('value', score);
         }
 
+        // slider bubble handling
+        this.el_slider.find(".ui-slider-handle").append("<div class='slider-bubble'>100</div>")
+        let refresh_bubble = () => {
+            this.el_slider.find(".slider-bubble").text(this.el_slider.slider('value'))
+        }
+        this.el_slider.find(".ui-slider-handle").on("mousedown ontouchstart", () => {
+            this.el_slider.find(".slider-bubble").toggle(true);
+            refresh_bubble();
+        })
+        this.el_slider.find(".ui-slider-handle").on("mouseup focusout ontouchend", async () => {
+            await waitout_js_loop()
+            this.el_slider.find(".slider-bubble").toggle(false);
+            refresh_bubble();
+        })
+        this.el_slider.on("slide", async () => {
+            this.el_slider.find(".slider-bubble").toggle(true);
+            refresh_bubble()
+            await waitout_js_loop()
+            refresh_bubble()
+        });
+        // hide by default
+        this.el_slider.find(".slider-bubble").toggle(false);
+
         this.el.find('.button-submit').on("click", (event) => { event.preventDefault(); this.note_change() });
     }
 
@@ -384,9 +411,11 @@ class MQMItemHandler {
     reset() {
         this.el.find('.button-submit').toggle(MQM_TYPE == "MQM")
         this.el.attr("data-item-completed", "False")
+        this.el_slider.find(".slider-bubble").remove()
         this.initialize()
         // if we reset then we automatically hide the next doc button
-        $("#button-next-doc").toggle(false)
+        toggle_doc_button(false)
+        this.el_slider.slider('value', 0)
     }
 
     remove_undecided(mqm_object) {
@@ -421,7 +450,7 @@ class MQMItemHandler {
         this.check_status()
 
         if (mark_complete && _all_sentences_scored()) {
-            $("#button-next-doc").toggle(true)
+            toggle_doc_button(true)
         }
 
         return true

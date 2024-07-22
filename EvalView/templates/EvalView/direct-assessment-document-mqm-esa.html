@@ -123,8 +123,21 @@
     <input name="ajax" type="hidden" value="False" />
 </form>
 
-<button class="btn btn-primary" style="margin-left: auto; margin-right: auto; display: block;" id="button-next-doc">
+<button
+    class="btn btn-primary"
+    style="margin-left: auto; margin-right: auto; display: block;"
+    id="button-next-doc"
+>
     Continue to next document
+</button>
+
+<button
+    class="btn btn-primary"
+    style="margin-left: auto; margin-right: auto; display: block;"
+    id="button-next-doc-fake"
+    title="Please first complete all items in the document (error spans + scores)."
+>
+    Continue to next document (unavailable)
 </button>
 
 {% endblock %}
