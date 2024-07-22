@@ -49,6 +49,10 @@
     line-height: 120%;
 }
 
+.source-text > audio, .source-text > video {
+    width: 100%;
+}
+
 .tutorial-text {
     text-align: center;
     color: #257;
