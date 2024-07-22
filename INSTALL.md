@@ -1,6 +1,4 @@
-# Appraise
-
-## Basic setup
+## Setup
 
 1. Basic setup:
 
@@ -41,7 +39,7 @@ python3 manage.py StartNewCampaign Examples/DirectMQM/manifest.json \
 python3 manage.py CreateInviteTokens test_group 20 --create-group test_group
 ```
 
-10. Clean up everything
+5. Optionally clean up everything
 
 ```
 rm -rf static appraise.log db.sqlite3 Batches
@@ -49,31 +47,79 @@ rm -rf static appraise.log db.sqlite3 Batches
 
 ## Creating a new campaign
 
-To create a campaign, a manifest file and data batches in JSON formats are needed.
-See examples in [`Examples/`](Examples/) for simple end-to-end examples for
-each annotation tasks that are currently available in Appraise.
+The [`Examples/`](Examples/) directory contains a few examples of existing annotation campaigns.
+Each campaign needs a _manifest_ and _batches_, both JSON files.
 
-Alternatively, a Django command can be created instead of the manifest file,
-see `Campaign/management/commands/InitCampaign*.py` for examples.
+The manifest looks like this:
+```
+{
+    "CAMPAIGN_URL": "http://127.0.0.1:8000/dashboard/sso/",
+    "CAMPAIGN_NAME": "example15esa",
+    "CAMPAIGN_KEY": "example15esa",
+    "CAMPAIGN_NO": 15,
+    "REDUNDANCY": 2,
 
+    "TASKS_TO_ANNOTATORS": [
+        ["eng", "deu", "uniform",  2, 1]
+    ],
 
-### manifest.json
+    "TASK_TYPE": "Document",
+    "TASK_OPTIONS": "ESA;StaticContext"
+}
+```
+- The campaign URL points to where it's being hosted (most usually localhost, see `settings.py`).
+- The campaign name should be readable but must consist only of `[a-zA-Z0-9]`
+- The campaign key is used for seeding passwords, can be any string.
+- The campaign number needs to be unique.
+- The supported task types are in `Campaign/utils.py`. Some types can be modified with task options.
+- In the associated data we had only one En-De task. The combination of redundancy of 2 and the first 2 in the task distribution simply creates two accounts with the same single task (redundant). If there were e.g. 5 tasks and we wanted no redundancy, the line would be `["eng", "deu", "uniform",  5, 5]`. 
+Alternatively to manual manifests, a Django command can be created instead of the manifest file, see `Campaign/management/commands/InitCampaigh*.py`.
 
-Specification
+The batches file is a list of tasks with items and task descriptions. As a rule, there are exactly 100 segments in a task. An example for ESA/MQM:
+```
+[
+    {
+        "items": [
+            {
+                "mqm": [{ "start_i": 0, "end_i": 5, "severity": "minor" }],
+                "documentID": "farcaller.110349815253008992#refA#bad4",
+                "sourceID": "wmt23",
+                "targetID": "wmt23.refA",
+                "sourceText": "A bunch of shiny new goodness in #dart",
+                "targetText": "Einer Haufen funkelnder glänzender neuer Dinge #dart",
+                "itemType": "TGT",
+                "_item": "refA | 209 | farcaller.110349815253008992",
+                "itemID": 10,
+                "isCompleteDocument": false
+            },
+            # ... more items
+        ],
+        "task": {
+            "batchNo": 1,
+            "randomSeed": 123456,
+            "requiredAnnotations": 1,
+            "sourceLanguage": "eng",
+            "targetLanguage": "deu"
+        }
+    }
+    # ... more tasks
+]
+```
 
-- `CAMPAIGN_URL`: URL prefix for the SSO logins starting with the domain name
-  (usually `http://127.0.0.1:8000` if run locally) and ending with
-  `/dashboard/sso/`
-- `CAMPAIGN_NAME`: a readable campaign name, must consist only of `[a-zA-Z0-9]`
-- `CAMPAIGN_KEY`: a key used to generate password for user accounts, any UTF-8
-  string
-- `CAMPAIGN_NO`: a unique integer number used in the user account names
-- `REDUNDANCY`: how many times each task needs to be annotated
-- `TASKS_TO_ANNOTATORS`: list of task definition 5-tuples:
-    - _source language ISO code_, tree-letter version
-    - _target language ISO code_, tree-letter version
-    - _sampling strategy_, only "uniform" is supported
-    - _number of annotators_, how many user accounts will be created for this task
-    - _number of tasks_, must be a multiple of the number of annotators
-- `TASK_TYPE`: a pre-defined task type name, see `Campaign/utils.py` for a
-  complete list of supported task types, the default is _Direct_
+For item:
+- `mqm`: the pre-highlighted error spans (used only for ESA/MQM)
+- `documentID`: document name from WMT (doesn't have to include system name or anything else)
+- `sourceID`: name of source file/testset name, should include also the language
+- `targetID`: name of target file, should include system name
+- `itemType`: TGT (standard), or BAD (quality control)
+- `_item`: should be order of segment in the batch but is not exported so can contain any payload
+- `itemID`: ID from the testset pile (line number)
+- `isCompleteDocument`: remnant from DA+SQM, false for ESA/MQM 
+
+In addition, ESA/MQM includes introductory tutorial which has a slightly different item structure.
+
+For task:
+- `batchNo`: task number
+- `randomSeed`: number used in batch generation
+- `requiredAnnotations`: how many annotations does a task need, in most cases use 1
+- `source/targetLanguage`: source and target language
