@@ -1,0 +1,130 @@
+{% extends "Dashboard/base.html" %}
+{% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'EvalView/css/direct-assessment-document-mqm-esa.css' %}">
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/themes/smoothness/jquery-ui.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.1/js.cookie.min.js"></script>
+<script src="{% static 'EvalView/js/direct-assessment-document-mqm-esa.js' %}"></script>
+
+{% endblock %}
+
+{% block content %}
+
+{{ mqm_type|json_script:"mqm-type-payload" }}
+
+<div id="error-type-form" class="modal"></div>
+
+<div class="alert alert-info" style="margin-top: -55px;">
+    <table style="width:100%">
+        <tr>
+            <td style="width:33%;text-align:left;">
+                <strong id="task_progress">
+                    document {{completed_blocks}} / {{total_blocks}}
+                    &nbsp;&nbsp;&nbsp;
+                    segment {{item_id}}/100
+                </strong>
+            </td>
+            <td style="width:33%;text-align:center;"></td>
+            <td style="width:33%;text-align:right;">
+                <strong>{{source_language}} &rarr; {{target_language}}</strong>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="question-box" id="tutorial-text" style="display: none; font-size: large; font-weight: bold;">
+    In the first two pages we will walk you through the tutorial.
+    It is available only in English to German but knowledge of German is not needed.
+    If you already went through the tutorial you can
+    <input type="button" value="skip the tutorial" id="skip-tutorial">.
+</div>
+
+<div class="question-box">
+    {% if mqm_type == "MQM" %}
+    {% include 'EvalView/_instructions-mqm.html' %}
+    {% elif mqm_type == "ESA" %}
+    {% include 'EvalView/_instructions-esa.html' %}
+    {% else %}
+    Unknown instructions for "{{ mqm_type }}"".
+    {% endif %}
+</div>
+
+{% for item,scores in items %}
+
+<div id="item-{{ item.itemID }}" class="item-box quotelike active" data-item-id="{{ item.itemID }}"
+    data-item-completed="{{ scores.completed }}" data-item-score="{{ scores.score }}">
+
+    {{ scores.mqm|json_script:"mqm-payload" }}
+    {{ scores.mqm_orig|json_script:"mqm-payload-orig" }}
+    {{ item.targetText|json_script:"text-target-payload" }}
+    {{ scores.score|json_script:"score-payload" }}
+
+    <form action="{{action_url}}" method="post" item_id="{{ item.itemID }}">
+        {% csrf_token %}
+
+        <input name="start_timestamp" type="hidden" value="{{ scores.start_timestamp }}" />
+        <input name="end_timestamp" type="hidden" value="{{ scores.end_timestamp }}" />
+        <input name="item_id" type="hidden" value="{{ item.itemID }}" />
+        <input name="task_id" type="hidden" value="{{ item.id }}" />
+        <input name="document_id" type="hidden" value="{{ item.documentID }}" />
+        <input name="score" type="hidden" value="{{ scores.score }}" id="score{{ item.itemID }}" />
+        <input name="mqm" type="hidden" value="{{ scores.mqm }}" id="score{{ item.itemID }}" />
+        <!-- Tell the server that the client expect JSON response -->
+        <input name="ajax" type="hidden" value="True" />
+
+        <div class="source-box">
+            <div class="tutorial-text"></div>
+            <div class="source-text">
+                {{ item.sourceText }}
+            </div>
+
+            <div class="target-text">
+                {{item.targetText|safe}}
+            </div>
+        </div>
+
+        <div class="target-box">
+            <div class="row esa_slider">
+                {% include 'EvalView/_slider-mqm-esa.html' %}
+            </div>
+
+            <table class="row action-box">
+                <tr>
+                    <td style="width:30%;text-align:left;">
+                        <button class="btn button-reset" accesskey="2" type="reset">Reset</button>
+                    </td>
+                    <td style="width: 40%; text-align: center;">
+                        <span class="status-indicator glyphicon glyphicon-ok"></span>
+                        <span class="status-text">Item status</span>
+                    </td>
+                    <td style="width:30%;text-align:right;">
+                        <button class="btn button-submit btn-primary" name="next_button" accesskey="1" type="submit"
+                            value="{{ item.itemID }}"> Mark complete
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+
+{% endfor %}
+
+
+<form id="form-next-doc" action="{{action_url}}" method="post">
+    {% csrf_token %}
+    <input name="start_timestamp" type="hidden" value="" />
+    <input name="end_timestamp" type="hidden" value="" />
+    <!--
+    <input name="task_id" type="hidden" value="{{ item.id }}" />
+    <input name="document_id" type="hidden" value="{{ item.documentID }}" /> -->
+    <input name="ajax" type="hidden" value="False" />
+</form>
+
+<button class="btn btn-primary" style="margin-left: auto; margin-right: auto; display: block;" id="button-next-doc">
+    Continue to next document
+</button>
+
+{% endblock %}
