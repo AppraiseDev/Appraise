@@ -7,7 +7,7 @@ prefix=wmt21_baseline
 
 rm -f $prefix*.{log,csv,json,stats,diff}
 
-$APPRAISE_PYTHON $APPRAISE_ROOT/create_wmt22_tasks.py \
+$APPRAISE_PYTHON $APPRAISE_ROOT/Scripts/create_wmt22_tasks.py \
     -f newstest2021.de-fr.example.xml -o $prefix -s deu -t fra --rng-seed 1111 \
     | tee $prefix.full.log
 

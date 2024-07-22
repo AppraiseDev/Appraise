@@ -1,0 +1,148 @@
+.slider .ui-slider-range {
+    background: #79c;
+}
+
+.slider .ui-slider-handle {
+    border-color: #59c;
+}
+
+.slider {
+    margin-top: 10px;
+}
+
+.slider small {
+    font-size: 80%;
+}
+
+.quotelike {
+    border-left: 5px solid #ddd;
+}
+
+.quotelike {
+    font-size: 16px;
+    margin: 0;
+    padding: 5px;
+    background-color: #eee;
+}
+
+.question-box {
+    margin-bottom: 10px;
+    color: #257;
+}
+
+.item-box {
+    margin-bottom: 20px;
+}
+
+.target-text {
+    line-height: 1.5em;
+    font-size: 1.2em;
+    text-align: left;
+    padding: 10px;
+    user-select: none;
+}
+
+.source-text {
+    padding: 10px;
+    text-align: left;
+    font-style: italic;
+    line-height: 120%;
+}
+
+.tutorial-text {
+    text-align: center;
+    color: #257;
+}
+
+.action-box {
+    width: 100%;
+}
+
+.action-box td {
+    padding-bottom: 10px;
+}
+
+.action-box .btn {
+    margin: 0 40px;
+}
+
+.button-reset:not(:hover) {
+    background-color: #ccc;
+}
+
+#button-next-doc {
+    background: #7a7;
+    border-color: #494;
+    font-size: 20pt;
+}
+
+#button-next-doc:hover {
+    opacity: 90%;
+}
+
+.alert_message {
+    position: fixed;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2000;
+    text-align: center;
+
+    background-color: #bbb;
+    border: 1px solid #999;
+    border-radius: 4px;
+
+    font-size: 16pt;
+    padding: 2px 10px;
+    min-width: 130px;
+}
+
+
+.mqm_char:hover:not([selected]):not([in_mqm]) {
+    outline: 2px solid #ccc;
+}
+
+.mqm_char[selected] {
+    background-color: #ccc;
+}
+
+.mqm_char {
+    cursor: pointer;
+}
+
+
+.instruction_sev {
+    border-radius: 4px;
+    padding: 0px 2px;
+    font-weight: bold;
+}
+
+
+.span_missing {
+    font-family: monospace, monospace;
+    margin-left: 10px;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+/* error type */
+/* manuall draw cross */
+.ui-dialog-titlebar-close::after {
+    content: "\274c"; /* use the hex value here... */
+    position: relative;
+    top: -2px;
+    left: -1px;
+}
+
+.ui-dialog-buttonset {
+    width: 100%;
+}
+
+.ui-dialog-buttonset > button {
+    display: block;
+    width: 100%;
+}
+
+.ui-widget-content {
+    border: none !important;
+}
