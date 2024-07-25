@@ -1091,8 +1091,10 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
 
 
         db_item = current_task.items.filter(
-            itemID=item_id
-        ).order_by('itemID')
+            itemID=item_id,
+            id=task_id,
+        )
+
 
         if len(db_item) == 0:
             error_msg = (
