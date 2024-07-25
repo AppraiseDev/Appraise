@@ -26,9 +26,6 @@ from EvalData.models.base_models import MAX_REQUIREDANNOTATIONS_VALUE
 from EvalData.models.base_models import seconds_to_timedelta
 from EvalData.models.direct_assessment_context import TextPairWithContext
 
-# TODO: Unclear if these are needed?
-# from Appraise.settings import STATIC_URL, BASE_CONTEXT
-
 LOGGER = _get_logger(name=__name__)
 
 
@@ -286,7 +283,6 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         })
         
         if not unfinished_items:
-            # TODO: the None might not be the correct type
             return (
                 None,
                 items_completed,
@@ -298,10 +294,13 @@ class DirectAssessmentDocumentTask(BaseMetadata):
 
         # things are ordered with batch order
         next_item = unfinished_items[0]
-        doc_items = [i for i, r in all_items if i.documentID == next_item.documentID]
-        doc_items_results = [
-            r for i, r in all_items if i.documentID == next_item.documentID
+        doc_items_all = [
+            (i, r) for i, r in all_items
+            # match document name and system
+            if i.documentID == next_item.documentID and i.targetID == next_item.targetID
         ]
+        doc_items = [i for i, r in doc_items_all]
+        doc_items_results = [r for i, r in doc_items_all]
 
         print(
             f'Completed {docs_completed}/{docs_total} documents, '
