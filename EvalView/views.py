@@ -2842,7 +2842,7 @@ def pairwise_assessment_document_esa(request, code=None, campaign_name=None):
     # A part of context used in responses to both Ajax and standard POST
     # requests
     context = {
-        'active_page': 'pairwise-assessment-document-newui-esa',
+        'active_page': 'pairwise-assessment-document-esa',
         'item_id': current_item.itemID,
         'task_id': current_item.id,
         'document_id': current_item.documentID,
@@ -2881,5 +2881,5 @@ def pairwise_assessment_document_esa(request, code=None, campaign_name=None):
     context.update(page_context)
     context.update(BASE_CONTEXT)
 
-    template = 'EvalView/pairwise-assessment-document-newui-esa.html'
+    template = 'EvalView/pairwise-assessment-document-esa.html'
     return render(request, template, context)

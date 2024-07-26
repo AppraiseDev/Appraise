@@ -73,7 +73,7 @@ TASK_DEFINITIONS = (
         'PairwiseDocumentESA',
         PairwiseAssessmentDocumentESATask,
         PairwiseAssessmentDocumentESAResult,
-        'pairwise-assessment-document-newui-esa',
+        'pairwise-assessment-document-esa',
         TextSegmentWithTwoTargetsWithContext,
         'evaldata_pairwiseassessmentdocumentesatasks',
         'evaldata_pairwiseassessmentdocumentesaresults',

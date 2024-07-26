@@ -723,17 +723,17 @@ class TextSegmentWithTwoTargets(TextSegment):
         blank=True, null=True, verbose_name=_('Target context (2)')
     )
 
-    # user for AI-assisted annotation
+    # used for error span annotations
     mqm1 = models.TextField(
         blank=True,
-        verbose_name=_('MQM Annotations'),
+        verbose_name=_('MQM Annotations (1)'),
         default="[]",
     )
 
-    # user for AI-assisted annotation
+    # used for error span annotations
     mqm2 = models.TextField(
         blank=True,
-        verbose_name=_('MQM Annotations'),
+        verbose_name=_('MQM Annotations (2)'),
         default="[]",
     )
 

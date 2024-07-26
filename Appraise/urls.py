@@ -195,7 +195,7 @@ urlpatterns = [
     re_path(
         r'^pairwise-assessment-document-esa/$',
         evalview_views.pairwise_assessment_document_esa,
-        name="pairwise-assessment-document-newui-esa",
+        name="pairwise-assessment-document-esa",
     ),
 ]
 
