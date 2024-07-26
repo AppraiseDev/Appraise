@@ -5,9 +5,9 @@ set -eo pipefail
 
 prefix=example_direct_mqmesa
 
-# Create campaign from Examples/DirectMQM
-$APPRAISE_MANAGE StartNewCampaign $APPRAISE_EXAMPLES/DirectMQM/manifest_esa.json \
-    --batches-json $APPRAISE_EXAMPLES/DirectMQM/batches_wmt23_en-de_esa.json \
+# Create campaign from Examples/MQM+ESA
+$APPRAISE_MANAGE StartNewCampaign $APPRAISE_EXAMPLES/MQM+ESA/manifest_esa.json \
+    --batches-json $APPRAISE_EXAMPLES/MQM+ESA/batches_wmt23_en-de_esa.json \
     --csv-output $prefix.users.csv
 
 # Check generated credentials

@@ -1135,12 +1135,11 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
     # task belongs to, and collect some additional statistics
     (
         next_item,
-        completed_items,
-        completed_docs,
-        completed_items_in_doc,
+        items_completed,
+        docs_completed,
         doc_items,
         doc_items_results,
-        total_blocks,
+        docs_total,
     ) = current_task.next_document_for_user_mqmesa(request.user)
 
     if not next_item:
@@ -1169,7 +1168,7 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
         for item, result in zip(doc_items, doc_items_results)
     ]
 
-    LOGGER.info(f'completed_items={completed_items}, completed_docs={completed_docs}')
+    LOGGER.info(f'items_completed={items_completed}, docs_completed={docs_completed}')
 
     source_language = current_task.marketSourceLanguage()
     target_language = current_task.marketTargetLanguage()
@@ -1180,17 +1179,12 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
         'item_id': next_item.itemID,
         'task_id': next_item.id,
         'document_id': next_item.documentID,
-        'completed_blocks': completed_docs,
-        'total_blocks': total_blocks,
-        'items_left_in_block': len(doc_items) - completed_items_in_doc,
+        'items_completed': items_completed,
+        'docs_completed': docs_completed,
+        'docs_total': docs_total,
         'source_language': source_language,
         'target_language': target_language,
-        'source_item_type': "text",
-        'target_item_type': "text",
-        'template_debug': 'debug' in request.GET,
         'campaign': campaign.campaignName,
-        'datask_id': current_task.id,
-        'trusted_user': current_task.is_trusted_user(request.user),
         # Task variations
         'ui_lang': "enu",
         'mqm_type': 'ESA' if 'esa' in campaign_opts else "MQM",
