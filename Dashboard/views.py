@@ -83,6 +83,11 @@ def sso_login(request, username, password):
         logout(request)
 
     user = authenticate(username=username, password=password)
+    
+    # login failed
+    if user is None:
+        return redirect('dashboard')
+
     login(request, user)
 
     LOGGER.info(
