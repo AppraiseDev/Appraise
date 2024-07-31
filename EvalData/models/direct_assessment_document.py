@@ -613,7 +613,7 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
             import collections
             timestamps = collections.defaultdict(list)
             for result in results:
-                timestamps[result.item.documentID].append((result.start_time, result.end_time))
+                timestamps[result.item.documentID+" ||| "+result.item.targetID].append((result.start_time, result.end_time))
 
             # timestamps are document-level now, but that does not change anything later on
             timestamps = [
