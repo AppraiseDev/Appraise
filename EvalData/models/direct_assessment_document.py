@@ -26,9 +26,6 @@ from EvalData.models.base_models import MAX_REQUIREDANNOTATIONS_VALUE
 from EvalData.models.base_models import seconds_to_timedelta
 from EvalData.models.direct_assessment_context import TextPairWithContext
 
-# TODO: Unclear if these are needed?
-# from Appraise.settings import STATIC_URL, BASE_CONTEXT
-
 LOGGER = _get_logger(name=__name__)
 
 
@@ -264,50 +261,59 @@ class DirectAssessmentDocumentTask(BaseMetadata):
             doc_items_results,
             total_docs,
         """
-        # Retrieve all items from the document which next_item belongs to
-        all_items = self.items.all()
-        
-        # TODO: this is super compute heavy and inefficient
-        # should actually be table JOIN
-        def get_item_result(id):
-            return DirectAssessmentDocumentResult.objects.filter(
-                item__itemID=id,
-                createdBy=user,
-                task=self,
-            ).last()
 
-        all_items = [(item, get_item_result(item.itemID)) for item in all_items]
+        # get all items (100) and try to find resul
+        all_items = [
+            (
+                item, 
+                DirectAssessmentDocumentResult.objects.filter(
+                    item=item, activated=False, completed=True, createdBy=user
+                ).last()
+            )
+            for item in self.items.all().order_by('id')
+        ]
         unfinished_items = [i for i, r in all_items if not r]
+        
+        docs_total = len({i.documentID for i, r in all_items})
+        items_completed = len([
+            i for i, r in all_items if r and r.completed
+        ])
+        docs_completed = docs_total - len({
+            i.documentID for i, r in all_items if r is None or not r.completed
+        })
+        
         if not unfinished_items:
-            # TODO: the None might not be the correct type
-            return (None, all_items, 0, 0, [], [], 0)
+            return (
+                None,
+                items_completed,
+                docs_completed,
+                [],
+                [],
+                docs_total,
+            )
+
         # things are ordered with batch order
         next_item = unfinished_items[0]
-
-        docs_all = len({i.documentID for i, r in all_items})
-        completed_items = len(
-            [i for i, r in all_items if r is not None and r.completed]
-        )
-        completed_docs = docs_all - len(
-            {i.documentID for i, r in all_items if r is None or not r.completed}
-        )
-        doc_items = [i for i, r in all_items if i.documentID == next_item.documentID]
-        doc_items_results = [
-            r for i, r in all_items if i.documentID == next_item.documentID
+        doc_items_all = [
+            (i, r) for i, r in all_items
+            # match document name and system
+            if i.documentID == next_item.documentID and i.targetID == next_item.targetID
         ]
+        doc_items = [i for i, r in doc_items_all]
+        doc_items_results = [r for i, r in doc_items_all]
 
         print(
-            f'Completed {completed_docs}/{docs_all} documents, '
-            f'completed {completed_items} items in total'
+            f'Completed {docs_completed}/{docs_total} documents, '
+            f'completed {items_completed} items in total'
         )
 
         return (
-            next_item,  # the first unannotated item for the user
-            completed_items,  # the number of completed items in the task
-            completed_docs,  # the number of completed documents in the task
-            doc_items,  # all items from the current document
-            doc_items_results,  # all score results from the current document
-            docs_all,  # the total number of documents in the task
+            next_item,         # the first unannotated item for the user
+            items_completed,   # the number of completed items in the task
+            docs_completed,    # the number of completed documents in the task
+            doc_items,         # all items from the current document
+            doc_items_results, # all score results from the current document
+            docs_total,        # the total number of documents in the task
         )
 
     def get_results_for_each_item(self, block_items, user):
@@ -364,31 +370,6 @@ class DirectAssessmentDocumentTask(BaseMetadata):
             if active_users < active_task.requiredAnnotations:
                 if user and not user in active_task.assignedTo.all():
                     return active_task
-
-        return None
-
-        # It seems that assignedTo is converted to an integer count.
-        active_tasks = active_tasks.order_by('id').values_list(
-            'id', 'requiredAnnotations', 'assignedTo'
-        )
-
-        for active_task in active_tasks:
-            print(active_task)
-            active_users = active_task[2] or 0
-            if active_users < active_task[1]:
-                return cls.objects.get(pk=active_task[0])
-
-        return None
-
-        # TODO: this needs to be removed.
-        for active_task in active_tasks:
-            market = active_task.items.first().metadata.market
-            if not market.targetLanguageCode == code:
-                continue
-
-            active_users = active_task.assignedTo.count()
-            if active_users < active_task.requiredAnnotations:
-                return active_task
 
         return None
 
@@ -632,7 +613,7 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
             import collections
             timestamps = collections.defaultdict(list)
             for result in results:
-                timestamps[result.item.documentID].append((result.start_time, result.end_time))
+                timestamps[result.item.documentID+" ||| "+result.item.targetID].append((result.start_time, result.end_time))
 
             # timestamps are document-level now, but that does not change anything later on
             timestamps = [

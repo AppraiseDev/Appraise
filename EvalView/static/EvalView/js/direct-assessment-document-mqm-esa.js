@@ -347,6 +347,16 @@ class MQMItemHandler {
             this.el_slider.find(".slider-bubble").toggle(false);
             refresh_bubble();
         })
+
+        this.el_slider.find(".ui-slider-handle").on("mouseup ontouchend", async () => {
+            let value = this.el_slider.slider('value')
+            if (this.tutorial) {
+                // do nothing, we don't validate during tutorial
+            } else if (this.mqm.length == 0 && value < 66) {
+                alert(`You assigned a score of ${value} without highlighting any errors. Please, highlight errors first.`)
+            }
+        })
+
         this.el_slider.on("slide", async () => {
             this.el_slider.find(".slider-bubble").toggle(true);
             refresh_bubble()
