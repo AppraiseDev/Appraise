@@ -14,15 +14,15 @@ DJANGO_SUPERUSER_USERNAME=test DJANGO_SUPERUSER_PASSWORD=test python3 manage.py 
 python3 manage.py collectstatic --no-post-process;
 
 python3 manage.py StartNewCampaign Examples/MQM+ESA/manifest_esa.json \
-    --batches-json Examples/MQM+ESA/batches_wmt23_en-de_esa.json \
+    --batches-json Examples/MQM+ESA/batches_esa.json \
     --csv-output Examples/MQM+ESA/output_esa.csv;
 
 python3 manage.py StartNewCampaign Examples/MQM+ESA/manifest_mqm.json \
-   --batches-json Examples/MQM+ESA/batches_wmt23_en-de_mqm.json \
+   --batches-json Examples/MQM+ESA/batches_mqm.json \
    --csv-output Examples/MQM+ESA/output_mqm.csv;
    
 python3 manage.py StartNewCampaign Examples/MQM+ESA/manifest_esa_gemba.json \
-    --batches-json Examples/MQM+ESA/batches_wmt23_en-de_esa_gemba.json \
+    --batches-json Examples/MQM+ESA/batches_esa_gemba.json \
     --csv-output Examples/MQM+ESA/output_esa_gemba.csv;
 
 python3 manage.py runserver;
@@ -30,7 +30,7 @@ python3 manage.py runserver;
 # See Examples/MQM+ESA/outputs.csv for a SSO login for the annotator account
 # Collect some annotations, then export annotation scores...
 
-python3 manage.py ExportSystemScoresToCSV example16mqm
+python3 manage.py ExportSystemScoresToCSV example15esa
 ```
 
 ## Audio/Video
