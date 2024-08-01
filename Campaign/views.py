@@ -102,14 +102,14 @@ def campaign_status(request, campaign_name, sort_key=2):
                     'item__itemID',
                     'item__targetID',
                     'item__itemType',
-                    'item__sourceText',
+                    'item__id',
                     'item__documentID',
                 )
                 # compute time override based on document times
                 import collections
                 _time_pairs = collections.defaultdict(list)
                 for x in _data:
-                    _time_pairs[x[7]].append((x[0], x[1]))
+                    _time_pairs[x[7]+ " ||| " +x[4]].append((x[0], x[1]))
                 _time_pairs = [
                     (min([x[0] for x in doc_v]), max([x[1] for x in doc_v]))
                     for doc, doc_v in _time_pairs.items()
@@ -127,14 +127,14 @@ def campaign_status(request, campaign_name, sort_key=2):
                     'item__itemID',
                     'item__targetID',
                     'item__itemType',
-                    'item__sourceText',
+                    'item__id',
                     'item__documentID',
                 )
                 # compute time override based on document times
                 import collections
                 _time_pairs = collections.defaultdict(list)
                 for x in _data:
-                    _time_pairs[x[7]].append((x[0], x[1]))
+                    _time_pairs[x[7]+ " ||| " +x[4]].append((x[0], x[1]))
                 _time_pairs = [
                     (min([x[0] for x in doc_v]), max([x[1] for x in doc_v]))
                     for doc, doc_v in _time_pairs.items()
@@ -194,7 +194,7 @@ def campaign_status(request, campaign_name, sort_key=2):
             if _annotation_time:
                 _hours = int(floor(_annotation_time / 3600))
                 _minutes = int(floor((_annotation_time % 3600) / 60))
-                _annotation_time = '{0:0>2d}h{1:0>2d}m'.format(_hours, _minutes)
+                _annotation_time = f'{_hours:0>2d}h{_minutes:0>2d}m'
             else:
                 _annotation_time = 'n/a'
 
@@ -263,12 +263,10 @@ def stat_reliable_testing(_data, campaign_opts, result_type):
         # Script generating batches for data assessment task does not
         # keep equal itemIDs for respective TGT and BAD items, so it
         # cannot be used as a key.
-        if "esa" in campaign_opts or "mqm" in campaign_opts:
-            _key = str(_x[6]) + " ||| " + _x[4]
-        elif result_type is DataAssessmentResult:
-            _key = str(_x[4])
+        if result_type is DataAssessmentResult:
+            _key = f"{_x[4]}"
         else:
-            _key = '{0}-{1}'.format(_x[3], _x[4])
+            _key = f'{_x[3]}-{_x[4]}'
         _dst[_key].append(_z_score)
 
     _x = []
@@ -284,10 +282,6 @@ def stat_reliable_testing(_data, campaign_opts, result_type):
 
             _t, pvalue = mannwhitneyu(_x, _y, alternative='less')
             _reliable = pvalue
-
-        except ImportError:
-            print("scipy is not installed")
-            pass
 
         # Possible for mannwhitneyu() to throw in some scenarios
         except ValueError:

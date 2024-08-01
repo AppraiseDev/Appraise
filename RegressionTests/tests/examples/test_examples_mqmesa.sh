@@ -3,11 +3,11 @@
 # Exit on error
 set -eo pipefail
 
-prefix=example_direct_mqmesa
+prefix=example_mqmesa
 
 # Create campaign from Examples/DirectMQM
-$APPRAISE_MANAGE StartNewCampaign $APPRAISE_EXAMPLES/DirectMQM/manifest_esa.json \
-    --batches-json $APPRAISE_EXAMPLES/DirectMQM/batches_wmt23_en-de_esa.json \
+$APPRAISE_MANAGE StartNewCampaign $APPRAISE_EXAMPLES/MQM+ESA/manifest_esa.json \
+    --batches-json $APPRAISE_EXAMPLES/MQM+ESA/batches_esa.json \
     --csv-output $prefix.users.csv
 
 # Check generated credentials
