@@ -1,4 +1,4 @@
-## Setup
+# Setup
 
 1. Basic setup:
 
@@ -38,6 +38,9 @@ python3 manage.py StartNewCampaign Examples/MQM+ESA/manifest.json \
     --csv-output Examples/MQM+ESA/output.csv
 python3 manage.py CreateInviteTokens test_group 20 --create-group test_group
 ```
+
+Add `--task-confirmation-tokens` if you with to show annotators tokens at the end.
+See [quality control](#Quality control) for more details.
 
 5. Optionally clean up everything
 
@@ -123,3 +126,12 @@ For task:
 - `randomSeed`: number used in batch generation
 - `requiredAnnotations`: how many annotations does a task need, in most cases use 1
 - `source/targetLanguage`: source and target language
+
+## Quality control
+
+With `--task-confirmation-tokens`, the annotators will be shown a random one if they fail the quality control and a correct one (matching the one in the CSV output) if they succeed.
+The quality control checks if the perturbed samples (`itemType=BAD`) have statistically lower scores than the original ones (`itemType=TGT`).
+Even without the switch, the campaign status page will show a p-value (last column for staff account) that corresponds to the outcome of this test.
+If it's close to 1, then the annotator is annotating randomly and is of poor quality.
+For values close to 0, the annotations are good.
+The threshold to generate the true token for annotators is currently p<=10%.
