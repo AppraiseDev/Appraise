@@ -232,18 +232,6 @@ class PairwiseAssessmentTask(BaseMetadata):
 
         return None
 
-        # TODO: this needs to be removed.
-        for active_task in active_tasks:
-            market = active_task.items.first().metadata.market
-            if not market.targetLanguageCode == code:
-                continue
-
-            active_users = active_task.assignedTo.count()
-            if active_users < active_task.requiredAnnotations:
-                return active_task
-
-        return None
-
     @classmethod
     def get_next_free_task_for_language_and_campaign(cls, code, campaign):
         return cls.get_next_free_task_for_language(code, campaign)
