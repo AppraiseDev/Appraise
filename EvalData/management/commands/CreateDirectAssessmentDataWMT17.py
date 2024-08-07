@@ -369,56 +369,41 @@ class Command(BaseCommand):
                     # generation. If no reference is available, then a copy
                     # of the source file will work just fine.
                     #
-                    if True:
-                        _bad_text = (
-                            local_ref[_bad_id]
-                            if use_local_ref
-                            else reference_file[_bad_id]
-                        )
+                  # Assign _bad_text using a ternary operator
+_bad_text = local_ref[_bad_id] if use_local_ref else reference_file[_bad_id]
+_bad_tokens = _bad_text if character_based else _bad_text.split(' ')
 
-                    _bad_tokens = _bad_text if character_based else _bad_text.split(' ')
+# If dealing with Chinese or Japanese, use double the amount
+# of characters for the bad replacement phrase.
+_bad_phrase = None
 
-                # If dealing with Chinese or Japanese, use double the amount
-                # of characters for the bad replacement phrase.
-                _bad_phrase = None
+_index = randrange(0, len(_bad_tokens) - _bad_len) if len(_bad_tokens) - _bad_len > 0 else 0
+_bad_phrase = _bad_tokens[_index : _index + _bad_len]
 
-                _index = (
-                    randrange(0, len(_bad_tokens) - _bad_len)
-                    if len(_bad_tokens) - _bad_len > 0
-                    else 0
-                )
-                _bad_phrase = _bad_tokens[_index : _index + _bad_len]
+_index = randrange(0, len(_tokens) - _bad_len) if len(_tokens) - _bad_len > 0 else 0
+_bad = _tokens[:_index] + _bad_phrase + _tokens[_index + _bad_len:]
 
-                _index = (
-                    randrange(0, len(_tokens) - _bad_len)
-                    if len(_tokens) - _bad_len > 0
-                    else 0
-                )
-                _bad = _tokens[:_index] + _bad_phrase + _tokens[_index + _bad_len :]
+segment_bad = ''.join(_bad) if character_based else ' '.join(_bad)
 
-                segment_bad = ''.join(_bad) if character_based else ' '.join(_bad)
+if md5hash not in hashed_text:
+    hashed_text[md5hash] = {
+        'segment_id': segment_id,
+        'segment_text': segment_text,
+        'segment_bad': segment_bad,
+        'segment_ref': _ref,
+        'segment_src': _src,
+        'systems': [os.path.basename(system_path)],
+    }
+    hashes_by_ids[segment_id].append(md5hash)
+else:
+    hashed_text[md5hash]['systems'].append(os.path.basename(system_path))
 
-                if not md5hash in hashed_text.keys():
-                    hashed_text[md5hash] = {
-                        'segment_id': segment_id,
-                        'segment_text': segment_text,
-                        'segment_bad': segment_bad,
-                        'segment_ref': _ref,
-                        'segment_src': _src,
-                        'systems': [os.path.basename(system_path)],
-                    }
+print(
+    'Loaded {0} system {1} segments'.format(
+        len(system_txt.keys()), os.path.basename(system_path)
+    )
+)
 
-                    hashes_by_ids[segment_id].append(md5hash)
-                else:
-                    hashed_text[md5hash]['systems'].append(
-                        os.path.basename(system_path)
-                    )
-
-            print(
-                'Loaded {0} system {1} segments'.format(
-                    len(system_txt.keys()), os.path.basename(system_path)
-                )
-            )
 
         # Dump deduplicated segment data to JSON file.
         json_data = json.dumps(hashed_text, indent=2, sort_keys=True)

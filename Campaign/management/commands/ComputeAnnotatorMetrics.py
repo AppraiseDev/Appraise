@@ -232,11 +232,6 @@ class Command(BaseCommand):
                         _y.append(_data[1][0])
                 continue
 
-                if item[0] > _median_score:
-                    _upper_refs += 1
-                else:
-                    _lower_refs += 1
-
             # metrics[key].append((_lower_refs, _upper_refs))
             metrics[key].append(list(zip(_x, _y)))
 
@@ -269,10 +264,7 @@ class Command(BaseCommand):
                     _deltas.append(_data[0][0] - _data[1][0])
                     continue
 
-                    _potential += 1
-                    # if _data[0][0] == _data[1][0]:
-                    if abs(_data[0][0] - _data[1][0]) < chk_threshold:
-                        _matches += 1
+                  
 
             # metrics[key].append((_matches, _potential))
             metrics[key].append(list(zip(_x, _y)))
@@ -281,9 +273,6 @@ class Command(BaseCommand):
             for x in values:
                 if x[2] not in ('TGT', 'BAD'):
                     continue
-
-                _key = '{0}-{1}'.format(x[0], x[1])
-                _scores[_key].append((x[3], x[2]))
 
             if DEBUG and _debug == 2:
                 _msg = "  Example TGT/BAD: {} => {}\n\n".format(_k, _scores[_k])
