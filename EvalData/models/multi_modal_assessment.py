@@ -332,7 +332,7 @@ class MultiModalAssessmentTask(BaseMetadata):
                 if current_length_text > max_length_text:
                     print(
                         current_length_text,
-                        item['targetText'].encode('utf-8'),
+                        item['targetText'],
                     )
                     max_length_text = current_length_text
 

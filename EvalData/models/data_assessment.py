@@ -411,7 +411,7 @@ class DataAssessmentTask(BaseMetadata):
                     print(
                         'Longest targetText',
                         current_length_text,
-                        item['targetText'].encode('utf-8'),
+                        item['targetText'],
                     )
                     max_length_text = current_length_text
 
