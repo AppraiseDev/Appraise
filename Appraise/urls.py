@@ -192,6 +192,11 @@ urlpatterns = [
         campaign_views.campaign_status,
         name='campaign_status',
     ),
+    re_path(
+        r'^pairwise-assessment-document-esa/$',
+        evalview_views.pairwise_assessment_document_esa,
+        name="pairwise-assessment-document-esa",
+    ),
 ]
 
 if DEBUG:

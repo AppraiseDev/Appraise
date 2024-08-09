@@ -232,6 +232,34 @@ class Command(BaseCommand):
                 mqms[0],
                 username,
             )
+        
+        ##################################################################
+        elif campaign_type == "PairwiseDocumentESA":
+            if len(scores) != 2:
+                raise ValueError('Task "PairwiseDocumentESA" requires exactly 2 scores')
+
+            data = {
+                "score1": scores[0],
+                "score2": scores[1],
+                "mqm1": mqms[0],
+                "mqm2": mqms[1],
+                "item_id": response.context["item_id"],
+                "task_id": response.context["task_id"],
+                "document_id": response.context["document_id"],
+                "start_timestamp": (datetime.now() - timedelta(minutes=5)).timestamp(),
+                "end_timestamp": datetime.now().timestamp(),
+            }
+
+            msg_info = "item {}/{}/{} with score(s) {}, {} and mqm(s) {}, {} for user {}".format(
+                response.context["item_id"],
+                response.context["task_id"],
+                response.context["document_id"],
+                scores[0],
+                scores[1],
+                mqms[0],
+                mqms[1],
+                username,
+            )
 
         ##################################################################
         elif campaign_type == "Data":

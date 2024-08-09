@@ -1,0 +1,13 @@
+{
+    "CAMPAIGN_URL": "http://127.0.0.1:8000/dashboard/sso/",
+    "CAMPAIGN_NAME": "example18docnewuiesa",
+    "CAMPAIGN_KEY": "c18",
+    "CAMPAIGN_NO": 18,
+    "REDUNDANCY": 1,
+
+    "TASKS_TO_ANNOTATORS": [
+        ["deu", "eng", "uniform",  1, 1]
+    ],
+
+    "TASK_TYPE": "PairwiseDocumentESA"
+}
