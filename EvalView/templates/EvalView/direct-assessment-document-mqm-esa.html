@@ -77,11 +77,12 @@
         <div class="source-box">
             <div class="tutorial-text"></div>
             <div class="source-text">
+                <!-- TODO: this means that HTML can be injected, incorrect! -->
                 {{ item.sourceText|safe }}
             </div>
 
             <div class="target-text">
-                {{item.targetText|safe}}
+                {{item.targetText}}
             </div>
         </div>
 
