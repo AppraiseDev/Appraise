@@ -1153,6 +1153,14 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
             context.update(BASE_CONTEXT)
             # Send response to the Ajax POST request
             return JsonResponse(context)
+    
+    # TODO: hotfix for WMT24
+    # Tracking issue: https://github.com/AppraiseDev/Appraise/issues/185
+    for item in doc_items:
+        # don't escape HTML video
+        if item.sourceText.strip().startswith("<video"):
+            continue
+        item.sourceText = escape(item.sourceText)
 
     # Get item scores from the latest corresponding results
     doc_items_results = [
