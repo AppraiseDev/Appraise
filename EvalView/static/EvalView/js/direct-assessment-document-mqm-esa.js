@@ -229,22 +229,25 @@ async function submit_finish_document(override_tutorial_check=false) {
             }
         }
     }
-
     // prevent multiclicks
     $("#button-next-doc").prop('disabled', true);
 
     $("#form-next-doc > input[name='end_timestamp']").val(Date.now() / 1000)
 
     // wait for individual items to be submitted
-    for (const el of $(".item-box")) {
-        await submit_form_ajax($(el))
+    try {
+        for (const el of $(".item-box")) {
+            await submit_form_ajax($(el))
+        }
+
+        // trigger hidden form if all is good
+        $("#form-next-doc").trigger("submit")
+    } catch {
+        // re-enable next doc button in a few seconds if not
+        await new Promise(resolve => setTimeout(resolve, 5_000))
+        $("#button-next-doc").prop('disabled', false);
     }
 
-    // trigger hidden form
-    $("#form-next-doc").trigger("submit")
-
-    await new Promise(resolve => setTimeout(resolve, 5_000))
-    $("#button-next-doc").prop('disabled', false);
 }
 
 function _show_error_box(text, timeout = 2000) {
