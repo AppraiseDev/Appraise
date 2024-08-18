@@ -184,8 +184,16 @@ def campaign_status(request, campaign_name, sort_key=2):
 
             # Compute total annotation time
             if is_mqm_or_esa:
-                # if MQM or ESA, then let's use the manually computed times
-                pass
+                # for MQM and ESA compute the lower and upper annotation times
+                # use only the end times 
+                _annotation_time_upper = sum([
+                    end-start if end-start <= 10*60 else 5*60
+                    for start, end
+                    in zip(_start_times[:1]+_end_times, _end_times)
+                ])
+                _hours = int(floor(_annotation_time_upper / 3600))
+                _minutes = int(floor((_annotation_time_upper % 3600) / 60))
+                _annotation_time_upper = f'{_hours:0>2d}h{_minutes:0>2d}m'
             else:
                 _time_pairs = list(zip(_start_times, _end_times))
             _annotation_time = _compute_user_total_annotation_time(_time_pairs)
@@ -195,8 +203,12 @@ def campaign_status(request, campaign_name, sort_key=2):
                 _hours = int(floor(_annotation_time / 3600))
                 _minutes = int(floor((_annotation_time % 3600) / 60))
                 _annotation_time = f'{_hours:0>2d}h{_minutes:0>2d}m'
+                # for MQM and ESA join it together
+                if is_mqm_or_esa:
+                    _annotation_time = f'{_annotation_time}--{_annotation_time_upper}'
             else:
                 _annotation_time = 'n/a'
+
 
             _item = (
                 user.username,
