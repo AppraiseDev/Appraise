@@ -172,7 +172,7 @@ $(document).ready(() => {
     // show submit button only on MQM and not ESA
     $(".button-submit").toggle(MQM_TYPE == "MQM")
 
-    let instructions_show = localStorage.getItem("appraise-instructions-show")
+    let instructions_show = localStorage.getItem("appraise-instructions-show") == "true"
     if (instructions_show == null) instructions_show = true;
 
     $("#instructions-show").on("click", () => {
@@ -181,7 +181,8 @@ $(document).ready(() => {
         localStorage.setItem("appraise-instructions-show", instructions_show);
         $("#instructions").toggle(instructions_show)
     })
-    // will be flipped immediately after
+
+    // will be overriden
     instructions_show = !instructions_show
     $("#instructions-show").trigger("click")
 });
