@@ -163,39 +163,36 @@ def campaign_status(request, campaign_name, sort_key=2):
             _end_times = [x[1] for x in _data]
 
             # Compute first modified time
-            _first_modified = (
+            _first_modified_raw = (
                 seconds_to_timedelta(min(_start_times)) if _start_times else None
             )
-            if _first_modified:
-                _date_modified = datetime(1970, 1, 1) + _first_modified
+            if _first_modified_raw:
+                _date_modified = datetime(1970, 1, 1) + _first_modified_raw
                 _first_modified = str(_date_modified).split('.')[0]
             else:
                 _first_modified = 'Never'
-
+                
             # Compute last modified time
-            _last_modified = (
+            _last_modified_raw = (
                 seconds_to_timedelta(max(_end_times)) if _end_times else None
             )
-            if _last_modified:
-                _date_modified = datetime(1970, 1, 1) + _last_modified
+            if _last_modified_raw:
+                _date_modified = datetime(1970, 1, 1) + _last_modified_raw
                 _last_modified = str(_date_modified).split('.')[0]
             else:
                 _last_modified = 'Never'
 
             # Compute total annotation time
-            if is_mqm_or_esa:
+            if is_mqm_or_esa and _first_modified_raw and _last_modified_raw:
                 # for MQM and ESA compute the lower and upper annotation times
                 # use only the end times 
-                _annotation_time_upper = sum([
-                    end-start if end-start <= 10*60 else 5*60
-                    for start, end
-                    in zip(_start_times[:1]+_end_times, _end_times)
-                ])
+                _annotation_time_upper = (_last_modified_raw-_first_modified_raw).seconds
                 _hours = int(floor(_annotation_time_upper / 3600))
                 _minutes = int(floor((_annotation_time_upper % 3600) / 60))
                 _annotation_time_upper = f'{_hours:0>2d}h{_minutes:0>2d}m'
             else:
                 _time_pairs = list(zip(_start_times, _end_times))
+                _annotation_time_upper = None
             _annotation_time = _compute_user_total_annotation_time(_time_pairs)
 
             # Format total annotation time
@@ -204,7 +201,7 @@ def campaign_status(request, campaign_name, sort_key=2):
                 _minutes = int(floor((_annotation_time % 3600) / 60))
                 _annotation_time = f'{_hours:0>2d}h{_minutes:0>2d}m'
                 # for MQM and ESA join it together
-                if is_mqm_or_esa:
+                if is_mqm_or_esa and _annotation_time_upper:
                     _annotation_time = f'{_annotation_time}--{_annotation_time_upper}'
             else:
                 _annotation_time = 'n/a'
