@@ -129,7 +129,7 @@ For task:
 
 ## Quality control
 
-With `--task-confirmation-tokens`, the annotators will be shown a random one if they fail the quality control and a correct one (matching the one in the CSV output) if they succeed.
+With `--task-confirmation-tokens`, the annotators will be shown a random key/token if they fail the quality control and a correct one (matching the one in the CSV output with credentials) if they succeed.
 The quality control checks if the perturbed samples (`itemType=BAD`) have statistically lower scores than the original ones (`itemType=TGT`).
 Even without the switch, the campaign status page will show a p-value (last column for staff account) that corresponds to the outcome of this test.
 If it's close to 1, then the annotator is annotating randomly and is of poor quality.
