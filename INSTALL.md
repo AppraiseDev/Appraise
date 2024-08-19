@@ -39,7 +39,7 @@ python3 manage.py StartNewCampaign Examples/MQM+ESA/manifest.json \
 python3 manage.py CreateInviteTokens test_group 20 --create-group test_group
 ```
 
-Add `--task-confirmation-tokens` if you with to show annotators tokens at the end.
+Add `--task-confirmation-tokens` if you want to generate annotator confirmation tokens.
 See [quality control](#Quality control) for more details.
 
 5. Optionally clean up everything
