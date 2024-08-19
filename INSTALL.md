@@ -134,4 +134,4 @@ The quality control checks if the perturbed samples (`itemType=BAD`) have statis
 Even without the switch, the campaign status page will show a p-value (last column for staff account) that corresponds to the outcome of this test.
 If it's close to 1, then the annotator is annotating randomly and is of poor quality.
 For values close to 0, the annotations are good.
-The threshold to generate the true token for annotators is currently p<=10%.
+The threshold to generate the valid token for annotators is currently p<=10%.
