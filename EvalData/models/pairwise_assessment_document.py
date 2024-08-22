@@ -4,10 +4,9 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=C0103,C0330,no-member
-import json
 import sys
 from collections import defaultdict
-from json import loads
+from json import dumps, loads
 from zipfile import is_zipfile
 from zipfile import ZipFile
 
@@ -1368,8 +1367,8 @@ class PairwiseAssessmentDocumentESATask(BasePairwiseAssessmentDocumentTask):
                     itemType=item['itemType'],
                     documentID=item['documentID'],
                     isCompleteDocument=item['isCompleteDocument'],
-                    mqm1=json.dumps(item.get('mqm1', [])),
-                    mqm2=json.dumps(item.get('mqm2', [])),
+                    mqm1=dumps(item.get('mqm1', [])),
+                    mqm2=dumps(item.get('mqm2', [])),
                 )
                 new_items.append(new_item)
                 if item['isCompleteDocument']:
