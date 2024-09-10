@@ -3,7 +3,10 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 # pylint: disable=C0103,C0330,no-member
+import json
+import sys
 from collections import defaultdict
 from json import loads
 from zipfile import is_zipfile
@@ -12,11 +15,12 @@ from zipfile import ZipFile
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.text import format_lazy as f
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
-from Appraise.utils import _get_logger
+from Appraise.utils import _get_logger, _compute_user_total_annotation_time
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 from EvalData.models.base_models import AnnotationTaskRegistry
+from EvalData.models.base_models import BaseAssessmentResult
 from EvalData.models.base_models import BaseMetadata
 from EvalData.models.base_models import MAX_REQUIREDANNOTATIONS_VALUE
 from EvalData.models.base_models import seconds_to_timedelta
@@ -197,7 +201,8 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         if not next_item:
             if not return_statistics:
                 return (next_item, [], [])
-            return (next_item, completed_items, 0, 0, [], [], 0)
+            else:
+                return (next_item, completed_items, 0, 0, [], [], 0)
 
         # Retrieve all items from the document which next_item belongs to
         _items = self.items.filter(
@@ -234,13 +239,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         total_blocks = self.items.filter(isCompleteDocument=True).count()
 
         print(
-            'Completed {}/{} documents, {}/{} items in the current document, completed {} items in total'.format(
-                completed_blocks,
-                total_blocks,
-                completed_items_in_block,
-                len(block_items),
-                completed_items,
-            )
+            f'Completed {completed_blocks}/{total_blocks} documents, {completed_items_in_block}/{len(block_items)} items in the current document, completed {completed_items} items in total'
         )
 
         return (
@@ -253,6 +252,64 @@ class DirectAssessmentDocumentTask(BaseMetadata):
             total_blocks,  # the total number of documents in the task
         )
 
+    def next_document_for_user_mqmesa(self, user):
+        """
+        Returns the next item and all items from its document.
+        Used for MQM/ESA views
+        Specifically a tuple with:
+            next_item,
+            completed_items,
+            completed_docs,
+            doc_items,
+            doc_items_results,
+            total_docs,
+        """
+        # Retrieve all items from the document which next_item belongs to
+        all_items = self.items.all()
+        
+        # TODO: this is super compute heavy and inefficient
+        # should actually be table JOIN
+        def get_item_result(id):
+            return DirectAssessmentDocumentResult.objects.filter(
+                item__itemID=id,
+                createdBy=user,
+                task=self,
+            ).last()
+
+        all_items = [(item, get_item_result(item.itemID)) for item in all_items]
+        unfinished_items = [i for i, r in all_items if not r]
+        if not unfinished_items:
+            # TODO: the None might not be the correct type
+            return (None, all_items, 0, 0, [], [], 0)
+        # things are ordered with batch order
+        next_item = unfinished_items[0]
+
+        docs_all = len({i.documentID for i, r in all_items})
+        completed_items = len(
+            [i for i, r in all_items if r is not None and r.completed]
+        )
+        completed_docs = docs_all - len(
+            {i.documentID for i, r in all_items if r is None or not r.completed}
+        )
+        doc_items = [i for i, r in all_items if i.documentID == next_item.documentID]
+        doc_items_results = [
+            r for i, r in all_items if i.documentID == next_item.documentID
+        ]
+
+        print(
+            f'Completed {completed_docs}/{docs_all} documents, '
+            f'completed {completed_items} items in total'
+        )
+
+        return (
+            next_item,  # the first unannotated item for the user
+            completed_items,  # the number of completed items in the task
+            completed_docs,  # the number of completed documents in the task
+            doc_items,  # all items from the current document
+            doc_items_results,  # all score results from the current document
+            docs_all,  # the total number of documents in the task
+        )
+
     def get_results_for_each_item(self, block_items, user):
         """Returns the latest result object for each item or none."""
         # TODO: optimize, this possibly makes too many individual queries
@@ -263,7 +320,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
                 DirectAssessmentDocumentResult.objects.filter(
                     item__id=item.id,
                     completed=True,
-                    createdBy=user,  # TODO: is passing user as an argument needed?
+                    createdBy=user,
                     task=self,
                 )
                 .order_by('item__id', 'dateModified')
@@ -275,7 +332,6 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         if len(block_items) != len(block_results):
             print('Warning: incorrect number of retrieved results!')
         for item, result in zip(block_items, block_results):
-            # print(f'  >> item={item} result={result}')
             if result and item.id != result.item.id:
                 print('Warning: incorrect order of items and results!')
 
@@ -361,10 +417,14 @@ class DirectAssessmentDocumentTask(BaseMetadata):
             # TODO: implement proper support for multiple json files in archive.
             for batch_json_file in batch_json_files:
                 batch_content = batch_zip.read(batch_json_file).decode('utf-8')
-                batch_json = loads(batch_content, encoding='utf-8')
+                # Python 3.9 removed 'encoding' from json.loads
+                if sys.version_info >= (3, 9, 0):
+                    batch_json = loads(batch_content)
+                else:
+                    batch_json = loads(batch_content, encoding='utf-8')
 
         else:
-            batch_json = loads(str(batch_file.read(), encoding="utf-8"))
+            batch_json = loads(str(batch_file.read(), encoding='utf-8'))
 
         from datetime import datetime
 
@@ -415,6 +475,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
                     itemType=item['itemType'],
                     documentID=item['documentID'],
                     isCompleteDocument=item['isCompleteDocument'],
+                    mqm=json.dumps(item.get('mqm', '[]')),
                 )
                 new_items.append(new_item)
                 if item['isCompleteDocument']:
@@ -481,13 +542,17 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         return '{0}.{1}[{2}]'.format(self.__class__.__name__, self.campaign, self.id)
 
 
-class DirectAssessmentDocumentResult(BaseMetadata):
+class DirectAssessmentDocumentResult(BaseAssessmentResult):
     """
     Models a direct assessment document evaluation result.
     """
 
     score = models.PositiveSmallIntegerField(
         verbose_name=_('Score'), help_text=_('(value in range=[1,100])')
+    )
+
+    mqm = models.TextField(
+        verbose_name=_('MQM'), help_text=_('MQM JSON string'), default="[]"
     )
 
     start_time = models.FloatField(
@@ -556,13 +621,31 @@ class DirectAssessmentDocumentResult(BaseMetadata):
     @classmethod
     def get_time_for_user(cls, user):
         results = cls.objects.filter(createdBy=user, activated=False, completed=True)
+        is_esa_or_mqm = any([
+            "esa" in result.task.campaign.campaignOptions.lower().split(";") or
+            "mqm" in result.task.campaign.campaignOptions.lower().split(";")
+            for result in results
+        ])
 
-        durations = []
-        for result in results:
-            duration = result.end_time - result.start_time
-            durations.append(duration)
+        if is_esa_or_mqm:
+            # for ESA or MQM, do minimum and maximum from each doc
+            import collections
+            timestamps = collections.defaultdict(list)
+            for result in results:
+                timestamps[result.item.documentID].append((result.start_time, result.end_time))
 
-        return seconds_to_timedelta(sum(durations))
+            # timestamps are document-level now, but that does not change anything later on
+            timestamps = [
+                (min([x[0] for x in doc_v]), max([x[1] for x in doc_v]))
+                for doc, doc_v in timestamps.items()
+            ]
+        else:
+            timestamps = []
+            for result in results:
+                timestamps.append((result.start_time, result.end_time))
+
+
+        return seconds_to_timedelta(_compute_user_total_annotation_time(timestamps))
 
     @classmethod
     def get_system_annotations(cls):
@@ -578,6 +661,7 @@ class DirectAssessmentDocumentResult(BaseMetadata):
             'item__itemID',
             'item__metadata__market__sourceLanguageCode',
             'item__metadata__market__targetLanguageCode',
+            'mqm',
         )
         for result in qs.values_list(*value_names):
             systemID = result[0]
@@ -585,7 +669,10 @@ class DirectAssessmentDocumentResult(BaseMetadata):
             annotatorID = result[2]
             segmentID = result[3]
             marketID = '{0}-{1}'.format(result[4], result[5])
-            system_scores[marketID].append((systemID, annotatorID, segmentID, score))
+            mqm = result[6]
+            system_scores[marketID].append(
+                (systemID, annotatorID, segmentID, score, mqm)
+            )
 
         return system_scores
 
@@ -655,6 +742,7 @@ class DirectAssessmentDocumentResult(BaseMetadata):
             'task__campaign__campaignName',
             'item__documentID',
             'item__isCompleteDocument',
+            'mqm',
         )
         for result in qs.values_list(*value_names):
 
@@ -672,6 +760,7 @@ class DirectAssessmentDocumentResult(BaseMetadata):
             campaignName = result[11]
             documentID = result[12]
             isCompleteDocument = result[13]
+            mqm = result[14]
 
             if annotatorID in user_data:
                 username = user_data[annotatorID][0]
@@ -710,13 +799,14 @@ class DirectAssessmentDocumentResult(BaseMetadata):
                     campaignName,
                     documentID,
                     isCompleteDocument,
+                    mqm,
                 )
             )
 
         # TODO: this is very intransparent... and needs to be fixed!
         x = system_scores
         s = [
-            'taskID,systemID,username,email,groups,segmentID,score,startTime,endTime,durationInSeconds,itemType,campaignName,documentID,isCompleteDocument'
+            'taskID,systemID,username,email,groups,segmentID,score,startTime,endTime,durationInSeconds,itemType,campaignName,documentID,isCompleteDocument,mqm'
         ]
         for l in x:
             for i in x[l]:
@@ -749,6 +839,7 @@ class DirectAssessmentDocumentResult(BaseMetadata):
             'item__itemType',
             'item__documentID',
             'item__isCompleteDocument',
+            'mqm',
         )
         for result in qs.values_list(*value_names):
 
@@ -771,6 +862,7 @@ class DirectAssessmentDocumentResult(BaseMetadata):
             itemType = result[9]
             documentID = result[10]
             isCompleteDocument = result[11]
+            mqm = result[12]
             user = User.objects.get(pk=annotatorID)
             username = user.username
             useremail = user.email
@@ -785,6 +877,7 @@ class DirectAssessmentDocumentResult(BaseMetadata):
                     itemType,
                     documentID,
                     isCompleteDocument,
+                    mqm,
                 )
             )
 
@@ -882,6 +975,7 @@ class DirectAssessmentDocumentResult(BaseMetadata):
             'score',  # Score
             'item__documentID',  # Document ID
             'item__isCompleteDocument',  # isCompleteDocument
+            'mqm',  # MQM
         )
 
         if extended_csv:

@@ -4,6 +4,7 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=C0103,C0330,no-member
+import sys
 from collections import defaultdict
 from json import loads
 from zipfile import is_zipfile
@@ -12,9 +13,9 @@ from zipfile import ZipFile
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.text import format_lazy as f
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
-from Appraise.utils import _get_logger
+from Appraise.utils import _get_logger, _compute_user_total_annotation_time
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 from EvalData.models.base_models import AnnotationTaskRegistry
 from EvalData.models.base_models import BaseMetadata
@@ -303,10 +304,14 @@ class DirectAssessmentContextTask(BaseMetadata):
             # TODO: implement proper support for multiple json files in archive.
             for batch_json_file in batch_json_files:
                 batch_content = batch_zip.read(batch_json_file).decode('utf-8')
-                batch_json = loads(batch_content, encoding='utf-8')
+                # Python 3.9 removed 'encoding' from json.loads
+                if sys.version_info >= (3, 9, 0):
+                    batch_json = loads(batch_content)
+                else:
+                    batch_json = loads(batch_content, encoding='utf-8')
 
         else:
-            batch_json = loads(str(batch_file.read(), encoding="utf-8"))
+            batch_json = loads(str(batch_file.read(), encoding='utf-8'))
 
         from datetime import datetime
 
@@ -499,12 +504,12 @@ class DirectAssessmentContextResult(BaseMetadata):
     def get_time_for_user(cls, user):
         results = cls.objects.filter(createdBy=user, activated=False, completed=True)
 
-        durations = []
+        timestamps = []
         for result in results:
-            duration = result.end_time - result.start_time
-            durations.append(duration)
+            timestamps.append((result.start_time, result.end_time))
 
-        return seconds_to_timedelta(sum(durations))
+        return seconds_to_timedelta(_compute_user_total_annotation_time(timestamps))
+    
 
     @classmethod
     def get_system_annotations(cls):

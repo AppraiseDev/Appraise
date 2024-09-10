@@ -5,7 +5,7 @@ Examples/**/*.csv
 Examples/**/*.log
 Packages
 regressiontests.db
-static
+./static
 
 # Python
 *.py[cod]
@@ -22,3 +22,6 @@ appraise.log
 .venv
 venv
 db.sqlite3*
+
+Scripts/restart_all.sh
+static

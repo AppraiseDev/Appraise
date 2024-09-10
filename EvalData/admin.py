@@ -4,13 +4,15 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=C0330
+from datetime import timezone
+
+utc = timezone.utc
 from datetime import datetime
 
 from django.contrib import admin
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.utils.timezone import utc
 
 from .models import *
 
@@ -92,13 +94,13 @@ class MarketAdmin(BaseMetadataAdmin):
         'sourceLanguageCode',
         'targetLanguageCode',
         'domainName',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'sourceLanguageCode',
         'targetLanguageCode',
         'domainName',
-    ] + BaseMetadataAdmin.list_filter
-    search_fields = ['marketID'] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
+    search_fields = ['marketID'] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (  # type: ignore
         (
@@ -113,7 +115,7 @@ class MarketAdmin(BaseMetadataAdmin):
                 )
             },
         ),
-    ) + BaseMetadataAdmin.fieldsets
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
 class MetadataAdmin(BaseMetadataAdmin):
@@ -126,18 +128,18 @@ class MetadataAdmin(BaseMetadataAdmin):
         'corpusName',
         'versionInfo',
         'source',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'market__marketID',
         'corpusName',
         'versionInfo',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         'market__marketID',
         'corpusName',
         'versionInfo',
         'source',
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (
         (
@@ -158,7 +160,7 @@ class TextSegmentAdmin(BaseMetadataAdmin):
         'itemType',
         'segmentID',
         'segmentText',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'metadata__corpusName',
         'metadata__versionInfo',
@@ -166,11 +168,11 @@ class TextSegmentAdmin(BaseMetadataAdmin):
         'metadata__market__targetLanguageCode',
         'metadata__market__domainName',
         'itemType',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         'segmentID',
         'segmentText',
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (
         (
@@ -205,7 +207,7 @@ class TextSegmentWithTwoTargetsAdmin(BaseMetadataAdmin):
         'target1Text',
         'target2ID',
         'target2Text',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'metadata__corpusName',
         'metadata__versionInfo',
@@ -213,7 +215,7 @@ class TextSegmentWithTwoTargetsAdmin(BaseMetadataAdmin):
         'metadata__market__targetLanguageCode',
         'metadata__market__domainName',
         'itemType',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         'segmentID',
         'segmentText',
@@ -221,7 +223,7 @@ class TextSegmentWithTwoTargetsAdmin(BaseMetadataAdmin):
         'target1Text',
         'target2ID',
         'target2Text',
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (
         (
@@ -258,7 +260,8 @@ class TextPairAdmin(BaseMetadataAdmin):
         'sourceText',
         'targetID',
         'targetText',
-    ] + BaseMetadataAdmin.list_display
+        'mqm',
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'metadata__corpusName',
         'metadata__versionInfo',
@@ -266,13 +269,14 @@ class TextPairAdmin(BaseMetadataAdmin):
         'metadata__market__targetLanguageCode',
         'metadata__market__domainName',
         'itemType',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         'sourceID',
         'sourceText',
         'targetID',
         'targetText',
-    ] + BaseMetadataAdmin.search_fields
+        'mqm',
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (
         (
@@ -287,6 +291,7 @@ class TextPairAdmin(BaseMetadataAdmin):
                         'sourceText',
                         'targetID',
                         'targetText',
+                        'mqm',
                     ]
                 )
             },
@@ -313,7 +318,7 @@ class TextPairWithContextAdmin(BaseMetadataAdmin):
         'targetText',
         'targetContextLeft',
         'targetContextRight',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'metadata__corpusName',
         'metadata__versionInfo',
@@ -322,7 +327,7 @@ class TextPairWithContextAdmin(BaseMetadataAdmin):
         'metadata__market__domainName',
         'itemType',
         'isCompleteDocument',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         'documentID',
         'sourceID',
@@ -333,7 +338,7 @@ class TextPairWithContextAdmin(BaseMetadataAdmin):
         'targetText',
         'targetContextLeft',
         'targetContextRight',
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (
         (
@@ -375,7 +380,7 @@ class TextPairWithImageAdmin(BaseMetadataAdmin):
         'targetID',
         'targetText',
         'imageURL',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'metadata__corpusName',
         'metadata__versionInfo',
@@ -383,13 +388,13 @@ class TextPairWithImageAdmin(BaseMetadataAdmin):
         'metadata__market__targetLanguageCode',
         'metadata__market__domainName',
         'itemType',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         'sourceID',
         'sourceText',
         'targetID',
         'targetText',
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (
         (
@@ -422,17 +427,17 @@ class DirectAssessmentTaskAdmin(BaseMetadataAdmin):
         'batchNo',
         'campaign',
         'requiredAnnotations',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'campaign__campaignName',
         'campaign__batches__market__targetLanguageCode',
         'campaign__batches__market__sourceLanguageCode',
         'batchData',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         'campaign__campaignName',
         'assignedTo',
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (
         (
@@ -465,11 +470,11 @@ class DirectAssessmentResultAdmin(BaseMetadataAdmin):
         'end_time',
         'duration',
         'item_type',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'item__itemType',
         'task__completed',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         # nothing model specific
     ] + BaseMetadataAdmin.search_fields  # type: ignore
@@ -492,17 +497,17 @@ class DirectAssessmentContextTaskAdmin(BaseMetadataAdmin):
         'batchNo',
         'campaign',
         'requiredAnnotations',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'campaign__campaignName',
         'campaign__batches__market__targetLanguageCode',
         'campaign__batches__market__sourceLanguageCode',
         'batchData',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         'campaign__campaignName',
         'assignedTo',
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (
         (
@@ -535,12 +540,12 @@ class DirectAssessmentContextResultAdmin(BaseMetadataAdmin):
         'end_time',
         'duration',
         'item_type',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'item__itemType',
         'task__completed',
         'item__isCompleteDocument',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         # nothing model specific
     ] + BaseMetadataAdmin.search_fields  # type: ignore
@@ -579,17 +584,17 @@ class MultiModalAssessmentTaskAdmin(BaseMetadataAdmin):
         'batchNo',
         'campaign',
         'requiredAnnotations',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'campaign__campaignName',
         'campaign__batches__market__targetLanguageCode',
         'campaign__batches__market__sourceLanguageCode',
         'batchData',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         'campaign__campaignName',
         'assignedTo',
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (
         (
@@ -622,11 +627,11 @@ class MultiModalAssessmentResultAdmin(BaseMetadataAdmin):
         'end_time',
         'duration',
         'item_type',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'item__itemType',
         'task__completed',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         # nothing model specific
     ] + BaseMetadataAdmin.search_fields  # type: ignore
@@ -705,17 +710,17 @@ class PairwiseAssessmentTaskAdmin(BaseMetadataAdmin):
         'batchNo',
         'campaign',
         'requiredAnnotations',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'campaign__campaignName',
         'campaign__batches__market__targetLanguageCode',
         'campaign__batches__market__sourceLanguageCode',
         'batchData',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         'campaign__campaignName',
         'assignedTo',
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (
         (
@@ -749,11 +754,11 @@ class PairwiseAssessmentResultAdmin(BaseMetadataAdmin):
         'end_time',
         'duration',
         'item_type',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'item__itemType',
         'task__completed',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         # nothing model specific
     ] + BaseMetadataAdmin.search_fields  # type: ignore
@@ -779,17 +784,17 @@ class PairwiseAssessmentDocumentTaskAdmin(BaseMetadataAdmin):
         'batchNo',
         'campaign',
         'requiredAnnotations',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'campaign__campaignName',
         'campaign__batches__market__targetLanguageCode',
         'campaign__batches__market__sourceLanguageCode',
         'batchData',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         'campaign__campaignName',
         'assignedTo',
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (
         (
@@ -823,12 +828,12 @@ class PairwiseAssessmentDocumentResultAdmin(BaseMetadataAdmin):
         'end_time',
         'duration',
         'item_type',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'item__itemType',
         'task__completed',
         'item__isCompleteDocument',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         # nothing model specific
     ] + BaseMetadataAdmin.search_fields  # type: ignore
@@ -854,17 +859,17 @@ class DataAssessmentTaskAdmin(BaseMetadataAdmin):
         'batchNo',
         'campaign',
         'requiredAnnotations',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'campaign__campaignName',
         'campaign__batches__market__targetLanguageCode',
         'campaign__batches__market__sourceLanguageCode',
         'batchData',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         'campaign__campaignName',
         'assignedTo',
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     fieldsets = (
         (
@@ -897,11 +902,11 @@ class DataAssessmentResultAdmin(BaseMetadataAdmin):
         'end_time',
         'duration',
         'item_type',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'item__itemType',
         'task__completed',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         # nothing model specific
     ] + BaseMetadataAdmin.search_fields  # type: ignore

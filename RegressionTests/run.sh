@@ -44,10 +44,11 @@ export APPRAISE_DEBUG=
 
 log "Appraise root directory: $APPRAISE_ROOT"
 
-# Set absolute path to python executable
+# Set absolute path to python3 executable
 export APPRAISE_PYTHON=${PYTHONBIN:-"$APPRAISE_ROOT/venv/bin/python3"}
 test -f $APPRAISE_PYTHON || APPRAISE_PYTHON=$(command -v python3)
 log "Python executable: $APPRAISE_PYTHON"
+log "Python version: $($APPRAISE_PYTHON --version)"
 export APPRAISE_MANAGE="$APPRAISE_PYTHON $APPRAISE_ROOT/manage.py"
 
 if ! command -v $APPRAISE_PYTHON > /dev/null; then

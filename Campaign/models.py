@@ -12,7 +12,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import format_lazy as f
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from Dashboard.models import validate_language_code
 from EvalData.models import AnnotationTaskRegistry
@@ -438,13 +438,6 @@ class Campaign(BaseMetadata):
         max_length=MAX_CAMPAIGNNAME_LENGTH,
         verbose_name=_('Campaign name'),
         help_text=_(f('(max. {value} characters)', value=MAX_CAMPAIGNNAME_LENGTH)),
-    )
-
-    # Field for task-specific options used by all tasks within this campaign
-    campaignOptions = models.TextField(
-        blank=True,
-        null=True,
-        verbose_name=_('Campaign task-specific options'),
     )
 
     # Field for task-specific options used by all tasks within this campaign

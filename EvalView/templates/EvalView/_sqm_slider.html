@@ -20,21 +20,41 @@
       <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">2: Some meaning preserved</td>
       <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">4: Most meaning preserved</td>
       <td class="sqm-label sqm-label-last col-xs-2" style="vertical-align:top;text-align:right;padding-right:0;">6: Perfect meaning</td>
+
+      {% elif signlt and ui_lang == 'deu' %}
+      <td class="sqm-label sqm-label-first col-xs-2" style="vertical-align:top;text-align:left;padding-left:0;">0: Unsinn/Bedeutung nicht erhalten</td>
+      <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">2: Ein Teil der Bedeutung ist erhalten</td>
+      <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">4: Der grösste Teil der Bedeutung ist erhalten und die Bewegungen sind akzeptabel</td>
+      <td class="sqm-label sqm-label-last col-xs-2" style="vertical-align:top;text-align:right;padding-right:0;">6: Perfekte Bedeutung und Natürlichkeit</td>
       {% elif signlt %}
       <td class="sqm-label sqm-label-first col-xs-2" style="vertical-align:top;text-align:left;padding-left:0;">0: No meaning preserved</td>
       <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">2: Some meaning preserved</td>
       <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">4: Most meaning preserved and acceptable motion</td>
       <td class="sqm-label sqm-label-last col-xs-2" style="vertical-align:top;text-align:right;padding-right:0;">6: Perfect meaning and motion</td>
+
       {% elif mono %}
-      <td class="sqm-label sqm-label-first col-xs-2" style="vertical-align:top;text-align:left;padding-left:0;">0: Nonsense/ No meaning</td>
-      <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">2: Some discourse preserved</td>
-      <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">4: Most discourse preserved and few grammar mistakes</td>
-      <td class="sqm-label sqm-label-last col-xs-2" style="vertical-align:top;text-align:right;padding-right:0;">6: Perfect discourse and grammar</td>
+      <td class="sqm-label sqm-label-first col-xs-2" style="vertical-align:top;text-align:left;padding-left:0;">0: No meaning/ No consistency</td>
+      <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">2: Some consistency preserved</td>
+      <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">4: Most consistency preserved</td>
+      <td class="sqm-label sqm-label-last col-xs-2" style="vertical-align:top;text-align:right;padding-right:0;">6: Perfect lexical and grammatical consistency</td>
+
+      {% elif doclvl %}
+      <td class="sqm-label sqm-label-first col-xs-2" style="vertical-align:top;text-align:left;padding-left:0;">0: No meaning/ No consistency</td>
+      <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">2: Some consistency preserved</td>
+      <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">4: Most consistency preserved</td>
+      <td class="sqm-label sqm-label-last col-xs-2" style="vertical-align:top;text-align:right;padding-right:0;">6: Perfect lexical and grammatical consistency</td>
+
+      {% elif ui_lang == 'deu' %}
+      <td class="sqm-label sqm-label-first col-xs-2" style="vertical-align:top;text-align:left;padding-left:0;">0: Unsinn/Bedeutung nicht erhalten</td>
+      <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">2: Ein Teil der Bedeutung ist erhalten</td>
+      <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">4: Der grösste Teil der Bedeutung ist erhalten und es gibt nur wenige Grammatikfehler</td>
+      <td class="sqm-label sqm-label-last col-xs-2" style="vertical-align:top;text-align:right;padding-right:0;">6: Perfekte Bedeutung und Grammatik</td>
       {% else %}
       <td class="sqm-label sqm-label-first col-xs-2" style="vertical-align:top;text-align:left;padding-left:0;">0: Nonsense/ No meaning preserved</td>
       <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">2: Some meaning preserved</td>
       <td class="sqm-label col-xs-4" style="vertical-align:top;text-align:center;">4: Most meaning preserved and few grammar mistakes</td>
       <td class="sqm-label sqm-label-last col-xs-2" style="vertical-align:top;text-align:right;padding-right:0;">6: Perfect meaning and grammar</td>
+
       {% endif %}
     </tr>
   </table>

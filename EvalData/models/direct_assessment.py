@@ -4,6 +4,7 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=C0103,C0330,no-member
+import sys
 from collections import defaultdict
 from json import loads
 from zipfile import is_zipfile
@@ -12,18 +13,15 @@ from zipfile import ZipFile
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.text import format_lazy as f
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
-from Appraise.utils import _get_logger
+from Appraise.utils import _get_logger, _compute_user_total_annotation_time
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 from EvalData.models.base_models import AnnotationTaskRegistry
 from EvalData.models.base_models import BaseMetadata
 from EvalData.models.base_models import MAX_REQUIREDANNOTATIONS_VALUE
 from EvalData.models.base_models import seconds_to_timedelta
 from EvalData.models.base_models import TextPair
-
-# TODO: Unclear if these are needed?
-# from Appraise.settings import STATIC_URL, BASE_CONTEXT
 
 LOGGER = _get_logger(name=__name__)
 
@@ -243,6 +241,7 @@ class DirectAssessmentTask(BaseMetadata):
         """
         Creates new DirectAssessmentTask instances based on JSON input.
         """
+
         batch_meta = batch_data.metadata
         batch_name = batch_data.dataFile.name
         batch_file = batch_data.dataFile
@@ -250,8 +249,7 @@ class DirectAssessmentTask(BaseMetadata):
 
         if batch_name.endswith('.zip'):
             if not is_zipfile(batch_file):
-                _msg = 'Batch {0} not a valid ZIP archive'.format(batch_name)
-                LOGGER.warn(_msg)
+                LOGGER.warn(f'Batch {batch_name} not a valid ZIP archive')
                 return
 
             batch_zip = ZipFile(batch_file)
@@ -259,10 +257,14 @@ class DirectAssessmentTask(BaseMetadata):
             # TODO: implement proper support for multiple json files in archive.
             for batch_json_file in batch_json_files:
                 batch_content = batch_zip.read(batch_json_file).decode('utf-8')
-                batch_json = loads(batch_content, encoding='utf-8')
+                # Python 3.9 removed 'encoding' from json.loads
+                if sys.version_info >= (3, 9, 0):
+                    batch_json = loads(batch_content)
+                else:
+                    batch_json = loads(batch_content, encoding='utf-8')
 
         else:
-            batch_json = loads(str(batch_file.read(), encoding="utf-8"))
+            batch_json = loads(str(batch_file.read(), encoding='utf-8'))
 
         from datetime import datetime
 
@@ -309,18 +311,11 @@ class DirectAssessmentTask(BaseMetadata):
                 )
                 new_items.append(new_item)
 
-            if not len(new_items) == 100:
-                _msg = 'Expected 100 items for task but found {0}'.format(
-                    len(new_items)
-                )
-                LOGGER.warn(_msg)
+            if len(new_items) != 100:
+                LOGGER.error(f'Expected 100 items for task but found {len(new_items)}')
                 continue
 
             current_count += 1
-
-            # for new_item in new_items:
-            #    new_item.metadata = batch_meta
-            #    new_item.save()
             batch_meta.textpair_set.add(*new_items, bulk=False)
             batch_meta.save()
 
@@ -333,18 +328,14 @@ class DirectAssessmentTask(BaseMetadata):
             )
             new_task.save()
 
-            # for new_item in new_items:
-            #    new_task.items.add(new_item)
             new_task.items.add(*new_items)
             new_task.save()
 
-            _msg = 'Success processing batch {0}, task {1}'.format(
-                str(batch_data), batch_task['task']['batchNo']
+            LOGGER.info(
+                f"Success processing batch {batch_data}, task {batch_task['task']['batchNo']}"
             )
-            LOGGER.info(_msg)
 
-        _msg = 'Max length ID={0}, text={1}'.format(max_length_id, max_length_text)
-        LOGGER.info(_msg)
+        LOGGER.info(f'Max length ID={max_length_id}, text={max_length_text}')
 
         t2 = datetime.now()
         print(t2 - t1)
@@ -367,7 +358,7 @@ class DirectAssessmentTask(BaseMetadata):
         return True
 
     def _generate_str_name(self):
-        return '{0}.{1}[{2}]'.format(self.__class__.__name__, self.campaign, self.id)
+        return f'{self.__class__.__name__}.{self.campaign}[{self.id}]'
 
 
 class DirectAssessmentResult(BaseMetadata):
@@ -409,7 +400,7 @@ class DirectAssessmentResult(BaseMetadata):
 
     # pylint: disable=E1136
     def _generate_str_name(self):
-        return '{0}.{1}={2}'.format(self.__class__.__name__, self.item, self.score)
+        return '{0}.{1}={2} {3}'.format(self.__class__.__name__, self.item, self.score)
 
     def duration(self):
         d = self.end_time - self.start_time
@@ -447,12 +438,11 @@ class DirectAssessmentResult(BaseMetadata):
     def get_time_for_user(cls, user):
         results = cls.objects.filter(createdBy=user, activated=False, completed=True)
 
-        durations = []
+        timestamps = []
         for result in results:
-            duration = result.end_time - result.start_time
-            durations.append(duration)
+            timestamps.append((result.start_time, result.end_time))
 
-        return seconds_to_timedelta(sum(durations))
+        return seconds_to_timedelta(_compute_user_total_annotation_time(timestamps))
 
     @classmethod
     def get_system_annotations(cls):

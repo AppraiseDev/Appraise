@@ -4,21 +4,24 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=C0103,C0330,no-member
+import sys
 from collections import defaultdict
 from json import loads
 from traceback import format_exc
 from zipfile import is_zipfile
 from zipfile import ZipFile
 
+from datetime import timezone
+
+utc = timezone.utc
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.text import format_lazy as f
-from django.utils.timezone import utc
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
-from Appraise.utils import _get_logger
+from Appraise.utils import _get_logger, _compute_user_total_annotation_time
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 from EvalData.models.base_models import *
 
@@ -266,10 +269,14 @@ class PairwiseAssessmentTask(BaseMetadata):
             # TODO: implement proper support for multiple json files in archive.
             for batch_json_file in batch_json_files:
                 batch_content = batch_zip.read(batch_json_file).decode('utf-8')
-                batch_json = loads(batch_content, encoding='utf-8')
+                # Python 3.9 removed 'encoding' from json.loads
+                if sys.version_info >= (3, 9, 0):
+                    batch_json = loads(batch_content)
+                else:
+                    batch_json = loads(batch_content, encoding='utf-8')
 
         else:
-            batch_json = loads(str(batch_file.read(), encoding="utf-8"))
+            batch_json = loads(str(batch_file.read(), encoding='utf-8'))
 
         from datetime import datetime
 
@@ -398,7 +405,7 @@ class PairwiseAssessmentTask(BaseMetadata):
         return '{0}.{1}[{2}]'.format(self.__class__.__name__, self.campaign, self.id)
 
 
-class PairwiseAssessmentResult(BaseMetadata):
+class PairwiseAssessmentResult(BasePairwiseAssessmentResult):
     """
     Models a contrastive direct assessment evaluation result.
     """
@@ -487,12 +494,11 @@ class PairwiseAssessmentResult(BaseMetadata):
     def get_time_for_user(cls, user):
         results = cls.objects.filter(createdBy=user, activated=False, completed=True)
 
-        durations = []
+        timestamps = []
         for result in results:
-            duration = result.end_time - result.start_time
-            durations.append(duration)
+            timestamps.append((result.start_time, result.end_time))
 
-        return seconds_to_timedelta(sum(durations))
+        return seconds_to_timedelta(_compute_user_total_annotation_time(timestamps))
 
     @classmethod
     def get_system_annotations(cls):
@@ -815,6 +821,9 @@ class PairwiseAssessmentResult(BaseMetadata):
             'item__metadata__market__targetLanguageCode',  # Target language
             'score1',  # Score
             'score2',  # Score
+            'errors1',  # Translation errors/annotation comments
+            'errors2',  # Translation errors/annotation comments
+            'sourceErrors',  # Errors in the source text
         )
 
         if extended_csv:
@@ -839,7 +848,8 @@ class PairwiseAssessmentResult(BaseMetadata):
                     _result[5],
                     _result[6],
                     _result[7],
-                    *_result[9:],
+                    _result[9],
+                    *_result[11:],
                 ),
                 (
                     _result[0],
@@ -849,7 +859,8 @@ class PairwiseAssessmentResult(BaseMetadata):
                     _result[5],
                     _result[6],
                     _result[8],
-                    *_result[9:],
+                    _result[10],
+                    *_result[11:],
                 ),
             ]
 

@@ -1,0 +1,11 @@
+engdeu0e01,newstest2019-ende-ref.de,50,REF,eng,deu,0
+engdeu0e01,newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt,26,REF,eng,deu,1
+engdeu0e01,newstest2019-ende-ref.de,25,TGT,eng,deu,2
+engdeu0e01,newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt,72,TGT,eng,deu,3
+engdeu0e01,newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt,16,TGT,eng,deu,5
+engdeu0e01,newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt,68,TGT,eng,deu,0
+engdeu0e01,newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt,43,TGT,eng,deu,1
+engdeu0e01,newstest2019.Microsoft-WMT19-document-level.6808.en-de.txt,15,TGT,eng,deu,2
+engdeu0e01,newstest2019.Microsoft-WMT19-sentence_document.6974.en-de.txt,15,TGT,eng,deu,2
+engdeu0e01,newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt,63,TGT,eng,deu,3
+engdeu0e01,newstest2019.Microsoft-WMT19-sentence-level.6785.en-de.txt,29,REF,eng,deu,5

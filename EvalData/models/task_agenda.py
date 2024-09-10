@@ -11,7 +11,7 @@ from re import compile as re_compile
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from deprecated import add_deprecated_method
 from EvalData.models.base_models import ObjectID
@@ -128,14 +128,6 @@ class TaskAgenda(models.Model):
             self._open_tasks.count(),
             self._completed_tasks.count(),
         )
-
-    # pylint: disable=protected-access,missing-docstring
-    @classmethod
-    @add_deprecated_method
-    def reassign_tasks(cls, old_username, new_username):
-        _method = getframeinfo(currentframe()).function
-        _msg = '{0}.{1} deprecated as of 5/27/2019.'.format(cls, _method)
-        raise NotImplementedError(_msg)
 
     # pylint: disable=undefined-variable
     def reset_taskagenda(self):

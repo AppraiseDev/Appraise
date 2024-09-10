@@ -4,6 +4,9 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 # pylint: disable=C0103,C0330,no-member
+from datetime import timezone
+
+utc = timezone.utc
 from datetime import datetime
 from datetime import timedelta
 from difflib import SequenceMatcher
@@ -15,8 +18,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.html import escape
 from django.utils.text import format_lazy as f
-from django.utils.timezone import utc
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from Appraise.utils import _get_logger
 
@@ -343,6 +345,64 @@ class BaseMetadata(models.Model):
         return self._str_name
 
 
+class BaseAssessmentResult(BaseMetadata):
+    """
+    Abstract base class for assessment result.
+    """
+
+    sourceErrors = models.TextField(
+        blank=True,
+        help_text=_(f('(max. {value} characters)', value=MAX_SEGMENTTEXT_LENGTH)),
+        max_length=MAX_SEGMENTTEXT_LENGTH,
+        null=True,
+        verbose_name=_('Source errors'),
+    )
+
+    errors = models.TextField(
+        blank=True,
+        help_text=_(f('(max. {value} characters)', value=MAX_SEGMENTTEXT_LENGTH)),
+        max_length=MAX_SEGMENTTEXT_LENGTH,
+        null=True,
+        verbose_name=_('Errors'),
+    )
+
+    class Meta:
+        abstract = True
+
+
+class BasePairwiseAssessmentResult(BaseMetadata):
+    """
+    Abstract base class for pairwise assessment result.
+    """
+
+    sourceErrors = models.TextField(
+        blank=True,
+        help_text=_(f('(max. {value} characters)', value=MAX_SEGMENTTEXT_LENGTH)),
+        max_length=MAX_SEGMENTTEXT_LENGTH,
+        null=True,
+        verbose_name=_('Source errors'),
+    )
+
+    errors1 = models.TextField(
+        blank=True,
+        help_text=_(f('(max. {value} characters)', value=MAX_SEGMENTTEXT_LENGTH)),
+        max_length=MAX_SEGMENTTEXT_LENGTH,
+        null=True,
+        verbose_name=_('Errors (1)'),
+    )
+
+    errors2 = models.TextField(
+        blank=True,
+        help_text=_(f('(max. {value} characters)', value=MAX_SEGMENTTEXT_LENGTH)),
+        max_length=MAX_SEGMENTTEXT_LENGTH,
+        null=True,
+        verbose_name=_('Errors (2)'),
+    )
+
+    class Meta:
+        abstract = True
+
+
 class Market(BaseMetadata):
     """
     Models a language/locale market.
@@ -587,6 +647,13 @@ class TextPair(EvalItem):
         verbose_name=_('Target text'),
     )
 
+    # user for AI-assisted annotation
+    mqm = models.TextField(
+        blank=True,
+        verbose_name=_('MQM Annotations'),
+        default="[]",
+    )
+
     # pylint: disable=E1101
     def is_valid(self):
         """
@@ -681,7 +748,7 @@ class TextSegmentWithTwoTargets(TextSegment):
             else ''
         )
 
-    def target_texts_with_diffs(self):
+    def target_texts_with_diffs(self, escape_html=True):
         """
         Returns the pair of texts with HTML tags highlighting token differences.
         Both texts must be non empty.
@@ -696,8 +763,12 @@ class TextSegmentWithTwoTargets(TextSegment):
         if not self.target1Text or not self.target2Text:
             return (self.target1Text, self.target2Text)
 
-        toks1 = escape(self.target1Text).split()
-        toks2 = escape(self.target2Text).split()
+        if escape_html:
+            toks1 = escape(self.target1Text).split()
+            toks2 = escape(self.target2Text).split()
+        else:
+            toks1 = self.target1Text.split()
+            toks2 = self.target2Text.split()
         matcher = SequenceMatcher(None, toks1, toks2)
 
         text1 = ''
@@ -736,7 +807,7 @@ class TextSegmentWithTwoTargets(TextSegment):
         if _len < 1 or _len > MAX_SEGMENTTEXT_LENGTH:
             return False
 
-        if target2Text and len(target2Text) > 0:
+        if self.target2Text and len(self.target2Text) > 0:
             if isinstance(self.target2Text, type('This is a test sentence.')):
                 return False
 

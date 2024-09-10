@@ -34,6 +34,6 @@ class Migration(migrations.Migration):
                 related_query_name='evaldata_directassessmenttasks',
                 to=settings.AUTH_USER_MODEL,
                 verbose_name='Assigned to',
-            ),
+            ),  # type: ignore
         ),
     ]

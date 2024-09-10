@@ -108,7 +108,7 @@ def unwrap_xml(
         ref_docs = OrderedDict()
 
     if len(hyp_langs) > 1:
-        raise RuntimeError("Multiple hypothesis languages found")
+        raise RuntimeError(f"Multiple hypothesis languages found: {hyp_langs}")
 
     systems = list(systems)
     if len(hyp_langs) > 0:
@@ -257,7 +257,7 @@ def select_docs(orig_src_docs, orig_ref_docs, orig_hyp_docs, tsv_file):
     print("Selecting the following documents only:")
     with open(tsv_file, "r", encoding="utf8") as tsv:
         for line in tsv:
-            _docid, _segid_first, _segid_last = line.strip().split()
+            _docid, _segid_first, _segid_last = line.strip().split("\t")
             selected_docs.append((_docid, int(_segid_first), int(_segid_last)))
             print(f"  {selected_docs[-1]}")
 
@@ -556,6 +556,11 @@ def parse_cmd_args():
         type=int,
         default=MAX_DOC_LENGTH,  # a large number should use all available segments
     )
+    parser.add_argument(
+        "--even",
+        help="duplicate one task is necessary to keep the total number of tasks even",
+        action="store_true",
+    )
     args = parser.parse_args()
     return (
         args.xml_file,
@@ -569,6 +574,7 @@ def parse_cmd_args():
         args.rng_seed,
         args.selected_docs,
         args.static_context,
+        args.even,
     )
 
 
@@ -590,6 +596,7 @@ if __name__ == "__main__":
         RND_SEED,
         SELECTED,
         CTX_SIZE,
+        EVEN_NUM,
     ) = parse_cmd_args()
 
     print(f'Character based={CHARLANG}')
@@ -815,6 +822,11 @@ if __name__ == "__main__":
             # raise NotImplementedError('Needs isControl=True update!')
             padded_tasks.append(tuple(task))  # TODO: does this ever occur?
 
+    if EVEN_NUM and len(padded_tasks) % 2 == 1:
+        print('Duplicating one batch to keep the number of tasks even')
+        padded_tasks.append(padded_tasks[0])
+        print(f'Number of tasks now is {len(padded_tasks)}')
+
     csv_data = []
     task_id = 0
     for task in padded_tasks:
@@ -917,12 +929,8 @@ if __name__ == "__main__":
                 src_ctx = []
                 tgt_ctx = []
                 if seg_counter == 0:
-                    if SRC_LANG != 'sgg':
-                        src_ctx = [txt for _, txt in SRC_PREV[doc_id]][-CTX_SIZE:]
-                    if TGT_LANG != 'sgg':
-                        tgt_ctx = [txt for _, txt in SYS_PREV[sys_id][doc_id]][
-                            -CTX_SIZE:
-                        ]
+                    src_ctx = [txt for _, txt in SRC_PREV[doc_id]][-CTX_SIZE:]
+                    tgt_ctx = [txt for _, txt in SYS_PREV[sys_id][doc_id]][-CTX_SIZE:]
 
                 obj: Dict[str, Any] = OrderedDict()
                 obj['_item'] = _item
@@ -957,10 +965,8 @@ if __name__ == "__main__":
 
             src_ctx = []
             tgt_ctx = []
-            if SRC_LANG != 'sgg':
-                src_ctx = [txt for _, txt in SRC_NEXT[doc_id]][:CTX_SIZE]
-            if TGT_LANG != 'sgg':
-                tgt_ctx = [txt for _, txt in SYS_NEXT[sys_id][doc_id]][:CTX_SIZE]
+            src_ctx = [txt for _, txt in SRC_NEXT[doc_id]][:CTX_SIZE]
+            tgt_ctx = [txt for _, txt in SYS_NEXT[sys_id][doc_id]][:CTX_SIZE]
 
             obj = OrderedDict()
             obj['_item'] = _item
@@ -972,7 +978,7 @@ if __name__ == "__main__":
             obj['targetID'] = target_id
             obj['targetText'] = ' '.join(context_tgt)  # full document
             obj['itemID'] = item_id
-            obj['itemType'] = 'TGT'
+            obj['itemType'] = 'BAD' if has_control_item else 'TGT'
             obj['documentID'] = doc_id
             obj['isCompleteDocument'] = True
             items_data[-1].append(obj)

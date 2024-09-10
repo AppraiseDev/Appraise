@@ -4,12 +4,15 @@ Appraise evaluation framework
 See LICENSE for usage details
 """
 from datetime import datetime
+from datetime import timezone
+
+utc = timezone.utc
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
-from django.utils.timezone import utc
+from django.utils.html import escape
 
 from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
@@ -36,6 +39,8 @@ from EvalData.models import TaskAgenda
 LOGGER = _get_logger(name=__name__)
 
 # pylint: disable=C0103,C0330
+
+
 @login_required
 def direct_assessment(request, code=None, campaign_name=None):
     """
@@ -140,26 +145,26 @@ def direct_assessment(request, code=None, campaign_name=None):
         task_id = request.POST.get('task_id', None)
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
-        LOGGER.info('score=%s, item_id=%s', score, item_id)
+
+        LOGGER.info(f'score={score}, item_id={item_id}')
+        if not score or score == -1:
+            LOGGER.debug(f"Score not submitted ({score}).")
+
         if score and item_id and start_timestamp and end_timestamp:
             duration = float(end_timestamp) - float(start_timestamp)
             LOGGER.debug(float(start_timestamp))
             LOGGER.debug(float(end_timestamp))
             LOGGER.info(
-                'start=%s, end=%s, duration=%s',
-                start_timestamp,
-                end_timestamp,
-                duration,
+                f'start={start_timestamp,}, end={end_timestamp}, duration={duration}',
             )
 
             current_item = current_task.next_item_for_user(request.user)
             if current_item.itemID != int(item_id) or current_item.id != int(task_id):
-                _msg = 'Item ID %s does not match item %s, will not save!'
-                LOGGER.debug(_msg, item_id, current_item.itemID)
-
+                LOGGER.debug(
+                    f'Item ID {item_id} does not match item {current_item.itemID}, will not save!'
+                )
             else:
                 utc_now = datetime.utcnow().replace(tzinfo=utc)
-
                 # pylint: disable=E1101
                 DirectAssessmentResult.objects.create(
                     score=score,
@@ -242,11 +247,19 @@ def direct_assessment(request, code=None, campaign_name=None):
             '(middle) or preference for <em>Candidate B</em> (right).'
         )
 
-    campaign_opts = campaign.campaignOptions or ""
-    if 'sqm' in campaign_opts.lower():
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
+
+    if 'sqm' in campaign_opts:
         html_file = 'EvalView/direct-assessment-sqm.html'
     else:
         html_file = 'EvalView/direct-assessment-context.html'
+
+    if 'namedentit' in campaign_opts:
+        html_file = 'EvalView/direct-assessment-named-entities.html'
+
+    if 'reference' in campaign_opts:
+        reference_label = 'Reference text in {}'.format(target_language)
+        candidate_label = 'Candidate translation in {}'.format(target_language)
 
     context = {
         'active_page': 'direct-assessment',
@@ -389,7 +402,6 @@ def direct_assessment_context(request, code=None, campaign_name=None):
                 end_timestamp,
                 duration,
             )
-
             current_item = current_task.next_item_for_user(request.user)
             if (
                 current_item.itemID != int(item_id)
@@ -401,7 +413,6 @@ def direct_assessment_context(request, code=None, campaign_name=None):
 
             else:
                 utc_now = datetime.utcnow().replace(tzinfo=utc)
-
                 # pylint: disable=E1101
                 DirectAssessmentContextResult.objects.create(
                     score=score,
@@ -490,7 +501,6 @@ def direct_assessment_context(request, code=None, campaign_name=None):
             'preference for <em>Candidate A</em> (left), no difference '
             '(middle) or preference for <em>Candidate B</em> (right).'
         )
-
     context = {
         'active_page': 'direct-assessment',
         'reference_label': reference_label,
@@ -527,6 +537,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     """
     Direct assessment document annotation view.
     """
+
     t1 = datetime.now()
 
     campaign = None
@@ -619,6 +630,11 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             LOGGER.info(_msg)
             campaign = current_task.campaign
 
+    # hijack this function if it uses MQM
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
+    if 'mqm' in campaign_opts or 'esa' in campaign_opts:
+        return direct_assessment_document_mqmesa(campaign, current_task, request)
+
     # Handling POST requests differs from the original direct_assessment/
     # direct_assessment_context view, but the input is the same: a score for the
     # single submitted item
@@ -636,9 +652,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         ajax = bool(request.POST.get('ajax', None) == 'True')
 
         LOGGER.info('score=%s, item_id=%s', score, item_id)
-        print(
-            'Got request score={0}, item_id={1}, ajax={2}'.format(score, item_id, ajax)
-        )
+        print(f'Got request score={score}, item_id={item_id}, ajax={ajax}')
 
         # If all required information was provided in the POST request
         if score and item_id and start_timestamp and end_timestamp:
@@ -783,8 +797,6 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     t3 = datetime.now()
 
-    campaign_opts = (campaign.campaignOptions or "").lower()
-
     # Get all items from the document that the first unannotated item in the
     # task belongs to, and collect some additional statistics
     (
@@ -800,10 +812,6 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     if not current_item:
         LOGGER.info('No current item detected, redirecting to dashboard')
         return redirect('dashboard')
-
-    # By default, source and target items are text segments
-    source_item_type = 'text'
-    target_item_type = 'text'
 
     # Get item scores from the latest corresponding results
     block_scores = []
@@ -844,16 +852,49 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     t4 = datetime.now()
 
+    # By default, source and target items are text segments
+    source_item_type = 'text'
+    target_item_type = 'text'
     reference_label = 'Source text'
     candidate_label = 'Candidate translation'
+
+    monolingual_task = 'monolingual' in campaign_opts
+    sign_translation = 'signlt' in campaign_opts
+    speech_translation = 'speechtranslation' in campaign_opts
+    static_context = 'staticcontext' in campaign_opts
+    use_sqm = 'sqm' in campaign_opts
+    ui_language = 'enu'
+    doc_guidelines = 'doclvlguideline' in campaign_opts
+
+    error_types = None
+    critical_error = None
+
+    if 'wmt22signlt' in campaign_opts:
+        sign_translation = True
+        use_sqm = True
+        ui_language = 'deu'
+
+    if sign_translation:
+        # For sign languages, source or target segments are videos
+        if source_language in SIGN_LANGUAGE_CODES:
+            source_item_type = 'video'
+            reference_label = 'Source video'
+        if target_language in SIGN_LANGUAGE_CODES:
+            target_item_type = 'video'
+            candidate_label = 'Candidate translation (video)'
+        else:
+            sign_translation = False  # disable sign-specific SQM instructions
 
     priming_question_texts = [
         'Below you see a document with {0} sentences in {1} (left columns) '
         'and their corresponding candidate translations in {2} (right columns). '
         'Score each candidate sentence translation in the document context. '
         'You may revisit already scored sentences and update their scores at any time '
-        'by clicking at a source text.'.format(
-            len(block_items) - 1, source_language, target_language
+        'by clicking at a source {3}.'.format(
+            len(block_items) - 1,
+            source_language,
+            target_language,
+            source_item_type,
         ),
         'Assess the translation quality answering the question: ',
         'How accurately does the candidate text (right column, in bold) convey the '
@@ -867,17 +908,6 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'in {0} (right column) convey the original semantics of the source document '
         'in {1} (left column)? '.format(target_language, source_language),
     ]
-
-    monolingual_task = 'monolingual' in campaign_opts
-    sign_translation = 'signlt' in campaign_opts
-    speech_translation = 'speechtranslation' in campaign_opts
-    static_context = 'staticcontext' in campaign_opts
-    use_sqm = 'sqm' in campaign_opts
-
-    if 'wmt22signlt' in campaign_opts:
-        sign_translation = True
-        static_context = True
-        use_sqm = True
 
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
@@ -899,16 +929,61 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         ]
         candidate_label = None
 
-    if sign_translation:
-        # For sign languages, source or target segments are videos
-        if source_language in SIGN_LANGUAGE_CODES:
-            source_item_type = 'video'
-            reference_label = 'Source video'
-        if target_language in SIGN_LANGUAGE_CODES:
-            target_item_type = 'video'
-            candidate_label = 'Candidate translation (video)'
+    if doc_guidelines:
+        priming_question_texts = [
+            'Below you see a document with {0} partial paragraphs in {1} (left columns) '
+            'and their corresponding two candidate translations in {2} (middle and right column). '
+            'Please score each paragraph of both candidate translations '
+            '<u><b>paying special attention to document-level properties, '
+            'such as consistency of style, selection of translation terms, formality, '
+            'and so on</b></u>, in addition to the usual correctness criteria. '
+            'Note that sentences in each paragraph may be separated by <i>&lt;eos&gt;</i> tags '
+            'for convenience. These tags, if present, should not impact your assessment. '.format(
+                len(block_items) - 1,
+                source_language,
+                target_language,
+            ),
+        ]
+
+    # German instructions for WMT22 sign language task
+    if 'wmt22signlt' in campaign_opts:
+        if 'text2sign' in campaign_opts:
+            priming_question_texts = [
+                'Unten sehen Sie ein Dokument mit {0} Sätzen auf Deutsch (linke Spalten) '
+                'und die entsprechenden möglichen Übersetzungen in Deutschschweizer '
+                'Gebärdensprache (DSGS) (rechte Spalten). Bewerten Sie jede mögliche '
+                'Übersetzung des Satzes im Kontext des Dokuments. '
+                'Sie können bereits bewertete Sätze jederzeit durch Anklicken eines '
+                'Quelltextes erneut aufrufen und die Bewertung aktualisieren.'.format(
+                    len(block_items) - 1,
+                ),
+            ]
+        elif 'sign2text-seglvl' in campaign_opts:
+            priming_question_texts = [
+                'Unten sehen Sie ein Set von {0} unzusammenhängenden Sätzen in Deutschschweizer '
+                'Gebärdensprache (DSGS) (linke Spalten) und die entsprechenden möglichen '
+                'Übersetzungen auf Deutsch (rechte Spalten). '
+                'Sie können bereits bewertete Sätze jederzeit durch Anklicken eines '
+                'Eingabevideos erneut aufrufen und die Bewertung aktualisieren.'.format(
+                    len(block_items) - 1,
+                ),
+            ]
         else:
-            sign_translation = False  # disable sign-specific SQM instructions
+            priming_question_texts = [
+                'Unten sehen Sie ein Dokument mit {0} Sätzen in Deutschschweizer '
+                'Gebärdensprache (DSGS) (linke Spalten) und die entsprechenden möglichen '
+                'Übersetzungen auf Deutsch (rechte Spalten). Bewerten Sie jede mögliche '
+                'Übersetzung des Satzes im Kontext des Dokuments. '
+                'Sie können bereits bewertete Sätze jederzeit durch Anklicken eines '
+                'Eingabevideos erneut aufrufen und die Bewertung aktualisieren.'.format(
+                    len(block_items) - 1,
+                ),
+            ]
+        document_question_texts = [
+            'Bitte bewerten Sie die Übersetzungsqualität des gesamten Dokuments. '
+            '(Sie können das Dokument erst bewerten, nachdem Sie zuvor alle Sätze '
+            'einzeln bewertet haben.)',
+        ]
 
     # Special instructions for IWSLT 2022 dialect task
     if 'iwslt2022dialectsrc' in campaign_opts:
@@ -969,11 +1044,14 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
         # Task variations
-        'sqm': use_sqm,
-        'speech': speech_translation,
-        'signlt': sign_translation,
+        'errortypes': error_types,
+        'criticalerror': critical_error,
         'monolingual': monolingual_task,
+        'signlt': sign_translation,
+        'speech': speech_translation,
         'static_context': static_context,
+        'sqm': use_sqm,
+        'ui_lang': ui_language,
     }
 
     if ajax:
@@ -993,6 +1071,139 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     context.update(BASE_CONTEXT)
 
     return render(request, 'EvalView/direct-assessment-document.html', context)
+
+
+def direct_assessment_document_mqmesa(campaign, current_task, request):
+    """
+    Direct assessment document annotation view with MQM/ESA.
+    """
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
+
+    # POST means that we want to store
+    if request.method == "POST":
+        score = request.POST.get('score', None)
+        mqm = request.POST.get('mqm', None)
+        item_id = request.POST.get('item_id', None)
+        task_id = request.POST.get('task_id', None)
+        start_timestamp = request.POST.get('start_timestamp', None)
+        end_timestamp = request.POST.get('end_timestamp', None)
+        ajax = bool(request.POST.get('ajax', None) == 'True')
+
+
+        db_item = current_task.items.filter(
+            itemID=item_id
+        ).order_by('itemID')
+
+        if len(db_item) == 0:
+            error_msg = (
+                f'We could not find item {item_id} in task {task_id}.'
+            )
+            LOGGER.error(error_msg)
+            item_saved = False
+        elif len(db_item) > 1:
+            error_msg = (
+                f'Found more than one item {item_id} in task {task_id}.'
+                'This is from incorrectly set up batches'
+            )
+            LOGGER.error(error_msg)
+            item_saved = False
+        else:
+            DirectAssessmentDocumentResult.objects.create(
+                score=score,
+                mqm=mqm,
+                start_time=float(start_timestamp),
+                end_time=float(end_timestamp),
+                item=list(db_item)[0],
+                task=current_task,
+                createdBy=request.user,
+                activated=False,
+                completed=True,
+                dateCompleted=datetime.utcnow().replace(tzinfo=utc),
+            )
+            error_msg = f'Item {task_id} (itemID={item_id}) saved'
+            LOGGER.info(error_msg)
+            item_saved = True
+
+        LOGGER.info(f'score={score}, item_id={item_id}, mqm={mqm}')
+        print(f'Got request score={score}, item_id={item_id}, ajax={ajax}, mqm={mqm}')
+    else:
+        ajax = False
+
+    # Get all items from the document that the first unannotated item in the
+    # task belongs to, and collect some additional statistics
+    (
+        next_item,
+        items_completed,
+        docs_completed,
+        doc_items,
+        doc_items_results,
+        docs_total,
+    ) = current_task.next_document_for_user_mqmesa(request.user)
+
+    if not next_item:
+        if not ajax:
+            LOGGER.info('No next item detected, redirecting to dashboard')
+            return redirect('dashboard')
+        else:
+            context = {}
+            ajax_context = {'saved': item_saved, 'error_msg': error_msg}
+            context.update(ajax_context)
+            context.update(BASE_CONTEXT)
+            # Send response to the Ajax POST request
+            return JsonResponse(context)
+
+    # Get item scores from the latest corresponding results
+    doc_items_results = [
+        {
+            'completed': bool(result and result.completed),
+            # will be recomputed user-side anyway
+            'score': result.score if result else -1,
+            'mqm': result.mqm if result else item.mqm,
+            'mqm_orig': item.mqm,
+            'start_timestamp': result.start_time if result else "",
+            'end_timestamp': result.end_time if result else "",
+        }
+        for item, result in zip(doc_items, doc_items_results)
+    ]
+
+    LOGGER.info(f'items_completed={items_completed}, docs_completed={docs_completed}')
+
+    source_language = current_task.marketSourceLanguage()
+    target_language = current_task.marketTargetLanguage()
+
+    # A part of context used in responses to both Ajax and standard POST requests
+    context = {
+        'active_page': 'direct-assessment-document',
+        'item_id': next_item.itemID,
+        'task_id': next_item.id,
+        'document_id': next_item.documentID,
+        'items_completed': items_completed,
+        'docs_completed': docs_completed,
+        'docs_total': docs_total,
+        'source_language': source_language,
+        'target_language': target_language,
+        'campaign': campaign.campaignName,
+        # Task variations
+        'ui_lang': "enu",
+        'mqm_type': 'ESA' if 'esa' in campaign_opts else "MQM",
+    }
+
+    if ajax:
+        ajax_context = {'saved': item_saved, 'error_msg': error_msg}
+        context.update(ajax_context)
+        context.update(BASE_CONTEXT)
+        # Send response to the Ajax POST request
+        return JsonResponse(context)
+
+    page_context = {
+        'items': zip(doc_items, doc_items_results),
+        'reference_label': 'Source text',
+        'candidate_label': 'Candidate translation',
+    }
+    context.update(page_context)
+    context.update(BASE_CONTEXT)
+
+    return render(request, 'EvalView/direct-assessment-document-mqm-esa.html', context)
 
 
 # pylint: disable=C0103,C0330
@@ -1279,7 +1490,15 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
 
-        print('score1={0}, score2={1}, item_id={2}'.format(score1, score2, item_id))
+        source_error = request.POST.get('source_error', None)
+        error1 = request.POST.get('error1', None)
+        error2 = request.POST.get('error2', None)
+
+        print(
+            'score1={0}, score2={1}, item_id={2}, src_err={3}, error1={4}, error2={5}'.format(
+                score1, score2, item_id, source_error, error1, error2
+            )
+        )
         LOGGER.info('score1=%s, score2=%s, item_id=%s', score1, score2, item_id)
 
         if score1 and item_id and start_timestamp and end_timestamp:
@@ -1313,6 +1532,9 @@ def pairwise_assessment(request, code=None, campaign_name=None):
                     activated=False,
                     completed=True,
                     dateCompleted=utc_now,
+                    sourceErrors=source_error,
+                    errors1=error1,
+                    errors2=error2,
                 )
 
     t3 = datetime.now()
@@ -1365,10 +1587,72 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         candidate2_text,
     ) = current_item.target_texts_with_diffs()
 
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
+
+    use_sqm = False
+    critical_error = False
+    source_error = False
+    extra_guidelines = False
+    doc_guidelines = False
+    guidelines_popup = False
+
+    if 'reportcriticalerror' in campaign_opts:
+        critical_error = True
+        extra_guidelines = True
+    if 'reportsourceerror' in campaign_opts:
+        source_error = True
+        extra_guidelines = True
+    if 'sqm' in campaign_opts:
+        use_sqm = True
+        extra_guidelines = True
+
+    if 'gamingdomainnote' in campaign_opts:
+        priming_question_text = (
+            'The presented text is a message from an online video game chat. '
+            'Please take into account the video gaming genre when making your assessments. </br> '
+            + priming_question_text
+        )
+
+    if extra_guidelines:
+        # note this is not needed if DocLvlGuideline is enabled
+        priming_question_text += '<br/> (Please see the detailed guidelines below)'
+
+    if 'doclvlguideline' in campaign_opts:
+        use_sqm = True
+        doc_guidelines = True
+        guidelines_popup = (
+            'guidelinepopup' in campaign_opts or 'guidelinespopup' in campaign_opts
+        )
+
+    segment_text = current_item.segmentText
+
+    if doc_guidelines:
+        priming_question_text = (
+            'Above you see a paragraph in {0} and below its corresponding one or two candidate translations in {1}. '
+            'Please score the candidate translation(s) below following the detailed guidelines at the bottom of the page '
+            '<u><b>paying special attention to document-level properties, '
+            'such as consistency of style, selection of translation terms, formality, '
+            'and so on</b></u>, in addition to the usual correctness criteria. '.format(
+                source_language,
+                target_language,
+            )
+        )
+
+        # process <eos>s and unescape <br/>s
+        segment_text = segment_text.replace(
+            "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+        ).replace("&lt;br/&gt;", "<br/>")
+        candidate1_text = candidate1_text.replace(
+            "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+        ).replace("&lt;br/&gt;", "<br/>")
+        candidate2_text = candidate2_text.replace(
+            "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+        ).replace("&lt;br/&gt;", "<br/>")
+
     context = {
         'active_page': 'pairwise-assessment',
         'reference_label': reference_label,
-        'reference_text': current_item.segmentText,
+        'reference_text': segment_text,
         'context_left': current_item.context_left(),
         'context_right': current_item.context_right(),
         'candidate_label': candidate1_label,
@@ -1387,16 +1671,15 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         'campaign': campaign.campaignName,
         'datask_id': current_task.id,
         'trusted_user': current_task.is_trusted_user(request.user),
+        'sqm': use_sqm,
+        'critical_error': critical_error,
+        'source_error': source_error,
+        'guidelines_popup': guidelines_popup,
+        'doc_guidelines': doc_guidelines,
     }
     context.update(BASE_CONTEXT)
 
-    campaign_opts = campaign.campaignOptions or ""
-    if 'sqm' in campaign_opts.lower():
-        html_file = 'EvalView/pairwise-assessment-sqm.html'
-    else:
-        html_file = 'EvalView/pairwise-assessment.html'
-
-    return render(request, html_file, context)
+    return render(request, 'EvalView/pairwise-assessment.html', context)
 
 
 # pylint: disable=C0103,C0330
@@ -1602,13 +1885,14 @@ def data_assessment(request, code=None, campaign_name=None):
 
     parallel_data = list(current_item.get_sentence_pairs())
 
-    campaign_opts = (campaign.campaignOptions or "").lower()
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
     use_sqm = 'sqm' in campaign_opts
 
     if any(opt in campaign_opts for opt in ['disablemtlabel', 'disablemtrank']):
         ranks = None
         rank_question_text = None
-        score_question_text[0] = score_question_text[0][13:]  # remove 'Question #1: '
+        # remove 'Question #1: '
+        score_question_text[0] = score_question_text[0][13:]
 
     context = {
         'active_page': 'data-assessment',
@@ -1741,8 +2025,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             campaign = current_task.campaign
 
     # Handling POST requests differs from the original direct_assessment/
-    # direct_assessment_context view, but the input is the same: a score for the
-    # single submitted item
+    # direct_assessment_context view
     t2 = datetime.now()
     ajax = False
     item_saved = False
@@ -1928,18 +2211,54 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         LOGGER.info('No current item detected, redirecting to dashboard')
         return redirect('dashboard')
 
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
+    new_ui = 'newui' in campaign_opts
+    escape_eos = 'escapeeos' in campaign_opts
+    escape_br = 'escapebr' in campaign_opts
+    highlight_style ='highlightstyle' in campaign_opts
+
     # Get item scores from the latest corresponding results
     block_scores = []
     for item, result in zip(block_items, block_results):
         # Get target texts with injected HTML tags showing diffs
-        _candidate1_text, _candidate2_text = item.target_texts_with_diffs()
+        _candidate1_text, _candidate2_text = item.target_texts_with_diffs(
+            escape_html=not new_ui
+        )
+        if not new_ui:
+            _source_text = escape(item.segmentText)
+            _default_score = -1
+        else:
+            _source_text = item.segmentText
+            _default_score = 50
+
+        if escape_eos:
+            _source_text = _source_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            )
+            _candidate1_text = _candidate1_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            )
+            _candidate2_text = _candidate2_text.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            )
+
+        if escape_br:
+            _source_text = _source_text.replace("&lt;br/&gt;", "<br/>")
+            _candidate1_text = _candidate1_text.replace(
+                "&lt;br/&gt;", "<br/>"
+            )
+            _candidate2_text = _candidate2_text.replace(
+                "&lt;br/&gt;", "<br/>"
+            )
+
         item_scores = {
             'completed': bool(result and result.score1 > -1),
             'current_item': bool(item.id == current_item.id),
-            'score1': result.score1 if result else -1,
-            'score2': result.score2 if result else -1,
+            'score1': result.score1 if result else _default_score,
+            'score2': result.score2 if result else _default_score,
             'candidate1_text': _candidate1_text,
             'candidate2_text': _candidate2_text,
+            'segment_text': _source_text,
         }
         block_scores.append(item_scores)
 
@@ -1954,8 +2273,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     t4 = datetime.now()
 
     reference_label = 'Source text'
-    candidate1_label = 'Candidate translation (A)'
-    candidate2_label = 'Candidate translation (B)'
+    candidate1_label = 'Translation A'
+    candidate2_label = 'Translation B'
 
     priming_question_texts = [
         'Below you see a document with {0} sentences in {1} (left columns) '
@@ -1981,10 +2300,14 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'in {1} (left column)? '.format(target_language, source_language),
     ]
 
-    campaign_opts = (campaign.campaignOptions or "").lower()
     monolingual_task = 'monolingual' in campaign_opts
     use_sqm = 'sqm' in campaign_opts
     static_context = 'staticcontext' in campaign_opts
+    doc_guidelines = 'doclvlguideline' in campaign_opts
+    guidelines_popup = (
+        'guidelinepopup' in campaign_opts or 'guidelinespopup' in campaign_opts
+    )
+    gaming_domain = 'gamingdomainnote' in campaign_opts
 
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
@@ -2005,8 +2328,28 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             'the whole document only after scoring all individual sentences from all '
             'documents first).',
         ]
-        candidate1_label = 'Sentence A'
-        candidate2_label = 'Sentence B'
+        candidate1_label = 'Translation A'
+        candidate2_label = 'Translation B'
+
+    if doc_guidelines:
+        priming_question_texts = [
+            'Below you see a document with {0} partial paragraphs in {1} (left columns) '
+            'and their corresponding two candidate translations in {2} (middle and right column). '
+            'Please score each paragraph of both candidate translations '
+            '<u><b>paying special attention to document-level properties, '
+            'such as consistency of formality and style, selection of translation terms, pronoun choice, '
+            'and so on</b></u>, in addition to the usual correctness criteria. '.format(
+                len(block_items) - 1,
+                source_language,
+                target_language,
+            ),
+        ]
+
+    if gaming_domain:
+        priming_question_texts += [
+            'The presented texts are messages from an online video game chat. '
+            'Please take into account the video gaming genre when making your assessments. </br> '
+        ]
 
     # A part of context used in responses to both Ajax and standard POST
     # requests
@@ -2028,6 +2371,9 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'monolingual': monolingual_task,
         'sqm': use_sqm,
         'static_context': static_context,
+        'guidelines_popup': guidelines_popup,
+        'doc_guidelines': doc_guidelines,
+        'highlight_style': highlight_style,
     }
 
     if ajax:
@@ -2038,6 +2384,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
 
     page_context = {
         'items': zip(block_items, block_scores),
+        'num_items': len(block_items),
         'reference_label': reference_label,
         'candidate1_label': candidate1_label,
         'candidate2_label': candidate2_label,
@@ -2047,4 +2394,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     context.update(page_context)
     context.update(BASE_CONTEXT)
 
-    return render(request, 'EvalView/pairwise-assessment-document.html', context)
+    template = 'EvalView/pairwise-assessment-document.html'
+    if new_ui:
+        template = 'EvalView/pairwise-assessment-document-newui.html'
+    return render(request, template, context)

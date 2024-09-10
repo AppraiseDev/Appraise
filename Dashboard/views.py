@@ -424,6 +424,8 @@ def dashboard(request):
                             languages_map[task_cls][campaign.campaignName].remove(code)
 
             # _type and _languages variables are only for debug
+            _type = None
+            _languages = {}
             for task_cls in campaign_map:
                 if campaign_map[task_cls].exists():
                     _type = TASK_NAMES[task_cls]
@@ -504,53 +506,3 @@ def dashboard(request):
     )
 
     return render(request, 'Dashboard/dashboard.html', template_context)
-
-
-# pylint: disable=missing-docstring
-@login_required
-def group_status(request):
-    _method = getframeinfo(currentframe()).function
-    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format('Dashboard.views', _method)
-    raise NotImplementedError(_msg)
-
-
-# pylint: disable=missing-docstring
-@login_required
-def multimodal_status(request):
-    _method = getframeinfo(currentframe()).function
-    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format('Dashboard.views', _method)
-    raise NotImplementedError(_msg)
-
-
-# pylint: disable=missing-docstring
-@login_required
-def system_status(request):
-    _method = getframeinfo(currentframe()).function
-    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format('Dashboard.views', _method)
-    raise NotImplementedError(_msg)
-
-
-# pylint: disable=missing-docstring
-@login_required
-def multimodal_systems(request):
-    _method = getframeinfo(currentframe()).function
-    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format('Dashboard.views', _method)
-    raise NotImplementedError(_msg)
-
-
-# pylint: disable=missing-docstring
-@login_required
-@add_deprecated_method
-def metrics_status(request):
-    _method = getframeinfo(currentframe()).function
-    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format('Dashboard.views', _method)
-    raise NotImplementedError(_msg)
-
-
-# pylint: disable=missing-docstring
-@login_required
-@add_deprecated_method
-def fe17_status(request):
-    _method = getframeinfo(currentframe()).function
-    _msg = '{0}.{1} deprecated as of 7/08/2019.'.format('Dashboard.views', _method)
-    raise NotImplementedError(_msg)

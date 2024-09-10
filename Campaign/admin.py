@@ -32,14 +32,14 @@ class CampaignTeamAdmin(BaseMetadataAdmin):
         'requiredAnnotations',
         'requiredHours',
         'completionStatus',
-    ] + BaseMetadataAdmin.list_display
-    list_filter = ['owner'] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_display  # type: ignore
+    list_filter = ['owner'] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         'teamName',
         'owner__username',
         'owner__first_name',
         'owner__last_name',
-    ] + BaseMetadataAdmin.search_fields
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
 
     filter_horizontal = ['members']
 
@@ -70,11 +70,11 @@ class CampaignDataAdmin(BaseMetadataAdmin):
         'metadata',
         'dataValid',
         'dataReady',
-    ] + BaseMetadataAdmin.list_display
+    ] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         'dataValid',
         'dataReady',
-    ] + BaseMetadataAdmin.list_filter
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
     search_fields = [
         # nothing model specific
     ] + BaseMetadataAdmin.search_fields  # type: ignore
@@ -89,7 +89,7 @@ class CampaignAdmin(BaseMetadataAdmin):
     Model admin for Campaign instances.
     """
 
-    list_display = ['campaignName'] + BaseMetadataAdmin.list_display
+    list_display = ['campaignName'] + BaseMetadataAdmin.list_display  # type: ignore
     list_filter = [
         # nothing model specific
     ] + BaseMetadataAdmin.list_filter  # type: ignore
@@ -108,6 +108,7 @@ class CampaignAdmin(BaseMetadataAdmin):
                     'packageFile',
                     'teams',
                     'batches',
+                    'campaignOptions',
                 )
             },
         ),

@@ -27,6 +27,13 @@ LANGUAGE_CODES = {
     'rus': 'ru',
     'aeb': 'ae',
     'spa': 'es',
+    'sgg': 'dsgs',
+    'hrv': 'hr',
+    'ukr': 'uk',
+    'sah': 'sah',
+    'liv': 'liv',
+    'por': 'pt',
+    'heb': 'he',
 }
 
 
@@ -505,9 +512,13 @@ class Command(BaseCommand):
                     else:
                         t_statistic, p_value = 0, 1
                 else:
-                    t_statistic, p_value = mannwhitneyu(
-                        sysA_sorted, sysB_sorted, alternative="greater"
-                    )
+                    if not sysA_sorted or not sysB_sorted:
+                        pass
+                        t_statistic, p_value = 0, 1
+                    else:
+                        t_statistic, p_value = mannwhitneyu(
+                            sysA_sorted, sysB_sorted, alternative="greater"
+                        )
 
                 if options['use_ar']:
                     if p_value < p_level:
@@ -648,7 +659,7 @@ class Command(BaseCommand):
                     ranks,
                     '{0:.1f}'.format(rScore),
                     '{0:.3f}'.format(zScore),
-                    systemID[:51].replace('_', '\_'),
+                    systemID[:51].replace('_', '\\_'),
                     '\\\\ \\hline' if add_cluster_boundary else '\\\\',
                 )
                 latex_data.append('{0} & {1} & {2} & {3} & {4}{5}'.format(*_latex_data))
@@ -657,7 +668,7 @@ class Command(BaseCommand):
                     '\t'.join(
                         (
                             pair,
-                            systemID[:51].replace('_', '\_'),
+                            systemID[:51].replace('_', '\\_'),
                             ranks,
                             '{0:.1f}'.format(rScore),
                             '{0:.3f}'.format(zScore),

@@ -13,6 +13,7 @@ from django.test import TestCase
 
 from Campaign.models import _validate_package_file
 from Campaign.models import Campaign
+from Appraise.utils import _compute_user_total_annotation_time
 
 
 class TestInitCampaign(TestCase):
@@ -156,3 +157,34 @@ class TestInitCampaign(TestCase):
 
             with self.assertRaisesMessage(ValidationError, expected_msg):
                 _validate_package_file(campaign.packageFile)
+
+
+class TestCampaignUtils(TestCase):
+    '''Tests for Campaign utility functions.'''
+
+    def test_computing_user_total_annotation_time(self):
+        '''Verifies that user total annotation time is computed correctly.'''
+
+        # Non-overlapping timestamps with gaps
+        timestamps = [(100, 110), (120, 130), (140, 150), (160, 170), (180, 190)]
+        self.assertEqual(_compute_user_total_annotation_time(timestamps), 50)
+
+        # Consecutive timestamps
+        timestamps = [(100, 110), (110, 120), (120, 130), (130, 140), (140, 150)]
+        self.assertEqual(_compute_user_total_annotation_time(timestamps), 50)
+
+        # Partially overlapping timestamps
+        timestamps = [(100, 110), (105, 115), (110, 120), (115, 125), (120, 130)]
+        self.assertEqual(_compute_user_total_annotation_time(timestamps), 30)
+
+        # Same start timestamps
+        timestamps = [(100, 110), (100, 120), (100, 130), (100, 140), (100, 150)]
+        self.assertEqual(_compute_user_total_annotation_time(timestamps), 50)
+
+        # Overlapping timestamps in reverse order
+        timestamps = [(120, 130), (115, 125), (110, 120), (105, 115), (100, 110)]
+        self.assertEqual(_compute_user_total_annotation_time(timestamps), 30)
+
+        # Same start and end timestamps
+        timestamps = [(100, 100), (100, 100), (100, 100), (100, 100), (150, 150)]
+        self.assertEqual(_compute_user_total_annotation_time(timestamps), 0)
