@@ -102,14 +102,14 @@ def campaign_status(request, campaign_name, sort_key=2):
                     'item__itemID',
                     'item__targetID',
                     'item__itemType',
-                    'item__sourceText',
+                    'item__id',
                     'item__documentID',
                 )
                 # compute time override based on document times
                 import collections
                 _time_pairs = collections.defaultdict(list)
                 for x in _data:
-                    _time_pairs[x[7]].append((x[0], x[1]))
+                    _time_pairs[x[7]+ " ||| " +x[4]].append((x[0], x[1]))
                 _time_pairs = [
                     (min([x[0] for x in doc_v]), max([x[1] for x in doc_v]))
                     for doc, doc_v in _time_pairs.items()
@@ -127,14 +127,14 @@ def campaign_status(request, campaign_name, sort_key=2):
                     'item__itemID',
                     'item__targetID',
                     'item__itemType',
-                    'item__sourceText',
+                    'item__id',
                     'item__documentID',
                 )
                 # compute time override based on document times
                 import collections
                 _time_pairs = collections.defaultdict(list)
                 for x in _data:
-                    _time_pairs[x[7]].append((x[0], x[1]))
+                    _time_pairs[x[7]+ " ||| " +x[4]].append((x[0], x[1]))
                 _time_pairs = [
                     (min([x[0] for x in doc_v]), max([x[1] for x in doc_v]))
                     for doc, doc_v in _time_pairs.items()
@@ -163,40 +163,49 @@ def campaign_status(request, campaign_name, sort_key=2):
             _end_times = [x[1] for x in _data]
 
             # Compute first modified time
-            _first_modified = (
+            _first_modified_raw = (
                 seconds_to_timedelta(min(_start_times)) if _start_times else None
             )
-            if _first_modified:
-                _date_modified = datetime(1970, 1, 1) + _first_modified
+            if _first_modified_raw:
+                _date_modified = datetime(1970, 1, 1) + _first_modified_raw
                 _first_modified = str(_date_modified).split('.')[0]
             else:
                 _first_modified = 'Never'
-
+                
             # Compute last modified time
-            _last_modified = (
+            _last_modified_raw = (
                 seconds_to_timedelta(max(_end_times)) if _end_times else None
             )
-            if _last_modified:
-                _date_modified = datetime(1970, 1, 1) + _last_modified
+            if _last_modified_raw:
+                _date_modified = datetime(1970, 1, 1) + _last_modified_raw
                 _last_modified = str(_date_modified).split('.')[0]
             else:
                 _last_modified = 'Never'
 
             # Compute total annotation time
-            if is_mqm_or_esa:
-                # if MQM or ESA, then let's use the manually computed times
-                pass
+            if is_mqm_or_esa and _first_modified_raw and _last_modified_raw:
+                # for MQM and ESA compute the lower and upper annotation times
+                # use only the end times 
+                _annotation_time_upper = (_last_modified_raw-_first_modified_raw).seconds
+                _hours = int(floor(_annotation_time_upper / 3600))
+                _minutes = int(floor((_annotation_time_upper % 3600) / 60))
+                _annotation_time_upper = f'{_hours:0>2d}h{_minutes:0>2d}m'
             else:
                 _time_pairs = list(zip(_start_times, _end_times))
+                _annotation_time_upper = None
             _annotation_time = _compute_user_total_annotation_time(_time_pairs)
 
             # Format total annotation time
             if _annotation_time:
                 _hours = int(floor(_annotation_time / 3600))
                 _minutes = int(floor((_annotation_time % 3600) / 60))
-                _annotation_time = '{0:0>2d}h{1:0>2d}m'.format(_hours, _minutes)
+                _annotation_time = f'{_hours:0>2d}h{_minutes:0>2d}m'
+                # for MQM and ESA join it together
+                if is_mqm_or_esa and _annotation_time_upper:
+                    _annotation_time = f'{_annotation_time}--{_annotation_time_upper}'
             else:
                 _annotation_time = 'n/a'
+
 
             _item = (
                 user.username,
@@ -263,12 +272,10 @@ def stat_reliable_testing(_data, campaign_opts, result_type):
         # Script generating batches for data assessment task does not
         # keep equal itemIDs for respective TGT and BAD items, so it
         # cannot be used as a key.
-        if "esa" in campaign_opts or "mqm" in campaign_opts:
-            _key = str(_x[6]) + " ||| " + _x[4]
-        elif result_type is DataAssessmentResult:
-            _key = str(_x[4])
+        if result_type is DataAssessmentResult:
+            _key = f"{_x[4]}"
         else:
-            _key = '{0}-{1}'.format(_x[3], _x[4])
+            _key = f'{_x[3]}-{_x[4]}'
         _dst[_key].append(_z_score)
 
     _x = []
@@ -284,10 +291,6 @@ def stat_reliable_testing(_data, campaign_opts, result_type):
 
             _t, pvalue = mannwhitneyu(_x, _y, alternative='less')
             _reliable = pvalue
-
-        except ImportError:
-            print("scipy is not installed")
-            pass
 
         # Possible for mannwhitneyu() to throw in some scenarios
         except ValueError:

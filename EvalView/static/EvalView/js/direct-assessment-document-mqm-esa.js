@@ -171,6 +171,20 @@ $(document).ready(() => {
 
     // show submit button only on MQM and not ESA
     $(".button-submit").toggle(MQM_TYPE == "MQM")
+
+    let instructions_show = localStorage.getItem("appraise-instructions-show") == "true"
+    if (instructions_show == null) instructions_show = true;
+
+    $("#instructions-show").on("click", () => {
+        instructions_show = !instructions_show;
+        $("#instructions-show").text(instructions_show ? "Hide instructions" : "Show instructions")
+        localStorage.setItem("appraise-instructions-show", instructions_show);
+        $("#instructions").toggle(instructions_show)
+    })
+
+    // will be overriden
+    instructions_show = !instructions_show
+    $("#instructions-show").trigger("click")
 });
 
 function _all_sentences_scored() {
@@ -229,22 +243,25 @@ async function submit_finish_document(override_tutorial_check=false) {
             }
         }
     }
-
     // prevent multiclicks
     $("#button-next-doc").prop('disabled', true);
 
     $("#form-next-doc > input[name='end_timestamp']").val(Date.now() / 1000)
 
     // wait for individual items to be submitted
-    for (const el of $(".item-box")) {
-        await submit_form_ajax($(el))
+    try {
+        for (const el of $(".item-box")) {
+            await submit_form_ajax($(el))
+        }
+
+        // trigger hidden form if all is good
+        $("#form-next-doc").trigger("submit")
+    } catch {
+        // re-enable next doc button in a few seconds if not
+        await new Promise(resolve => setTimeout(resolve, 5_000))
+        $("#button-next-doc").prop('disabled', false);
     }
 
-    // trigger hidden form
-    $("#form-next-doc").trigger("submit")
-
-    await new Promise(resolve => setTimeout(resolve, 5_000))
-    $("#button-next-doc").prop('disabled', false);
 }
 
 function _show_error_box(text, timeout = 2000) {
@@ -347,6 +364,16 @@ class MQMItemHandler {
             this.el_slider.find(".slider-bubble").toggle(false);
             refresh_bubble();
         })
+
+        this.el_slider.find(".ui-slider-handle").on("mouseup ontouchend", async () => {
+            let value = this.el_slider.slider('value')
+            if (this.tutorial) {
+                // do nothing, we don't validate during tutorial
+            } else if (this.mqm.length == 0 && value < 66) {
+                alert(`You assigned a score of ${value} without highlighting any errors. Please, highlight errors first.`)
+            }
+        })
+
         this.el_slider.on("slide", async () => {
             this.el_slider.find(".slider-bubble").toggle(true);
             refresh_bubble()

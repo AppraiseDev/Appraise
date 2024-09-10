@@ -1091,8 +1091,10 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
 
 
         db_item = current_task.items.filter(
-            itemID=item_id
-        ).order_by('itemID')
+            itemID=item_id,
+            id=task_id,
+        )
+
 
         if len(db_item) == 0:
             error_msg = (
@@ -1151,6 +1153,14 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
             context.update(BASE_CONTEXT)
             # Send response to the Ajax POST request
             return JsonResponse(context)
+    
+    # TODO: hotfix for WMT24
+    # Tracking issue: https://github.com/AppraiseDev/Appraise/issues/185
+    for item in doc_items:
+        # don't escape HTML video
+        if item.sourceText.strip().startswith("<video"):
+            continue
+        item.sourceText = escape(item.sourceText)
 
     # Get item scores from the latest corresponding results
     doc_items_results = [
