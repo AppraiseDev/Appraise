@@ -90,7 +90,7 @@ class ObjectID(models.Model):
 
             _code = '{0}.objects.get(id={1})'.format(self.typeName, self.primaryID)
 
-            # Hack for Python 3.5.2
+            # TODO: Hack
             from EvalData.models import (
                 DataAssessmentTask,
                 DirectAssessmentTask,
