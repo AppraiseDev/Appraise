@@ -1153,7 +1153,7 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
             context.update(BASE_CONTEXT)
             # Send response to the Ajax POST request
             return JsonResponse(context)
-    
+
     # TODO: hotfix for WMT24
     # Tracking issue: https://github.com/AppraiseDev/Appraise/issues/185
     for item in doc_items:
@@ -1605,6 +1605,7 @@ def pairwise_assessment(request, code=None, campaign_name=None):
     extra_guidelines = False
     doc_guidelines = False
     guidelines_popup = False
+    dialect_guidelines = False
 
     if 'reportcriticalerror' in campaign_opts:
         critical_error = True
@@ -1658,6 +1659,44 @@ def pairwise_assessment(request, code=None, campaign_name=None):
         candidate2_text = candidate2_text.replace(
             "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
         ).replace("&lt;br/&gt;", "<br/>")
+
+    dialect_guidelines = any("dialectsguidelines" in opt for opt in campaign_opts)
+
+    if dialect_guidelines:
+        tgt_code = current_task.marketTargetLanguageCode()
+        dialect = target_language
+
+        # DialectsGuidelinesA asks for the main dialect for specific languages (fra, ptb, esn)
+        if 'dialectsguidelinesa' in campaign_opts:
+            if tgt_code == 'fra':
+                dialect = "European French (Européen Français)"
+            if tgt_code == 'por':
+                dialect = "Brazilian Portuguese (Português do Brasil)"
+            if tgt_code == 'spa':
+                dialect = "European Spanish (Español Europeo)"
+        # DialectsGuidelinesB asks for the secondary dialect for specific languages (frc, ptg, esj)
+        elif 'dialectsguidelinesb' in campaign_opts:
+            if tgt_code == 'fra':
+                dialect = "Canadian French (Français Canadien)"
+            if tgt_code == 'por':
+                dialect = "European Portuguese (Português Europeu)"
+            if tgt_code == 'spa':
+                dialect = "Latin American Spanish (Español Latinoamericano)"
+
+        # "If there are no significant differences between the candidates, please assign equal scores using the 'Match sliders' button. "
+        priming_question_text = (
+            "Above you see a segment in {0} and below its corresponding two candidate translations in {1}. "
+            "Please evaluate the quality of the candidate translations, "
+            "<b class='lang-emph'><u>focusing specifically on the use of the {2} dialect</u></b>. "
+            "Pay close attention to dialect-specific language, including vocabulary, idiomatic expressions, and cultural references. "
+            "<br/><br/>"
+            "In addition to dialect-specific considerations, please also account for common translation errors, "
+            "such as accuracy and fluency, as detailed below.".format(
+                source_language,
+                target_language,
+                dialect,
+            )
+        )
 
     context = {
         'active_page': 'pairwise-assessment',
