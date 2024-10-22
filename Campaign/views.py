@@ -20,6 +20,7 @@ from Campaign.utils import _get_campaign_instance
 from EvalData.models import DataAssessmentResult
 from EvalData.models import DirectAssessmentDocumentResult
 from EvalData.models import PairwiseAssessmentDocumentResult
+from EvalData.models import PairwiseAssessmentDocumentESAResult
 from EvalData.models import PairwiseAssessmentResult
 from EvalData.models import seconds_to_timedelta
 from EvalData.models import TASK_DEFINITIONS
@@ -77,12 +78,14 @@ def campaign_status(request, campaign_name, sort_key=2):
             if (
                 result_type is DirectAssessmentDocumentResult
                 or result_type is PairwiseAssessmentDocumentResult
+                or result_type is PairwiseAssessmentDocumentESAResult
             ):
                 _data = _data.exclude(item__isCompleteDocument=True)
             # Contrastive tasks use different field names for target segments/scores
             if (
                 result_type is PairwiseAssessmentResult
                 or result_type is PairwiseAssessmentDocumentResult
+                or result_type is PairwiseAssessmentDocumentESAResult
             ):
                 _data = _data.values_list(
                     'start_time',

@@ -19,6 +19,7 @@ from EvalData.models import DirectAssessmentDocumentResult
 from EvalData.models import DirectAssessmentResult
 from EvalData.models import MultiModalAssessmentResult
 from EvalData.models import PairwiseAssessmentDocumentResult
+from EvalData.models import PairwiseAssessmentDocumentESAResult
 from EvalData.models import PairwiseAssessmentResult
 from EvalData.models import RESULT_TYPES
 
@@ -75,6 +76,7 @@ def run_quality_control(username):
     if (
         result_type is PairwiseAssessmentResult
         or result_type is PairwiseAssessmentDocumentResult
+        or result_type is PairwiseAssessmentDocumentESAResult
     ):
         _data = _data.values_list(
             'start_time',

@@ -70,6 +70,15 @@ TASK_DEFINITIONS = (
         'evaldata_pairwiseassessmentdocumentresults',
     ),
     (
+        'PairwiseDocumentESA',
+        PairwiseAssessmentDocumentESATask,
+        PairwiseAssessmentDocumentESAResult,
+        'pairwise-assessment-document-esa',
+        TextSegmentWithTwoTargetsWithContext,
+        'evaldata_pairwiseassessmentdocumentesatasks',
+        'evaldata_pairwiseassessmentdocumentesaresults',
+    ),
+    (
         'Data',
         DataAssessmentTask,
         DataAssessmentResult,

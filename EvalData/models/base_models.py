@@ -98,6 +98,7 @@ class ObjectID(models.Model):
                 DirectAssessmentDocumentTask,
                 MultiModalAssessmentTask,
                 PairwiseAssessmentDocumentTask,
+                PairwiseAssessmentDocumentESATask,
                 PairwiseAssessmentTask,
             )
 
@@ -720,6 +721,20 @@ class TextSegmentWithTwoTargets(TextSegment):
 
     target2ContextLeft = models.TextField(
         blank=True, null=True, verbose_name=_('Target context (2)')
+    )
+
+    # used for error span annotations
+    mqm1 = models.TextField(
+        blank=True,
+        verbose_name=_('MQM Annotations (1)'),
+        default="[]",
+    )
+
+    # used for error span annotations
+    mqm2 = models.TextField(
+        blank=True,
+        verbose_name=_('MQM Annotations (2)'),
+        default="[]",
     )
 
     def has_context(self):
