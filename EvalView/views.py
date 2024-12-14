@@ -1181,6 +1181,22 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
     source_language = current_task.marketSourceLanguage()
     target_language = current_task.marketTargetLanguage()
 
+    guidelines = ""
+    if 'contrastiveesa' in campaign_opts:
+        # escape <br/> tags in the source and target texts
+        for item in doc_items:
+            item.sourceText = item.sourceText \
+                .replace("&lt;eos&gt;", "<code>&lt;eos&gt;</code>") \
+                .replace("&lt;br/&gt;", "<br/>")
+            # HTML-esaping on the target text will not work because MQM/ESA tag insertion prevents it 
+        guidelines = (
+            'You are provided with a text in {0} and its candidate translation(s) into {1}. '
+            'Please assess the quality of the translation(s) following the detailed guidelines below. '.format(
+                source_language,
+                target_language,
+            )
+        )
+
     # A part of context used in responses to both Ajax and standard POST requests
     context = {
         'active_page': 'direct-assessment-document',
@@ -1196,6 +1212,7 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
         # Task variations
         'ui_lang': "enu",
         'mqm_type': 'ESA' if 'esa' in campaign_opts else "MQM",
+        'guidelines': guidelines,
     }
 
     if ajax:

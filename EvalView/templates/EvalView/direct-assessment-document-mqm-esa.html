@@ -21,9 +21,8 @@
         <tr>
             <td style="width:33%;text-align:left;">
                 <strong id="task_progress">
-                    document {{docs_completed}} / {{docs_total}}
-                    &nbsp;&nbsp;&nbsp;
-                    segment {{items_completed}}/100
+                    Completed {{docs_completed}}/{{docs_total}} documents,
+                    {{items_completed}}/100 segments
                 </strong>
             </td>
             <td style="width:33%;text-align:center;">
@@ -44,6 +43,9 @@
 </div>
 
 <div class="question-box" id="instructions">
+    {% if guidelines %}
+    <p>{{ guidelines }}</p>
+    {% endif %}
     {% if mqm_type == "MQM" %}
     {% include 'EvalView/_instructions-mqm.html' %}
     {% elif mqm_type == "ESA" %}

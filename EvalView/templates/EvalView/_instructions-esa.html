@@ -1,41 +1,26 @@
 <div class="row">
   <div class="col-md-12">
     <ul class="list-unstyled">
-      <li><strong>Highlighting errors:</strong>
+      <li>Highligh errors:
         <ul>
-          <li>
-            Highlight the text fragment where you have identified a translation error (drag or click start & end).
-          </li>
-          <li>Click repeatedly on the highlighted fragment to increase its severity level or to remove the selection.</li>
-          <li><span class="instruction_sev" id="instruction_sev_minor">Minor Severity:</span>
-            Style/grammar/lexical choice could be better/more natural.
-            <!-- Does not seriously impede the usability, understandability, or reliability of the content for its
-              intended purpose, but has a limited impact on, for example, accuracy, stylistic quality, consistency,
-              fluency, clarity, or general appeal of the content. -->
-            </li>
-            <li><span class="instruction_sev" id="instruction_sev_major">Major Severity:</span>
-              Seriously changed meaning, difficult to read, decreases usability.
-              <!-- Seriously affects the understandability, reliability, or usability of the content for its intended
-              purpose or hinders the proper use of the product or service due to a significant loss or change in
-              meaning or because the error appears in a highly visible or important part of the content. -->
-            </li>
-          </li>
-          <li>If something is missing from the text, mark it as an error on the <b style="font-family: monospace, monospace;">[MISSING]</b> word.</li>
-          <li>The highlights do not have to have character-level precision. It's sufficient if you highlight the word or rough area where the error appears.</li>
-          <li>Each error should have a separate highlight.</li>
+          <li><strong>Select</strong> the part of translation where you have identified a <strong>translation error</strong> (drag or click start & end).</li>
+          <li><strong>Click</strong> on the highlight to change error severity (minor/major) or remove the highlight.</li>
+        </ul>
+      </li> 
+      <li>Choose error severity:
+        <ul>
+          <li><span class="instruction_sev" id="instruction_sev_minor">Minor errors:</span> Style, grammar, word choice could be better or more natural. </li>
+          <li><span class="instruction_sev" id="instruction_sev_major">Major errors:</span>: The meaning is changed significantly and/or the part is really hard to understand. </li>
         </ul>
       </li>
-      <li>
-        <strong>Score: </strong>
-        After highlighting all errors, please set the overall segment translation scores. The quality levels associated with numerical scores on the slider:
+      <li><strong>Missing content</strong>: If something is missing, highlight the word <b style="font-family: monospace, monospace;">[MISSING]</b> to mark the error. </li>
+      <li><strong>Tip</strong>: Highlight the word or general area of the error---it doesn’t need to be exact. Use separate highlights for different errors.</li>
+      <li><strong>Score the translation</strong>: After marking errors, please use the slider and set an overall score based on meaning preservation and general quality:</li>
         <ul>
-          <li><strong>0: No meaning preserved</strong>: Nearly all information is lost in the translation.</li>
-          <li><strong>33%: Some meaning preserved</strong>: Some of the meaning is preserved but significant parts are missing.
-            The narrative is hard to follow due to errors. Grammar may be poor.</li>
-          <li><strong>66%: Most meaning preserved and few grammar mistakes</strong>: The translation retains most of the
-            meaning. It may have some grammar mistakes or minor inconsistencies.</li>
-          <li><strong>100%: Perfect meaning and grammar</strong>: The meaning and grammar of the translation is completely consistent
-            with the source.</li>
+          <li>0: <strong>No meaning preserved</strong>: most information is lost.</li>
+          <li>33%: <strong>Some meaning preserved</strong>: major gaps and narrative issues.</li>
+          <li>66%: <strong>Most meaning preserved</strong>: minor issues with grammar or consistency.</li>
+          <li>100%: <strong>Perfect</strong>: meaning and grammar align completely with the source.</li>
         </ul>
       </li>
     </ul>
