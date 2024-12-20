@@ -276,6 +276,9 @@ def stat_reliable_testing(_data, campaign_opts, result_type):
             _key = f"{_x[4]}"
         else:
             _key = f'{_x[3]}-{_x[4]}'
+        # Hotfix: remove #bad from key for ESA campaigns
+        if "esa" in campaign_opts and "#bad" in _key:
+            _key = _key.replace("#bad", "")
         _dst[_key].append(_z_score)
 
     _x = []
