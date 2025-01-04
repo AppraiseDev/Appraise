@@ -287,7 +287,8 @@ class MQMItemHandler {
         this.initialize()
     }
 
-    initialize() {
+    async initialize() {
+        this.el_source = this.el.find(".source-text")
         this.el_target = this.el.find(".target-text")
         this.el_slider = this.el.find('.slider')
         // for Appraise reasons it's a JSON string encoding JSON
@@ -306,6 +307,9 @@ class MQMItemHandler {
         }
         this.mqm_submitted = structuredClone(this.mqm)
         this.mqm_orig = JSON.parse(JSON.parse(this.el.children('#mqm-payload-orig').html()))
+        this.text_source_orig = decodeEntitiesPreservingTags(JSON.parse(this.el.children('#text-source-payload').html()).trim())
+        this.source_video = JSON.parse(this.el.children('#text-source-payload').html()).trim().startsWith("<video")
+        // NOTE: we don't decode entities for the target text, which might cause false positive annotated errors
         this.text_target_orig = JSON.parse(this.el.children('#text-target-payload').html()).trim()
         this.SELECTION_STATE = []
         this.HOVER_UNDECIDED_SPANS = new Set()
@@ -326,15 +330,13 @@ class MQMItemHandler {
         })
         let score = parseFloat(this.el.children('#score-payload').html())
 
-        // setup_span_structure
-        let split_text = this.text_target_orig.split("")
+    
 
-        // word-level, not used anymore
-        // split_text = [...TXT_CANDIDATE_ORIGINAL.matchAll(/([\p{L}\-0-9]+|[^\p{L}\-0-9]+)/gu)].map((v) => v[0])
-        let html_candidate = split_text.map((v, i) => {
-            return `<span class="mqm_char" id="candidate_char_${i}" char_id="${i}">${v}</span>`
-        }).join("") + " <span class='mqm_char span_missing' id='candidate_char_missing' char_id='missing'>[MISSING]</span>"
-        this.el_target.html(html_candidate)
+        // setup_span_structure
+        let html_target = this.text_target_orig.split("").map((v, i) => {
+            return `<span class="mqm_char" id="target_char_${i}" char_id="${i}">${v}</span>`
+        }).join("") + " <span class='mqm_char span_missing' id='target_char_missing' char_id='missing'>[MISSING]</span>"
+        this.el_target.html(html_target)
 
         this.redraw_mqm()
 
@@ -349,6 +351,39 @@ class MQMItemHandler {
         if (score != -1) {
             this.el_slider.slider('value', score);
         }
+
+        // handle character alignment estimation
+        if (!this.source_video) {
+            let html_source = this.text_source_orig.split("").map((v, i) => {
+                return `<span class="mqm_char_src" id="source_char_${i}" char_id="${i}">${v}</span>`
+            }).join("")
+            this.el_source.html(html_source)
+
+            await waitout_js_loop()
+
+            let len_src = this.text_source_orig.split("").length
+            let len_tgt = this.text_target_orig.split("").length
+            this.el_target.children(".mqm_char").each((i, el) => {
+                // on hover
+                $(el).on("mouseenter", () => {
+                    // get char position from attribute
+                    let tgt_char_i = Number.parseInt($(el).attr("char_id"))
+                    // approximate position
+                    let src_char_i = Math.floor(tgt_char_i * len_src / len_tgt)
+                    // remove underline from all mqm
+                    this.el_source.children(".mqm_char_src").css("text-decoration", "")
+                    // set underline to the corresponding character and its neighbours
+                    this.el_source.children(`#source_char_${src_char_i}`).css("text-decoration", "underline 10%")
+                    this.el_source.children(`#source_char_${src_char_i-1}`).css("text-decoration", "underline 10%")
+                    this.el_source.children(`#source_char_${src_char_i+1}`).css("text-decoration", "underline 10%")
+                })
+                // on leave remove all decorations
+                $(el).on("mouseleave", () => {
+                    this.el_source.children(".mqm_char_src").css("text-decoration", "")
+                })
+            })
+        }
+
 
         // slider bubble handling
         this.el_slider.find(".ui-slider-handle").append("<div class='slider-bubble'>100</div>")
