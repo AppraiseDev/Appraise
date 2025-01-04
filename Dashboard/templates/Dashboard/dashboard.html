@@ -3,11 +3,6 @@
 {% block content %}
       <!-- Main jumbotron for a primary marketing message or call to action -->
       <div class="jumbotron">
-          <!--
-        <div class="alert alert-info" role="alert">
-          Accounts and tasks are live now &mdash; check <a href="https://github.com/AppraiseDev/WMT21SrcDA/">github.com/AppraiseDev/WMT21SrcDA/</a> for latest updates.
-        </div>
-          -->
 
         <h1>Dashboard</h1>
         <h4>Evaluation campaign for shared tasks hosted at <a href="https://statmt.org/wmt24">the 9th Conference on Machine Translation</a> (WMT24)</h4>
@@ -18,12 +13,12 @@
           </div>
           <div class="panel-body">
 {% if current_task %}
-            <h3>Current HIT</h3>
+            <h3>Current set</h3>
             <p>Continue annotation for <a href="{% url current_url %}">{{current_task.campaign}}:{{current_task.marketTargetLanguage}}</a>.</p>
 {% elif all_languages %}
     {% for _, languages in all_languages.items %}
     {% if languages %}
-            <h3>Next HIT</h3>
+            <h3>Next set</h3>
             <p>Start annotation for:
         {% for code, language, campaign, task_url in languages %}
             <a href="{% url task_url code campaign %}">{{campaign}}:{{language}}</a>{% if not forloop.last %} &middot; {% endif %}
@@ -46,11 +41,11 @@
               </div>
             </div>
 {% else %}
-            <h3>Next HIT</h3>
+            <h3>Next set</h3>
             <p>We are currently finalising the registration process for annotator accounts. Once this has been completed, direct assessment tasks will be become available from this page. Please check back in a little while.</p>
 {% endif %}
             <h3>User status</h3>
-            <p>{{annotations}} annotation{{annotations|pluralize}}, {{hits}} HIT{{hits|pluralize}} completed. Total annotation duration {% if days %}{{days|stringformat:"02d"}}d{% endif %}{{hours|stringformat:"02d"}}h{{minutes|stringformat:"02d"}}m{{seconds|stringformat:"02d"}}s.</p>
+            <p>{{annotations}} annotation{{annotations|pluralize}}, {{hits}} set{{hits|pluralize}} completed. Total annotation duration {% if days %}{{days|stringformat:"02d"}}d{% endif %}{{hours|stringformat:"02d"}}h{{minutes|stringformat:"02d"}}m{{seconds|stringformat:"02d"}}s.</p>
           </div>
         </div>
       </div>
