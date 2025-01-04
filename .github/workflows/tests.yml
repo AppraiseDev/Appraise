@@ -31,7 +31,7 @@ jobs:
           cat listing.txt
           7z a -tzip regression-tests-appraise.zip @listing.txt
       - name: Publish outputs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: regression-tests-appraise
           path: regression-tests-appraise.zip
