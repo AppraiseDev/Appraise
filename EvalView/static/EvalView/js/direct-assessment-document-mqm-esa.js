@@ -261,7 +261,11 @@ async function submit_finish_document(override_tutorial_check=false) {
         await new Promise(resolve => setTimeout(resolve, 5_000))
         $("#button-next-doc").prop('disabled', false);
     }
-
+}
+function decodeEntities(html) {
+    var txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
 }
 
 function _show_error_box(text, timeout = 2000) {
@@ -307,7 +311,7 @@ class MQMItemHandler {
         }
         this.mqm_submitted = structuredClone(this.mqm)
         this.mqm_orig = JSON.parse(JSON.parse(this.el.children('#mqm-payload-orig').html()))
-        this.text_source_orig = decodeEntitiesPreservingTags(JSON.parse(this.el.children('#text-source-payload').html()).trim())
+        this.text_source_orig = decodeEntities(JSON.parse(this.el.children('#text-source-payload').html()).trim())
         this.source_video = JSON.parse(this.el.children('#text-source-payload').html()).trim().startsWith("<video")
         // NOTE: we don't decode entities for the target text, which might cause false positive annotated errors
         this.text_target_orig = JSON.parse(this.el.children('#text-target-payload').html()).trim()
@@ -372,10 +376,15 @@ class MQMItemHandler {
                     let src_char_i = Math.floor(tgt_char_i * len_src / len_tgt)
                     // remove underline from all mqm
                     this.el_source.children(".mqm_char_src").css("text-decoration", "")
+
                     // set underline to the corresponding character and its neighbours
-                    this.el_source.children(`#source_char_${src_char_i}`).css("text-decoration", "underline 10%")
-                    this.el_source.children(`#source_char_${src_char_i-1}`).css("text-decoration", "underline 10%")
-                    this.el_source.children(`#source_char_${src_char_i+1}`).css("text-decoration", "underline 10%")
+                    for (let range = 5; range > 0; range--) {
+                        // extrapolate range between #111 and #ddd
+                        let color = (Math.floor(range/5 * (0xd - 0x1))+0x1).toString(16)
+                        for (let i = Math.max(0, src_char_i - range); i < Math.min(len_src, src_char_i + range); i++) {
+                            this.el_source.children(`#source_char_${i}`).css("text-decoration", `underline 25% #${color}${color}${color} solid`)
+                        }
+                    }
                 })
                 // on leave remove all decorations
                 $(el).on("mouseleave", () => {
