@@ -127,7 +127,19 @@ async function get_error_type() {
     return error_stack
 }
 
+var TMP_HIGHLIGHT_MODE = null
+var TMP_HIGHLIGHT_WIDTH = null
+
 $(document).ready(() => {
+    // TODO: only temporary, remove once decided
+    // native dialog box to select highlight mode
+    while(!["thin", "normal", "bold", "wavy", "dotted"].includes(TMP_HIGHLIGHT_MODE)) {
+        TMP_HIGHLIGHT_MODE = prompt('Please select highlight mode: "thin", "normal" (default), "bold", "wavy", "dotted"', "normal")
+    }
+    while(isNaN(parseInt(TMP_HIGHLIGHT_WIDTH)) || TMP_HIGHLIGHT_WIDTH < 1) {
+        TMP_HIGHLIGHT_WIDTH = parseInt(prompt('Please select how many characters to highlight. Default is 8.', 8))
+    }
+    
     MQM_TYPE = JSON.parse($('#mqm-type-payload').html())
 
     // sliders are present only for ESA
@@ -377,12 +389,23 @@ class MQMItemHandler {
                     // remove underline from all mqm
                     this.el_source.children(".mqm_char_src").css("text-decoration", "")
 
+                    let highlight_width = Math.floor(TMP_HIGHLIGHT_WIDTH / 2)
                     // set underline to the corresponding character and its neighbours
-                    for (let range = 5; range > 0; range--) {
+                    for (let range = highlight_width; range > 0; range--) {
                         // extrapolate range between #111 and #ddd
-                        let color = (Math.floor(range/5 * (0xd - 0x1))+0x1).toString(16)
-                        for (let i = Math.max(0, src_char_i - range); i < Math.min(len_src, src_char_i + range); i++) {
-                            this.el_source.children(`#source_char_${i}`).css("text-decoration", `underline 25% #${color}${color}${color} solid`)
+                        let color = (Math.floor((range-1)/highlight_width * (0xd - 0x1))+0x1).toString(16)
+                        for (let i = Math.max(0, src_char_i - range); i <= Math.min(len_src, src_char_i + range); i++) {
+                            if (TMP_HIGHLIGHT_MODE == "bold") {
+                                this.el_source.children(`#source_char_${i}`).css("text-decoration", `underline 25% #${color}${color}${color} solid`)
+                            } else if (TMP_HIGHLIGHT_MODE == "wavy") {
+                                this.el_source.children(`#source_char_${i}`).css("text-decoration", `underline 15% #${color}${color}${color} wavy`)
+                            } else if (TMP_HIGHLIGHT_MODE == "dotted") {
+                                this.el_source.children(`#source_char_${i}`).css("text-decoration", `underline 15% #${color}${color}${color} dotted`)
+                            } else if (TMP_HIGHLIGHT_MODE == "normal") {
+                                this.el_source.children(`#source_char_${i}`).css("text-decoration", `underline 15% #${color}${color}${color} solid`)
+                            } else if (TMP_HIGHLIGHT_MODE == "thin") {
+                                this.el_source.children(`#source_char_${i}`).css("text-decoration", `underline 5% #${color}${color}${color} solid`)
+                            }
                         }
                     }
                 })
@@ -442,10 +465,6 @@ class MQMItemHandler {
     async redraw_mqm() {
         // store currently displayed version
         this.el.find('input[name="mqm"]').val(JSON.stringify(this.mqm));
-
-        // NOTE: do not automatically recompute
-        // should be in range [0, 100]
-        // this.el_slider.slider('value', this.current_mqm_score(true))
 
         // redraw
         this.el_target.children(".mqm_char").each((i, el) => {
@@ -558,23 +577,6 @@ class MQMItemHandler {
             alert(`Please follow the tutorial instructions.\n(${this.text_target_orig.substring(0, 60)}...)`);
             return false
         }
-        // skip other messages in the tutorial
-        // if (this.tutorial) {
-        //     return true
-        // }
-
-        // if (this.mqm.some((x) => x["severity"] == "undecided")) {
-        //     alert('There are some segments without severity (in blue). Click on them to change their severities.');
-        //     return false
-        // }
-
-        // remove dialogs
-        // if (this.mqm.length == 0 && !confirm("There are no annotated text fragments. Are you sure you want to submit?")) {
-        //     return false
-        // }
-        // if (MQM_TYPE == "ESA" && this.current_mqm_score(true) == Number.parseFloat(this.el.find("input[name='score']").val()) && !confirm("You did not change the original translation score. Are you sure you want to submit?")) {
-        //     return false
-        // }
         return true;
     }
 
