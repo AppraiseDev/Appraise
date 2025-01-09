@@ -936,8 +936,10 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
         qs = cls.objects.filter(completed=True, item__itemType__in=item_types)
 
         # If campaign ID is given, only return results for this campaign.
+        campaign_name = None
         if campaign_id:
             qs = qs.filter(task__campaign__id=campaign_id)
+            campaign_opts = str(qs.first().task.campaign.campaignOptions)
 
         if not include_inactive:
             qs = qs.filter(createdBy__is_active=True)
@@ -954,6 +956,17 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
             'item__isCompleteDocument',  # isCompleteDocument
             'mqm',  # MQM
         )
+
+        # This is a hack for having to use sourceID for pseudo-contrastive ESA
+        # campaigns, where we cannot use targetID to uniquely distinguish all
+        # systems. We cannot, because targetID must be identical for all items
+        # within a document
+        if campaign_opts and ("contrastiveesa" in campaign_opts.lower()):
+            attributes_to_extract = (
+                *attributes_to_extract[:1],
+                'item__sourceID',
+                *attributes_to_extract[2:],
+            )
 
         if extended_csv:
             attributes_to_extract = attributes_to_extract + (
