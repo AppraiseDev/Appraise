@@ -12,7 +12,7 @@ $APPRAISE_MANAGE StartNewCampaign $APPRAISE_EXAMPLES/MQM+ESA/manifest_esa.json \
 
 # Check generated credentials
 test -e $prefix.users.csv
-diff $prefix.users.csv $prefix.users.csv.expected > $prefix.diff
+diff --strip-trailing-cr $prefix.users.csv $prefix.users.csv.expected > $prefix.diff
 
 # Make a few annotations
 for score in $( seq 10 10 50 ); do
@@ -22,7 +22,7 @@ done
 # Export scores without timestamps and compare with the expected output
 # Escape quotes in MQM fields
 $APPRAISE_MANAGE ExportSystemScoresToCSV example15esa | sed "s/, /| /g" | cut -f-10 -d, | sed "s/| /, /g" > $prefix.scores.csv
-diff $prefix.scores.csv $prefix.scores.csv.expected
+diff --strip-trailing-cr $prefix.scores.csv $prefix.scores.csv.expected
 
 # Exit with success code
 exit $EXIT_CODE_SUCCESS

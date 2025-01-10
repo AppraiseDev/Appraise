@@ -257,7 +257,11 @@ class DirectAssessmentTask(BaseMetadata):
             # TODO: implement proper support for multiple json files in archive.
             for batch_json_file in batch_json_files:
                 batch_content = batch_zip.read(batch_json_file).decode('utf-8')
-                batch_json = loads(batch_content)
+                # Python 3.9 removed 'encoding' from json.loads
+                if sys.version_info >= (3, 9, 0):
+                    batch_json = loads(batch_content)
+                else:
+                    batch_json = loads(batch_content, encoding='utf-8')
 
         else:
             batch_json = loads(str(batch_file.read(), encoding='utf-8'))
@@ -292,7 +296,7 @@ class DirectAssessmentTask(BaseMetadata):
                 if current_length_text > max_length_text:
                     print(
                         current_length_text,
-                        item['targetText'],
+                        item['targetText'].encode('utf-8'),
                     )
                     max_length_text = current_length_text
 

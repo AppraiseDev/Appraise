@@ -18,10 +18,10 @@ test -s $prefix.json
 grep -P ">>>|Total" < $prefix.full.log > $prefix.log
 $APPRAISE_PYTHON compute_batch_stats.py < $prefix.json > $prefix.stats
 
-diff $prefix.log.expected $prefix.log | tee $prefix.log.diff
-diff $prefix.csv.expected $prefix.csv | tee $prefix.csv.diff
-diff $prefix.json.expected $prefix.json | tee $prefix.json.diff
-diff $prefix.stats.expected $prefix.stats | tee $prefix.stats.diff
+diff --strip-trailing-cr $prefix.log.expected $prefix.log | tee $prefix.log.diff
+diff --strip-trailing-cr $prefix.csv.expected $prefix.csv | tee $prefix.csv.diff
+diff --strip-trailing-cr $prefix.json.expected $prefix.json | tee $prefix.json.diff
+diff --strip-trailing-cr $prefix.stats.expected $prefix.stats | tee $prefix.stats.diff
 
 # Exit with success code
 exit $EXIT_CODE_SUCCESS
