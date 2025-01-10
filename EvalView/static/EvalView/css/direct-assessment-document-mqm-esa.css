@@ -136,7 +136,6 @@
     min-width: 130px;
 }
 
-
 .mqm_char:hover:not([selected]):not([in_mqm]) {
     outline: 2px solid #ccc;
 }

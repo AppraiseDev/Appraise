@@ -62,6 +62,7 @@
 
     {{ scores.mqm|json_script:"mqm-payload" }}
     {{ scores.mqm_orig|json_script:"mqm-payload-orig" }}
+    {{ item.sourceText|json_script:"text-source-payload" }}
     {{ item.targetText|json_script:"text-target-payload" }}
     {{ scores.score|json_script:"score-payload" }}
 
@@ -81,7 +82,7 @@
         <div class="source-box">
             <div class="tutorial-text"></div>
             <div class="source-text">
-                <!-- TODO: this means that HTML can be injected, incorrect! -->
+                <!-- NOTE: "safe" means that HTML can be injected, which is needed for video! -->
                 {{ item.sourceText|safe }}
             </div>
 
