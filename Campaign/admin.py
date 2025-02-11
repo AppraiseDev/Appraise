@@ -89,7 +89,7 @@ class CampaignAdmin(BaseMetadataAdmin):
     Model admin for Campaign instances.
     """
 
-    list_display = ['campaignName'] + BaseMetadataAdmin.list_display  # type: ignore
+    list_display = ['campaignName'] + BaseMetadataAdmin.list_display + ['id']  # type: ignore
     list_filter = [
         # nothing model specific
     ] + BaseMetadataAdmin.list_filter  # type: ignore

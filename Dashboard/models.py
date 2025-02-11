@@ -146,6 +146,10 @@ LANGUAGE_CODES_AND_NAMES = {
     'bew': 'Betawi (bahasa Betawi)',
     'gan': 'Gan (赣语)',
     'kin': 'Rwanda (Ikinyarwanda)',
+    'nso': 'Sepedi (Sesotho sa Leboa)',
+    'luo': 'Luo (Dholuo)',
+    'run': 'Rundi (Ikirundi)',
+    'nya': 'Chewa (Nyanja)',
     'shi': 'Shilha (ⵜⴰⵛⵍⵃⵉⵢⵜ)',
     'ace': 'Acehnese (Basa Acèh)',
     'quc': "K'iche' (Qatzijobʼal)",
@@ -211,6 +215,15 @@ LANGUAGE_CODES_AND_NAMES = {
     'sgg': 'Swiss-German Sign Language (Deutschschweizer Gebärdensprache (DSGS))',
     'liv': 'Livonian (līvõ kēļ)',
     'sah': 'Yakut (саха тыла)',
+    'mai': 'Maithili (मैथिली)',
+    'san': 'Sanskrit (संस्कृतम्)',
+    'bho': 'Bhojpuri (भोजपुरी)',
+    'brx': 'Bodo (बड़ो)',
+    'dgo': 'Dogri (डोगरी)',
+    'hne': 'Chhattisgarhi (छत्तीसगढ़ी)',
+    'kas': 'Kashmiri (كٲشُر)',
+    'mni': 'Meitei (ꯃꯩꯇꯩꯂꯣꯟ)',
+    'sat': 'Santali (ᱥᱟᱱᱛᱟᱲᱤ)',
 }
 
 # All sign language codes

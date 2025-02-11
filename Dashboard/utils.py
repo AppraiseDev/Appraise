@@ -84,7 +84,6 @@ def run_quality_control(username):
             'item__target1ID',
             'item__itemType',
             'item__id',
-            'item__sourceText',
         )
     else:
         _data = _data.values_list(
@@ -95,7 +94,6 @@ def run_quality_control(username):
             'item__targetID',
             'item__itemType',
             'item__id',
-            'item__sourceText',
         )
 
     _annotations = len(set([x[6] for x in _data]))
@@ -124,10 +122,7 @@ def run_quality_control(username):
 
         _z_score = (_x[2] - _user_mean) / _user_stdev
 
-        if "esa" in campaign_opts:
-            _key = f"{_x[7]} ||| {_x[4]}"
-        else:
-            _key = f'{_x[3]}-{_x[4]}'
+        _key = f'{_x[3]}-{_x[4]}'
 
         _dst[_key].append(_z_score)
 

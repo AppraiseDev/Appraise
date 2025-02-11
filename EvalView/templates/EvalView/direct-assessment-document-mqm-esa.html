@@ -21,12 +21,13 @@
         <tr>
             <td style="width:33%;text-align:left;">
                 <strong id="task_progress">
-                    document {{docs_completed}} / {{docs_total}}
-                    &nbsp;&nbsp;&nbsp;
-                    segment {{items_completed}}/100
+                    Completed {{docs_completed}}/{{docs_total}} documents,
+                    {{items_completed}}/100 segments
                 </strong>
             </td>
-            <td style="width:33%;text-align:center;"></td>
+            <td style="width:33%;text-align:center;">
+                <button class="btn" id="instructions-show">Hide instructions</button>
+            </td>
             <td style="width:33%;text-align:right;">
                 <strong>{{source_language}} &rarr; {{target_language}}</strong>
             </td>
@@ -41,7 +42,10 @@
     <input type="button" value="skip the tutorial" id="skip-tutorial">.
 </div>
 
-<div class="question-box">
+<div class="question-box" id="instructions">
+    {% if guidelines %}
+    <p>{{ guidelines }}</p>
+    {% endif %}
     {% if mqm_type == "MQM" %}
     {% include 'EvalView/_instructions-mqm.html' %}
     {% elif mqm_type == "ESA" %}
@@ -77,11 +81,12 @@
         <div class="source-box">
             <div class="tutorial-text"></div>
             <div class="source-text">
+                <!-- TODO: this means that HTML can be injected, incorrect! -->
                 {{ item.sourceText|safe }}
             </div>
 
             <div class="target-text">
-                {{item.targetText|safe}}
+                {{item.targetText}}
             </div>
         </div>
 

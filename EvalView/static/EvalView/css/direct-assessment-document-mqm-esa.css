@@ -14,6 +14,10 @@
     font-size: 80%;
 }
 
+.ui-slider-horizontal {
+    background: #ddd !important;
+}
+
 .slider-bubble {
     z-index: 100;
     position: relative;
@@ -106,6 +110,13 @@
 
 #button-next-doc:hover {
     opacity: 90%;
+}
+
+#instructions-show {
+    font-weight: bold;
+    background-color: #31708f90;
+    width: 150pt;
+    color: black;
 }
 
 .alert_message {
