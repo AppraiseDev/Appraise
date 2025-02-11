@@ -342,11 +342,6 @@ class PairwiseAssessmentTask(BaseMetadata):
                 )
                 new_items.append(new_item)
 
-            if not len(new_items) == 100:
-                _msg = 'Expected 100 items for task but found {0}'.format(count_items)
-                LOGGER.warn(_msg)
-                continue
-
             current_count += 1
 
             # for new_item in new_items:
