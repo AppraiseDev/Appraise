@@ -787,6 +787,7 @@ class PairwiseAssessmentResult(BasePairwiseAssessmentResult):
         expand_multi_sys=True,
         include_inactive=False,
         add_batch_info=False,
+        include_retired=False,
     ):
         system_data = []
 
@@ -794,7 +795,11 @@ class PairwiseAssessmentResult(BasePairwiseAssessmentResult):
         if extended_csv:
             item_types += ('BAD', 'REF')
 
-        qs = cls.objects.filter(completed=True, item__itemType__in=item_types)
+        # Filter by completion status - either completed or retired
+        if include_retired:
+            qs = cls.objects.filter(retired=True, item__itemType__in=item_types)
+        else:
+            qs = cls.objects.filter(completed=True, item__itemType__in=item_types)
         #        print('Found completed items: {0}'.format(len(qs)))
 
         # If campaign ID is given, only return results for this campaign.
