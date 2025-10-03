@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 from datetime import datetime
 
 from django.core.management.base import BaseCommand
@@ -20,6 +21,7 @@ from Campaign.utils import _process_users
 from Campaign.utils import _validate_language_codes
 from Campaign.utils import CAMPAIGN_TASK_TYPES
 from Dashboard.utils import generate_confirmation_token
+
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):

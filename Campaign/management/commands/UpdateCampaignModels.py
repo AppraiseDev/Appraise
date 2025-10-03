@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 # pylint: disable=W0611
 from os import path
 
@@ -20,6 +21,7 @@ from Campaign.models import TrustedUser
 
 INFO_MSG = 'INFO: '
 WARNING_MSG = 'WARN: '
+
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):

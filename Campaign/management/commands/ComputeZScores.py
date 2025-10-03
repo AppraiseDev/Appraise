@@ -427,7 +427,7 @@ class Command(BaseCommand):
 
             wins_for_system = defaultdict(list)
             p_level = 0.05
-            for (sysA, sysB) in combinations_with_replacement(system_ids, 2):
+            for sysA, sysB in combinations_with_replacement(system_ids, 2):
                 sysA_ids = set([x[0] for x in system_z_scores[sysA]])
                 sysB_ids = set([x[0] for x in system_z_scores[sysB]])
                 good_ids = set.intersection(sysA_ids, sysB_ids)
@@ -577,7 +577,7 @@ class Command(BaseCommand):
                 key = system_id[:4].upper()
                 vsystems[key].extend(system_z_scores[system_id])
 
-            for (sysA, sysB) in combinations_with_replacement(
+            for sysA, sysB in combinations_with_replacement(
                 ['GOOG', 'CAND', 'PROD'], 2
             ):
                 sysA_scores = [x[1] for x in vsystems[sysA]]

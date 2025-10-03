@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 # pylint: disable=W0611
 from collections import defaultdict
 from collections import OrderedDict
@@ -24,6 +25,7 @@ INFO_MSG = 'INFO: '
 
 EXTENSION_FOR_BAD_FILES = 'bad'
 EXTENSION_FOR_IDS_FILES = 'ids'
+
 
 # pylint: disable=C0111
 class Command(BaseCommand):

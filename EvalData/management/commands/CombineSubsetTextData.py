@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 from collections import defaultdict
 from collections import OrderedDict
 from glob import iglob
@@ -16,6 +17,7 @@ from django.core.management.base import CommandError
 # pylint: disable=E0401,W0611
 
 INFO_MSG = 'INFO: '
+
 
 # pylint: disable=C0111
 class Command(BaseCommand):

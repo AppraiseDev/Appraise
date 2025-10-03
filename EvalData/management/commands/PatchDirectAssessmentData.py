@@ -11,6 +11,7 @@ from Campaign.models import Campaign
 from EvalData.models import DirectAssessmentResult
 from EvalData.models import DirectAssessmentTask
 
+
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
     help = 'Validates Direct Assessment JSON data files'

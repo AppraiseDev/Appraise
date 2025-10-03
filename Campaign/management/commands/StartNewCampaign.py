@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 from datetime import datetime
 from os import path
 
@@ -25,6 +26,7 @@ from Campaign.utils import _load_campaign_manifest
 from Campaign.utils import _process_market_and_metadata
 from Dashboard.utils import generate_confirmation_token
 from EvalData.management.commands.UpdateEvalDataModels import _update_eval_data_models
+
 
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):

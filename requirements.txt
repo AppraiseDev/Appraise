@@ -1,5 +1,5 @@
 beautifulsoup4
-django==4.1
+django==4.2.22
 django-stubs
 lxml
 psycopg2-binary

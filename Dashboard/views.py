@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 from datetime import datetime
 from hashlib import md5
 from inspect import currentframe
@@ -83,7 +84,7 @@ def sso_login(request, username, password):
         logout(request)
 
     user = authenticate(username=username, password=password)
-    
+
     # login failed
     if user is None:
         return redirect('dashboard')

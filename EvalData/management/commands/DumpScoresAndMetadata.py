@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 from gzip import open as gz_open
 from os.path import basename
 
@@ -16,6 +17,7 @@ from EvalData.models import DirectAssessmentResult
 
 INFO_MSG = 'INFO: '
 WARNING_MSG = 'WARN: '
+
 
 # pylint: disable=C0111,C0330
 class Command(BaseCommand):

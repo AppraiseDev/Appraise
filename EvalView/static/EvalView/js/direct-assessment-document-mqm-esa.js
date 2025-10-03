@@ -75,6 +75,8 @@ const ERROR_TYPES = {
     },
     "Other": {},
 }
+
+
 Object.keys(SEVERITY_TO_COLOR).map((key) => {
     $(`#instruction_sev_${key}`).css("background-color", SEVERITY_TO_COLOR[key])
 })
@@ -172,8 +174,9 @@ $(document).ready(() => {
     // show submit button only on MQM and not ESA
     $(".button-submit").toggle(MQM_TYPE == "MQM")
 
-    let instructions_show = localStorage.getItem("appraise-instructions-show") == "true"
+    let instructions_show = localStorage.getItem("appraise-instructions-show")
     if (instructions_show == null) instructions_show = true;
+    else instructions_show = instructions_show == "true";
 
     $("#instructions-show").on("click", () => {
         instructions_show = !instructions_show;
@@ -192,9 +195,8 @@ function _all_sentences_scored() {
     return items_left == 0;
 }
 
-function _change_item_status_icon(item_box, icon_name, status_text) {
+function _change_item_status_icon(item_box, icon_name) {
     let icon_box = item_box.find('.status-indicator').removeClass('glyphicon-refresh glyphicon-ok glyphicon-flag');
-    item_box.find(".status-text").text(status_text)
     icon_box.addClass(`glyphicon-${icon_name}`)
 }
 
@@ -208,21 +210,21 @@ function submit_form_ajax(item_box) {
         dataType: 'json',
         beforeSend: function () {
             console.log('Sending AJAX request, item-id=', item_box.data('item-id'));
-            _change_item_status_icon(item_box, 'refresh', "Uploading");
+            _change_item_status_icon(item_box, 'refresh');
         },
         success: function (data) {
             console.log(`Success, saved=${data.saved} next_item=${data.item_id}`);
             if (data.saved) {
-                _change_item_status_icon(item_box, 'ok', "Completed");
+                _change_item_status_icon(item_box, 'ok');
 
             } else {
-                _change_item_status_icon(item_box, 'none', "Upload failed");
+                _change_item_status_icon(item_box, 'warning-sign');
                 _show_error_box(data.error_msg, 10_000);
             }
         },
         error: function (x, s, t) {
             console.log('Error:', x, s, t);
-            _change_item_status_icon(item_box, 'none', "Upload failed");
+            _change_item_status_icon(item_box, 'warning-sign');
             _show_error_box(
                 'An unrecognized error has occured. ' +
                 'Please reload the page or try again in a moment. ',
@@ -261,7 +263,11 @@ async function submit_finish_document(override_tutorial_check=false) {
         await new Promise(resolve => setTimeout(resolve, 5_000))
         $("#button-next-doc").prop('disabled', false);
     }
-
+}
+function decodeEntities(html) {
+    var txt = document.createElement("textarea");
+    txt.innerHTML = html;
+    return txt.value;
 }
 
 function _show_error_box(text, timeout = 2000) {
@@ -287,7 +293,8 @@ class MQMItemHandler {
         this.initialize()
     }
 
-    initialize() {
+    async initialize() {
+        this.el_source = this.el.find(".source-text")
         this.el_target = this.el.find(".target-text")
         this.el_slider = this.el.find('.slider')
         // for Appraise reasons it's a JSON string encoding JSON
@@ -306,6 +313,15 @@ class MQMItemHandler {
         }
         this.mqm_submitted = structuredClone(this.mqm)
         this.mqm_orig = JSON.parse(JSON.parse(this.el.children('#mqm-payload-orig').html()))
+        
+        let _src_raw = JSON.parse(this.el.children('#text-source-payload').html()).trim()
+        this.text_source_orig = decodeEntities(_src_raw)
+        this.source_is_multimodal = (
+            _src_raw.startsWith("<video") ||
+            _src_raw.startsWith("<audio") ||
+            _src_raw.startsWith("<img")
+        )
+        // NOTE: we don't decode entities for the target text, which might cause false positive annotated errors
         this.text_target_orig = JSON.parse(this.el.children('#text-target-payload').html()).trim()
         this.SELECTION_STATE = []
         this.HOVER_UNDECIDED_SPANS = new Set()
@@ -326,15 +342,15 @@ class MQMItemHandler {
         })
         let score = parseFloat(this.el.children('#score-payload').html())
 
+    
         // setup_span_structure
-        let split_text = this.text_target_orig.split("")
-
-        // word-level, not used anymore
-        // split_text = [...TXT_CANDIDATE_ORIGINAL.matchAll(/([\p{L}\-0-9]+|[^\p{L}\-0-9]+)/gu)].map((v) => v[0])
-        let html_candidate = split_text.map((v, i) => {
-            return `<span class="mqm_char" id="candidate_char_${i}" char_id="${i}">${v}</span>`
-        }).join("") + " <span class='mqm_char span_missing' id='candidate_char_missing' char_id='missing'>[MISSING]</span>"
-        this.el_target.html(html_candidate)
+        let html_target = this.text_target_orig.split("").map((v, i) => {
+            if (v == "\n") {
+                return "<br>" // preserve newlines
+            }
+            return `<span class="mqm_char" id="target_char_${i}" char_id="${i}">${v}</span>`
+        }).join("") + " <span class='mqm_char span_missing' id='target_char_missing' char_id='missing'>[MISSING]</span>"
+        this.el_target.html(html_target)
 
         this.redraw_mqm()
 
@@ -349,6 +365,48 @@ class MQMItemHandler {
         if (score != -1) {
             this.el_slider.slider('value', score);
         }
+
+        // handle character alignment estimation
+        if (!this.source_is_multimodal) {
+            let html_source = this.text_source_orig.split("").map((v, i) => {
+                if (v == "\n") {
+                    return "<br>" // preserve newlines
+                }
+                return `<span class="mqm_char_src" id="source_char_${i}" char_id="${i}">${v}</span>`
+            }).join("")
+            this.el_source.html(html_source)
+
+            await waitout_js_loop()
+
+            let len_src = this.text_source_orig.split("").length
+            let len_tgt = this.text_target_orig.split("").length
+            this.el_target.children(".mqm_char").each((i, el) => {
+                // on hover
+                $(el).on("mouseenter", () => {
+                    // get char position from attribute
+                    let tgt_char_i = Number.parseInt($(el).attr("char_id"))
+                    // approximate position
+                    let src_char_i = Math.floor(tgt_char_i * len_src / len_tgt)
+                    // remove underline from all mqm
+                    this.el_source.children(".mqm_char_src").css("text-decoration", "")
+
+                    let highlight_width = Math.floor(16 / 2)
+                    // set underline to the corresponding character and its neighbours
+                    for (let range = highlight_width; range > 0; range--) {
+                        // extrapolate range between #111 and #ddd
+                        let color = (Math.floor((range-1)/highlight_width * (0xd - 0x1))+0x1).toString(16)
+                        for (let i = Math.max(0, src_char_i - range); i <= Math.min(len_src, src_char_i + range); i++) {
+                            this.el_source.children(`#source_char_${i}`).css("text-decoration", `underline 15% #${color}${color}${color} solid`)
+                        }
+                    }
+                })
+                // on leave remove all decorations
+                $(el).on("mouseleave", () => {
+                    this.el_source.children(".mqm_char_src").css("text-decoration", "")
+                })
+            })
+        }
+
 
         // slider bubble handling
         this.el_slider.find(".ui-slider-handle").append("<div class='slider-bubble'>100</div>")
@@ -398,10 +456,6 @@ class MQMItemHandler {
     async redraw_mqm() {
         // store currently displayed version
         this.el.find('input[name="mqm"]').val(JSON.stringify(this.mqm));
-
-        // NOTE: do not automatically recompute
-        // should be in range [0, 100]
-        // this.el_slider.slider('value', this.current_mqm_score(true))
 
         // redraw
         this.el_target.children(".mqm_char").each((i, el) => {
@@ -459,10 +513,10 @@ class MQMItemHandler {
 
     check_status() {
         if (this.el.attr("data-item-completed") == "True") {
-            _change_item_status_icon(this.el, "ok", "Completed")
+            _change_item_status_icon(this.el, "ok")
             this.el.find(".button-submit").hide()
         } else {
-            _change_item_status_icon(this.el, "flag", "Unfinished")
+            _change_item_status_icon(this.el, "flag")
         }
     }
 
@@ -514,23 +568,6 @@ class MQMItemHandler {
             alert(`Please follow the tutorial instructions.\n(${this.text_target_orig.substring(0, 60)}...)`);
             return false
         }
-        // skip other messages in the tutorial
-        // if (this.tutorial) {
-        //     return true
-        // }
-
-        // if (this.mqm.some((x) => x["severity"] == "undecided")) {
-        //     alert('There are some segments without severity (in blue). Click on them to change their severities.');
-        //     return false
-        // }
-
-        // remove dialogs
-        // if (this.mqm.length == 0 && !confirm("There are no annotated text fragments. Are you sure you want to submit?")) {
-        //     return false
-        // }
-        // if (MQM_TYPE == "ESA" && this.current_mqm_score(true) == Number.parseFloat(this.el.find("input[name='score']").val()) && !confirm("You did not change the original translation score. Are you sure you want to submit?")) {
-        //     return false
-        // }
         return true;
     }
 

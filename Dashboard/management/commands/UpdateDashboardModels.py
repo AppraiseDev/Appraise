@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 # pylint: disable=C0103,W0611
 from os.path import basename
 
@@ -19,6 +20,7 @@ from Dashboard.models import LANGUAGE_CODES_AND_NAMES
 
 INFO_MSG = 'INFO: '
 WARNING_MSG = 'WARN: '
+
 
 # pylint: disable=C0111,C0330
 class Command(BaseCommand):

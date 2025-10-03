@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 # pylint: disable=unused-import,import-error
 from django.conf.urls import handler404
 from django.conf.urls import handler500
@@ -187,8 +188,8 @@ urlpatterns = [
         name='pairwise-assessment-document',
     ),
     re_path(
-        r'^campaign-status/(?P<campaign_name>[a-zA-Z0-9]+)/'
-        r'(?P<sort_key>[0123456])?/?$',
+        r'^campaign-status/(?P<campaign_name>[a-zA-Z0-9]+(,[a-zA-Z0-9]+)*)/'
+        r'(?P<sort_key>[a-zA-Z0-9_])?/?$',
         campaign_views.campaign_status,
         name='campaign_status',
     ),

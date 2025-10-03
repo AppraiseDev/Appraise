@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 from pathlib import Path
 
 from django.contrib.auth.models import User

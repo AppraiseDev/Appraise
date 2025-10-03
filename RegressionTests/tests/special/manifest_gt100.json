@@ -1,0 +1,14 @@
+{
+    "CAMPAIGN_URL": "http://127.0.0.1:8000/dashboard/sso/",
+    "CAMPAIGN_NAME": "example15esaGT100",
+    "CAMPAIGN_KEY": "example15esaGT100",
+    "CAMPAIGN_NO": 150,
+    "REDUNDANCY": 2,
+
+    "TASKS_TO_ANNOTATORS": [
+        ["eng", "deu", "uniform",  4, 2]
+    ],
+
+    "TASK_TYPE": "Document",
+    "TASK_OPTIONS": "ESA"
+}

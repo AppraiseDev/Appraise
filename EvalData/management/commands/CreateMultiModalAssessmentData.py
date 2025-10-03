@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 # pylint: disable=W0611
 import json
 from collections import defaultdict
@@ -16,6 +17,7 @@ from django.core.management.base import BaseCommand
 from django.core.management.base import CommandError
 
 from Dashboard.models import LANGUAGE_CODES_AND_NAMES
+
 
 # pylint: disable=C0111
 class Command(BaseCommand):

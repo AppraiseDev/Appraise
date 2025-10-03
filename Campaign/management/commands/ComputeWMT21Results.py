@@ -463,7 +463,7 @@ class Command(BaseCommand):
             wins_for_system = defaultdict(list)
             losses_for_system = defaultdict(list)
             p_level = 0.05
-            for (sysA, sysB) in combinations_with_replacement(system_ids, 2):
+            for sysA, sysB in combinations_with_replacement(system_ids, 2):
                 sysA_ids = set([x[0] for x in system_z_scores[sysA]])
                 sysB_ids = set([x[0] for x in system_z_scores[sysB]])
                 good_ids = set.intersection(sysA_ids, sysB_ids)

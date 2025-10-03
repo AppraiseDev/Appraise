@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 # pylint: disable=C0103,C0330,no-member
 from datetime import timezone
 
@@ -25,7 +26,7 @@ from Appraise.utils import _get_logger
 # TODO: Unclear if these are needed?
 # from Appraise.settings import STATIC_URL, BASE_CONTEXT
 
-MAX_DOMAINNAME_LENGTH = 20
+MAX_DOMAINNAME_LENGTH = 50
 MAX_LANGUAGECODE_LENGTH = 10
 MAX_CORPUSNAME_LENGTH = 100
 MAX_VERSIONINFO_LENGTH = 20

@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 import logging
 
 from Appraise.settings import LOG_HANDLER
@@ -33,8 +34,8 @@ def _compute_user_total_annotation_time(timestamps):
     def _clamp_time(seconds):
         # if a segment takes longer than 10 minutes, set it to 5 minutes
         # it's likely due to inactivity
-        if seconds >= 10*60:
-            return 5*60
+        if seconds >= 10 * 60:
+            return 5 * 60
         else:
             return seconds
 

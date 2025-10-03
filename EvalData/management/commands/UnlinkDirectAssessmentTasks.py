@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 # pylint: disable=W0611
 from datetime import datetime
 from datetime import timedelta
@@ -29,6 +30,7 @@ from EvalData.models import TextPairWithImage
 
 INFO_MSG = 'INFO: '
 WARNING_MSG = 'WARN: '
+
 
 # pylint: disable=C0111,C0330
 class Command(BaseCommand):

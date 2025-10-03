@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 # pylint: disable=C0103,C0330,no-member
 import sys
 from collections import defaultdict
@@ -425,14 +426,7 @@ class DataAssessmentTask(BaseMetadata):
                 )
                 new_items.append(new_item)
 
-            if not len(new_items) == 100:
-                _msg = 'Expected 100 items for task but found {0}'.format(
-                    len(new_items)
-                )
-                LOGGER.warn(_msg)
-                print(_msg)
-                continue
-
+            LOGGER.info(f'The task has {len(new_items)} items')
             current_count += 1
 
             # for new_item in new_items:
@@ -896,18 +890,15 @@ class DataAssessmentResult(BaseMetadata):
         for result in qs.values_list(*attributes_to_extract):
             user_id = result[0]
 
-            _fixed_ids = result[1].replace('Transformer+R2L', 'Transformer_R2L')
-            _fixed_ids = _fixed_ids.replace('R2L+Back', 'R2L_Back')
-
             if expand_multi_sys:
-                system_ids = _fixed_ids.split('+')
+                system_ids = result[1].split('+')
 
                 for system_id in system_ids:
                     data = (user_id,) + (system_id,) + result[2:]
                     system_data.append(data)
 
             else:
-                system_id = _fixed_ids
+                system_id = result[1]
                 data = (user_id,) + (system_id,) + result[2:]
                 system_data.append(data)
 

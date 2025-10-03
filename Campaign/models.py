@@ -1,6 +1,7 @@
 """
 Campaign models.py
 """
+
 # pylint: disable=C0111,C0330,E1101
 from json import JSONDecodeError
 from json import loads

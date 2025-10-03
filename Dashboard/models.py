@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 from uuid import uuid4
 
 from django.contrib.auth.models import Group
@@ -224,6 +225,7 @@ LANGUAGE_CODES_AND_NAMES = {
     'kas': 'Kashmiri (كٲشُر)',
     'mni': 'Meitei (ꯃꯩꯇꯩꯂꯣꯟ)',
     'sat': 'Santali (ᱥᱟᱱᱛᱟᱲᱤ)',
+    'mas': 'Maasai (Ol Maa)',
 }
 
 # All sign language codes

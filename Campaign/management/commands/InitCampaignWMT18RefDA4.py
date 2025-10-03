@@ -23,6 +23,7 @@ ANNOTATORS = 50
 TASKS = 100
 REDUNDANCY = 1
 
+
 # pylint: disable=C0111,C0330,E1101
 class Command(BaseCommand):
     help = 'Initialises campaign WMT18 RefDA4'

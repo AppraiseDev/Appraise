@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 from os.path import basename
 
 from django.core.management.base import BaseCommand
@@ -16,6 +17,7 @@ from EvalData.models import MultiModalAssessmentResult
 
 INFO_MSG = 'INFO: '
 WARNING_MSG = 'WARN: '
+
 
 # pylint: disable=C0111,C0330
 class Command(BaseCommand):

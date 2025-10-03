@@ -3,6 +3,7 @@ Appraise evaluation framework
 
 See LICENSE for usage details
 """
+
 from datetime import datetime
 from datetime import timezone
 
@@ -1089,17 +1090,13 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
         end_timestamp = request.POST.get('end_timestamp', None)
         ajax = bool(request.POST.get('ajax', None) == 'True')
 
-
         db_item = current_task.items.filter(
             itemID=item_id,
             id=task_id,
         )
 
-
         if len(db_item) == 0:
-            error_msg = (
-                f'We could not find item {item_id} in task {task_id}.'
-            )
+            error_msg = f'We could not find item {item_id} in task {task_id}.'
             LOGGER.error(error_msg)
             item_saved = False
         elif len(db_item) > 1:
@@ -1136,10 +1133,11 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
     (
         next_item,
         items_completed,
+        items_total,
         docs_completed,
+        docs_total,
         doc_items,
         doc_items_results,
-        docs_total,
     ) = current_task.next_document_for_user_mqmesa(request.user)
 
     if not next_item:
@@ -1154,11 +1152,15 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
             # Send response to the Ajax POST request
             return JsonResponse(context)
 
-    # TODO: hotfix for WMT24
+    # TODO: hotfix for WMT24 and WMT25
     # Tracking issue: https://github.com/AppraiseDev/Appraise/issues/185
     for item in doc_items:
-        # don't escape HTML video
-        if item.sourceText.strip().startswith("<video"):
+        # don't escape HTML video, audio or images
+        if (
+            item.sourceText.strip().startswith("<video") or
+            item.sourceText.strip().startswith("<audio") or
+            item.sourceText.strip().startswith("<img")
+        ):
             continue
         item.sourceText = escape(item.sourceText)
 
@@ -1185,10 +1187,10 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
     if 'contrastiveesa' in campaign_opts:
         # escape <br/> tags in the source and target texts
         for item in doc_items:
-            item.sourceText = item.sourceText \
-                .replace("&lt;eos&gt;", "<code>&lt;eos&gt;</code>") \
-                .replace("&lt;br/&gt;", "<br/>")
-            # HTML-esaping on the target text will not work because MQM/ESA tag insertion prevents it 
+            item.sourceText = item.sourceText.replace(
+                "&lt;eos&gt;", "<code>&lt;eos&gt;</code>"
+            ).replace("&lt;br/&gt;", "<br/>")
+            # HTML-esaping on the target text will not work because MQM/ESA tag insertion prevents it
         guidelines = (
             'You are provided with a text in {0} and its candidate translation(s) into {1}. '
             'Please assess the quality of the translation(s) following the detailed guidelines below. '.format(
@@ -1204,6 +1206,7 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
         'task_id': next_item.id,
         'document_id': next_item.documentID,
         'items_completed': items_completed,
+        'items_total': items_total,
         'docs_completed': docs_completed,
         'docs_total': docs_total,
         'source_language': source_language,
@@ -2281,7 +2284,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     new_ui = 'newui' in campaign_opts
     escape_eos = 'escapeeos' in campaign_opts
     escape_br = 'escapebr' in campaign_opts
-    highlight_style ='highlightstyle' in campaign_opts
+    highlight_style = 'highlightstyle' in campaign_opts
 
     # Get item scores from the latest corresponding results
     block_scores = []
@@ -2310,12 +2313,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
 
         if escape_br:
             _source_text = _source_text.replace("&lt;br/&gt;", "<br/>")
-            _candidate1_text = _candidate1_text.replace(
-                "&lt;br/&gt;", "<br/>"
-            )
-            _candidate2_text = _candidate2_text.replace(
-                "&lt;br/&gt;", "<br/>"
-            )
+            _candidate1_text = _candidate1_text.replace("&lt;br/&gt;", "<br/>")
+            _candidate2_text = _candidate2_text.replace("&lt;br/&gt;", "<br/>")
 
         item_scores = {
             'completed': bool(result and result.score1 > -1),

@@ -123,9 +123,7 @@ class Command(BaseCommand):
             exit()
 
         if options["verbosity"] > 1:
-            self.stdout.write(
-                f"Available context keys: {response.context.keys()}"
-            )
+            self.stdout.write(f"Available context keys: {response.context.keys()}")
 
         # Each task has different context, so the POST request needs to be
         # built separately for each task type

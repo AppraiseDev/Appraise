@@ -218,14 +218,18 @@ def unwrap_tsv(
         for line in tsv:
             fields = line.rstrip("\n").split('\t')
             if len(fields) < 5:
-                print(f"Error: too few fields in {tsv_file}, required fields: DocID, src, ref, sysA, sysB")
+                print(
+                    f"Error: too few fields in {tsv_file}, required fields: DocID, src, ref, sysA, sysB"
+                )
                 exit()
 
             docid, src, ref, sysA, sysB = fields[:5]
 
             if docid not in src_docs:
                 src_docs[docid] = []
-            segid = len(src_docs[docid]) + 1  # segment ID is 1-based to keep it consistent with XML format
+            segid = (
+                len(src_docs[docid]) + 1
+            )  # segment ID is 1-based to keep it consistent with XML format
             src_docs[docid].append((segid, src))
 
             if docid not in ref_docs['A']:
@@ -684,7 +688,9 @@ if __name__ == "__main__":
     print(f'Loading docs from {XML_FILE}')
 
     if TSV_FILE:
-        SRC_DOCS, REF_DOCS, SYS_DOCS = unwrap_tsv(XML_FILE, encoding=ENC, system_A=SYSTEM_A, system_B=SYSTEM_B)
+        SRC_DOCS, REF_DOCS, SYS_DOCS = unwrap_tsv(
+            XML_FILE, encoding=ENC, system_A=SYSTEM_A, system_B=SYSTEM_B
+        )
     else:
         src_lang, SRC_DOCS, ref_lang, REF_DOCS, hyp_lang, SYS_DOCS = unwrap_xml(
             XML_FILE, encoding=ENC
@@ -849,7 +855,9 @@ if __name__ == "__main__":
 
         elif task_len < MAX_TASK_SIZE:
             pad_size = MAX_TASK_SIZE - task_len
-            pad_data: List[Tuple[int, str, bool]] = [(tup[0], tup[1], False) for tup in task]
+            pad_data: List[Tuple[int, str, bool]] = [
+                (tup[0], tup[1], False) for tup in task
+            ]
             pad_pos = 0
             while pad_size > 0:
                 print(f'pad_size: {pad_size}')
@@ -863,7 +871,12 @@ if __name__ == "__main__":
                 print(f'pad_pos: {pad_pos}')
 
                 last_doc: Tuple[int, str, bool] = pad_data[-1]
-                print('Making the last doc smaller', last_doc[0], '-->', last_doc[0] + pad_size)
+                print(
+                    'Making the last doc smaller',
+                    last_doc[0],
+                    '-->',
+                    last_doc[0] + pad_size,
+                )
                 fixed_doc = (last_doc[0] + pad_size, *last_doc[1:])
                 pad_data[-1] = fixed_doc
                 # print(pad_data[-1][0])
@@ -874,7 +887,9 @@ if __name__ == "__main__":
 
         else:
             print(f'WARNING: no control items in task no. {tid}')
-            pad_data: List[Tuple[int, str, bool]] = [(tup[0], tup[1], False) for tup in task]
+            pad_data: List[Tuple[int, str, bool]] = [
+                (tup[0], tup[1], False) for tup in task
+            ]
             padded_tasks.append(tuple(pad_data))
 
     if EVEN_NUM and len(padded_tasks) % 2 == 1:
@@ -971,8 +986,8 @@ if __name__ == "__main__":
                 item_src = _src[seg_id]
                 item_ref = _ref[seg_id]
 
-                item_bads = { sys_id: _bads[sys_id][seg_id] for sys_id in SYS_IDS }
-                item_tgts = { sys_id: _tgts[sys_id][seg_id] for sys_id in SYS_IDS }
+                item_bads = {sys_id: _bads[sys_id][seg_id] for sys_id in SYS_IDS}
+                item_tgts = {sys_id: _tgts[sys_id][seg_id] for sys_id in SYS_IDS}
                 item_type = 'TGT'
 
                 # Do not generate any BAD items if QC is disabled
@@ -1005,7 +1020,9 @@ if __name__ == "__main__":
                 for tgt_idx, sys_id in enumerate(_shuffled_sys_ids):
                     tgt_ctx = []
                     if seg_counter == 0:
-                        tgt_ctx = [txt for _, txt in SYS_PREV[sys_id][doc_id]][-CTX_SIZE:]
+                        tgt_ctx = [txt for _, txt in SYS_PREV[sys_id][doc_id]][
+                            -CTX_SIZE:
+                        ]
 
                     tobj = OrderedDict()
                     tobj['_itemAll'] = _itemAll

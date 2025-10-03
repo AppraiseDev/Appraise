@@ -255,37 +255,42 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         Used for MQM/ESA views
         Specifically a tuple with:
             next_item,
-            completed_items,
-            completed_docs,
+            items_completed,
+            items_total,
+            docs_completed,
+            docs_total,
             doc_items,
             doc_items_results,
-            total_docs,
         """
 
-        # get all items (100) and try to find resul
+        # get all items and try to find a matching result
+        # TODO: probably can be optimized better
+
+        items_user = DirectAssessmentDocumentResult.objects.filter(
+            activated=False, completed=True, createdBy=user
+        )
         all_items = [
             (
-                item, 
-                DirectAssessmentDocumentResult.objects.filter(
-                    item=item, activated=False, completed=True, createdBy=user
-                ).last()
+                item,
+                items_user.filter(item=item).last(),
             )
             for item in self.items.all().order_by('id')
         ]
         unfinished_items = [i for i, r in all_items if not r]
-        
-        docs_total = len({i.documentID for i, r in all_items})
-        items_completed = len([
-            i for i, r in all_items if r and r.completed
-        ])
-        docs_completed = docs_total - len({
-            i.documentID for i, r in all_items if r is None or not r.completed
-        })
-        
+
+        # documentID + targetID uniquely identifies documents
+        docs_total = len({(i.documentID, i.targetID) for i, r in all_items})
+        items_completed = len([i for i, r in all_items if r and r.completed])
+        docs_completed = docs_total - len(
+            {(i.documentID, i.targetID) for i, r in all_items if r is None or not r.completed}
+        )
+        items_total = len(all_items)
+
         if not unfinished_items:
             return (
                 None,
                 items_completed,
+                items_total,
                 docs_completed,
                 [],
                 [],
@@ -295,7 +300,8 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         # things are ordered with batch order
         next_item = unfinished_items[0]
         doc_items_all = [
-            (i, r) for i, r in all_items
+            (i, r)
+            for i, r in all_items
             # match document name and system
             if i.documentID == next_item.documentID and i.targetID == next_item.targetID
         ]
@@ -308,12 +314,13 @@ class DirectAssessmentDocumentTask(BaseMetadata):
         )
 
         return (
-            next_item,         # the first unannotated item for the user
-            items_completed,   # the number of completed items in the task
-            docs_completed,    # the number of completed documents in the task
-            doc_items,         # all items from the current document
-            doc_items_results, # all score results from the current document
-            docs_total,        # the total number of documents in the task
+            next_item,  # the first unannotated item for the user
+            items_completed,  # the number of completed items in the task
+            items_total,
+            docs_completed,  # the number of completed documents in the task
+            docs_total,  # the total number of documents in the task
+            doc_items,  # all items from the current document
+            doc_items_results,  # all score results from the current document
         )
 
     def get_results_for_each_item(self, block_items, user):
@@ -458,13 +465,7 @@ class DirectAssessmentDocumentTask(BaseMetadata):
                 if item['isCompleteDocument']:
                     doc_items += 1
 
-            if (len(new_items) - doc_items) != 100:
-                _msg = 'Expected 100 items for task but found {0}'.format(
-                    len(new_items) - doc_items
-                )
-                LOGGER.warn(_msg)
-                continue
-
+            LOGGER.info(f'The task has {len(new_items)} items')
             current_count += 1
 
             for new_item in new_items:
@@ -598,31 +599,27 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
     @classmethod
     def get_time_for_user(cls, user):
         results = cls.objects.filter(createdBy=user, activated=False, completed=True)
-        is_esa_or_mqm = any([
-            "esa" in result.task.campaign.campaignOptions.lower().split(";") or
-            "mqm" in result.task.campaign.campaignOptions.lower().split(";")
-            for result in results
-        ])
+        if not results:
+            return seconds_to_timedelta(0)
+        is_esa_or_mqm = any(
+            [
+                "esa" in result.task.campaign.campaignOptions.lower().split(";") or
+                "mqm" in result.task.campaign.campaignOptions.lower().split(";")
+                for result in results
+            ]
+        )
 
         if is_esa_or_mqm:
-            # for ESA or MQM, do minimum and maximum from each doc
-            import collections
-            timestamps = collections.defaultdict(list)
-            for result in results:
-                timestamps[result.item.documentID+" ||| "+result.item.targetID].append((result.start_time, result.end_time))
-
-            # timestamps are document-level now, but that does not change anything later on
-            timestamps = [
-                (min([x[0] for x in doc_v]), max([x[1] for x in doc_v]))
-                for doc, doc_v in timestamps.items()
-            ]
+            # consider time that's in any action within 10 minutes
+            times = sorted([item.start_time for item in results] + [item.end_time for item in results])
+            annotation_time = sum([b-a for a, b in zip(times, times[1:]) if (b-a) < 10*60])
+            return seconds_to_timedelta(annotation_time)
         else:
             timestamps = []
             for result in results:
                 timestamps.append((result.start_time, result.end_time))
 
-
-        return seconds_to_timedelta(_compute_user_total_annotation_time(timestamps))
+            return seconds_to_timedelta(_compute_user_total_annotation_time(timestamps))
 
     @classmethod
     def get_system_annotations(cls):
@@ -936,9 +933,10 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
         qs = cls.objects.filter(completed=True, item__itemType__in=item_types)
 
         # If campaign ID is given, only return results for this campaign.
-        campaign_name = None
         if campaign_id:
             qs = qs.filter(task__campaign__id=campaign_id)
+            if not qs:
+                return []
             campaign_opts = str(qs.first().task.campaign.campaignOptions)
 
         if not include_inactive:
@@ -947,7 +945,7 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
         attributes_to_extract = (
             'createdBy__username',  # User ID
             'item__targetID',  # System ID
-            'item__itemID',  # Segment ID
+            'item__sourceID',  # Source ID
             'item__itemType',  # Item type
             'item__metadata__market__sourceLanguageCode',  # Source language
             'item__metadata__market__targetLanguageCode',  # Target language
@@ -983,18 +981,15 @@ class DirectAssessmentDocumentResult(BaseAssessmentResult):
         for result in qs.values_list(*attributes_to_extract):
             user_id = result[0]
 
-            _fixed_ids = result[1].replace('Transformer+R2L', 'Transformer_R2L')
-            _fixed_ids = _fixed_ids.replace('R2L+Back', 'R2L_Back')
-
             if expand_multi_sys:
-                system_ids = _fixed_ids.split('+')
+                system_ids = result[1].split('+')
 
                 for system_id in system_ids:
                     data = (user_id,) + (system_id,) + result[2:]
                     system_data.append(data)
 
             else:
-                system_id = _fixed_ids
+                system_id = result[1]
                 data = (user_id,) + (system_id,) + result[2:]
                 system_data.append(data)
 

@@ -34,4 +34,7 @@ test:
 install: requirements-dev.txt
 	pip install -r $<
 
+reformat:
+	black -S -l $(BLACK_LINE_MAXLEN) . --force-exclude '/migrations/'
+
 .PHONY: all check check-black check-pylint check-mypy check-safety run test

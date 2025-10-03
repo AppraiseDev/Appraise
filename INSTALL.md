@@ -78,7 +78,7 @@ The manifest looks like this:
 - In the associated data we had only one En-De task. The combination of redundancy of 2 and the first 2 in the task distribution simply creates two accounts with the same single task (redundant). If there were e.g. 5 tasks and we wanted no redundancy, the line would be `["eng", "deu", "uniform",  5, 5]`. 
 Alternatively to manual manifests, a Django command can be created instead of the manifest file, see `Campaign/management/commands/InitCampaigh*.py`.
 
-The batches file is a list of tasks with items and task descriptions. As a rule, there are exactly 100 segments in a task. An example for ESA/MQM:
+The batches file is a list of tasks with items and task descriptions. There are usually at least 100 segments in a task. An example for ESA/MQM:
 ```
 [
     {
