@@ -2135,6 +2135,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     if request.method == "POST":
         score1 = request.POST.get('score1', None)
         score2 = request.POST.get('score2', None)
+        mqm1 = request.POST.get('mqm1', None)
+        mqm2 = request.POST.get('mqm2', None)
         item_id = request.POST.get('item_id', None)
         task_id = request.POST.get('task_id', None)
         document_id = request.POST.get('document_id', None)
@@ -2143,10 +2145,10 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         browser_info = request.POST.get('browser_info', None)
         ajax = bool(request.POST.get('ajax', None) == 'True')
 
-        LOGGER.info('score1=%s, score2=%s, item_id=%s', score1, score2, item_id)
+        LOGGER.info('score1=%s, score2=%s, item_id=%s, mqm1=%s, mqm2=%s', score1, score2, item_id, mqm1, mqm2)
         print(
-            'Got request score1={0}, score2={1}, item_id={2}, ajax={3}'.format(
-                score1, score2, item_id, ajax
+            'Got request score1={0}, score2={1}, item_id={2}, ajax={3}, mqm1={4}, mqm2={5}'.format(
+                score1, score2, item_id, ajax, mqm1, mqm2
             )
         )
 
@@ -2183,19 +2185,26 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
 
                     utc_now = datetime.utcnow().replace(tzinfo=utc)
                     # pylint: disable=E1101
-                    PairwiseAssessmentDocumentResult.objects.create(
-                        score1=score1,
-                        score2=score2,
-                        start_time=float(start_timestamp),
-                        end_time=float(end_timestamp),
-                        browser_info=browser_info,
-                        item=current_item,
-                        task=current_task,
-                        createdBy=request.user,
-                        activated=False,
-                        completed=True,
-                        dateCompleted=utc_now,
-                    )
+                    result_data = {
+                        'score1': score1,
+                        'score2': score2,
+                        'start_time': float(start_timestamp),
+                        'end_time': float(end_timestamp),
+                        'item': current_item,
+                        'task': current_task,
+                        'createdBy': request.user,
+                        'activated': False,
+                        'completed': True,
+                        'dateCompleted': utc_now,
+                    }
+                    if browser_info:
+                        result_data['browser_info'] = browser_info
+                    if mqm1:
+                        result_data['mqm1'] = mqm1
+                    if mqm2:
+                        result_data['mqm2'] = mqm2
+                    
+                    PairwiseAssessmentDocumentResult.objects.create(**result_data)
                     print('Item {} (itemID={}) saved'.format(task_id, item_id))
                     item_saved = True
 
@@ -2227,6 +2236,10 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
                         current_result.end_time = float(end_timestamp)
                         if browser_info:
                             current_result.browser_info = browser_info
+                        if mqm1:
+                            current_result.mqm1 = mqm1
+                        if mqm2:
+                            current_result.mqm2 = mqm2
                         utc_now = datetime.utcnow().replace(tzinfo=utc)
                         current_result.dateCompleted = utc_now
                         current_result.save()
@@ -2253,19 +2266,26 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
                         if found_item:
                             utc_now = datetime.utcnow().replace(tzinfo=utc)
                             # pylint: disable=E1101
-                            PairwiseAssessmentDocumentResult.objects.create(
-                                score1=score1,
-                                score2=score2,
-                                start_time=float(start_timestamp),
-                                end_time=float(end_timestamp),
-                                browser_info=browser_info,
-                                item=found_item,
-                                task=current_task,
-                                createdBy=request.user,
-                                activated=False,
-                                completed=True,
-                                dateCompleted=utc_now,
-                            )
+                            result_data = {
+                                'score1': score1,
+                                'score2': score2,
+                                'start_time': float(start_timestamp),
+                                'end_time': float(end_timestamp),
+                                'item': found_item,
+                                'task': current_task,
+                                'createdBy': request.user,
+                                'activated': False,
+                                'completed': True,
+                                'dateCompleted': utc_now,
+                            }
+                            if browser_info:
+                                result_data['browser_info'] = browser_info
+                            if mqm1:
+                                result_data['mqm1'] = mqm1
+                            if mqm2:
+                                result_data['mqm2'] = mqm2
+                            
+                            PairwiseAssessmentDocumentResult.objects.create(**result_data)
                             _msg = 'Item {} (itemID={}) saved, although it was not the next item'.format(
                                 task_id, item_id
                             )
@@ -2326,6 +2346,10 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     scalar_slider = 'scalarslider' in campaign_opts
     collect_browser_info = 'collectbrowserinfo' in campaign_opts
     disable_mobile = 'disablemobile' in campaign_opts
+    pairwise_esa = 'pairwiseesa' in campaign_opts
+    
+    print(f"DEBUG: campaign_opts={campaign_opts}")
+    print(f"DEBUG: pairwise_esa={pairwise_esa}")
 
     # Get item scores from the latest corresponding results
     block_scores = []
@@ -2365,7 +2389,43 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             'candidate1_text': _candidate1_text,
             'candidate2_text': _candidate2_text,
             'segment_text': _source_text,
+            # Always initialize mqm1 and mqm2 for pairwise assessment document
+            # to avoid undefined errors in the template
+            'mqm1': '[]',
+            'mqm2': '[]',
+            'start_timestamp': '',
+            'end_timestamp': '',
         }
+        
+        # Add MQM data for pairwise ESA if available
+        if pairwise_esa:
+            # Override with actual MQM data if it exists
+            # Use getattr to safely handle cases where the field might not exist
+            if result:
+                mqm1_value = getattr(result, 'mqm1', None)
+                mqm2_value = getattr(result, 'mqm2', None)
+                
+                # Debug logging
+                print(f"DEBUG: result.id={result.id if result else 'None'}, mqm1_value={repr(mqm1_value)}, mqm2_value={repr(mqm2_value)}")
+                
+                # Use mqm1_value if it's a non-empty, non-None value
+                if mqm1_value and mqm1_value != '[]':
+                    item_scores['mqm1'] = mqm1_value
+                elif mqm1_value == '[]':
+                    # Keep the default '[]'
+                    pass
+                
+                # Use mqm2_value if it's a non-empty, non-None value
+                if mqm2_value and mqm2_value != '[]':
+                    item_scores['mqm2'] = mqm2_value
+                elif mqm2_value == '[]':
+                    # Keep the default '[]'
+                    pass
+                
+                item_scores['start_timestamp'] = result.start_time if result.start_time else ''
+                item_scores['end_timestamp'] = result.end_time if result.end_time else ''
+        
+        print(f"DEBUG: item_scores mqm1={repr(item_scores['mqm1'])}, mqm2={repr(item_scores['mqm2'])}")
         block_scores.append(item_scores)
 
     # completed_items_check = current_task.completed_items_for_user(
@@ -2473,6 +2533,17 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             'The presented texts are messages from an online video game chat. '
             'Please take into account the video gaming genre when making your assessments. </br> '
         ]
+    
+    if pairwise_esa:
+        priming_question_texts = [
+            f'Below you see a document in {source_language} and two different translations in {target_language}.'
+            'Your task:'
+            '<ol>'
+            '<li>Read the source text and two competing translations.</li>'
+            '<li>Highlight all translation errors in each translation.</li>'
+            '<li>Rate each translation using the scale provided below.</li>'
+            '</ol>'
+        ]
 
     sentence_item_count = len([item for item in block_items if not item.isCompleteDocument])
 
@@ -2504,6 +2575,14 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'collect_browser_info': collect_browser_info,
         'disable_mobile': disable_mobile,
     }
+    
+    # Add ESA-specific context
+    if pairwise_esa:
+        context['mqm_type'] = 'ESA'  # Could check for 'mqm' in campaign_opts if needed
+        context['items_completed'] = completed_items
+        context['items_total'] = current_task.items.count()
+        context['docs_completed'] = completed_blocks
+        context['docs_total'] = total_blocks
 
     if ajax:
         ajax_context = {'saved': item_saved, 'error_msg': error_msg}
@@ -2523,7 +2602,10 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     context.update(page_context)
     context.update(BASE_CONTEXT)
 
-    template = 'EvalView/pairwise-assessment-document.html'
-    if new_ui:
+    if pairwise_esa:
+        template = 'EvalView/pairwise-assessment-document-esa.html'
+    elif new_ui:
         template = 'EvalView/pairwise-assessment-document-newui.html'
+    else:
+        template = 'EvalView/pairwise-assessment-document.html'
     return render(request, template, context)

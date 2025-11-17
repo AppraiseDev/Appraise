@@ -11,7 +11,7 @@
 .slider-box { font-size:16px; width:100%; }
 .slider-box .slider-grid { font-size:14px; width:100%; color:#777; }
 
-.sqm-labels { margin-bottom:10px; }
+.sqm-labels { margin-bottom:10px; color: #777; font-size:x-small; }
 .sqm-label-first { padding-right:1px !important; }
 .sqm-label-last { padding-left:1px !important; }
 
@@ -19,10 +19,10 @@
 .half-slider .slider-grid td:last-of-type { padding-right:0; }
 .half-slider .slider { margin-top:5px !important; }
 
-/* .quotelike .row, .pseudoquotelike .row { font-size: 16px; margin: 0; padding: 10px 10px; } */
-.quotelike.active { background-color: #f7f7f7; }
+/*.quotelike .row, .pseudoquotelike .row { font-size: 16px; margin: 0; padding: 10px 10px; }*/
+.quotelike { background-color: #fff !important; }
 
-.question-box { margin:20px 0; }
+.question-box { margin:20px 0 !important; }
 .question-box p { margin: 10px 10px 0; color: #555; }
 .question-box ul { margin: 10px; }
 .question-box li { font-size: 100%; color: #555; }
@@ -36,8 +36,7 @@
 
 .item-static-content p { opacity:0.5; font-style:italic; }
 
-.source-box-hoverable { padding: 0 10px; }
-.source-box-hoverable:hover { background: #f5f5f5; cursor: pointer; }
+.source-box-hoverable:hover { cursor: pointer; }
 .source-btn-toggle { float: right; padding-right:10px; }
 .source-btn-done { float: right; display: none; padding-bottom:5px; padding-left:5px; }
 .preview-box .row { padding-top:0; font-size:95%; /*font-weight:bold;*/ }
@@ -48,6 +47,7 @@
 .toggleable { display:none; }
 .toggleable.active { display:block; }
 
+.target-text { padding: 0 !important; }
 .target-box .row { padding-top:0; }
 .target-box.active { display:block; }
 .target-box .btn { margin-top:10px; min-width:71px; margin-right:5px; }
@@ -62,18 +62,22 @@
 #button-doc { margin: 20px 0 0 0; }
 
 .campaign-info-box { font-style: italic; font-size: small; color: rgb(183, 183, 183); font-weight: 100; margin-top: -20px; margin-bottom: 20px; }
+.pairwise-row { padding: 0 10px; }
+.source-text-display { padding-bottom: 20px; }
 
-/* .col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9 { padding-left:10px; padding-right:10px; } */
 
 /* Uncomment if ENABLE_UNRESTRICTED_ANNOTATION is set to false */
 /*.source-btn-toggle, .control-box { display:none; }*/
 </style>
 
+<link rel="stylesheet" href="{% static 'EvalView/css/direct-assessment-document-mqm-esa.css' %}">
 <link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}">
 <link rel="stylesheet" href="{% static 'EvalView/css/scalar-slider.css' %}">
 <script src="{% static 'EvalView/js/jquery-ui.min.js' %}"></script>
 <script src="{% static 'EvalView/js/js.cookie-2.2.1.min.js' %}"></script>
 <script src="{% static 'EvalView/js/scalar-slider.js' %}"></script>
+<script src="{% static 'EvalView/js/direct-assessment-document-mqm-esa.js' %}"></script>
+<script src="{% static 'EvalView/js/pairwise-assessment-document-esa.js' %}"></script>
 <script>
     <!--
 var idleTime = 0;
@@ -869,36 +873,63 @@ function last_form() {
 }
 
 function open_all_items() {
-    $('.item-box.quotelike').each(function() {
-        var item_box = $(this);
-        _show_target_box.call(item_box);
+    $('.pairwise-row').each(function() {
+        var $row = $(this);
+        var $targetBox = $row.find('.target-box');
+        var $toggleIcons = $row.find('.source-btn-toggle');
+        
+        $targetBox.slideDown(200);
+        $toggleIcons.removeClass('glyphicon-menu-down').addClass('glyphicon-menu-up');
     });
 }
 
 function open_all_unannotated_items() {
-    $('.item-box.quotelike').each(function() {
-        var item_box = $(this);
-        var is_completed = item_box.data('item-completed');
-        if (is_completed == 'True') {
-            _hide_target_box.call(item_box);
+    $('.pairwise-row').each(function() {
+        var $row = $(this);
+        var itemId = $row.data('item-id');
+        var $itemBox1 = $row.find('#item-' + itemId + '-1');
+        var $itemBox2 = $row.find('#item-' + itemId + '-2');
+        var $targetBox = $row.find('.target-box');
+        var $toggleIcons = $row.find('.source-btn-toggle');
+        
+        // Check if both translations have been scored
+        var box1Completed = $itemBox1.data('item-completed') === 'True' || $itemBox1.data('item-completed') === true;
+        var box2Completed = $itemBox2.data('item-completed') === 'True' || $itemBox2.data('item-completed') === true;
+        var bothCompleted = box1Completed && box2Completed;
+        
+        if (bothCompleted) {
+            $targetBox.slideUp(200);
+            $toggleIcons.removeClass('glyphicon-menu-up').addClass('glyphicon-menu-down');
         } else {
-            // TODO: anchor to the first unannotated?
-            _show_target_box.call(item_box);
+            $targetBox.slideDown(200);
+            $toggleIcons.removeClass('glyphicon-menu-down').addClass('glyphicon-menu-up');
         }
     });
 }
 
 function close_all_items_except_current() {
     var first = true;
-    $('.item-box.quotelike').each(function() {
-        var item_box = $(this);
-        var is_completed = item_box.data('item-completed');
+    $('.pairwise-row').each(function() {
+        var $row = $(this);
+        var itemId = $row.data('item-id');
+        var $itemBox1 = $row.find('#item-' + itemId + '-1');
+        var $itemBox2 = $row.find('#item-' + itemId + '-2');
+        var $targetBox = $row.find('.target-box');
+        var $toggleIcons = $row.find('.source-btn-toggle');
+        
+        // Check if both translations have been scored
+        var box1Completed = $itemBox1.data('item-completed') === 'True' || $itemBox1.data('item-completed') === true;
+        var box2Completed = $itemBox2.data('item-completed') === 'True' || $itemBox2.data('item-completed') === true;
+        var bothCompleted = box1Completed && box2Completed;
+        
         // Keep first unannotated item expanded
-        if (first && is_completed == 'False') {
-            _show_target_box.call(item_box);
+        if (first && !bothCompleted) {
+            $targetBox.slideDown(200);
+            $toggleIcons.removeClass('glyphicon-menu-down').addClass('glyphicon-menu-up');
             first = false;
         } else {
-            _hide_target_box.call(item_box);
+            $targetBox.slideUp(200);
+            $toggleIcons.removeClass('glyphicon-menu-up').addClass('glyphicon-menu-down');
         }
     });
 }
@@ -923,14 +954,14 @@ function match_sliders() {
     }
 }
 
-function _show_error_box(item_box, msg) {
-    // A hideable error box with a custom message displayed right above the item box
-    item_box.before(
-        '<div class="alert alert-danger alert-dismissible" role="alert">' +
-        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-        '<span aria-hidden="true">&times;</span>' +
-        '</button>Oops... ' + msg + '</div>'
-    );
+function _show_error_box(text, timeout = 2000) {
+    // Override the version in direct-assessment-document-mqm-esa.js
+    // to match the signature expected by that script
+    let obj = $(`<div class="alert_message" style="display: none">${text}</div>`)
+    $("body").append(obj);
+    obj.fadeIn(200);
+    // disappear in timeout milliseconds
+    setTimeout(() => { obj.fadeOut(700, () => { obj.remove() }) }, timeout);
 }
 
 -->
@@ -939,6 +970,10 @@ function _show_error_box(item_box, msg) {
 {% endblock %}
 
 {% block content %}
+
+{{ mqm_type|json_script:"mqm-type-payload" }}
+
+<div id="error-type-form" class="modal"></div>
 
 {% if collect_browser_info %}
 <div id="browser-info-container" style="display:none;">
@@ -976,17 +1011,19 @@ function _show_error_box(item_box, msg) {
             {{text|safe}}
             {% endfor %}
             <div class="additional-instructions">
-            {% if scalar_slider %}
-                <p><em>Note</em>: You first evaluate each sentence individually, but you should use the entire translation as context.</p>
-                <p>Rating scale:</p>
-                {% with mono=monolingual doclvl=doc_guidelines %}
-                {% include 'EvalView/_scalar_instructions.html' %}
-                {% endwith %}
-            {% elif sqm %}
-                {% with mono=monolingual doclvl=doc_guidelines %}
-                {% include 'EvalView/_sqm_instructions.html' %}
-                {% endwith %}
+            {% if mqm_type == "MQM" %}
+            {% include 'EvalView/_instructions-mqm.html' %}
+            {% elif mqm_type == "ESA" %}
+            {% include 'EvalView/_instructions-esa-contrastive.html' %}
+            {% else %}
+            Unknown instructions for "{{ mqm_type }}".
             {% endif %}
+            
+            <div class="row">
+                <div class="col-sm-12">
+                    {% include 'EvalView/_scalar_instructions.html' %}
+                </div>
+            </div>
             </div>
         </div>
     </div>
@@ -994,7 +1031,7 @@ function _show_error_box(item_box, msg) {
         <div class="col-sm-12">
             <p class="pull-left control-box">
             <button id="button-toggle-instructions" class="btn btn-info btn-sm">Hide instructions</button>
-            <button id="button-show-diff" class="btn btn-info btn-sm">Hide differences</button>
+            <!--<button id="button-show-diff" class="btn btn-info btn-sm">Hide differences</button>-->
             <button id="button-full-screen" class="btn btn-info btn-sm">Narrow screen</button>
             </p>
             <p class="pull-right control-box">
@@ -1006,13 +1043,13 @@ function _show_error_box(item_box, msg) {
     </div>
 </div>
 
-{% if guidelines_popup %}
-    {% include 'EvalView/_guidelines_popup.html' %}
-{% endif %}
+{% for item,scores in items %}
 
+{% if not item.isCompleteDocument %}
+
+{% if forloop.first %}
 <!-- Column headers for pairwise rows -->
-<div class="row" style="margin-top: 10px; margin-bottom: 10px;">
-    {% if not monolingual %}
+<div class="row" style="margin-bottom: 10px;">
     <div class="col-sm-3">
         <small class="segment-label">{{ source_language }} source text</small>
     </div>
@@ -1022,90 +1059,220 @@ function _show_error_box(item_box, msg) {
     <div class="col-sm-4">
         <small class="segment-label">{{ candidate2_label }} in {{ target_language }}</small>
     </div>
-    {% else %}
-    <div class="col-sm-1"></div>
-    <div class="col-sm-5">
-        <small class="segment-label">{{ candidate1_label }} in {{ target_language }}</small>
-    </div>
-    <div class="col-sm-5">
-        <small class="segment-label">{{ candidate2_label }} in {{ target_language }}</small>
-    </div>
-    {% endif %}
     <div class="col-sm-1"></div>
 </div>
+{% endif %}
 
-{% for item,scores in items %}
+<!-- Pairwise ESA: Create two separate item-boxes for each translation -->
+<div class="pairwise-row item-{% cycle 'odd' 'even' %}" style="margin-bottom: 20px;" data-item-id="{{ item.itemID }}" data-item-completed="{{ scores.completed }}">
+    
+    <!-- Clickable wrapper for toggle functionality -->
+    <div class="pairwise-row-header">
+        <div class="row">
+            <!-- Source text column with toggle functionality -->
+            <div class="col-sm-3 source-box-hoverable">
+                <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
+                <div class="source-text-display">
+                    {{ scores.segment_text|safe }}
+                </div>
+            </div>
+            
+            <!-- Translation A column - Always visible item-box for MQM -->
+            <div class="col-sm-4">
+                <div id="item-{{ item.itemID }}-1"
+                     class="item-box"
+                     data-item-id="{{ item.itemID }}-1"
+                     data-item-completed="{{ scores.completed }}"
+                     data-item-score="{{ scores.score1 }}">
 
-{% if static_context %}
-{% if forloop.counter == 1 or item.isCompleteDocument %}
-{% if item.contextLeft or item.target1ContextLeft or item.target2ContextLeft %}
-<div class="item-box item-odd item-static-content pseudoquotelike">
-        <div class="source-box">
-            <div class="row">
-                {% if not monolingual %}
-                <div class="col-sm-3">
-                    <span title="Source static context">
-                        <p>{{ item.contextLeft|linebreaks }}</p>
-                        {% if item.contextLeft %}
-                        <small class="segment-label">- Additional source context</small>
-                        {% endif %}
-                    </span>
+                    {{ scores.mqm1|default:"[]"|json_script:"mqm-payload" }}
+                    {{ scores.mqm1|default:"[]"|json_script:"mqm-payload-orig" }}
+                    {{ item.segmentText|json_script:"text-source-payload" }}
+                    {{ item.target1Text|json_script:"text-target-payload" }}
+                    {{ scores.score1|json_script:"score-payload" }}
+
+                    <form action="{{action_url}}" method="post" item_id="{{ item.itemID }}-1">
+                        {% csrf_token %}
+
+                        <input name="start_timestamp" type="hidden" value="{{ scores.start_timestamp }}" />
+                        <input name="end_timestamp" type="hidden" value="{{ scores.end_timestamp }}" />
+                        <input name="item_id" type="hidden" value="{{ item.itemID }}" />
+                        <input name="task_id" type="hidden" value="{{ item.id }}" />
+                        <input name="document_id" type="hidden" value="{{ item.documentID }}" />
+                        <input name="score" type="hidden" value="{{ scores.score1 }}" id="score{{ item.itemID }}-1" />
+                        <input name="mqm" type="hidden" value="{{ scores.mqm1 }}" id="mqm{{ item.itemID }}-1" />
+                        <input name="ajax" type="hidden" value="True" />
+
+                        <!-- Hidden source-text for JS compatibility -->
+                        <div class="source-text" style="display: none;">{{ item.segmentText|safe }}</div>
+
+                        <!-- Target text always visible for MQM annotation -->
+                        <div class="target-text">{{item.target1Text}}</div>
+                    </form>
                 </div>
-                <div class="col-sm-4">
-                    <span title="Static context of the candidate translation">
-                        <p>{{ item.target1ContextLeft|linebreaks }}</p>
-                        {% if item.target1ContextLeft %}
-                        <small class="segment-label">- Additional target context A</small>
-                        {% endif %}
-                    </span>
+            </div>
+            
+            <!-- Translation B column - Always visible item-box for MQM -->
+            <div class="col-sm-4">
+                <div id="item-{{ item.itemID }}-2"
+                     class="item-box"
+                     data-item-id="{{ item.itemID }}-2"
+                     data-item-completed="{{ scores.completed }}"
+                     data-item-score="{{ scores.score2 }}">
+
+                    {{ scores.mqm2|default:"[]"|json_script:"mqm-payload" }}
+                    {{ scores.mqm2|default:"[]"|json_script:"mqm-payload-orig" }}
+                    {{ item.segmentText|json_script:"text-source-payload" }}
+                    {{ item.target2Text|json_script:"text-target-payload" }}
+                    {{ scores.score2|json_script:"score-payload" }}
+
+                    <form action="{{action_url}}" method="post" item_id="{{ item.itemID }}-2">
+                        {% csrf_token %}
+
+                        <input name="start_timestamp" type="hidden" value="{{ scores.start_timestamp }}" />
+                        <input name="end_timestamp" type="hidden" value="{{ scores.end_timestamp }}" />
+                        <input name="item_id" type="hidden" value="{{ item.itemID }}" />
+                        <input name="task_id" type="hidden" value="{{ item.id }}" />
+                        <input name="document_id" type="hidden" value="{{ item.documentID }}" />
+                        <input name="score" type="hidden" value="{{ scores.score2 }}" id="score{{ item.itemID }}-2" />
+                        <input name="mqm" type="hidden" value="{{ scores.mqm2 }}" id="mqm{{ item.itemID }}-2" />
+                        <input name="ajax" type="hidden" value="True" />
+
+                        <!-- Hidden source-text for JS compatibility -->
+                        <div class="source-text" style="display: none;">{{ item.segmentText|safe }}</div>
+
+                        <!-- Target text always visible for MQM annotation -->
+                        <div class="target-text">{{item.target2Text}}</div>
+                    </form>
                 </div>
-                <div class="col-sm-4">
-                    <span title="Static context of the candidate translation">
-                        <p>{{ item.target2ContextLeft|linebreaks }}</p>
-                        {% if item.target2ContextLeft %}
-                        <small class="segment-label">- Additional target context B</small>
-                        {% endif %}
-                    </span>
-                </div>
-                {% else %}
-                <div class="col-sm-6">
-                    <span title="Static context of the first document">
-                        <p>{{ item.target1ContextLeft|linebreaks }}</p>
-                        {% if item.target1ContextLeft %}
-                        <small class="segment-label">- Additional context A</small>
-                        {% endif %}
-                    </span>
-                </div>
-                <div class="col-sm-6">
-                    <span title="Static context of the second translation">
-                        <p>{{ item.target2ContextLeft|linebreaks }}</p>
-                        {% if item.target2ContextLeft %}
-                        <small class="segment-label">- Additional context B</small>
-                        {% endif %}
-                    </span>
-                </div>
-                {% endif %}
+            </div>
+            
+            <!-- Status column with toggle functionality -->
+            <div class="col-sm-1 source-box-hoverable">
+                <span class="source-btn-done glyphicon glyphicon-ok" style="display:none;"></span>
             </div>
         </div>
+    </div>
+    
+    <!-- Collapsible content with sliders and submit button -->
+    <div class="row target-box toggleable">
+        <!-- Empty column for source -->
+        <div class="col-sm-3"></div>
+        
+        <!-- Translation A slider -->
+        <div class="col-sm-4">
+            <!-- Scalar slider for rating -->
+            <div class="row esa_slider">
+                <div class="slider-box">
+                    <table class="slider-grid scalar-slider-grid">
+                        <tr>
+                            <td class="col-xs-1">1</td>
+                            <td class="col-xs-1">2</td>
+                            <td class="col-xs-1">3</td>
+                            <td class="col-xs-1">4</td>
+                            <td class="col-xs-1">5</td>
+                            <td class="col-xs-1">6</td>
+                            <td class="col-xs-1">7</td>
+                            <td class="col-xs-1">8</td>
+                            <td class="col-xs-1">9</td>
+                            <td class="col-xs-1">10</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-sm-12 slider-bar">
+                    <div id="slider{{ item.itemID }}-1" class="slider scalar-slider slider1" data-discrete-count="10" data-discrete-min="0" data-discrete-max="100"></div>
+                    <table class="sqm-labels">
+                        <tr>
+                            <td class="sqm-label col-xs-2">Not acceptable</td>
+                            <td class="sqm-label col-xs-2">Borderline</td>
+                            <td class="sqm-label col-xs-2">Acceptable</td>
+                            <td class="sqm-label col-xs-2">Good</td>
+                            <td class="sqm-label col-xs-2">Very good</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Translation B slider -->
+        <div class="col-sm-4">
+            <!-- Scalar slider for rating -->
+            <div class="row esa_slider">
+                <div class="slider-box">
+                    <table class="slider-grid scalar-slider-grid">
+                        <tr>
+                            <td class="col-xs-1">1</td>
+                            <td class="col-xs-1">2</td>
+                            <td class="col-xs-1">3</td>
+                            <td class="col-xs-1">4</td>
+                            <td class="col-xs-1">5</td>
+                            <td class="col-xs-1">6</td>
+                            <td class="col-xs-1">7</td>
+                            <td class="col-xs-1">8</td>
+                            <td class="col-xs-1">9</td>
+                            <td class="col-xs-1">10</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="col-sm-12 slider-bar">
+                    <div id="slider{{ item.itemID }}-2" class="slider scalar-slider slider2" data-discrete-count="10" data-discrete-min="0" data-discrete-max="100"></div>
+                    <table class="sqm-labels">
+                        <tr>
+                            <td class="sqm-label col-xs-2">Not acceptable</td>
+                            <td class="sqm-label col-xs-2">Borderline</td>
+                            <td class="sqm-label col-xs-2">Acceptable</td>
+                            <td class="sqm-label col-xs-2">Good</td>
+                            <td class="sqm-label col-xs-2">Very good</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Submit button column -->
+        <div class="col-sm-1">
+            <span class="status-indicator glyphicon glyphicon-ok" style="display:none; margin-bottom: 10px;"></span>
+            
+            <button class="btn btn-sm button-submit-pair btn-primary" 
+                    data-item-id="{{ item.itemID }}" 
+                    name="next_button"
+                    type="button">
+                Submit
+            </button>
+        </div>
+    </div>
 </div>
-{% endif %}
-{% endif %}
-{% endif %}
 
-<div id="item-{{ item.itemID }}"
-     class="item-box item-{% cycle 'odd' 'even' %}
-             {% if not item.isCompleteDocument %} quotelike{% endif %}
-             {% if scores.current_item %} active{% endif %}"
-     data-item-id="{{ item.itemID }}"
-     data-item-completed="{{ scores.completed }}"
-     data-item-score1="{{ scores.score1 }}"
-     data-item-score2="{{ scores.score2 }}">
+{% else %}
 
+<!-- Column footers for pairwise rows -->
+<div class="row" style="margin-top: 10px; margin-bottom: 20px;">
+    <div class="col-sm-3">
+        <small class="segment-label">{{ source_language }} source text</small>
+    </div>
+    <div class="col-sm-4">
+        <small class="segment-label">{{target_language}} {{ candidate1_label }}</small>
+    </div>
+    <div class="col-sm-4">
+        <small class="segment-label">{{target_language}} {{ candidate2_label }}</small>
+    </div>
+    <div class="col-sm-1"></div>
+</div>
+
+<div class="item-box" data-item-id="{{ item.itemID }}" data-item-completed="{{ scores.completed }}">
+    
+    {# Add dummy MQM script tags for document-level item so JavaScript doesn't fail #}
+    {{ "[]"|json_script:"mqm-payload" }}
+    {{ "[]"|json_script:"mqm-payload-orig" }}
+    {{ item.segmentText|default:""|json_script:"text-source-payload" }}
+    {{ item.target1Text|default:""|json_script:"text-target-payload" }}
+    {{ scores.score1|default:"-1"|json_script:"score-payload" }}
+    
     <form action="{{action_url}}" method="post">
         {% csrf_token %}
 
-        <input name="start_timestamp" type="hidden" value="" />
-        <input name="end_timestamp" type="hidden" value="" />
+        <input name="start_timestamp" type="hidden" value="{{ scores.start_timestamp }}" />
+        <input name="end_timestamp" type="hidden" value="{{ scores.end_timestamp }}" />
         <input name="item_id" type="hidden" value="{{ item.itemID }}" />
         <input name="task_id" type="hidden" value="{{ item.id }}" />
         <input name="document_id" type="hidden" value="{{ item.documentID }}" />
@@ -1113,172 +1280,15 @@ function _show_error_box(item_box, msg) {
         <input name="score2" type="hidden" value="{{ scores.score2 }}" id="score2{{ item.itemID }}" />
         <input name="ajax" type="hidden" value="False" />
 
-        {% if not item.isCompleteDocument %}
-
-        <div class="source-box-hoverable">
-            <div class="row">
-                {% if not monolingual %}
-                <div class="source-box col-sm-3">
-                    <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
-                    <span title="Source sentence #{{ item.itemID|add:"1" }}">
-                        <p>{{ scores.segment_text|safe }}</p>
-                    </span>
-                </div>
-                {% else %}
-                <div class="source-box col-sm-1">
-                    <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
-                </div>
-                {% endif %}
-
-                <div class="{% if monolingual %}col-sm-5{% else %}col-sm-4{% endif %}">
-                    <span title="Candidate translation A of source sentence #{{ item.itemID|add:"1" }}">
-                        <p class="source-box candidate-text">{{scores.candidate1_text|safe}}</p>
-                    </span>
-
-            <div class="row half-slider target-box toggleable">
-            {% if scalar_slider %}
-                {% with sliderid=item.itemID slidernum=1 mono=monolingual doclvl=doc_guidelines %}
-                {% include 'EvalView/_scalar_slider.html' %}
-                {% endwith %}
-            {% elif sqm %}
-                {% with sliderid=item.itemID slidernum=1 mono=monolingual doclvl=doc_guidelines %}
-                {% include 'EvalView/_sqm_slider.html' %}
-                {% endwith %}
-            {% else %}
-                {% with sliderid=item.itemID slidernum=1 %}
-                {% include 'EvalView/_slider.html' %}
-                {% endwith %}
-            {% endif %}
-            </div>
-
-                </div>
-                <div class="{% if monolingual %}col-sm-5{% else %}col-sm-4{% endif %}">
-                    <span title="Candidate translation B of source sentence #{{ item.itemID|add:"1" }}">
-                        <p class="source-box candidate-text">{{scores.candidate2_text|safe}}</p>
-                    </span>
-
-            <div class="row half-slider target-box toggleable">
-            {% if scalar_slider %}
-                {% with sliderid=item.itemID slidernum=2 mono=monolingual doclvl=doc_guidelines %}
-                {% include 'EvalView/_scalar_slider.html' %}
-                {% endwith %}
-            {% elif sqm %}
-                {% with sliderid=item.itemID slidernum=2 mono=monolingual doclvl=doc_guidelines %}
-                {% include 'EvalView/_sqm_slider.html' %}
-                {% endwith %}
-            {% else %}
-                {% with sliderid=item.itemID slidernum=2 %}
-                {% include 'EvalView/_slider.html' %}
-                {% endwith %}
-            {% endif %}
-            </div>
-
-                </div>
-                <div class="col-sm-1">
-                    <span class="source-btn-done glyphicon glyphicon-ok"></span>
-
-                    <div class="target-box toggleable">
-                        {% if not scalar_slider %}
-                        <button class="btn button-reset" accesskey="2" type="reset">Reset</button>
-                        <button class="btn button-match" accesskey="3" type="button">Match</button>
-                        {% endif %}
-                        <button class="btn btn-sm button-next btn-primary" name="next_button" accesskey="1"
-                                type="submit" value="{{ item.itemID }}">Submit</button>
-                     </div>
-
-                </div>
-            </div>
-        </div>
-
-        <!--
-        <div class="target-box toggleable" >
-            <div class="row">
-            <div class="col-sm-6">
-            {% if sqm %}
-                {% with sliderid=item.itemID mono=monolingual doclvl=doc_guidelines %}
-                {% include 'EvalView/_sqm_slider.html' %}
-                {% endwith %}
-            {% else %}
-                {% with sliderid=item.itemID %}
-                {% include 'EvalView/_slider.html' %}
-                {% endwith %}
-            {% endif %}
-            </div>
-            <div class="col-sm-6">
-            {% if sqm %}
-                {% with sliderid=item.itemID mono=monolingual doclvl=doc_guidelines %}
-                {% include 'EvalView/_sqm_slider.html' %}
-                {% endwith %}
-            {% else %}
-                {% with sliderid=item.itemID %}
-                {% include 'EvalView/_slider.html' %}
-                {% endwith %}
-            {% endif %}
-            </div>
-            </div>
-
-            <table class="row action-box">
-                <tr>
-                    <td style="width:70%;text-align:left;">
-                        <button class="btn button-reset"
-                                accesskey="2"
-                                type="reset">
-                            <i class="icon-repeat"></i> Reset</button>
-                    </td>
-                    <td style="width:30%;text-align:right;">
-                        <button class="btn button-next btn-primary"
-                                name="next_button"
-                                accesskey="1"
-                                type="submit"
-                                value="{{ item.itemID }}">
-                            <i class="icon-ok-sign icon-white"></i> Submit</button>
-                    </td>
-                </tr>
-            </table>
-        </div>
-        -->
-
-        {% else %}
-
-<!-- Column footers for pairwise rows -->
-<div class="row" style="margin-top: 10px; margin-bottom: 20px;">
-    {% if not monolingual %}
-    <div class="col-sm-3">
-        <small class="segment-label">{{ source_language }} source text</small>
-    </div>
-    <div class="col-sm-4">
-        <small class="segment-label">{{ candidate1_label }} in {{ target_language }}</small>
-    </div>
-    <div class="col-sm-4">
-        <small class="segment-label">{{ candidate2_label }} in {{ target_language }}</small>
-    </div>
-    {% else %}
-    <div class="col-sm-1"></div>
-    <div class="col-sm-5">
-        <small class="segment-label">{{ candidate1_label }} in {{ target_language }}</small>
-    </div>
-    <div class="col-sm-5">
-        <small class="segment-label">{{ candidate2_label }} in {{ target_language }}</small>
-    </div>
-    {% endif %}
-    <div class="col-sm-1"></div>
-</div>
-
         <div class="question-box alert alert-success">
             <div class="row">
                 <div class="col-sm-12">
                     {% for text in document_question_texts %}
                     <p>{{text|safe}}</p>
                     {% endfor %}
-                    {% if scalar_slider %}
-                        {% with mono=monolingual doclvl=doc_guidelines %}
-                        {% include 'EvalView/_scalar_instructions.html' %}
-                        {% endwith %}
-                    {% elif sqm %}
-                        {% with mono=monolingual doclvl=doc_guidelines %}
-                        {% include 'EvalView/_sqm_instructions.html' %}
-                        {% endwith %}
-                    {% endif %}
+                    {% with mono=monolingual doclvl=doc_guidelines %}
+                    {% include 'EvalView/_scalar_instructions.html' %}
+                    {% endwith %}
                 </div>
             </div>
         </div>
@@ -1286,46 +1296,21 @@ function _show_error_box(item_box, msg) {
         <div class="target-box document-box quotelike">
             <div class="row">
             <div class="col-sm-6">
-                <small class="segment-label">{{ candidate1_label }} in {{ target_language }}</small>
-            {% if scalar_slider %}
+                <small class="segment-label">{{ candidate1_label }}</small>
                 {% with sliderid=item.itemID slidernum=1 mono=monolingual doclvl=doc_guidelines %}
                 {% include 'EvalView/_scalar_slider.html' %}
                 {% endwith %}
-            {% elif sqm %}
-                {% with sliderid=item.itemID slidernum=1 mono=monolingual doclvl=doc_guidelines %}
-                {% include 'EvalView/_sqm_slider.html' %}
-                {% endwith %}
-            {% else %}
-                {% with sliderid=item.itemID slidernum=1 %}
-                {% include 'EvalView/_slider.html' %}
-                {% endwith %}
-            {% endif %}
             </div>
             <div class="col-sm-6">
-                <small class="segment-label">{{ candidate2_label }} in {{ target_language }}</small>
-            {% if scalar_slider %}
+                <small class="segment-label">{{ candidate2_label }}</small>
                 {% with sliderid=item.itemID slidernum=2 mono=monolingual doclvl=doc_guidelines %}
                 {% include 'EvalView/_scalar_slider.html' %}
                 {% endwith %}
-            {% elif sqm %}
-                {% with sliderid=item.itemID slidernum=2 mono=monolingual doclvl=doc_guidelines %}
-                {% include 'EvalView/_sqm_slider.html' %}
-                {% endwith %}
-            {% else %}
-                {% with sliderid=item.itemID slidernum=2 %}
-                {% include 'EvalView/_slider.html' %}
-                {% endwith %}
-            {% endif %}
             </div>
             </div>
 
             <table class="action-box">
                 <tr>
-                    {% if not scalar_slider %}
-                    <td style="width:70%;text-align:left;">
-                        <button id="reset{{ item.itemID }}" class="btn button-reset" accesskey="2" type="reset">Reset</button>
-                    </td>
-                    {% endif %}
                     <td style="width:30%;text-align:right;">
                         <button id="button-doc" class="btn button-next btn-primary" name="next_button" accesskey="1"
                                 title="Please first complete all segments in the document"
@@ -1334,11 +1319,35 @@ function _show_error_box(item_box, msg) {
                 </tr>
             </table>
         </div>
-
-        {% endif %}
     </form>
 </div>
 
+{% endif %}
+
 {% endfor %}
+
+<form id="form-next-doc" action="{{action_url}}" method="post">
+    {% csrf_token %}
+    <input name="start_timestamp" type="hidden" value="" />
+    <input name="end_timestamp" type="hidden" value="" />
+    <input name="ajax" type="hidden" value="False" />
+</form>
+
+<button
+    class="btn btn-primary btn-success"
+    style="margin-left: auto; margin-right: auto; display: block;"
+    id="button-next-doc"
+>
+    Continue to next document
+</button>
+
+<button
+    class="btn btn-primary"
+    style="margin-left: auto; margin-right: auto; display: none;"
+    id="button-next-doc-fake"
+    title="Please first complete all segments in the document (error marking + rating)"
+>
+    Continue to next document (submit all segments first)
+</button>
 
 {% endblock %}

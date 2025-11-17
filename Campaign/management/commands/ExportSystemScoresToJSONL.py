@@ -273,6 +273,10 @@ class Command(BaseCommand):
         """Export PairwiseAssessmentDocument results to JSONL."""
         task_ids = list(tasks.values_list('id', flat=True))
 
+        # Get campaign options to check for PairwiseESA
+        campaign_opts = str(campaign.campaignOptions).lower().split(";")
+        is_pairwise_esa = "pairwiseesa" in campaign_opts
+
         # Query results
         qs = PairwiseAssessmentDocumentResult.objects.filter(
             task__id__in=task_ids,
@@ -307,6 +311,13 @@ class Command(BaseCommand):
             'task__campaign__campaignName',  # campaign_name
         ]
         
+        # Add MQM fields if PairwiseESA is enabled
+        if is_pairwise_esa:
+            attributes.extend([
+                'mqm1',  # mqm_annotations_1
+                'mqm2',  # mqm_annotations_2
+            ])
+        
         if include_context:
             attributes.extend([
                 'item__contextLeft',  # context_left
@@ -318,6 +329,30 @@ class Command(BaseCommand):
         attributes = tuple(attributes)
 
         for result in qs.values_list(*attributes):
+            # Base indices
+            target1_score_idx = 7
+            target2_id_idx = 5
+            target2_text_idx = 6
+            target2_score_idx = 8
+            item_id_idx = 9
+            item_type_idx = 10
+            source_lang_idx = 11
+            target_lang_idx = 12
+            doc_id_idx = 13
+            is_complete_idx = 14
+            start_time_idx = 15
+            end_time_idx = 16
+            batch_no_idx = 17
+            item_db_id_idx = 18
+            campaign_name_idx = 19
+            
+            # MQM indices if enabled
+            mqm1_idx = 20 if is_pairwise_esa else None
+            mqm2_idx = 21 if is_pairwise_esa else None
+            
+            # Context indices (after MQM if both are present)
+            context_offset = 20 + (2 if is_pairwise_esa else 0)
+            
             json_obj = {
                 'annotator': result[0],
                 'source_id': result[1],
@@ -326,38 +361,46 @@ class Command(BaseCommand):
                     {
                         'target_id': result[3],
                         'target_text': result[4],
-                        'score': result[7],
+                        'score': result[target1_score_idx],
                     },
                 ],
-                'item_id': result[9],
-                'item_type': result[10],
-                'source_language': result[11],
-                'target_language': result[12],
-                'document_id': result[13],
-                'is_complete_document': result[14],
-                'start_time': result[15],
-                'end_time': result[16],
-                'duration': round(result[16] - result[15], 1) if result[15] and result[16] else None,
-                'batch_number': result[17],
-                'item_database_id': result[18],
-                'campaign_name': result[19],
-                'task_type': 'PairwiseDocument',
+                'item_id': result[item_id_idx],
+                'item_type': result[item_type_idx],
+                'source_language': result[source_lang_idx],
+                'target_language': result[target_lang_idx],
+                'document_id': result[doc_id_idx],
+                'is_complete_document': result[is_complete_idx],
+                'start_time': result[start_time_idx],
+                'end_time': result[end_time_idx],
+                'duration': round(result[end_time_idx] - result[start_time_idx], 1) if result[start_time_idx] and result[end_time_idx] else None,
+                'batch_number': result[batch_no_idx],
+                'item_database_id': result[item_db_id_idx],
+                'campaign_name': result[campaign_name_idx],
+                'task_type': 'PairwiseESA' if is_pairwise_esa else 'PairwiseDocument',
             }
+            
+            # Add MQM annotations for target1 if PairwiseESA
+            if is_pairwise_esa:
+                json_obj['targets'][0]['mqm_annotations'] = result[mqm1_idx]
 
             # Add second target if it exists
-            if result[5] is not None and result[8] is not None:
-                json_obj['targets'].append({
-                    'target_id': result[5],
-                    'target_text': result[6],
-                    'score': result[8],
-                })
+            if result[target2_id_idx] is not None and result[target2_score_idx] is not None:
+                target2_obj = {
+                    'target_id': result[target2_id_idx],
+                    'target_text': result[target2_text_idx],
+                    'score': result[target2_score_idx],
+                }
+                # Add MQM annotations for target2 if PairwiseESA
+                if is_pairwise_esa:
+                    target2_obj['mqm_annotations'] = result[mqm2_idx]
+                json_obj['targets'].append(target2_obj)
             
             # Add context fields if requested
             if include_context:
-                json_obj['context_left'] = result[20]
-                json_obj['context_right'] = result[21]
-                json_obj['targets'][0]['target_context_left'] = result[22]
+                json_obj['context_left'] = result[context_offset]
+                json_obj['context_right'] = result[context_offset + 1]
+                json_obj['targets'][0]['target_context_left'] = result[context_offset + 2]
                 if len(json_obj['targets']) > 1:
-                    json_obj['targets'][1]['target_context_left'] = result[23]
+                    json_obj['targets'][1]['target_context_left'] = result[context_offset + 3]
 
             sys.stdout.write(json.dumps(json_obj, ensure_ascii=False) + '\n')

@@ -544,6 +544,14 @@ class PairwiseAssessmentDocumentResult(BaseMetadata):
         help_text=_('(value in range=[1,100])'),
     )
 
+    mqm1 = models.TextField(
+        verbose_name=_('MQM (1)'), help_text=_('MQM JSON string'), default="[]"
+    )
+
+    mqm2 = models.TextField(
+        verbose_name=_('MQM (2)'), help_text=_('MQM JSON string'), default="[]"
+    )
+
     start_time = models.FloatField(
         verbose_name=_('Start time'), help_text=_('(in seconds)')
     )
@@ -975,6 +983,8 @@ class PairwiseAssessmentDocumentResult(BaseMetadata):
             'score2',  # Score
             'item__documentID',  # Document ID
             'item__isCompleteDocument',  # isCompleteDocument
+            'mqm1',  # MQM annotations for target 1
+            'mqm2',  # MQM annotations for target 2
         )
 
         if extended_csv:
@@ -993,28 +1003,30 @@ class PairwiseAssessmentDocumentResult(BaseMetadata):
         for _result in qs.values_list(*attributes_to_extract):
             results = [
                 (
-                    _result[0],
-                    _result[1],
-                    _result[3],
-                    _result[4],
-                    _result[5],
-                    _result[6],
-                    _result[7],
-                    _result[9],
-                    _result[10],
-                    *_result[11:],
+                    _result[0],  # user
+                    _result[1],  # target1ID
+                    _result[3],  # itemID
+                    _result[4],  # itemType
+                    _result[5],  # sourceLanguageCode
+                    _result[6],  # targetLanguageCode
+                    _result[7],  # score1
+                    _result[9],  # documentID
+                    _result[10],  # isCompleteDocument
+                    _result[11],  # mqm1
+                    *_result[13:],  # extended fields (start_time, end_time, batch_info)
                 ),
                 (
-                    _result[0],
-                    _result[2],
-                    _result[3],
-                    _result[4],
-                    _result[5],
-                    _result[6],
-                    _result[8],
-                    _result[9],
-                    _result[10],
-                    *_result[11:],
+                    _result[0],  # user
+                    _result[2],  # target2ID
+                    _result[3],  # itemID
+                    _result[4],  # itemType
+                    _result[5],  # sourceLanguageCode
+                    _result[6],  # targetLanguageCode
+                    _result[8],  # score2
+                    _result[9],  # documentID
+                    _result[10],  # isCompleteDocument
+                    _result[12],  # mqm2
+                    *_result[13:],  # extended fields (start_time, end_time, batch_info)
                 ),
             ]
 
