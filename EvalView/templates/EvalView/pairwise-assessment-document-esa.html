@@ -42,6 +42,28 @@
 .preview-box .row { padding-top:0; font-size:95%; /*font-weight:bold;*/ }
 
 .candidate-text.active .diff { background: #ff06; }
+
+/* Diff highlighting for mqm_char spans in pairwise ESA */
+/* Use !important to override inline styles set by redraw_mqm() */
+
+/* Selection state (gray background) should take precedence over diff highlighting */
+body.show-diffs .mqm_char[selected],
+body.show-diffs .mqm_char.diff-sub[selected],
+body.show-diffs .mqm_char.diff-ins[selected],
+body.show-diffs .mqm_char.diff-del[selected] {
+    background-color: #ccc !important;
+}
+
+/* Diff highlighting only shown when body has show-diffs class (toggle is ON) */
+body.show-diffs .mqm_char.diff-sub,
+body.show-diffs .mqm_char.diff-ins,
+body.show-diffs .mqm_char.diff-del {
+    background-color: #ffff0066 !important;
+}
+
+/* Note: Error spans with [in_mqm] attribute get inline styles with !important from JavaScript,
+   which will automatically override the diff highlighting rules above. No CSS rule needed. */
+
 .segment-label { display:block; font-size:x-small; font-style:italic; color: gray; padding-left: 10px; }
 
 .toggleable { display:none; }
@@ -562,11 +584,26 @@ $(document).ready(function() {
 
     $('#button-show-diff').click(toggle_diff);
     if (Cookies.get('show-diff') != 'no') {
-      $('.candidate-text').addClass('active');
+      // For pairwise ESA, add classes to enable diff highlighting
+      $('body').addClass('show-diffs');
+      $('.pairwise-row').addClass('active');
+      $('.candidate-text').addClass('active'); // fallback for non-pairwise
       $('#button-show-diff').text('Hide differences');
+      console.log('DEBUG: Diffs enabled on load, body has show-diffs class:', $('body').hasClass('show-diffs'));
     } else {
       $('#button-show-diff').text('Show differences');
+      console.log('DEBUG: Diffs disabled on load');
     }
+    
+    $('#button-show-tracking').click(toggle_tracking);
+    if (Cookies.get('show-tracking') != 'no') {
+      TRACKING_ENABLED = true;
+      $('#button-show-tracking').text('Hide tracking');
+    } else {
+      TRACKING_ENABLED = false;
+      $('#button-show-tracking').text('Show tracking');
+    }
+    
     $('#button-full-screen').click(toggle_full_screen);
     if (Cookies.get('full-screen') != 'no') {
       $('.container').addClass('full-screen');
@@ -632,15 +669,37 @@ function _hide_target_box() {
 
 function toggle_diff() {
     var item_box = $(this).closest('.item-box');
-    var isActive = $('.candidate-text').first().hasClass('active');
+    // Check if diffs are currently shown
+    var isActive = $('body').hasClass('show-diffs');
+    
     if (isActive) {
+        $('body').removeClass('show-diffs');
+        $('.pairwise-row').removeClass('active');
         $('.candidate-text').removeClass('active');
         $('#button-show-diff').text('Show differences');
     } else {
+        $('body').addClass('show-diffs');
+        $('.pairwise-row').addClass('active');
         $('.candidate-text').addClass('active');
         $('#button-show-diff').text('Hide differences');
     }
     Cookies.set('show-diff', isActive ? 'no' : 'yes', { sameSite: 'strict' });
+}
+
+function toggle_tracking() {
+    // Check if tracking is currently enabled
+    var isActive = TRACKING_ENABLED;
+    
+    if (isActive) {
+        TRACKING_ENABLED = false;
+        $('#button-show-tracking').text('Show tracking');
+        // Clear any existing underlines
+        $('.mqm_char_src, .mqm_char').css('text-decoration', '');
+    } else {
+        TRACKING_ENABLED = true;
+        $('#button-show-tracking').text('Hide tracking');
+    }
+    Cookies.set('show-tracking', isActive ? 'no' : 'yes', { sameSite: 'strict' });
 }
 
 function toggle_full_screen() {
@@ -1031,7 +1090,8 @@ function _show_error_box(text, timeout = 2000) {
         <div class="col-sm-12">
             <p class="pull-left control-box">
             <button id="button-toggle-instructions" class="btn btn-info btn-sm">Hide instructions</button>
-            <!--<button id="button-show-diff" class="btn btn-info btn-sm">Hide differences</button>-->
+            <button id="button-show-diff" class="btn btn-info btn-sm">Hide differences</button>
+            <button id="button-show-tracking" class="btn btn-info btn-sm">Hide tracking</button>
             <button id="button-full-screen" class="btn btn-info btn-sm">Narrow screen</button>
             </p>
             <p class="pull-right control-box">
@@ -1088,7 +1148,7 @@ function _show_error_box(text, timeout = 2000) {
                     {{ scores.mqm1|default:"[]"|json_script:"mqm-payload" }}
                     {{ scores.mqm1|default:"[]"|json_script:"mqm-payload-orig" }}
                     {{ item.segmentText|json_script:"text-source-payload" }}
-                    {{ item.target1Text|json_script:"text-target-payload" }}
+                    {{ scores.candidate1_text|json_script:"text-target-payload" }}
                     {{ scores.score1|json_script:"score-payload" }}
 
                     <form action="{{action_url}}" method="post" item_id="{{ item.itemID }}-1">
@@ -1123,7 +1183,7 @@ function _show_error_box(text, timeout = 2000) {
                     {{ scores.mqm2|default:"[]"|json_script:"mqm-payload" }}
                     {{ scores.mqm2|default:"[]"|json_script:"mqm-payload-orig" }}
                     {{ item.segmentText|json_script:"text-source-payload" }}
-                    {{ item.target2Text|json_script:"text-target-payload" }}
+                    {{ scores.candidate2_text|json_script:"text-target-payload" }}
                     {{ scores.score2|json_script:"score-payload" }}
 
                     <form action="{{action_url}}" method="post" item_id="{{ item.itemID }}-2">

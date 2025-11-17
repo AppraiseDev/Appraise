@@ -1,4 +1,7 @@
 // constants and utils
+// Global flag to control tracking underline feature
+var TRACKING_ENABLED = true;
+
 const SEVERITY_TO_COLOR = {
     "critical": "#f33c",
     "major": "#c44a",
@@ -296,6 +299,77 @@ function toggle_doc_button(visible) {
     // $("#button-next-doc-fake").toggle(!visible)
 }
 
+/**
+ * Extract diff information from HTML text containing <span class="diff diff-xxx"> tags
+ * Returns an object with:
+ *   - plainText: the text content without HTML tags
+ *   - diffMap: array mapping character index to diff class (diff-sub, diff-ins, diff-del)
+ */
+function extractDiffInfo(htmlText) {
+    console.log('DEBUG extractDiffInfo: input HTML length:', htmlText.length);
+    console.log('DEBUG extractDiffInfo: first 500 chars:', htmlText.substring(0, 500));
+    
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlText;
+    const diffMap = []; // Array mapping char index to diff class
+    let plainText = ''; // Plain text without HTML tags
+    
+    // Check if any diff spans exist
+    const diffSpans = tempDiv.querySelectorAll('.diff');
+    console.log('DEBUG extractDiffInfo: found', diffSpans.length, 'diff spans in input HTML');
+    if (diffSpans.length > 0) {
+        console.log('DEBUG extractDiffInfo: first diff span classes:', diffSpans[0].className);
+    }
+    
+    let charIndex = 0;
+    function traverse(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            const text = node.textContent;
+            // Check if this text node is inside a diff span
+            let currentParent = node.parentElement;
+            let diffClass = null;
+            
+            while (currentParent && currentParent !== tempDiv) {
+                if (currentParent.classList && currentParent.classList.contains('diff')) {
+                    // Find the specific diff class (diff-sub, diff-ins, or diff-del)
+                    for (const cls of currentParent.classList) {
+                        if (cls.startsWith('diff-')) {
+                            diffClass = cls;
+                            break;
+                        }
+                    }
+                    break;
+                }
+                currentParent = currentParent.parentElement;
+            }
+            
+            // Map each character to its diff class and build plain text
+            for (let i = 0; i < text.length; i++) {
+                diffMap[charIndex++] = diffClass;
+                plainText += text[i];
+            }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            if (node.tagName === 'BR') {
+                diffMap[charIndex] = 'br'; // Mark BR positions
+                plainText += '\n'; // Use newline for BR in plain text
+                charIndex++;
+            } else {
+                for (const child of node.childNodes) {
+                    traverse(child);
+                }
+            }
+        }
+    }
+    
+    traverse(tempDiv);
+    
+    console.log('DEBUG extractDiffInfo: plainText length:', plainText.length);
+    console.log('DEBUG extractDiffInfo: plainText first 200 chars:', plainText.substring(0, 200));
+    console.log('DEBUG extractDiffInfo: diffMap entries with diff classes:', diffMap.filter(c => c && c.startsWith('diff-')).length);
+    
+    return { plainText, diffMap };
+}
+
 class MQMItemHandler {
     constructor(el) {
         this.el = $(el)
@@ -356,21 +430,46 @@ class MQMItemHandler {
         let score = parseFloat(this.el.children('#score-payload').html())
 
     
+        // Extract diff information from the HTML before processing
+        // This preserves the <span class="diff diff-xxx"> markup for pairwise comparisons
+        // and returns the plain text without HTML tags
+        let diffInfo = extractDiffInfo(this.text_target_orig);
+        let diffMap = diffInfo.diffMap;
+        let plainText = diffInfo.plainText;
+        
+        console.log('DEBUG: text_target_orig:', this.text_target_orig.substring(0, 200));
+        console.log('DEBUG: plainText:', plainText.substring(0, 200));
+        console.log('DEBUG: diffMap sample:', diffMap.slice(0, 50));
+        console.log('DEBUG: diffMap has diff classes:', diffMap.some(c => c && c.startsWith('diff-')));
+        
+        // Use the plain text for rendering (without HTML tags)
+        let textToRender = plainText;
+        
         // setup_span_structure
         // First, handle <br/> and <br> tags by splitting the text and processing each segment
-        let segments = this.text_target_orig.split(/(<br\s*\/?>)/gi);
+        // Note: plainText uses \n for line breaks
+        let segments = textToRender.split(/(\n)/g);
         let char_index = 0;
         let html_target = segments.map((segment) => {
-            // If this is a br tag, preserve it as-is
-            if (segment.match(/^<br\s*\/?>$/i)) {
-                return segment;
+            // If this is a newline, convert to br tag
+            if (segment === '\n') {
+                // Skip the BR in the diffMap
+                if (diffMap[char_index] === 'br') {
+                    char_index++;
+                }
+                return '<br>';
             }
             // Otherwise, split into characters and wrap in spans
             return segment.split("").map((v) => {
-                if (v == "\n") {
-                    return "<br>" // preserve newlines
+                // Get diff class for this character position
+                let diffClass = diffMap[char_index] || null;
+                let diffClassAttr = diffClass ? ` diff ${diffClass}` : '';
+                
+                if (char_index < 10 && diffClass) {
+                    console.log(`DEBUG char ${char_index}: "${v}" has diffClass: ${diffClass}`);
                 }
-                let span = `<span class="mqm_char" id="target_char_${char_index}" char_id="${char_index}">${v}</span>`;
+                
+                let span = `<span class="mqm_char${diffClassAttr}" id="target_char_${char_index}" char_id="${char_index}">${v}</span>`;
                 char_index++;
                 return span;
             }).join("");
@@ -378,6 +477,14 @@ class MQMItemHandler {
         // Store the actual character count (excluding br tags)
         this.text_target_char_count = char_index;
         this.el_target.html(html_target)
+        
+        // Debug: Check if diff classes are present in rendered HTML
+        let diffSpans = this.el_target.find('.mqm_char.diff-sub, .mqm_char.diff-ins, .mqm_char.diff-del');
+        console.log(`DEBUG: Found ${diffSpans.length} spans with diff classes after rendering`);
+        if (diffSpans.length > 0) {
+            console.log('DEBUG: First diff span:', diffSpans.first()[0]);
+            console.log('DEBUG: First diff span classes:', diffSpans.first().attr('class'));
+        }
 
         this.redraw_mqm()
 
@@ -496,6 +603,8 @@ class MQMItemHandler {
                     
                     this.el_target.children(".mqm_char").each((i, el) => {
                         $(el).on("mouseenter", () => {
+                            if (!TRACKING_ENABLED) return;
+                            
                             let tgt_char_i = Number.parseInt($(el).attr("char_id"))
                             let src_char_i = Math.floor(tgt_char_i * row_len_src / len_tgt)
                             
@@ -549,6 +658,8 @@ class MQMItemHandler {
                     // Add hover handlers for source text
                     $rowSource.each((i, el) => {
                         $(el).on("mouseenter", () => {
+                            if (!TRACKING_ENABLED) return;
+                            
                             let src_char_i = Number.parseInt($(el).attr("char_id"))
                             
                             // Clear all underlines first
@@ -602,6 +713,8 @@ class MQMItemHandler {
                     this.el_target.children(".mqm_char").each((i, el) => {
                         // on hover
                         $(el).on("mouseenter", () => {
+                            if (!TRACKING_ENABLED) return;
+                            
                             // get char position from attribute
                             let tgt_char_i = Number.parseInt($(el).attr("char_id"))
                             // approximate position in source
@@ -689,6 +802,8 @@ class MQMItemHandler {
                     
                     this.el_target.children(".mqm_char").each((i, el) => {
                         $(el).on("mouseenter", () => {
+                            if (!TRACKING_ENABLED) return;
+                            
                             let tgt_char_i = Number.parseInt($(el).attr("char_id"))
                             let src_char_i = Math.floor(tgt_char_i * row_len_src / len_tgt)
                             
@@ -742,6 +857,8 @@ class MQMItemHandler {
                     // Add hover handlers for source text
                     $rowSource.each((i, el) => {
                         $(el).on("mouseenter", () => {
+                            if (!TRACKING_ENABLED) return;
+                            
                             let src_char_i = Number.parseInt($(el).attr("char_id"))
                             
                             // Clear all underlines first
@@ -896,7 +1013,8 @@ class MQMItemHandler {
             // TODO: should be only 0 or 1 exactly
             if (active_mqm.length > 0) {
                 active_mqm = active_mqm[0]
-                el.css("background-color", SEVERITY_TO_COLOR[active_mqm[0]["severity"]])
+                // Use setProperty with 'important' priority to ensure error colors override diff highlights
+                el[0].style.setProperty("background-color", SEVERITY_TO_COLOR[active_mqm[0]["severity"]], "important")
                 el.attr("in_mqm", active_mqm[1])
 
                 let tooltip_message = active_mqm[0]["severity"].capitalize();
@@ -907,8 +1025,14 @@ class MQMItemHandler {
                 }
                 el.attr("title", tooltip_message)
             } else if (!this.SELECTION_STATE.includes(i)) {
-                // reset color
-                el.css("background-color", "")
+                // reset color - but only remove the style attribute if no diff class present
+                // so CSS can apply diff highlighting
+                if (el.hasClass('diff-sub') || el.hasClass('diff-ins') || el.hasClass('diff-del')) {
+                    // Remove the style attribute entirely to let CSS take over
+                    el.removeAttr("style")
+                } else {
+                    el.css("background-color", "")
+                }
             }
         })
 
