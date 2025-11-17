@@ -11,6 +11,7 @@ from django.core.files import File
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 from django.core.management.base import CommandError
+from django.db import models
 
 from Campaign.management.commands.init_campaign import _create_context
 from Campaign.management.commands.init_campaign import _init_campaign
@@ -42,6 +43,7 @@ class Command(BaseCommand):
 
         # TODO: support adding multiple batches
         parser.add_argument(
+            '-b',
             '--batches-json',
             type=str,
             default=[],
@@ -51,6 +53,7 @@ class Command(BaseCommand):
         )
 
         parser.add_argument(
+            '-o',
             '--csv-output',
             type=str,
             default=None,
@@ -74,6 +77,7 @@ class Command(BaseCommand):
         )
 
         parser.add_argument(
+            '-t',
             '--task-confirmation-tokens',
             action='store_true',
             default=False,
@@ -87,6 +91,15 @@ class Command(BaseCommand):
             default=-1,
             metavar='INTEGER',
             help='Defines maximum number of batches to be processed',
+        )
+
+        parser.add_argument(
+            '-a',
+            '--auto-campaign-id',
+            action='store_true',
+            default=False,
+            help='Automatically set CAMPAIGN_KEY to CAMPAIGN_NAME and determine '
+            'CAMPAIGN_NO as the next available Campaign ID.',
         )
 
     def handle(self, *args, **options):
@@ -109,6 +122,11 @@ class Command(BaseCommand):
 
         # Load manifest data, this may raise CommandError
         manifest_data = _load_campaign_manifest(manifest_json)
+        
+        # Handle auto-campaign-id flag
+        if options['auto_campaign_id']:
+            manifest_data = _apply_auto_campaign_id(manifest_data, self.stdout)
+        
         context = _create_context(manifest_data, stdout=self.stdout)
 
         # By default, we only include activated tasks into agenda creation.
@@ -265,3 +283,61 @@ def _create_campaign(
         campaign.batches.add(_campaign_data)
     campaign.save()
     return campaign
+
+
+def _apply_auto_campaign_id(manifest_data, stdout=None):
+    """Automatically set CAMPAIGN_KEY and CAMPAIGN_NO if requested.
+    
+    When this function is called, it will override any existing CAMPAIGN_KEY
+    and CAMPAIGN_NO values in the manifest data.
+    
+    Parameters:
+    - manifest_data:dict[str]->any dictionary containing manifest data;
+    - stdout: output stream for logging.
+    
+    Returns:
+    - manifest_data:dict[str]->any updated manifest data with CAMPAIGN_KEY 
+      and CAMPAIGN_NO set.
+    """
+    # Set CAMPAIGN_KEY to CAMPAIGN_NAME
+    campaign_name = manifest_data.get('CAMPAIGN_NAME')
+    if not campaign_name:
+        raise CommandError('CAMPAIGN_NAME must be defined in manifest file')
+    
+    # Check if campaign with this name already exists
+    if Campaign.objects.filter(campaignName=campaign_name).exists():
+        raise CommandError(
+            'Campaign with name {0!r} already exists. '
+            'Please use a different CAMPAIGN_NAME or remove the -a flag '
+            'to use an existing campaign.'.format(campaign_name)
+        )
+    
+    # Check if values already exist and warn about override
+    if 'CAMPAIGN_KEY' in manifest_data and stdout is not None:
+        stdout.write(
+            'Warning: Overriding existing CAMPAIGN_KEY {0!r} with {1!r}'.format(
+                manifest_data['CAMPAIGN_KEY'], campaign_name
+            )
+        )
+    
+    if 'CAMPAIGN_NO' in manifest_data and stdout is not None:
+        stdout.write(
+            'Warning: Overriding existing CAMPAIGN_NO {0}'.format(
+                manifest_data['CAMPAIGN_NO']
+            )
+        )
+    
+    manifest_data['CAMPAIGN_KEY'] = campaign_name
+    if stdout is not None:
+        stdout.write('Auto-set CAMPAIGN_KEY to: {0!r}'.format(campaign_name))
+    
+    # Determine next available CAMPAIGN_NO
+    # Get the maximum ID from existing campaigns
+    max_id = Campaign.objects.aggregate(models.Max('id'))['id__max']
+    next_campaign_no = (max_id or 0) + 1
+    
+    manifest_data['CAMPAIGN_NO'] = next_campaign_no
+    if stdout is not None:
+        stdout.write('Auto-set CAMPAIGN_NO to: {0}'.format(next_campaign_no))
+    
+    return manifest_data
