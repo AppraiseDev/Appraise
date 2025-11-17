@@ -756,7 +756,7 @@ class TextSegmentWithTwoTargets(TextSegment):
             else ''
         )
 
-    def target_texts_with_diffs(self, escape_html=True):
+    def target_texts_with_diffs(self, escape_html=True, char_based=False):
         """
         Returns the pair of texts with HTML tags highlighting token differences.
         Both texts must be non empty.
@@ -767,38 +767,59 @@ class TextSegmentWithTwoTargets(TextSegment):
         will become:
             'a <span class="diff diff-sub">b</span> c <span class="diff diff-del">d</span> e',
             'a <span class="diff diff-sub">B</span> c e <span class="diff diff-ins">f</span>'
+        
+        Args:
+            escape_html: Whether to escape HTML in the input texts.
+            char_based: If True, perform character-based comparison instead of word-based.
+                       This is useful for languages like Chinese, Japanese, Korean that don't
+                       use whitespace to separate words.
         """
         if not self.target1Text or not self.target2Text:
             return (self.target1Text, self.target2Text)
 
-        if escape_html:
-            toks1 = escape(self.target1Text).split()
-            toks2 = escape(self.target2Text).split()
+        if char_based:
+            # For character-based languages, tokenize by character
+            if escape_html:
+                text1_escaped = escape(self.target1Text)
+                text2_escaped = escape(self.target2Text)
+                toks1 = list(text1_escaped)
+                toks2 = list(text2_escaped)
+            else:
+                toks1 = list(self.target1Text)
+                toks2 = list(self.target2Text)
+            separator = ''  # No separator between characters
         else:
-            toks1 = self.target1Text.split()
-            toks2 = self.target2Text.split()
+            # For word-based languages, tokenize by whitespace
+            if escape_html:
+                toks1 = escape(self.target1Text).split()
+                toks2 = escape(self.target2Text).split()
+            else:
+                toks1 = self.target1Text.split()
+                toks2 = self.target2Text.split()
+            separator = ' '  # Space separator between words
+        
         matcher = SequenceMatcher(None, toks1, toks2)
 
         text1 = ''
         text2 = ''
         for tag, i1, i2, j1, j2 in matcher.get_opcodes():
             if tag == 'equal':
-                text1 += ' ' + ' '.join(toks1[i1:i2])
-                text2 += ' ' + ' '.join(toks2[j1:j2])
+                text1 += separator + separator.join(toks1[i1:i2])
+                text2 += separator + separator.join(toks2[j1:j2])
             elif tag == 'replace':
                 text1 += (
-                    ' <span class="diff diff-sub">' + ' '.join(toks1[i1:i2]) + '</span>'
+                    separator + '<span class="diff diff-sub">' + separator.join(toks1[i1:i2]) + '</span>'
                 )
                 text2 += (
-                    ' <span class="diff diff-sub">' + ' '.join(toks2[j1:j2]) + '</span>'
+                    separator + '<span class="diff diff-sub">' + separator.join(toks2[j1:j2]) + '</span>'
                 )
             elif tag == 'insert':
                 text2 += (
-                    ' <span class="diff diff-ins">' + ' '.join(toks2[j1:j2]) + '</span>'
+                    separator + '<span class="diff diff-ins">' + separator.join(toks2[j1:j2]) + '</span>'
                 )
             elif tag == 'delete':
                 text1 += (
-                    ' <span class="diff diff-del">' + ' '.join(toks1[i1:i2]) + '</span>'
+                    separator + '<span class="diff diff-del">' + separator.join(toks1[i1:i2]) + '</span>'
                 )
         return (text1.strip(), text2.strip())
 

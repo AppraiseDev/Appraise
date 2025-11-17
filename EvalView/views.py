@@ -19,6 +19,7 @@ from Appraise.settings import BASE_CONTEXT
 from Appraise.utils import _get_logger
 from Campaign.models import Campaign
 from Dashboard.models import SIGN_LANGUAGE_CODES
+from Dashboard.models import CHAR_BASED_LANGUAGE_CODES
 from EvalData.models import DataAssessmentResult
 from EvalData.models import DataAssessmentTask
 from EvalData.models import DirectAssessmentContextResult
@@ -1598,6 +1599,7 @@ def pairwise_assessment(request, code=None, campaign_name=None):
 
     source_language = current_task.marketSourceLanguage()
     target_language = current_task.marketTargetLanguage()
+    target_language_code = current_task.marketTargetLanguageCode()
 
     t4 = datetime.now()
 
@@ -1626,10 +1628,13 @@ def pairwise_assessment(request, code=None, campaign_name=None):
             'the original semantics of the bolded source text above?'
         )
 
+    # Check if target language is character-based (CJK, Thai, etc.)
+    is_char_based = target_language_code in CHAR_BASED_LANGUAGE_CODES
+
     (
         candidate1_text,
         candidate2_text,
-    ) = current_item.target_texts_with_diffs()
+    ) = current_item.target_texts_with_diffs(char_based=is_char_based)
 
     campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
 
@@ -2338,6 +2343,10 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         LOGGER.info('No current item detected, redirecting to dashboard')
         return redirect('dashboard')
 
+    # Get target language code to determine if character-based tokenization is needed
+    target_language_code = current_task.marketTargetLanguageCode()
+    is_char_based = target_language_code in CHAR_BASED_LANGUAGE_CODES
+
     campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
     new_ui = 'newui' in campaign_opts
     escape_eos = 'escapeeos' in campaign_opts
@@ -2350,13 +2359,14 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     
     print(f"DEBUG: campaign_opts={campaign_opts}")
     print(f"DEBUG: pairwise_esa={pairwise_esa}")
+    print(f"DEBUG: target_language_code={target_language_code}, is_char_based={is_char_based}")
 
     # Get item scores from the latest corresponding results
     block_scores = []
     for item, result in zip(block_items, block_results):
         # Get target texts with injected HTML tags showing diffs
         _candidate1_text, _candidate2_text = item.target_texts_with_diffs(
-            escape_html=not new_ui
+            escape_html=not new_ui, char_based=is_char_based
         )
         if not new_ui:
             _source_text = escape(item.segmentText)

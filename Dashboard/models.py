@@ -231,6 +231,24 @@ LANGUAGE_CODES_AND_NAMES = {
 # All sign language codes
 SIGN_LANGUAGE_CODES = set([LANGUAGE_CODES_AND_NAMES['sgg']])
 
+# Character-based languages (CJK and related) that don't use whitespace for word separation
+# These languages require character-level tokenization instead of word-level tokenization
+CHAR_BASED_LANGUAGE_CODES = {
+    'zho',        # Chinese
+    'zho-Hans',   # Simplified Chinese
+    'zho-Hant',   # Traditional Chinese
+    'jpn',        # Japanese
+    'kor',        # Korean
+    'wuu',        # Wu Chinese
+    'hak',        # Hakka Chinese
+    'hsn',        # Xiang Chinese
+    'gan',        # Gan Chinese
+    'tha',        # Thai (no spaces between words)
+    'mya',        # Myanmar/Burmese (no spaces between words)
+    'khm',        # Khmer (limited use of spaces)
+    'lao',        # Lao (limited use of spaces)
+}
+
 # Ensure that all languages have a corresponding group.
 try:
     for code in LANGUAGE_CODES_AND_NAMES:
