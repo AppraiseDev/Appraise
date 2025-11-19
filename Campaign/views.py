@@ -135,12 +135,6 @@ def _collect_campaign_status_rows(campaign, result_type, campaign_opts):
             is_mqm_or_esa = False
 
             if (
-                result_type is DirectAssessmentDocumentResult
-                or result_type is PairwiseAssessmentDocumentResult
-            ):
-                data_qs = data_qs.exclude(item__isCompleteDocument=True)
-
-            if (
                 result_type is PairwiseAssessmentResult
                 or result_type is PairwiseAssessmentDocumentResult
             ):
