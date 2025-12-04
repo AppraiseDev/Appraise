@@ -103,6 +103,7 @@ var scalarSliderOptions = {
 };
 var scalarSliderRegistry = {};
 var SENTENCE_ITEM_COUNT = {{ sentence_item_count|default:0 }};
+var SKIP_DOC_SCORES = {{ skip_doc_scores|yesno:"true,false" }};
 var collectBrowserInfo = {{ collect_browser_info|yesno:"true,false" }};
 var browserInfoValue = '';
 var disableMobile = {{ disable_mobile|yesno:"true,false" }};
@@ -587,12 +588,21 @@ $(document).ready(function() {
 });
 
 function _all_sentences_scored() {
-    var num = $('.item-box').filter(function() {
-        return $(this).data('item-completed') == "False";
-    }).length;
-    console.log('Items left:', num);
-    // 1 because the document-level score is also counted
-    return num <= 1;
+    if (SKIP_DOC_SCORES) {
+        // Only count segment-level items (with class 'quotelike')
+        var num = $('.item-box.quotelike').filter(function() {
+            return $(this).data('item-completed') == "False";
+        }).length;
+        console.log('Segment items left:', num);
+        return num <= 0;
+    } else {
+        // Count all items including document-level
+        var num = $('.item-box').filter(function() {
+            return $(this).data('item-completed') == "False";
+        }).length;
+        console.log('Items left:', num);
+        return num <= 1;
+    }
 }
 
 function _enable_document_box() {
@@ -849,6 +859,28 @@ function submit_form(e) {
 
 function last_form() {
     var item_box = $(this).closest('.item-box');
+    
+    // If skip_doc_scores is enabled, auto-fill with dummy scores
+    if (SKIP_DOC_SCORES) {
+        var score1 = item_box.find('input[name="score1"]').val();
+        var score2 = item_box.find('input[name="score2"]').val();
+        
+        // Auto-fill with score 0 if not set
+        if (score1 == -1 || score1 === '') {
+            item_box.find('input[name="score1"]').val(0);
+        }
+        if (score2 == -1 || score2 === '') {
+            item_box.find('input[name="score2"]').val(0);
+        }
+        
+        // Set both timestamps to 0 for dummy scores
+        item_box.find('input[name="start_timestamp"]').val(0);
+        item_box.find('input[name="end_timestamp"]').val(0);
+        attachBrowserInfoFieldForSubmit(item_box.find('form'));
+        return true;
+    }
+    
+    // Original validation logic when skip_doc_scores is false
     // Validate form
     var score1 = item_box.find('input[name="score1"]').val();
     var score2 = item_box.find('input[name="score2"]').val();
@@ -1264,6 +1296,7 @@ function _show_error_box(item_box, msg) {
     <div class="col-sm-1"></div>
 </div>
 
+        {% if not skip_doc_scores %}
         <div class="question-box alert alert-success">
             <div class="row">
                 <div class="col-sm-12">
@@ -1334,6 +1367,20 @@ function _show_error_box(item_box, msg) {
                 </tr>
             </table>
         </div>
+
+        {% else %}
+        <div class="target-box document-box quotelike">
+            <table class="action-box">
+                <tr>
+                    <td style="width:100%;text-align:center;">
+                        <button id="button-doc" class="btn button-next btn-primary" name="next_button" accesskey="1"
+                                title="Continue to next document"
+                                type="submit" value="{{ item.itemID }}">Continue to next document</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        {% endif %}
 
         {% endif %}
     </form>

@@ -2457,6 +2457,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     static_context = 'staticcontext' in campaign_opts
     doc_guidelines = 'doclvlguideline' in campaign_opts
     guidelines_popup = ('guidelinepopup' in campaign_opts or 'guidelinespopup' in campaign_opts)
+    skip_doc_scores = 'skipdocumentscores' in campaign_opts
 
     # new guidelines
     if not monolingual_task:
@@ -2506,11 +2507,13 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
                 '</ol>'
             ]
 
-    document_question_texts = [
-        'For the final step, please look again at each translated document. ' 
-        'Provide one final, overall rating for each translation candidate, judging it as a whole. '
-    ]
-
+    if skip_doc_scores:
+        document_question_texts = []
+    else:
+        document_question_texts = [
+            'For the final step, please look again at each translated document. ' 
+            'Provide one final, overall rating for each translation candidate, judging it as a whole. '
+        ]
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
         document_question_texts = document_question_texts[:1]
@@ -2558,6 +2561,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'sentence_item_count': sentence_item_count,
         'collect_browser_info': collect_browser_info,
         'disable_mobile': disable_mobile,
+        'skip_doc_scores': skip_doc_scores,
     }
     
     # Add ESA-specific context
