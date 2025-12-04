@@ -2452,77 +2452,68 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     candidate1_label = 'Translation A'
     candidate2_label = 'Translation B'
 
-    priming_question_texts = [
-        'Below you see a document with {0} sentences in {1} (left columns) '
-        'and their corresponding candidate translations from two different systems '
-        'in {2} (right columns). '
-        'Score each candidate sentence translation in the system\'s document context. '
-        'You may revisit already scored sentences and update their scores at any time '
-        'by clicking at a source text.'.format(
-            len(block_items), source_language, target_language
-        ),
-        'Assess the translation quality answering the question: ',
-        'How accurately does the candidate text for each system (right column, in bold) '
-        'convey the original semantics of the source text (left column) in the '
-        'system\'s document context? ',
-    ]
-    document_question_texts = [
-        'Please score the overall document translation quality for each system '
-        '(you can score the whole documents only after scoring all individual '
-        'sentences first).',
-        'Assess the translation quality answering the question: ',
-        'How accurately does the <strong>entire</strong> candidate document translation '
-        'in {0} (right column) convey the original semantics of the source document '
-        'in {1} (left column)? '.format(target_language, source_language),
-    ]
-    
+    monolingual_task = 'monolingual' in campaign_opts
+    use_sqm = 'sqm' in campaign_opts
+    static_context = 'staticcontext' in campaign_opts
+    doc_guidelines = 'doclvlguideline' in campaign_opts
+    guidelines_popup = ('guidelinepopup' in campaign_opts or 'guidelinespopup' in campaign_opts)
+
     # new guidelines
-    priming_question_texts = [
-        '<p>'
-        f'Below is a document in {source_language} presented sentence by sentence. Each source sentence has been translated by two different systems, A and B, into {target_language}. '
-        'Your task is to rate each translation using the scale below, based on three criteria: <br/>'
-        '</p>'
-        '<p>'
-        f'<strong>Naturalness</strong>: Does the translation sound fluent in {target_language}?<br/>'
-        f'<strong>Accuracy</strong>: Does the translation correctly preserve the meaning of the source text?<br/>'
-        f'<strong>Coherence</strong>: Does the sentence translation fit well in the document context?<br/>'
-        '</p>'
-    ]
+    if not monolingual_task:
+        priming_question_texts = [
+            '<p>'
+            f'Below is a document in {source_language} presented sentence by sentence. '
+            f'Each source sentence has been translated by two different systems, A and B, into {target_language}. '
+            'Your task is to rate each translation using the scale below, based on three criteria: <br/>'
+            '</p>'
+            '<p>'
+            f'<strong>Naturalness</strong>: Does the translation sound fluent in {target_language}?<br/>'
+            f'<strong>Accuracy</strong>: Does the translation correctly preserve the meaning of the source text?<br/>'
+            f'<strong>Coherence</strong>: Does the sentence translation fit well in the document context?<br/>'
+            '</p>'
+        ]
+    else:
+        priming_question_texts = [
+            '<p>'
+            f'Below you see two document translations from two different systems, A and B, in {target_language}. '
+            'Your task is to rate each translation using the scale below, based on two criteria: <br/>'
+            '</p>'
+            '<p>'
+            f'<strong>Naturalness</strong>: Does the translation sound fluent in {target_language}?<br/>'
+            f'<strong>Coherence</strong>: Does the sentence translation fit well in the document context?<br/>'
+            '</p>'
+        ]
+
+    if pairwise_esa:
+        if not monolingual_task:
+            priming_question_texts = [
+                f'Below you see a document in {source_language} and two different translations in {target_language}. '
+                'Your task:'
+                '<ol>'
+                '<li>Read the source text and two competing translations.</li>'
+                '<li>Highlight all translation errors in each translation.</li>'
+                '<li>Rate each translation using the scale provided below.</li>'
+                '</ol>'
+            ]
+        else:
+            priming_question_texts = [
+                f'Below you see two different translations of a document in {target_language}. '
+                'Your task:'
+                '<ol>'
+                '<li>Read two competing translations.</li>'
+                '<li>Highlight all translation errors in each translation.</li>'
+                '<li>Rate each translation using the scale provided below.</li>'
+                '</ol>'
+            ]
+
     document_question_texts = [
         'For the final step, please look again at each translated document. ' 
         'Provide one final, overall rating for each translation candidate, judging it as a whole. '
     ]
 
-    monolingual_task = 'monolingual' in campaign_opts
-    use_sqm = 'sqm' in campaign_opts
-    static_context = 'staticcontext' in campaign_opts
-    doc_guidelines = 'doclvlguideline' in campaign_opts
-    guidelines_popup = (
-        'guidelinepopup' in campaign_opts or 'guidelinespopup' in campaign_opts
-    )
-    gaming_domain = 'gamingdomainnote' in campaign_opts
-
     if use_sqm:
         priming_question_texts = priming_question_texts[:1]
         document_question_texts = document_question_texts[:1]
-
-    if monolingual_task:
-        source_language = None
-        priming_question_texts = [
-            'Below you see two documents, each with {0} sentences in {1}. '
-            'Score each sentence in both documents in their respective document context. '
-            'You may revisit already scored sentences and update their scores at any time '
-            'by clicking at a source text.'.format(
-                len(block_items) - 1, target_language
-            ),
-        ]
-        document_question_texts = [
-            'Please score the overall quality of each document (you can score '
-            'the whole document only after scoring all individual sentences from all '
-            'documents first).',
-        ]
-        candidate1_label = 'Translation A'
-        candidate2_label = 'Translation B'
 
     if doc_guidelines:
         priming_question_texts = [
@@ -2536,23 +2527,6 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
                 source_language,
                 target_language,
             ),
-        ]
-
-    if gaming_domain:
-        priming_question_texts += [
-            'The presented texts are messages from an online video game chat. '
-            'Please take into account the video gaming genre when making your assessments. </br> '
-        ]
-    
-    if pairwise_esa:
-        priming_question_texts = [
-            f'Below you see a document in {source_language} and two different translations in {target_language}.'
-            'Your task:'
-            '<ol>'
-            '<li>Read the source text and two competing translations.</li>'
-            '<li>Highlight all translation errors in each translation.</li>'
-            '<li>Rate each translation using the scale provided below.</li>'
-            '</ol>'
         ]
 
     sentence_item_count = len([item for item in block_items if not item.isCompleteDocument])

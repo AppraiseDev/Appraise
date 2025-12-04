@@ -1057,7 +1057,7 @@ function _show_error_box(text, timeout = 2000) {
                 {{campaign}}:{{datask_id}}:{{document_id}}-<span id="current-item-id">{{item_id}}</span>
             </td>
             <td style="width:33%;text-align:right;">
-                {% if source_language %}{{source_language}} &rarr; {% endif %}{{target_language}}
+                {% if source_language and not monolingual %}{{source_language}} &rarr; {% endif %}{{target_language}}
             </td>
         </tr>
     </table>
@@ -1110,6 +1110,7 @@ function _show_error_box(text, timeout = 2000) {
 {% if forloop.first %}
 <!-- Column headers for pairwise rows -->
 <div class="row" style="margin-bottom: 10px;">
+    {% if not monolingual %}
     <div class="col-sm-3">
         <small class="segment-label">{{ source_language }} source text</small>
     </div>
@@ -1119,6 +1120,15 @@ function _show_error_box(text, timeout = 2000) {
     <div class="col-sm-4">
         <small class="segment-label">{{ candidate2_label }} in {{ target_language }}</small>
     </div>
+    {% else %}
+    <div class="col-sm-1"></div>
+    <div class="col-sm-5">
+        <small class="segment-label">{{ candidate1_label }} in {{ target_language }}</small>
+    </div>
+    <div class="col-sm-5">
+        <small class="segment-label">{{ candidate2_label }} in {{ target_language }}</small>
+    </div>
+    {% endif %}
     <div class="col-sm-1"></div>
 </div>
 {% endif %}
@@ -1130,15 +1140,21 @@ function _show_error_box(text, timeout = 2000) {
     <div class="pairwise-row-header">
         <div class="row">
             <!-- Source text column with toggle functionality -->
+            {% if not monolingual %}
             <div class="col-sm-3 source-box-hoverable">
                 <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
                 <div class="source-text-display">
                     {{ scores.segment_text|safe }}
                 </div>
             </div>
+            {% else %}
+            <div class="col-sm-1 source-box-hoverable">
+                <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
+            </div>
+            {% endif %}
             
             <!-- Translation A column - Always visible item-box for MQM -->
-            <div class="col-sm-4">
+            <div class="{% if monolingual %}col-sm-5{% else %}col-sm-4{% endif %}">
                 <div id="item-{{ item.itemID }}-1"
                      class="item-box"
                      data-item-id="{{ item.itemID }}-1"
@@ -1173,7 +1189,7 @@ function _show_error_box(text, timeout = 2000) {
             </div>
             
             <!-- Translation B column - Always visible item-box for MQM -->
-            <div class="col-sm-4">
+            <div class="{% if monolingual %}col-sm-5{% else %}col-sm-4{% endif %}">
                 <div id="item-{{ item.itemID }}-2"
                      class="item-box"
                      data-item-id="{{ item.itemID }}-2"
@@ -1217,10 +1233,14 @@ function _show_error_box(text, timeout = 2000) {
     <!-- Collapsible content with sliders and submit button -->
     <div class="row target-box toggleable">
         <!-- Empty column for source -->
+        {% if not monolingual %}
         <div class="col-sm-3"></div>
+        {% else %}
+        <div class="col-sm-1"></div>
+        {% endif %}
         
         <!-- Translation A slider -->
-        <div class="col-sm-4">
+        <div class="{% if monolingual %}col-sm-5{% else %}col-sm-4{% endif %}">
             <!-- Scalar slider for rating -->
             <div class="row esa_slider">
                 <div class="slider-box">
@@ -1255,7 +1275,7 @@ function _show_error_box(text, timeout = 2000) {
         </div>
         
         <!-- Translation B slider -->
-        <div class="col-sm-4">
+        <div class="{% if monolingual %}col-sm-5{% else %}col-sm-4{% endif %}">
             <!-- Scalar slider for rating -->
             <div class="row esa_slider">
                 <div class="slider-box">
@@ -1307,6 +1327,7 @@ function _show_error_box(text, timeout = 2000) {
 
 <!-- Column footers for pairwise rows -->
 <div class="row" style="margin-top: 10px; margin-bottom: 20px;">
+    {% if not monolingual %}
     <div class="col-sm-3">
         <small class="segment-label">{{ source_language }} source text</small>
     </div>
@@ -1316,6 +1337,15 @@ function _show_error_box(text, timeout = 2000) {
     <div class="col-sm-4">
         <small class="segment-label">{{target_language}} {{ candidate2_label }}</small>
     </div>
+    {% else %}
+    <div class="col-sm-1"></div>
+    <div class="col-sm-5">
+        <small class="segment-label">{{target_language}} {{ candidate1_label }}</small>
+    </div>
+    <div class="col-sm-5">
+        <small class="segment-label">{{target_language}} {{ candidate2_label }}</small>
+    </div>
+    {% endif %}
     <div class="col-sm-1"></div>
 </div>
 
