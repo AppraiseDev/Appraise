@@ -2374,6 +2374,11 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         else:
             _source_text = item.segmentText
             _default_score = 50
+        
+        # Convert newlines to <br/> for proper rendering
+        _source_text = _source_text.replace("\n", "<br/>")
+        _candidate1_text = _candidate1_text.replace("\n", "<br/>")
+        _candidate2_text = _candidate2_text.replace("\n", "<br/>")
 
         if escape_eos:
             _source_text = _source_text.replace(
