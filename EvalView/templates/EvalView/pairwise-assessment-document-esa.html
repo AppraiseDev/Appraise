@@ -635,17 +635,9 @@ function _all_sentences_scored() {
         return $(this).data('item-completed') == "False";
     }).length;
     console.log('Pairwise rows (segments) left:', num);
-    // If skip_doc_scores, check if all segment rows are done (num == 0)
-    // Otherwise, need to account for document-level item-box too
-    if (SKIP_DOC_SCORES) {
-        return num <= 0;
-    } else {
-        // Check if document-level item-box is incomplete
-        var docIncomplete = $('.item-box').not('.pairwise-row .item-box').filter(function() {
-            return $(this).data('item-completed') == "False";
-        }).length;
-        return num == 0 && docIncomplete <= 0;
-    }
+    // All segment-level pairwise-rows must be scored before enabling document-level scoring
+    // The document-level item itself doesn't need to be complete yet - that's what we're enabling
+    return num == 0;
 }
 
 function _enable_document_box() {
