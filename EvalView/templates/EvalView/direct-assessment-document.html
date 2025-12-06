@@ -3,6 +3,7 @@
 
 {% block head %}
 <style>
+.full-screen { width:100% !important; }
 .slider .ui-slider-range { background: #729fcf; }
 .slider .ui-slider-handle { border-color: #729fcf; }
 .slider { margin-top: 10px; }
@@ -10,17 +11,24 @@
 .slider-box { font-size:16px; width:100%; }
 .slider-box .slider-grid { font-size:14px; width:100%; color:#777; }
 
-.quotelike { border-left: 5px solid #eee; }
-.quotelike .row, .pseudoquotelike .row { font-size: 16px; margin: 0; padding: 10px 20px; }
+.sqm-labels { margin-bottom:10px; }
+.sqm-label-first { padding-right:1px !important; }
+.sqm-label-last { padding-left:1px !important; }
+
+.half-slider .slider-grid td:first-of-type { padding-left:0; }
+.half-slider .slider-grid td:last-of-type { padding-right:0; }
+.half-slider .slider { margin-top:5px !important; }
+
+.quotelike .row, .pseudoquotelike .row { margin: 0; padding: 5px 0; }
 .quotelike.active { background-color: #f7f7f7; }
 
-.question-box { margin-bottom:10px; }
-.question-box p { font-size: 120%; margin: 10px 0 20px; font-style: italic; color: #31708f; }
-.question-box li { font-size: 120%; color: #31708f; }
+.question-box { margin:20px 0; }
+.question-box p { margin: 10px 10px 0; color: #555; }
+.question-box ul { margin: 10px; }
+.question-box li { font-size: 100%; color: #555; }
 .document-box { padding-top: 10px; }
-.document-box p { font-size: 16px; }
 
-.item-box { margin-bottom: 20px; }
+.item-box { margin-bottom: 5px; }
 .item-odd { }
 .item-even { background-color:#f8f8f8; }
 .item-box:last-of-type { background-color:inherit; }
@@ -53,16 +61,20 @@
 /*.document-box .btn { margin: 10px 5px 0; }*/
 .button-critical-error { margin-left:0px !important; }
 .button-next { margin-left:0px !important; }
-.button-reset { background-color: #ddd; margin-right:0px !important; }
-.button-setting { background-color: #f5f5f5; font-style:normal; }
+.button-reset { background-color: #ddd; }
+#button-doc { margin: 20px 0 0 0; }
+
+.campaign-info-box { font-style: italic; font-size: small; color: rgb(183, 183, 183); font-weight: 100; margin-top: -20px; margin-bottom: 20px; }
 
 /* Uncomment if ENABLE_UNRESTRICTED_ANNOTATION is set to false */
 /*.source-btn-toggle, .control-box { display:none; }*/
 </style>
 
 <link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}">
+<link rel="stylesheet" href="{% static 'EvalView/css/scalar-slider.css' %}">
 <script src="{% static 'EvalView/js/jquery-ui.min.js' %}"></script>
 <script src="{% static 'EvalView/js/js.cookie-2.2.1.min.js' %}"></script>
+<script src="{% static 'EvalView/js/scalar-slider.js' %}"></script>
 <script>
     <!--
 var idleTime = 0;
@@ -83,6 +95,20 @@ var ENABLE_COLOR_LABELS = true;
 // (see line 51). This is purely esthetics.
 var ENABLE_UNRESTRICTED_ANNOTATION = true;
 
+var scalarSliderEnabled = {{ scalar_slider|yesno:"true,false" }};
+var scalarSliderOptions = {
+    enabled: scalarSliderEnabled,
+    valueCount: 10,
+    min: 0,
+    max: 100
+};
+var scalarSliderRegistry = {};
+var collectBrowserInfo = {{ collect_browser_info|yesno:"true,false" }};
+var browserInfoValue = '';
+var disableMobile = {{ disable_mobile|yesno:"true,false" }};
+var disableMobileMinWidth = 770;
+var disableMobileAlertId = 'mobile-disabled-alert';
+
 String.prototype.rot13 = function() {
     return this.replace(/[a-zA-Z]/g, function(c) {
         return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
@@ -94,13 +120,280 @@ jQuery.fn.clickToggle = function(a, b) {
     return this.on("click", function(ev) { [b, a][this.$_io ^= 1].call(this, ev) })
 };
 
+function ensureMobileAlertExists() {
+    var $alert = $('#' + disableMobileAlertId);
+    if ($alert.length) {
+        return $alert;
+    }
+
+    $alert = $('<div/>', {
+        id: disableMobileAlertId,
+        class: 'alert alert-danger',
+        role: 'alert'
+    })
+        .text('Screen width is too small to continue this evaluation. Please use a device with wider screen or widen your browser window to 770 pixels or more.')
+        .hide();
+
+    var $mainContainer = $('.container[role="main"]').first();
+    if ($mainContainer.length) {
+        $alert.insertBefore($mainContainer);
+    } else {
+        $('body').prepend($alert);
+    }
+
+    return $alert;
+}
+
+function shouldBlockForMobile() {
+    if (!disableMobile) {
+        return false;
+    }
+
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || $(window).width();
+    return viewportWidth < disableMobileMinWidth;
+}
+
+function updateMobileVisibility() {
+    if (!disableMobile) {
+        return;
+    }
+
+    var $mainContainer = $('.container[role="main"]').first();
+    if (!$mainContainer.length) {
+        return;
+    }
+
+    var $alert = ensureMobileAlertExists();
+
+    if (shouldBlockForMobile()) {
+        $mainContainer.hide();
+        $alert.show();
+    } else {
+        $mainContainer.show();
+        $alert.hide();
+    }
+}
+
+function getScalarSliderInstanceById(sliderId) {
+    if (!sliderId) {
+        return null;
+    }
+    return scalarSliderRegistry[sliderId] || null;
+}
+
+function setScalarSliderValueById(sliderId, scoreValue, autoFilled) {
+    var instance = getScalarSliderInstanceById(sliderId);
+    if (!instance) {
+        return false;
+    }
+
+    var $sliderElement = (instance.$element && instance.$element.length) ? instance.$element : $('#' + sliderId);
+    var shouldMarkAuto = autoFilled === true;
+
+    function markAutoFilled(flag) {
+        if (!$sliderElement || !$sliderElement.length) {
+            return;
+        }
+        if (flag) {
+            $sliderElement.data('scalarAutoFilled', true);
+        } else {
+            $sliderElement.removeData('scalarAutoFilled');
+        }
+    }
+
+    var numericValue = parseFloat(scoreValue);
+    if (isNaN(numericValue) || numericValue < 0) {
+        instance.reset();
+        markAutoFilled(shouldMarkAuto);
+        return true;
+    }
+
+    instance.setTouched(true);
+    instance.setValue(numericValue, false);
+    markAutoFilled(shouldMarkAuto);
+    return true;
+}
+
+function computeBrowserInfo() {
+    if (!collectBrowserInfo) {
+        return '';
+    }
+
+    try {
+        if (navigator.userAgentData && navigator.userAgentData.brands) {
+            var parts = navigator.userAgentData.brands
+                .filter(function(entry) { return entry && entry.brand; })
+                .map(function(entry) {
+                    var version = entry.version ? ' ' + entry.version : '';
+                    return entry.brand + version;
+                });
+            var platform = navigator.userAgentData.platform || '';
+            if (platform) {
+                parts.push('(' + platform + ')');
+            }
+            var joined = parts.join('; ');
+            if (joined) {
+                return joined;
+            }
+        }
+        if (navigator.userAgent) {
+            return navigator.userAgent;
+        }
+    } catch (error) {
+        console.log('Browser info detection failed', error);
+    }
+
+    return '';
+}
+
+function ensureBrowserInfoFieldValue() {
+    if (!collectBrowserInfo) {
+        return;
+    }
+
+    if (!browserInfoValue) {
+        browserInfoValue = computeBrowserInfo();
+    }
+
+    var field = $('#browser-info-field');
+    if (field.length) {
+        field.val(browserInfoValue);
+    }
+}
+
+function serializeFormWithBrowserInfo(form) {
+    if (!collectBrowserInfo) {
+        return form.serialize();
+    }
+
+    ensureBrowserInfoFieldValue();
+
+    var field = $('#browser-info-field');
+    if (!field.length) {
+        return form.serialize();
+    }
+
+    var container = $('#browser-info-container');
+    form.append(field);
+    var serialized = form.serialize();
+    container.append(field);
+    return serialized;
+}
+
+function attachBrowserInfoFieldForSubmit(form) {
+    if (!collectBrowserInfo) {
+        return;
+    }
+
+    ensureBrowserInfoFieldValue();
+
+    var field = $('#browser-info-field');
+    if (!field.length) {
+        return;
+    }
+
+    form.append(field);
+}
+
+function initializeScalarSliders() {
+    if (!scalarSliderOptions.enabled) {
+        return false;
+    }
+    if (typeof window.Appraise === 'undefined' || !Appraise.ScalarSlider) {
+        return false;
+    }
+
+    var initialized = false;
+    $('.scalar-slider').each(function() {
+        var $element = $(this);
+        var sliderId = $element.attr('id') || '';
+        var hiddenSelector = sliderId ? '#' + sliderId.replace('slider', 'score') : null;
+
+        var instance = Appraise.ScalarSlider.create($element, {
+            enabled: true,
+            valueCount: scalarSliderOptions.valueCount,
+            min: scalarSliderOptions.min,
+            max: scalarSliderOptions.max,
+            hiddenInput: hiddenSelector,
+            onValueChange: function(storedValue) {
+                if (hiddenSelector) {
+                    $(hiddenSelector).val(storedValue);
+                }
+            }
+        });
+
+        if (!instance) {
+            return;
+        }
+
+        scalarSliderRegistry[sliderId] = instance;
+        initialized = true;
+
+        var $hiddenInput = hiddenSelector ? $(hiddenSelector) : null;
+        if ($hiddenInput && $hiddenInput.length) {
+            var existing = parseFloat($hiddenInput.val());
+            if (!isNaN(existing) && existing >= 0) {
+                instance.setTouched(true);
+                instance.setValue(existing, false);
+            } else {
+                instance.reset();
+            }
+        }
+    });
+
+    return initialized;
+}
+
+function applyScoreToSliderElement($slider, scoreValue, autoFilled) {
+    if (!$slider || !$slider.length) {
+        return;
+    }
+
+    var sliderId = $slider.attr('id') || '';
+    if ($slider.hasClass('scalar-slider') && setScalarSliderValueById(sliderId, scoreValue, autoFilled)) {
+        return;
+    }
+
+    var numericValue = parseFloat(scoreValue);
+    if (isNaN(numericValue)) {
+        numericValue = scoreValue;
+    }
+    $slider.slider('option', 'value', numericValue);
+}
+
 $(document).ready(function() {
     // This sets the same starting time for all items, but it is set again when
     // an item is expanded by clicking on it.
     $('input[name="start_timestamp"]').val(Date.now()/1000.0);
 
-    // Bind click events
-    $('.slider').slider({orientation: "horizontal", range: "min", change: update_score });
+    ensureBrowserInfoFieldValue();
+
+    if (disableMobile) {
+        updateMobileVisibility();
+        $(window).on('resize.disablemobile orientationchange.disablemobile', updateMobileVisibility);
+    }
+
+    var scalarSlidersInitialized = initializeScalarSliders();
+
+    var sliderInitOptions = {
+        orientation: "horizontal",
+        range: "min",
+        change: update_score,
+        slide: update_score
+    };
+
+    $('.slider').not('.scalar-slider').slider(sliderInitOptions);
+
+    if (!scalarSlidersInitialized && scalarSliderOptions.enabled) {
+        var fallbackOptions = $.extend({}, sliderInitOptions);
+        fallbackOptions.min = scalarSliderOptions.min;
+        fallbackOptions.max = scalarSliderOptions.max;
+        if (scalarSliderOptions.valueCount > 1) {
+            var fallbackStep = (scalarSliderOptions.max - scalarSliderOptions.min) / (scalarSliderOptions.valueCount - 1);
+            fallbackOptions.step = parseFloat(fallbackStep.toFixed(6));
+        }
+        $('.scalar-slider').slider(fallbackOptions);
+    }
     $('.button-reset').click(reset_form);
     if (ENABLE_UNRESTRICTED_ANNOTATION) {
         $('.source-box').clickToggle(_show_target_box, _hide_target_box);
@@ -124,7 +417,10 @@ $(document).ready(function() {
             // Show a tick icon
             item_box.find('.source-btn-done').show();
             var score = $(this).val();
-            item_box.find('.slider').slider('value', score);
+            var slider = $('#' + this.id.replace('score', 'slider'));
+            if (slider.length) {
+                applyScoreToSliderElement(slider, score);
+            }
             // Change submit button label to 'Update'
             item_box.find('button[name="next_button"]').text('Update');
         } else if(next_item === undefined) {
@@ -143,6 +439,20 @@ $(document).ready(function() {
     $('#button-open-all').click(open_all_items);
     $('#button-open-unannotated').click(open_all_unannotated_items);
     $('#button-close-all').click(close_all_items_except_current);
+    
+    $('#button-full-screen').click(toggle_full_screen);
+    if (Cookies.get('full-screen') != 'no') {
+        $('.container').addClass('full-screen');
+        $('#button-full-screen').text('Narrow screen');
+    } else {
+        $('#button-full-screen').text('Widen screen');
+    }
+    
+    $('#button-toggle-instructions').click(toggle_instructions);
+    if (Cookies.get('show-instructions') == 'no') {
+        $('.question-box').first().find('.additional-instructions').hide();
+        $('#button-toggle-instructions').text('Show instructions');
+    }
 });
 
 function _all_sentences_scored() {
@@ -186,6 +496,9 @@ function _hide_target_box() {
 }
 
 function update_score() {
+    if ($(this).hasClass('scalar-slider') && getScalarSliderInstanceById(this.id)) {
+        return;
+    }
     // Assign new score to the corresponding input
     var new_score = $(this).slider('value');
     var new_input = $('#' + this.id.replace('slider', 'score'));
@@ -221,13 +534,13 @@ function reset_form() {
     // Reset slider and OK tick
     var last_score = parseInt(item_box.data('item-score'));
     if(last_score == -1) { // i.e. not scored yet
-        item_box.find('.slider').slider('option', 'value', 0);
+        applyScoreToSliderElement(item_box.find('.slider'), 0);
         item_box.find('.source-btn-done').hide();
         item_box.find('.preview-box').addClass('inactive');
         item_box.find('.score-box').hide();
         //item_box.find('.score-box').html('');
     } else { // i.e. updating the score
-        item_box.find('.slider').slider('option', 'value', last_score);
+        applyScoreToSliderElement(item_box.find('.slider'), last_score);
         _color_score_box(item_box, last_score);
         //item_box.find('.score-box').show().html(last_score);
     }
@@ -293,7 +606,7 @@ function submit_form(e) {
         // returns an error or the item was not saved, annotation moves back
         // to the previous item.
         $.ajax({
-            data: item_box.find('form').serialize(),
+            data: serializeFormWithBrowserInfo(item_box.find('form')),
             type: 'POST',
             url: '{% url active_page %}',
             dataType: 'json',
@@ -347,6 +660,7 @@ function submit_form(e) {
         });
 
     } else {
+        attachBrowserInfoFieldForSubmit(item_box.find('form'));
         _change_item_status_icon(item_box, 'ok');
         // Move to the next item for smoother reloading
         _hide_target_box.call(item_box);
@@ -381,6 +695,7 @@ function last_form() {
     }
     // Add end timestamp
     item_box.find('input[name="end_timestamp"]').val(Date.now()/1000.0);
+    attachBrowserInfoFieldForSubmit(item_box.find('form'));
 }
 
 function open_all_items() {
@@ -418,6 +733,31 @@ function close_all_items_except_current() {
     });
 }
 
+function toggle_full_screen() {
+    var isFullScreen = $('.container').first().hasClass('full-screen');
+    if (isFullScreen) {
+        $('.container').removeClass('full-screen');
+        $('#button-full-screen').text('Widen screen');
+    } else {
+        $('.container').addClass('full-screen');
+        $('#button-full-screen').text('Narrow screen');
+    }
+    Cookies.set('full-screen', isFullScreen ? 'no' : 'yes', { sameSite: 'strict' });
+}
+
+function toggle_instructions() {
+    var $instructionsContent = $('.question-box').first().find('.additional-instructions');
+    var isHidden = $instructionsContent.is(':hidden');
+    if (isHidden) {
+        $instructionsContent.show();
+        $('#button-toggle-instructions').text('Hide instructions');
+    } else {
+        $instructionsContent.hide();
+        $('#button-toggle-instructions').text('Show instructions');
+    }
+    Cookies.set('show-instructions', isHidden ? 'yes' : 'no', { sameSite: 'strict' });
+}
+
 function _show_error_box(item_box, msg) {
     // A hideable error box with a custom message displayed right above the item box
     item_box.before(
@@ -435,57 +775,66 @@ function _show_error_box(item_box, msg) {
 
 {% block content %}
 
-<div class="alert alert-info">
+{% if collect_browser_info %}
+<div id="browser-info-container" style="display:none;">
+    <input type="hidden" id="browser-info-field" name="browser_info" value="" />
+</div>
+{% endif %}
+
+<div class="campaign-info-box">
     <table style="width:100%">
         <tr>
             <td style="width:33%;text-align:left;">
-                <strong id="task_progress">
+                <span id="task_progress">
                     {% if trusted_user %}
                     <span class="glyphicon glyphicon-ok-sign" aria-hidden="true"></span>
                     {% endif %}
                     {{completed_blocks}}/{{total_blocks}} documents,
                     <span id="items-left-counter">{{items_left_in_block}}</span>
                     items left in document
-                </strong>
+                </span>
             </td>
             <td style="width:33%;text-align:center;">
-                <strong>{{campaign}} #{{datask_id}}:Document #{{document_id}}-<span id="current-item-id">{{item_id}}</span></strong>
+                {{campaign}}:{{datask_id}}:{{document_id}}-<span id="current-item-id">{{item_id}}</span>
             </td>
             <td style="width:33%;text-align:right;">
-                <strong>{% if source_language %}{{source_language}} &rarr; {% endif %}{{target_language}}</strong>
+                {% if source_language %}{{source_language}} &rarr; {% endif %}{{target_language}}
             </td>
         </tr>
     </table>
 </div>
 
-<div class="question-box">
+<div class="question-box alert alert-success">
     <div class="row">
         <div class="col-sm-12">
             {% for text in priming_question_texts %}
-            <p>{{text|safe}}</p>
+            {{text|safe}}
             {% endfor %}
-            {% if sqm %}
-              {% with speech=speech signlt=signlt mono=monolingual ui_lang=ui_lang %}
-              {% include 'EvalView/_sqm_instructions.html' %}
-              {% endwith %}
+            <div class="additional-instructions">
+            {% if scalar_slider %}
+                <p><em>Note</em>: You first evaluate each sentence individually, but you should use the entire translation as context.</p>
+                <p>Rating scale:</p>
+                {% with mono=monolingual %}
+                {% include 'EvalView/_scalar_instructions.html' %}
+                {% endwith %}
+            {% elif sqm %}
+                {% with mono=monolingual %}
+                {% include 'EvalView/_sqm_instructions.html' %}
+                {% endwith %}
             {% endif %}
+            </div>
         </div>
     </div>
     <div class="row">
         <div class="col-sm-12">
+            <p class="pull-left control-box">
+            <button id="button-toggle-instructions" class="btn btn-info btn-sm">Hide instructions</button>
+            <button id="button-full-screen" class="btn btn-info btn-sm">Narrow screen</button>
+            </p>
             <p class="pull-right control-box">
-            <button id="button-open-all"
-                    class="btn button-setting btn-default btn-sm">
-                Expand all items
-            </button>
-            <button id="button-open-unannotated"
-                    class="btn button-setting btn-default btn-sm">
-                Expand unannotated
-            </button>
-            <button id="button-close-all"
-                    class="btn button-setting btn-default btn-sm">
-                Collapse all items
-            </button>
+            <button id="button-open-all" class="btn btn-default btn-sm">Expand all items</button>
+            <button id="button-open-unannotated" class="btn btn-default btn-sm">Expand unannotated</button>
+            <button id="button-close-all" class="btn btn-default btn-sm">Collapse all items</button>
             </p>
         </div>
     </div>
@@ -517,7 +866,7 @@ function _show_error_box(item_box, msg) {
                 <div class="col-sm-5">
                     <span title="Static context of the candidate translation">
                         {% if item.targetContextLeft %}
-                        <strong>{{ item.targetContextLeft|linebreaks }}</strong>
+                        {{ item.targetContextLeft|linebreaks }}
                         <small class="segment-label">- Additional target context</small>
                         {% endif %}
                     </span>
@@ -577,7 +926,7 @@ function _show_error_box(item_box, msg) {
                 </div>
                 {% endif %}
 
-                <div class="{% if not monolingual %}col-sm-5{% else %}col-sm-11{% endif %}">
+                <div class="{% if not monolingual %}col-sm-6{% else %}col-sm-11{% endif %}">
                   {% if monolingual %}
                     <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
                   {% endif %}
@@ -587,11 +936,9 @@ function _show_error_box(item_box, msg) {
                                 frameborder="0" allowfullscreen></iframe>
                         <p class="toggleable-reverse"><i>&lt;Video is hidden. Click to expand.&gt;</i></p>
                         {% else %}
-                        <p><strong>{{item.targetText|safe}}</strong></p>
+                        <p>{{item.targetText|safe}}</p>
                         {% endif %}
                     </span>
-                </div>
-                <div class="col-sm-1">
                     <span class="source-btn-done glyphicon glyphicon-ok"></span>
                     <span class="score-box badge">&nbsp;</span>
                 </div>
@@ -600,8 +947,22 @@ function _show_error_box(item_box, msg) {
 
         <div class="target-box toggleable" >
             <div class="row">
-            {% if sqm %}
-                {% with sliderid=item.itemID speech=speech signlt=signlt mono=monolingual ui_lang=ui_lang %}
+                <div class="col-sm-1" style="text-align:left;">
+                <!--
+                    <button class="btn btn-sm button-reset"
+                            accesskey="2"
+                            type="reset">
+                        <i class="icon-repeat"></i> Reset</button>
+                -->
+                </div>
+
+                <div class="col-sm-10">
+            {% if scalar_slider %}
+                {% with sliderid=item.itemID mono=monolingual %}
+                {% include 'EvalView/_scalar_slider.html' %}
+                {% endwith %}
+            {% elif sqm %}
+                {% with sliderid=item.itemID mono=monolingual %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
@@ -609,41 +970,35 @@ function _show_error_box(item_box, msg) {
                 {% include 'EvalView/_slider.html' %}
                 {% endwith %}
             {% endif %}
+                </div>
+
+                <div class="col-sm-1" style="text-align:right;">
+                    <button class="btn btn-sm button-next btn-primary"
+                            name="next_button"
+                            accesskey="1"
+                            type="submit"
+                            value="{{ item.itemID }}">
+                        <i class="icon-ok-sign icon-white"></i> Submit</button>
+                </div>
             </div>
-
-            <table class="row action-box">
-                <tr>
-                    <td style="width:30%;text-align:left;">
-                        <button class="btn button-reset"
-                                accesskey="2"
-                                type="reset">
-                            <i class="icon-repeat"></i> Reset</button>
-                    </td>
-
-                    <td style="width:70%;text-align:right;">
-                        <button class="btn button-next btn-primary"
-                                name="next_button"
-                                accesskey="1"
-                                type="submit"
-                                value="{{ item.itemID }}">
-                            <i class="icon-ok-sign icon-white"></i> Submit</button>
-                    </td>
-                </tr>
-            </table>
         </div>
 
         {% else %}
 
-        <div class="question-box">
+        <div class="question-box alert alert-success">
             <div class="row">
-                <div class="col-sm-12 question-box">
+                <div class="col-sm-12">
                     {% for text in document_question_texts %}
                     <p>{{text|safe}}</p>
                     {% endfor %}
-                    {% if sqm %}
-                      {% with speech=speech signlt=signlt mono=monolingual ui_lang=ui_lang %}
-                      {% include 'EvalView/_sqm_instructions.html' %}
-                      {% endwith %}
+                    {% if scalar_slider %}
+                        {% with mono=monolingual %}
+                        {% include 'EvalView/_scalar_instructions.html' %}
+                        {% endwith %}
+                    {% elif sqm %}
+                        {% with mono=monolingual %}
+                        {% include 'EvalView/_sqm_instructions.html' %}
+                        {% endwith %}
                     {% endif %}
                 </div>
             </div>
@@ -651,8 +1006,13 @@ function _show_error_box(item_box, msg) {
 
         <div class="target-box document-box quotelike">
             <div class="row">
-            {% if sqm %}
-                {% with sliderid=item.itemID speech=speech mono=monolingual ui_lang=ui_lang %}
+                <div class="col-sm-12">
+            {% if scalar_slider %}
+                {% with sliderid=item.itemID mono=monolingual %}
+                {% include 'EvalView/_scalar_slider.html' %}
+                {% endwith %}
+            {% elif sqm %}
+                {% with sliderid=item.itemID mono=monolingual %}
                 {% include 'EvalView/_sqm_slider.html' %}
                 {% endwith %}
             {% else %}
@@ -660,28 +1020,18 @@ function _show_error_box(item_box, msg) {
                 {% include 'EvalView/_slider.html' %}
                 {% endwith %}
             {% endif %}
-            </div>
+                </div>
 
-            <table class="action-box">
-                <tr>
-                    <td style="width:70%;text-align:left;">
-                        <button id="reset{{ item.itemID }}"
-                                class="btn button-reset"
-                                accesskey="2"
-                                type="reset">
-                            <i class="icon-repeat"></i> Reset</button>
-                    </td>
-                    <td style="width:30%;text-align:right;">
-                        <button id="button-doc"
-                                class="btn button-next btn-primary"
-                                name="next_button"
-                                accesskey="1"
-                                type="submit"
-                                value="{{ item.itemID }}">
-                            <i class="icon-ok-sign icon-white"></i> Submit</button>
-                    </td>
-                </tr>
-            </table>
+            </div>
+            <div class="row" style="text-align:right;">
+                <button id="button-doc"
+                        title="Please first complete all segments in the document"
+                        class="btn button-next btn-primary"
+                        name="next_button"
+                        accesskey="1"
+                        type="submit"
+                        value="{{ item.itemID }}">Submit and continue to next document</button>
+            </div>
         </div>
 
         {% endif %}

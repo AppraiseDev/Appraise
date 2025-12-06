@@ -888,27 +888,20 @@ def direct_assessment_document(request, code=None, campaign_name=None):
             sign_translation = False  # disable sign-specific SQM instructions
 
     priming_question_texts = [
-        'Below you see a document with {0} sentences in {1} (left columns) '
-        'and their corresponding candidate translations in {2} (right columns). '
-        'Score each candidate sentence translation in the document context. '
-        'You may revisit already scored sentences and update their scores at any time '
-        'by clicking at a source {3}.'.format(
-            len(block_items) - 1,
-            source_language,
-            target_language,
-            source_item_type,
-        ),
-        'Assess the translation quality answering the question: ',
-        'How accurately does the candidate text (right column, in bold) convey the '
-        'original semantics of the source text (left column) in the document context? ',
+        '<p>'
+        f'Below is a document in {source_language} and its translation into {target_language}, presented sentence by sentence. '
+        'Your task is to rate each translation using the scale below, based on three criteria: <br/>'
+        '</p>'
+        '<p>'
+        f'<strong>Naturalness</strong>: Does the translation sound fluent in {target_language}?<br/>'
+        f'<strong>Accuracy</strong>: Does the translation correctly preserve the meaning of the source text?<br/>'
+        f'<strong>Coherence</strong>: Does the sentence translation fit well in the document context?<br/>'
+        '</p>'
     ]
     document_question_texts = [
-        'Please score the overall document translation quality (you can score '
-        'the whole document only after scoring all individual sentences first).',
-        'Assess the translation quality answering the question: ',
-        'How accurately does the <strong>entire</strong> candidate document translation '
-        'in {0} (right column) convey the original semantics of the source document '
-        'in {1} (left column)? '.format(target_language, source_language),
+        '<p>'
+        'For the final step, please look again at the translated document. Provide one final, overall rating, judging it as a whole.'
+        '</p>'
     ]
 
     if use_sqm:
@@ -917,17 +910,16 @@ def direct_assessment_document(request, code=None, campaign_name=None):
 
     if monolingual_task:
         source_language = None
+
         priming_question_texts = [
-            'Below you see a document with {0} sentences in {1}. '
-            'Score each sentence in the document context. '
-            'You may revisit already scored sentences and update their scores at any time '
-            'by clicking at a source text.'.format(
-                len(block_items) - 1, target_language
-            ),
-        ]
-        document_question_texts = [
-            'Please score the overall document quality (you can score '
-            'the whole document only after scoring all individual sentences first).',
+            '<p>'
+            f'Below is a document translated into {target_language}, presented sentence by sentence. '
+            'Your task is to rate each translation using the scale below, based on two criteria: <br/>'
+            '</p>'
+            '<p>'
+            f'<strong>Naturalness</strong>: Does the translation sound fluent in {target_language}?<br/>'
+            f'<strong>Coherence</strong>: Does the sentence translation fit well in the document context?<br/>'
+            '</p>'
         ]
         candidate_label = None
 
@@ -1054,6 +1046,9 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'static_context': static_context,
         'sqm': use_sqm,
         'ui_lang': ui_language,
+        'scalar_slider': 'scalarslider' in campaign_opts,
+        'collect_browser_info': 'collectbrowserinfo' in campaign_opts,
+        'disable_mobile': 'disablemobile' in campaign_opts,
     }
 
     if ajax:
