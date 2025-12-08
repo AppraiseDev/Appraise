@@ -94,6 +94,21 @@ String.prototype.capitalize = function () {
     return this.charAt(0).toUpperCase() + this.slice(1);
 }
 
+function usesHundredPointScale() {
+    if (typeof wmtLayout === 'undefined') {
+        return true;
+    }
+    return Boolean(wmtLayout);
+}
+
+function getMinScoreWithoutErrors() {
+    return usesHundredPointScale() ? 80 : 8;
+}
+
+function getScoreThresholdDisplay() {
+    return usesHundredPointScale() ? '8 (slider value 80)' : '8';
+}
+
 var MQM_HANDLERS = {}
 var MQM_TYPE;
 
@@ -156,7 +171,7 @@ $(document).ready(() => {
         let $el = $(el);
         
         // Skip document-level items (those with document-box class)
-        if ($el.find('.document-box').length > 0) {
+        if ($el.hasClass('document-box')) {
             console.log("Skipping MQM handler for document-level item:", $el.attr("data-item-id"));
             return;
         }
@@ -387,13 +402,20 @@ class MQMItemHandler {
             this.tutorial = this.mqm["tutorial"]
             this.mqm = this.mqm["payload"]
 
-            this.el.find(".tutorial-text").html("<b>TUTORIAL:</b> " + this.tutorial["instruction"])
-
-            // unhide multiple times but doesn't matter
-            $("#tutorial-text").toggle(true)
+            if (this.tutorial && this.tutorial["instruction"]) {
+                this.el.find(".tutorial-text").html("<b>TUTORIAL:</b> " + this.tutorial["instruction"])
+                // unhide multiple times but doesn't matter
+                $("#tutorial-text").toggle(true)
+            }
         } else {
             this.tutorial = false
         }
+        
+        // Ensure mqm is always an array
+        if (!this.mqm || !Array.isArray(this.mqm)) {
+            this.mqm = [];
+        }
+        
         this.mqm_submitted = structuredClone(this.mqm)
         this.mqm_orig = JSON.parse(JSON.parse(this.el.children('#mqm-payload-orig').html()))
         
@@ -970,7 +992,7 @@ class MQMItemHandler {
             }
             if (this.tutorial) {
                 // do nothing, we don't validate during tutorial
-            } else if (this.mqm.length == 0 && value < 66) {
+            } else if (usesHundredPointScale() && this.mqm.length == 0 && value < 66) {
                 alert(`You assigned a score of ${value} without highlighting any errors. Please, highlight errors first.`)
             }
         })
@@ -1092,6 +1114,18 @@ class MQMItemHandler {
         return true
     }
 
+    hasActualErrors() {
+        if (!Array.isArray(this.mqm)) {
+            return false;
+        }
+        return this.mqm.some((entry) => {
+            if (!entry || !entry.severity) {
+                return false;
+            }
+            return entry.severity !== 'neutral' && entry.severity !== 'undecided';
+        });
+    }
+
 
     validate_tutorial() {
         if ("mqm_target" in this.tutorial) {
@@ -1122,6 +1156,14 @@ class MQMItemHandler {
         if (this.tutorial && !this.validate_tutorial()) {
             alert(`Please follow the tutorial instructions.\n(${this.text_target_orig.substring(0, 60)}...)`);
             return false
+        }
+        if (MQM_TYPE === "ESA") {
+            const rawScore = Number.parseFloat(this.el.find("input[name='score']").val());
+            const scoreUnset = Number.isNaN(rawScore) || rawScore < 0;
+            if (!scoreUnset && rawScore < getMinScoreWithoutErrors() && !this.hasActualErrors()) {
+                alert(`Scores below ${getScoreThresholdDisplay()} require at least one error span annotation.`);
+                return false;
+            }
         }
         return true;
     }

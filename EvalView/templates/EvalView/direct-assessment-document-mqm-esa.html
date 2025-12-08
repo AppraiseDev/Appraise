@@ -2,11 +2,518 @@
 {% load static %}
 
 {% block head %}
+<style>
+.full-screen { width:100% !important; }
+.slider .ui-slider-range { background: #729fcf; }
+.slider .ui-slider-handle { border-color: #729fcf; }
+.slider { margin-top: 10px; }
+.slider small { font-size:80%; }
+.slider-box { font-size:16px; width:100%; }
+.slider-box .slider-grid { font-size:14px; width:100%; color:#777; }
+
+.sqm-labels { margin-bottom:10px; color: #777; font-size:x-small; }
+.sqm-label-first { padding-right:1px !important; }
+.sqm-label-last { padding-left:1px !important; }
+
+.half-slider .slider-grid td:first-of-type { padding-left:0; }
+.half-slider .slider-grid td:last-of-type { padding-right:0; }
+.half-slider .slider { margin-top:5px !important; }
+
+.quotelike { background-color: #fff !important; font-size:14px !important; }
+
+.question-box { margin:20px 0 !important; }
+.question-box p { margin: 0 10px 0 0; color: #555; }
+.question-box ul { margin-bottom:10px; }
+.question-box li { font-size: 100%; color: #555; }
+.document-box { padding-top: 10px; }
+
+ul.scalar-instructions { padding-left: 10px; padding-top:5px; }
+
+.item-box { margin-bottom: 5px !important; }
+.item-even { background-color:#f8f8f8; }
+.item-box:last-of-type { background-color:inherit; }
+
+.item-box.item-even .source-box { background-color:#f8f8f8; }
+.item-box.item-even .target-box { background-color:#f8f8f8; }
+
+.item-static-content p { opacity:0.5; font-style:italic; }
+
+.source-box { padding: 5px 10px !important; }
+.source-btn-toggle { float: right; padding-right:10px; }
+.source-btn-done { float: right; display: none; padding-bottom:5px; padding-left:5px; }
+.preview-box .row { padding-top:0; font-size:95%; }
+.source-text { padding:0 !important; }
+
+.segment-label { display:block; font-size:x-small; font-style:italic; color: gray; padding-left: 10px; }
+
+.toggleable { display:none; }
+.toggleable.active { display:block; }
+
+.target-text { padding: 0 !important; }
+.target-box .row { padding-top:0; }
+.target-box.active { display:block; }
+.target-box .btn { margin-top:10px; min-width:71px; margin-right:5px; }
+
+.system-label { display:none; }
+
+.action-box  { width: 100%; }
+.action-box td { padding-bottom:10px; }
+.action-box .btn { margin: 0 40px; }
+.button-reset { background-color: #ddd; position:relative !important; left:0 !important; top:0 !important;}
+#button-doc { margin: 20px 0 0 0; }
+
+.campaign-info-box { font-style: italic; font-size: small; color: rgb(183, 183, 183); font-weight: 100; margin-top: -20px; margin-bottom: 20px; }
+.source-text-display { padding-bottom: 20px; }
+
+/* Uncomment if ENABLE_UNRESTRICTED_ANNOTATION is set to false */
+/*.source-btn-toggle, .control-box { display:none; }*/
+</style>
+
 <link rel="stylesheet" href="{% static 'EvalView/css/direct-assessment-document-mqm-esa.css' %}">
-<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
-<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.13.2/themes/smoothness/jquery-ui.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.2.1/js.cookie.min.js"></script>
+<link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}">
+<link rel="stylesheet" href="{% static 'EvalView/css/scalar-slider.css' %}">
+<script src="{% static 'EvalView/js/jquery-ui.min.js' %}"></script>
+<script src="{% static 'EvalView/js/js.cookie-2.2.1.min.js' %}"></script>
+<script src="{% static 'EvalView/js/scalar-slider.js' %}"></script>
 <script src="{% static 'EvalView/js/direct-assessment-document-mqm-esa.js' %}"></script>
+<script>
+    <!--
+var idleTime = 0;
+
+// Enable submitting scores for individual items using Ajax POST. If disabled,
+// the page will be reloaded each time an item is annotated. Note that the
+// document-level score is always submitted without Ajax.
+var ENABLE_AJAX = true;
+// Hint scores of already annotated items with small red-to-green color
+// circles.
+var ENABLE_COLOR_LABELS = false;
+// Allow unrestricted annotation of items in the document. If disabled,
+// expanding and hiding of sentences is disabled and the user must score items
+// following their order, one-by-one.
+var ENABLE_UNRESTRICTED_ANNOTATION = true;
+
+var scalarSliderEnabled = {{ scalar_slider|yesno:"true,false" }};
+var wmtLayout = {{ wmt_layout|yesno:"true,false" }};
+var scalarSliderOptions = {
+    enabled: scalarSliderEnabled,
+    valueCount: wmtLayout ? 101 : 10,
+    min: wmtLayout ? 0 : 1,
+    max: wmtLayout ? 100 : 10
+};
+var scalarSliderRegistry = {};
+var collectBrowserInfo = false;
+var browserInfoValue = '';
+var disableMobile = false;
+var disableMobileMinWidth = 770;
+var disableMobileAlertId = 'mobile-disabled-alert';
+
+String.prototype.rot13 = function() {
+    return this.replace(/[a-zA-Z]/g, function(c) {
+        return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);
+    });
+};
+
+// https://stackoverflow.com/a/21520499
+jQuery.fn.clickToggle = function(a, b) {
+    return this.on("click", function(ev) { [b, a][this.$_io ^= 1].call(this, ev) })
+};
+
+function ensureMobileAlertExists() {
+    var $alert = $('#' + disableMobileAlertId);
+    if ($alert.length) {
+        return $alert;
+    }
+
+    $alert = $('<div/>', {
+        id: disableMobileAlertId,
+        class: 'alert alert-danger',
+        role: 'alert'
+    })
+        .text('Screen width is too small to continue this evaluation. Please use a device with wider screen or widen your browser window to 770 pixels or more.')
+        .hide();
+
+    var $mainContainer = $('.container[role="main"]').first();
+    if ($mainContainer.length) {
+        $alert.insertBefore($mainContainer);
+    } else {
+        $('body').prepend($alert);
+    }
+
+    return $alert;
+}
+
+function shouldBlockForMobile() {
+    if (!disableMobile) {
+        return false;
+    }
+
+    var viewportWidth = window.innerWidth || document.documentElement.clientWidth || $(window).width();
+    return viewportWidth < disableMobileMinWidth;
+}
+
+function updateMobileVisibility() {
+    if (!disableMobile) {
+        return;
+    }
+
+    var $mainContainer = $('.container[role="main"]').first();
+    if (!$mainContainer.length) {
+        return;
+    }
+
+    var $alert = ensureMobileAlertExists();
+
+    if (shouldBlockForMobile()) {
+        $mainContainer.hide();
+        $alert.show();
+    } else {
+        $mainContainer.show();
+        $alert.hide();
+    }
+}
+
+function toggle_full_screen() {
+    var isFullScreen = $('.container').first().hasClass('full-screen');
+    if (isFullScreen) {
+        $('.container').removeClass('full-screen');
+        $('#button-full-screen').text('Widen screen');
+    } else {
+        $('.container').addClass('full-screen');
+        $('#button-full-screen').text('Narrow screen');
+    }
+    Cookies.set('full-screen', isFullScreen ? 'no' : 'yes', { sameSite: 'strict' });
+}
+
+function toggle_instructions() {
+    var $instructionsContent = $('.question-box').first().find('.additional-instructions');
+    var isHidden = $instructionsContent.is(':hidden');
+    if (isHidden) {
+        $instructionsContent.show();
+        $('#button-toggle-instructions').text('Hide instructions');
+    } else {
+        $instructionsContent.hide();
+        $('#button-toggle-instructions').text('Show instructions');
+    }
+    Cookies.set('show-instructions', isHidden ? 'yes' : 'no', { sameSite: 'strict' });
+}
+
+function toggle_tracking() {
+    // Check if tracking is currently enabled
+    var isActive = TRACKING_ENABLED;
+    
+    if (isActive) {
+        TRACKING_ENABLED = false;
+        $('#button-show-tracking').text('Show tracking');
+        // Clear any existing underlines
+        $('.mqm_char_src, .mqm_char').css('text-decoration', '');
+    } else {
+        TRACKING_ENABLED = true;
+        $('#button-show-tracking').text('Hide tracking');
+    }
+    Cookies.set('show-tracking', isActive ? 'no' : 'yes', { sameSite: 'strict' });
+}
+
+function open_all_items() {
+    $('.item-box').not('.document-box').each(function() {
+        var item_box = $(this);
+        if(item_box.find('.target-box').is(':hidden')) {
+            item_box.find('.toggleable').animate({height: 'toggle'}, 0);
+            item_box.addClass('active');
+            item_box.find('.source-btn-toggle').removeClass('glyphicon-menu-down').addClass('glyphicon-menu-up');
+        }
+    });
+}
+
+function open_all_unannotated_items() {
+    $('.item-box').not('.document-box').each(function() {
+        var item_box = $(this);
+        var is_completed = item_box.attr('data-item-completed');
+        if (is_completed == 'True' || is_completed === 'true') {
+            if(!item_box.find('.target-box.toggleable').is(':hidden')) {
+                item_box.find('.toggleable').animate({height: 'toggle'}, 0);
+                item_box.removeClass('active');
+                item_box.find('.source-btn-toggle').removeClass('glyphicon-menu-up').addClass('glyphicon-menu-down');
+            }
+        } else {
+            if(item_box.find('.target-box').is(':hidden')) {
+                item_box.find('.toggleable').animate({height: 'toggle'}, 0);
+                item_box.addClass('active');
+                item_box.find('.source-btn-toggle').removeClass('glyphicon-menu-down').addClass('glyphicon-menu-up');
+            }
+        }
+    });
+}
+
+function close_all_items_except_current() {
+    var first = true;
+    $('.item-box').not('.document-box').each(function() {
+        var item_box = $(this);
+        var is_completed = item_box.attr('data-item-completed');
+        // Keep first unannotated item expanded
+        if (first && (is_completed == 'False' || is_completed === 'false' || is_completed === false)) {
+            if(item_box.find('.target-box').is(':hidden')) {
+                item_box.find('.toggleable').animate({height: 'toggle'}, 0);
+                item_box.addClass('active');
+                item_box.find('.source-btn-toggle').removeClass('glyphicon-menu-down').addClass('glyphicon-menu-up');
+            }
+            first = false;
+        } else {
+            if(!item_box.find('.target-box.toggleable').is(':hidden')) {
+                item_box.find('.toggleable').animate({height: 'toggle'}, 0);
+                item_box.removeClass('active');
+                item_box.find('.source-btn-toggle').removeClass('glyphicon-menu-up').addClass('glyphicon-menu-down');
+            }
+        }
+    });
+}
+
+function move_to_next_item(current_item_box) {
+    // Hide current item
+    if(!current_item_box.find('.target-box.toggleable').is(':hidden')) {
+        current_item_box.find('.toggleable').animate({height: 'toggle'}, 0);
+        current_item_box.removeClass('active');
+        current_item_box.find('.source-btn-toggle').removeClass('glyphicon-menu-up').addClass('glyphicon-menu-down');
+    }
+    
+    // Find and show next unannotated item
+    var next_item = null;
+    current_item_box.nextAll('.item-box').not('.document-box').each(function() {
+        var item_box = $(this);
+        var is_completed = item_box.attr('data-item-completed');
+        if (is_completed == 'False' || is_completed === 'false' || is_completed === false) {
+            next_item = item_box;
+            return false; // break
+        }
+    });
+    
+    if (next_item && next_item.length) {
+        if(next_item.find('.target-box').is(':hidden')) {
+            next_item.find('.toggleable').animate({height: 'toggle'}, 0);
+            next_item.addClass('active');
+            next_item.find('.source-btn-toggle').removeClass('glyphicon-menu-down').addClass('glyphicon-menu-up');
+        }
+        next_item.find('input[name="start_timestamp"]').val(Date.now()/1000.0);
+    }
+}
+
+$(document).ready(function() {
+    if (disableMobile) {
+        updateMobileVisibility();
+        $(window).on('resize.disablemobile orientationchange.disablemobile', updateMobileVisibility);
+    }
+
+    // Initialize scalar sliders if enabled
+    var scalarSlidersInitialized = false;
+    if (scalarSliderOptions.enabled) {
+        if (typeof window.Appraise !== 'undefined' && Appraise.ScalarSlider) {
+            $('.scalar-slider').each(function() {
+                var $element = $(this);
+                var sliderId = $element.attr('id') || '';
+                var hiddenSelector = sliderId ? '#' + sliderId.replace('slider', 'score') : null;
+
+                var instance = Appraise.ScalarSlider.create($element, {
+                    enabled: true,
+                    valueCount: scalarSliderOptions.valueCount,
+                    min: scalarSliderOptions.min,
+                    max: scalarSliderOptions.max,
+                    hiddenInput: hiddenSelector,
+                    onValueChange: function(storedValue) {
+                        if (hiddenSelector) {
+                            $(hiddenSelector).val(storedValue);
+                        }
+                    }
+                });
+
+                if (instance) {
+                    scalarSliderRegistry[sliderId] = instance;
+                    scalarSlidersInitialized = true;
+
+                    var $hiddenInput = hiddenSelector ? $(hiddenSelector) : null;
+                    if ($hiddenInput && $hiddenInput.length) {
+                        var existing = parseFloat($hiddenInput.val());
+                        if (!isNaN(existing) && existing >= 0) {
+                            instance.setTouched(true);
+                            instance.setValue(existing, false);
+                        } else {
+                            instance.reset();
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // Initialize regular sliders if scalar sliders not initialized
+    if (!scalarSlidersInitialized) {
+        $('.slider').not('.scalar-slider').slider({
+            orientation: "horizontal",
+            range: "min",
+            min: 0,
+            max: 100
+        });
+    }
+
+    // Auto-open first unannotated item
+    var next_item = null;
+    $('.item-box').not('.document-box').each(function() {
+        var item_box = $(this);
+        var is_completed = item_box.attr('data-item-completed');
+        if ((is_completed == 'False' || is_completed === 'false' || is_completed === false) && !next_item) {
+            next_item = item_box;
+            return false; // break
+        }
+    });
+    
+    if (next_item && next_item.length) {
+        if(next_item.find('.target-box').is(':hidden')) {
+            next_item.find('.toggleable').animate({height: 'toggle'}, 0);
+            next_item.addClass('active');
+            next_item.find('.source-btn-toggle').removeClass('glyphicon-menu-down').addClass('glyphicon-menu-up');
+        }
+    }
+    
+    // Setup form submission handlers for segment items (Ajax)
+    $('.item-box').not('.document-box').find('.button-next').click(function(e) {
+        e.preventDefault();
+        var item_box = $(this).closest('.item-box');
+        var item_id = item_box.attr('data-item-id');
+        
+        // Get the MQM handler for validation
+        var handler = MQM_HANDLERS[item_id];
+        if (handler && !handler.validate_form()) {
+            return false;
+        }
+        
+        // Mark as complete and submit via Ajax
+        if (handler) {
+            handler.note_change(true);
+        }
+        
+        if (ENABLE_AJAX) {
+            submit_form_ajax(item_box).done(function() {
+                // After successful submission, move to next item
+                move_to_next_item(item_box);
+                // Check if all segments are now complete
+                checkAllSegmentsCompleted();
+            });
+        } else {
+            item_box.find('form').submit();
+        }
+        
+        return false;
+    });
+    
+    // Setup form submission handler for document-level item (regular POST)
+    $('.item-box.document-box').find('.button-next').click(function(e) {
+        e.preventDefault();
+        $(this).closest('form').submit();
+        return false;
+    });
+
+    // Bind click events for toggleable source boxes
+    if (ENABLE_UNRESTRICTED_ANNOTATION) {
+        $('.source-box').clickToggle(function(e) {
+            // Don't toggle if clicking on target text or if the target is already expanded
+            if ($(e.target).closest('.target-text').length > 0) {
+                return;
+            }
+            
+            // Show target box
+            var item_box = $(this).closest('.item-box');
+            if(item_box.find('.target-box').is(':hidden')) {
+                item_box.find('.toggleable').animate({height: 'toggle'}, 0);
+                item_box.addClass('active');
+                item_box.find('.source-btn-toggle').removeClass('glyphicon-menu-down').addClass('glyphicon-menu-up');
+            }
+            item_box.find('input[name="start_timestamp"]').val(Date.now()/1000.0);
+        }, function(e) {
+            // Don't toggle if clicking on target text
+            if ($(e.target).closest('.target-text').length > 0) {
+                return;
+            }
+            
+            // Hide target box
+            var item_box = $(this).closest('.item-box');
+            if(!item_box.find('.target-box.toggleable').is(':hidden')) {
+                item_box.find('.toggleable').animate({height: 'toggle'}, 0);
+                item_box.removeClass('active');
+                item_box.find('.source-btn-toggle').removeClass('glyphicon-menu-up').addClass('glyphicon-menu-down');
+            }
+        });
+    } else {
+        $('.source-box').removeClass('source-box-hoverable');
+        $('.source-btn-toggle').hide(0);
+    }
+
+    // Show completed items and check if all segments are done
+    function checkAllSegmentsCompleted() {
+        var all_completed = true;
+        $('.item-box').not('.document-box').each(function() {
+            var is_completed = $(this).attr('data-item-completed');
+            if (is_completed !== 'True' && is_completed !== 'true' && is_completed !== true) {
+                all_completed = false;
+                return false; // break
+            }
+        });
+        
+        // Enable/disable document submit button and slider
+        if (all_completed) {
+            $('#button-doc').prop('disabled', false);
+            // Enable document-level slider
+            $('.document-box .slider').slider('enable');
+            $('.document-box .scalar-slider').removeClass('disabled');
+            $('.document-box .ui-slider').removeClass('ui-state-disabled');
+        } else {
+            $('#button-doc').prop('disabled', true);
+            // Disable document-level slider
+            $('.document-box .slider').slider('disable');
+            $('.document-box .scalar-slider').addClass('disabled');
+        }
+        
+        return all_completed;
+    }
+    
+    $('input[name="score"]').each(function() {
+        var item_box = $(this).closest('.item-box');
+        var is_completed = item_box.data('item-completed');
+        if(is_completed == "True" || is_completed === true) {
+            item_box.find('.source-btn-done').show();
+        }
+    });
+    
+    // Initial check
+    checkAllSegmentsCompleted();
+
+    $('#button-full-screen').click(toggle_full_screen);
+    if (Cookies.get('full-screen') != 'no') {
+        $('.container').addClass('full-screen');
+        $('#button-full-screen').text('Narrow screen');
+    } else {
+        $('#button-full-screen').text('Widen screen');
+    }
+    
+    $('#button-toggle-instructions').click(toggle_instructions);
+    if (Cookies.get('show-instructions') == 'no') {
+        $('.question-box').first().find('.additional-instructions').hide();
+        $('#button-toggle-instructions').text('Show instructions');
+    }
+    
+    $('#button-show-tracking').click(toggle_tracking);
+    if (Cookies.get('show-tracking') != 'no') {
+        TRACKING_ENABLED = true;
+        $('#button-show-tracking').text('Hide tracking');
+    } else {
+        TRACKING_ENABLED = false;
+        $('#button-show-tracking').text('Show tracking');
+    }
+    
+    $('#button-open-all').click(open_all_items);
+    $('#button-open-unannotated').click(open_all_unannotated_items);
+    $('#button-close-all').click(close_all_items_except_current);
+});
+
+-->
+</script>
 
 {% endblock %}
 
@@ -16,47 +523,82 @@
 
 <div id="error-type-form" class="modal"></div>
 
-<div class="alert alert-info" style="margin-top: -55px;">
+<div class="campaign-info-box">
     <table style="width:100%">
         <tr>
             <td style="width:33%;text-align:left;">
-                <strong id="task_progress">
-                    Completed {{docs_completed}}/{{docs_total}} documents,
+                <span id="task_progress">
+                    {{docs_completed}}/{{docs_total}} documents,
                     {{items_completed}}/{{items_total}} segments
-                </strong>
+                </span>
             </td>
             <td style="width:33%;text-align:center;">
-                <button class="btn" id="instructions-show">Hide instructions</button>
+                {{campaign}}:{{datask_id}}:{{document_id}}-<span id="current-item-id">{{item_id}}</span>
             </td>
             <td style="width:33%;text-align:right;">
-                <strong>{{source_language}} &rarr; {{target_language}}</strong>
+                {{source_language}} &rarr; {{target_language}}
             </td>
         </tr>
     </table>
 </div>
 
-
-<div class="question-box" id="instructions">
-    <div class="question-box" id="tutorial-text" style="display: none; font-weight: bold;">
-        In the first two pages we will walk you through the tutorial.
-        If you already went through the tutorial you can
-        <input type="button" value="skip the tutorial" id="skip-tutorial">.
+<div class="question-box alert alert-success">
+    <div class="row">
+        <div class="col-sm-12">
+            {% if guidelines %}
+            {{ guidelines|safe }}
+            {% endif %}
+            <div class="additional-instructions">
+            {% if mqm_type == "MQM" %}
+            {% include 'EvalView/_instructions-mqm.html' %}
+            {% elif mqm_type == "ESA" %}
+            {% include 'EvalView/_instructions-esa-contrastive.html' %}
+            {% else %}
+            Unknown instructions for "{{ mqm_type }}".
+            {% endif %}
+            
+            <div class="row">
+                <div class="col-sm-12">
+                    {% include 'EvalView/_scalar_instructions.html' %}
+                </div>
+            </div>
+            </div>
+        </div>
     </div>
-    {% if guidelines %}
-    <p>{{ guidelines }}</p>
-    {% endif %}
-    {% if mqm_type == "MQM" %}
-    {% include 'EvalView/_instructions-mqm.html' %}
-    {% elif mqm_type == "ESA" %}
-    {% include 'EvalView/_instructions-esa.html' %}
-    {% else %}
-    Unknown instructions for "{{ mqm_type }}"".
-    {% endif %}
+    <div class="row">
+        <div class="col-sm-6">
+            <p class="pull-left control-box">
+            <button id="button-toggle-instructions" class="btn btn-info btn-sm">Hide instructions</button>
+            <button id="button-show-tracking" class="btn btn-info btn-sm">Hide tracking</button>
+            <button id="button-full-screen" class="btn btn-info btn-sm">Narrow screen</button>
+            </p>
+        </div>
+        <div class="col-sm-6">
+            <p class="pull-right control-box">
+            <button id="button-open-all" class="btn btn-default btn-sm">Expand all items</button>
+            <button id="button-open-unannotated" class="btn btn-default btn-sm">Expand unannotated</button>
+            <button id="button-close-all" class="btn btn-default btn-sm">Collapse all items</button>
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Column headers -->
+<div class="row" style="margin-bottom: 10px;">
+    <div class="col-sm-6">
+        <small class="segment-label">{{source_language}} source text</small>
+    </div>
+    <div class="col-sm-5">
+        <small class="segment-label">{{target_language}} translation</small>
+    </div>
+    <div class="col-sm-1"></div>
 </div>
 
 {% for item,scores in items %}
 
-<div id="item-{{ item.itemID }}" class="item-box quotelike active" data-item-id="{{ item.itemID }}"
+{% if not item.isCompleteDocument %}
+
+<div id="item-{{ item.itemID }}" class="item-box item-{% cycle 'odd' 'even' %} quotelike {% if scores.current_item %}active{% endif %}" data-item-id="{{ item.itemID }}"
     data-item-completed="{{ scores.completed }}" data-item-score="{{ scores.score }}">
 
     {{ scores.mqm|json_script:"mqm-payload" }}
@@ -74,71 +616,131 @@
         <input name="task_id" type="hidden" value="{{ item.id }}" />
         <input name="document_id" type="hidden" value="{{ item.documentID }}" />
         <input name="score" type="hidden" value="{{ scores.score }}" id="score{{ item.itemID }}" />
-        <input name="mqm" type="hidden" value="{{ scores.mqm }}" id="score{{ item.itemID }}" />
+        <input name="mqm" type="hidden" value="{{ scores.mqm }}" id="mqm{{ item.itemID }}" />
         <!-- Tell the server that the client expect JSON response -->
         <input name="ajax" type="hidden" value="True" />
 
-        <div class="source-box">
-            <div class="tutorial-text"></div>
-            <div class="language_tag_holder">
-                <div class="language_tag">{{source_language}}</div>
-            </div>
-            
-            <div class="source-text">
-                <!-- NOTE: "safe" means that HTML can be injected, which is needed for video! -->
-                {{ item.sourceText|safe }}
-            </div>
-            <hr style="border-top: 2pt solid #ccc; margin: 0;">
-            <div class="language_tag_holder">
-                <div class="language_tag">{{target_language}}</div>
-            </div>
-            <div class="target-text">
-                {{item.targetText}}
+        <div class="source-box source-box-hoverable">
+            <div class="row">
+                <div class="col-sm-6">
+                    <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
+                    <div class="source-text">
+                        <!-- NOTE: "safe" means that HTML can be injected, which is needed for video! -->
+                        {{ item.sourceText|safe }}
+                    </div>
+                </div>
+                <div class="col-sm-5">
+                    <div class="target-text">
+                        {{item.targetText}}
+                    </div>
+                </div>
+                <div class="col-sm-1">
+                    <span class="source-btn-done glyphicon glyphicon-ok"></span>
+                </div>
             </div>
         </div>
 
-        <div class="target-box">
-            <div class="row esa_slider">
+        <div class="target-box toggleable">
+            <div class="row">
+                <div class="col-sm-1" style="text-align:left;">
+                    <button class="btn button-reset glyphicon glyphicon-trash"
+                            accesskey="2"
+                            type="reset"></button>
+                </div>
+
+                <div class="col-sm-10">
+                    <div class="row esa_slider">
+            {% if scalar_slider %}
+                {% with sliderid=item.itemID %}
+                {% include 'EvalView/_scalar_slider.html' %}
+                {% endwith %}
+            {% else %}
                 {% include 'EvalView/_slider-mqm-esa.html' %}
+            {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-sm-1" style="text-align:right;">
+                    <button class="btn btn-sm button-next btn-primary"
+                            name="next_button"
+                            accesskey="1"
+                            type="submit"
+                            value="{{ item.itemID }}">
+                        <i class="icon-ok-sign icon-white"></i> Submit</button>
+                </div>
             </div>
-            <span class="status-indicator glyphicon glyphicon-ok"></span>
-            <button class="button-reset glyphicon glyphicon-trash" accesskey="2" type="reset"></button>
-            
-            <button class="btn button-submit btn-primary" name="next_button" accesskey="1" type="submit"
-                value="{{ item.itemID }}"> Mark complete
-            </button>
         </div>
     </form>
 </div>
 
+{% else %}
+
+<!-- Document-level item -->
+<div class="question-box alert alert-success">
+    <div class="row">
+        <div class="col-sm-12">
+            <p>For the final step, please look again at the translated document. Provide one final, overall rating, judging it as a whole.</p>
+            {% if mqm_type == "ESA" %}
+            {% include 'EvalView/_scalar_instructions.html' %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div id="item-{{ item.itemID }}" class="item-box quotelike document-box" data-item-id="{{ item.itemID }}"
+    data-item-completed="{{ scores.completed }}" data-item-score="{{ scores.score }}">
+
+    {{ scores.mqm|json_script:"mqm-payload" }}
+    {{ scores.mqm_orig|json_script:"mqm-payload-orig" }}
+    {{ item.sourceText|json_script:"text-source-payload" }}
+    {{ item.targetText|json_script:"text-target-payload" }}
+    {{ scores.score|json_script:"score-payload" }}
+
+    <form action="{{action_url}}" method="post" item_id="{{ item.itemID }}">
+        {% csrf_token %}
+
+        <input name="start_timestamp" type="hidden" value="{{ scores.start_timestamp }}" />
+        <input name="end_timestamp" type="hidden" value="{{ scores.end_timestamp }}" />
+        <input name="item_id" type="hidden" value="{{ item.itemID }}" />
+        <input name="task_id" type="hidden" value="{{ item.id }}" />
+        <input name="document_id" type="hidden" value="{{ item.documentID }}" />
+        <input name="score" type="hidden" value="{{ scores.score }}" id="score{{ item.itemID }}" />
+        <input name="mqm" type="hidden" value="{{ scores.mqm }}" id="mqm{{ item.itemID }}" />
+        <input name="ajax" type="hidden" value="False" />
+
+        <div class="target-box document-box quotelike">
+            <div class="row">
+                <div class="col-sm-12">
+            {% if scalar_slider %}
+                {% with sliderid=item.itemID %}
+                {% include 'EvalView/_scalar_slider.html' %}
+                {% endwith %}
+            {% else %}
+                {% include 'EvalView/_slider-mqm-esa.html' %}
+            {% endif %}
+                </div>
+            </div>
+
+            <table class="action-box">
+                <tr>
+                    {% if not scalar_slider %}
+                    <td style="width:30%;text-align:left;">
+                        <button class="btn button-reset" accesskey="2" type="reset">Reset</button>
+                    </td>
+                    {% endif %}
+                    <td style="width:70%;text-align:right;">
+                        <button id="button-doc" class="btn button-next btn-primary" name="next_button" accesskey="1"
+                                title="Please first complete all segments in the document"
+                                type="submit" value="{{ item.itemID }}">Submit and continue to next document</button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+
+{% endif %}
+
 {% endfor %}
-
-
-<form id="form-next-doc" action="{{action_url}}" method="post">
-    {% csrf_token %}
-    <input name="start_timestamp" type="hidden" value="" />
-    <input name="end_timestamp" type="hidden" value="" />
-    <!--
-    <input name="task_id" type="hidden" value="{{ item.id }}" />
-    <input name="document_id" type="hidden" value="{{ item.documentID }}" /> -->
-    <input name="ajax" type="hidden" value="False" />
-</form>
-
-<button
-    class="btn btn-primary"
-    style="margin-left: auto; margin-right: auto; display: block;"
-    id="button-next-doc"
->
-    Continue to next document
-</button>
-
-<button
-    class="btn btn-primary"
-    style="margin-left: auto; margin-right: auto; display: block;"
-    id="button-next-doc-fake"
-    title="Please first complete all items in the document (error spans + scores)."
->
-    Continue to next document <span style="font-size: 12pt;">(finish all segments first)</span>
-</button>
 
 {% endblock %}

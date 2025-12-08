@@ -1076,6 +1076,7 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
     """
     campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
     contrastive_esa = 'contrastiveesa' in campaign_opts
+    wmt_layout = 'wmtlayout' in campaign_opts
 
     # POST means that we want to store
     if request.method == "POST":
@@ -1086,6 +1087,17 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
         start_timestamp = request.POST.get('start_timestamp', None)
         end_timestamp = request.POST.get('end_timestamp', None)
         ajax = bool(request.POST.get('ajax', None) == 'True')
+        
+        # Handle empty timestamp strings
+        if not start_timestamp or start_timestamp == '':
+            start_timestamp = datetime.now().timestamp()
+        else:
+            start_timestamp = float(start_timestamp)
+            
+        if not end_timestamp or end_timestamp == '':
+            end_timestamp = datetime.now().timestamp()
+        else:
+            end_timestamp = float(end_timestamp)
 
         db_item = current_task.items.filter(
             itemID=item_id,
@@ -1113,8 +1125,8 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
                 defaults={
                     'score': score,
                     'mqm': mqm,
-                    'start_time': float(start_timestamp),
-                    'end_time': float(end_timestamp),
+                    'start_time': start_timestamp,
+                    'end_time': end_timestamp,
                     'activated': False,
                     'completed': True,
                     'dateCompleted': datetime.utcnow().replace(tzinfo=utc),
@@ -1132,15 +1144,34 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
 
     # Get all items from the document that the first unannotated item in the
     # task belongs to, and collect some additional statistics
-    (
-        next_item,
-        items_completed,
-        items_total,
-        docs_completed,
-        docs_total,
-        doc_items,
-        doc_items_results,
-    ) = current_task.next_document_for_user_mqmesa(request.user)
+    if wmt_layout:
+        # WMT layout uses all items in the task as a single "document"
+        (
+            next_item,
+            items_completed,
+            items_total,
+            docs_completed,
+            docs_total,
+            doc_items,
+            doc_items_results,
+        ) = current_task.next_document_for_user_mqmesa(request.user)
+    else:
+        # Standard layout uses isCompleteDocument to determine document boundaries
+        (
+            next_item,
+            completed_items,
+            completed_blocks,
+            completed_items_in_block,
+            doc_items,
+            doc_items_results,
+            total_blocks,
+        ) = current_task.next_document_for_user(request.user)
+        
+        # Calculate statistics for standard layout
+        items_completed = completed_items
+        items_total = current_task.items.count()
+        docs_completed = completed_blocks
+        docs_total = total_blocks
 
     if not next_item:
         if not ajax:
@@ -1170,6 +1201,7 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
     doc_items_results = [
         {
             'completed': bool(result and result.completed),
+            'current_item': bool(item.id == next_item.id),
             # will be recomputed user-side anyway
             'score': result.score if result else -1,
             'mqm': result.mqm if result else item.mqm,
@@ -1185,7 +1217,17 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
     source_language = current_task.marketSourceLanguage()
     target_language = current_task.marketTargetLanguage()
 
-    guidelines = ""
+    guidelines = (
+        '<p>'
+        f'Below you see a document in {source_language} and its translation in {target_language}. '
+        'Your task:'
+        '</p>'
+        '<ol>'
+        '<li>Read the source text and its proposed translations</li>'
+        '<li>Highlight all translation errors in each translated segment.</li>'
+        '<li>Rate each translated segment using the scale provided below.</li>'
+        '</ol>'
+    )
     if contrastive_esa:
         # escape <br/> tags in the source and target texts
         for item in doc_items:
@@ -1194,7 +1236,7 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
             item.targetText = item.targetText.replace("\n", "<br/>")
         guidelines = (
             '<p>'
-            f'Below you see a document in {source_language} and two different translations in {target_language}.'
+            f'Below you see a document in {source_language} and two different translations in {target_language}. '
             'Your task:'
             '<ol>'
             '<li>Read the source text and two competing translations.</li>'
@@ -1214,6 +1256,7 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
         'items_total': items_total,
         'docs_completed': docs_completed,
         'docs_total': docs_total,
+        'items_left_in_block': len([item for item in doc_items if not item.isCompleteDocument]) - (completed_items_in_block if not wmt_layout else 0),
         'source_language': source_language,
         'target_language': target_language,
         'campaign': campaign.campaignName,
@@ -1221,6 +1264,8 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
         'ui_lang': "enu",
         'mqm_type': 'ESA' if 'esa' in campaign_opts else "MQM",
         'guidelines': guidelines,
+        'scalar_slider': 'scalarslider' in campaign_opts,
+        'wmt_layout': wmt_layout,
     }
 
     if ajax:
@@ -1240,6 +1285,8 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
 
     if contrastive_esa:
         html_page = 'EvalView/direct-assessment-document-mqm-esa-contrastive.html'
+    if wmt_layout:
+        html_page = 'EvalView/direct-assessment-document-mqm-esa-wmt.html'
     else:
         html_page = 'EvalView/direct-assessment-document-mqm-esa.html'
     return render(request, html_page, context)
