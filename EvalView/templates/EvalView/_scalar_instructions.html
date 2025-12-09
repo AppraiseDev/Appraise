@@ -1,11 +1,19 @@
 <div class="row">
   <div class="col-md-12">
     <ul class="list-unstyled scalar-instructions">
+      {% if mono %}
+      <li><strong>Very Good (9–10)</strong>: Sounds perfectly natural and complete; no or minimal proofreading.</li>
+      <li><strong>Good (7–8)</strong>: Minor issues; mostly natural, minor awkwardness; needs light proofreading.</li>
+      <li><strong>Acceptable (5–6)</strong>: Confusing at times; uneven naturalness, awkward phrasing; usable only after substantial revision.</li>
+      <li><strong>Borderline (3–4)</strong>: Frequent parts confusing the message; often unnatural; requires major rewrite.</li>
+      <li><strong>Not acceptable (1–2)</strong>: Incoherent; unusable without complete retranslation.</li>
+      {% else %}
       <li><strong>Very Good (9–10)</strong>: Complete meaning transfer; sounds perfectly natural; no or minimal proofreading.</li>
       <li><strong>Good (7–8)</strong>: Near‑complete transfer, minor inaccuracies; mostly natural, minor awkwardness; needs light proofreading.</li>
       <li><strong>Acceptable (5–6)</strong>: Main ideas conveyed but with noticeable inaccuracies or omissions; uneven naturalness, awkward phrasing; usable only after substantial revision.</li>
       <li><strong>Borderline (3–4)</strong>: Partial transfer; frequent misinterpretation or omission that confuses the message; often unnatural; requires major rewrite.</li>
       <li><strong>Not acceptable (1–2)</strong>: Violation of meaning; large portions mistranslated, missing, or incoherent; unusable without complete retranslation.</li>
+      {% endif %}
     </ul>
   </div>
 </div>

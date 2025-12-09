@@ -552,7 +552,15 @@ $(document).ready(function() {
 
     // Activate current item; this will have no effect for the document-level item
     // next_item.find('.source-box').click();
-    _show_target_box.call(next_item);
+    // Special case: if there's only 1 segment with skip_doc_scores, always expand it
+    if (SKIP_DOC_SCORES && SENTENCE_ITEM_COUNT === 1) {
+        var single_item = $('.item-box.quotelike').not('.pseudoquotelike').first();
+        if (single_item.length) {
+            _show_target_box.call(single_item);
+        }
+    } else {
+        _show_target_box.call(next_item);
+    }
 
     // Disable document-level item unless all individual sentences are scored
     if (! _all_sentences_scored())
@@ -581,6 +589,11 @@ $(document).ready(function() {
     $('#button-open-all').click(open_all_items);
     $('#button-open-unannotated').click(open_all_unannotated_items);
     $('#button-close-all').click(close_all_items_except_current);
+
+    // Hide expand/collapse buttons if there's only 1 segment with skip_doc_scores
+    if (SKIP_DOC_SCORES && SENTENCE_ITEM_COUNT === 1) {
+        $('#button-open-all, #button-open-unannotated, #button-close-all').hide();
+    }
 
     // Show guidelines in a popup box
     $('#guidelines-modal').modal('show');
@@ -635,6 +648,28 @@ function _hide_target_box() {
         item_box.removeClass('active');
         _change_item_toggle_icon(item_box, 'down');
     }
+}
+
+function _should_auto_advance() {
+    // Don't auto-advance if skip_doc_scores is enabled
+    // OR if there's only 1 segment (since there's nothing to advance to)
+    return !SKIP_DOC_SCORES && SENTENCE_ITEM_COUNT > 1;
+}
+
+function _advance_to_next_item(item_box) {
+    if (!_should_auto_advance()) {
+        return;
+    }
+    _hide_target_box.call(item_box);
+    _show_target_box.call(item_box.next());
+}
+
+function _return_to_current_item(item_box) {
+    if (!_should_auto_advance()) {
+        return;
+    }
+    _hide_target_box.call(item_box.next());
+    _show_target_box.call(item_box);
 }
 
 function toggle_diff() {
@@ -760,8 +795,7 @@ function submit_form(e) {
             prepopulateDocumentScoresFromSingleSentence(score1, score2);
         }
 
-        _hide_target_box.call(item_box);
-        _show_target_box.call(item_box.next());
+        _advance_to_next_item(item_box);
         return true;
     }
 
@@ -789,8 +823,7 @@ function submit_form(e) {
                 console.log('Sending Ajax request, item-id=', item_box.data('item-id'));
                 _change_item_status_icon(item_box, 'refresh');
                 // Move to the next item immediately
-                _hide_target_box.call(item_box);
-                _show_target_box.call(item_box.next());
+                _advance_to_next_item(item_box);
             },
             success: function(data) {
                 console.log('Success, saved=', data.saved, 'next_item=', data.item_id);
@@ -815,8 +848,7 @@ function submit_form(e) {
                     _change_item_status_icon(item_box, 'none');
 
                     // Undo moving to the next item
-                    _hide_target_box.call(item_box.next());
-                    _show_target_box.call(item_box);
+                    _return_to_current_item(item_box);
 
                     _show_error_box(item_box, data.error_msg);
                 }
@@ -826,8 +858,7 @@ function submit_form(e) {
 
                 _change_item_status_icon(item_box, 'none');
                 // Undo moving to the next item
-                _hide_target_box.call(item_box.next());
-                _show_target_box.call(item_box);
+                _return_to_current_item(item_box);
 
                 _show_error_box(item_box,
                     'An unrecognized error has occured. ' +
@@ -841,8 +872,7 @@ function submit_form(e) {
         attachBrowserInfoFieldForSubmit(item_box.find('form'));
         _change_item_status_icon(item_box, 'ok');
         // Move to the next item for smoother reloading
-        _hide_target_box.call(item_box);
-        _show_target_box.call(item_box.next());
+        _advance_to_next_item(item_box);
         // Update counters
         var count_box = $('#items-left-counter');
         count_box.text( parseInt(count_box.text()) - 1 );
@@ -996,7 +1026,7 @@ function _show_error_box(item_box, msg) {
                 {{campaign}}:{{datask_id}}:{{document_id}}-<span id="current-item-id">{{item_id}}</span>
             </td>
             <td style="width:33%;text-align:right;">
-                {% if source_language and not monolingual %}{{source_language}} &rarr; {% endif %}{{target_language}}
+                {{source_language}} &rarr; {{target_language}}
             </td>
         </tr>
     </table>
@@ -1012,7 +1042,7 @@ function _show_error_box(item_box, msg) {
             {% if scalar_slider %}
                 <p><em>Note</em>: You first evaluate each sentence individually, but you should use the entire translation as context.</p>
                 <p>Rating scale:</p>
-                {% with mono=monolingual doclvl=doc_guidelines %}
+                {% with mono=monolingual %}
                 {% include 'EvalView/_scalar_instructions.html' %}
                 {% endwith %}
             {% elif sqm %}
@@ -1305,7 +1335,7 @@ function _show_error_box(item_box, msg) {
                     <p>{{text|safe}}</p>
                     {% endfor %}
                     {% if scalar_slider %}
-                        {% with mono=monolingual doclvl=doc_guidelines %}
+                        {% with mono=monolingual %}
                         {% include 'EvalView/_scalar_instructions.html' %}
                         {% endwith %}
                     {% elif sqm %}

@@ -1,28 +1,35 @@
 <div class="row">
   <div class="col-md-12">
-    <ul class="list-unstyled">
+    <ul class="list-unstyled esa-instructions">
       <li>Highlighting errors:
         <ul>
           <li>To <strong>highlight</strong>, select the text that contains an error; this will mark it as a <span class="instruction_sev instruction_sev_minor">minor</span> error.</li>
           <li>To <strong>edit</strong>, click on the selected text to change the error to <span class="instruction_sev instruction_sev_major">major</span> or <strong>remove</strong> the highlight.</li>
+          {% if not mono %}
           <li>To <strong>mark missing text</strong>, highlight the <b style="font-family: monospace, monospace;">[MISSING]</b> tag if the translation omits important text from the source.</li>
+          {% endif %}
         </ul>
       </li> 
       <li>Choosing error severity:
         <ul>
           <li><span class="instruction_sev instruction_sev_minor">Minor errors</span> are imperfections or stylistic issues that do not impact the core message (e.g., awkward phrasing).</li>
+          {% if mono %}
+          <li><span class="instruction_sev instruction_sev_major">Major errors</span> confuse the meaning, making it hard to interpret (e.g., incorrect information, confusing wording).</li>
+          {% else %}
           <li><span class="instruction_sev instruction_sev_major">Major errors</span> confuse the meaning, misrepresent the source, of violate the message (e.g., incorrect information, confusing wording).</li>
+          {% endif %}
         </ul>
       </li>
       <li>Important rules:
         <ul>
           <li><strong>Multiple errors</strong>: use separate highlights for each error.</li>
+          {% if not mono %}
           <li><strong>Hallucinations</strong>: if the translation contains extra text that is not in the source (and is not a sensible addition), highlight it and mark it as a <span class="instruction_sev instruction_sev_major">major</span> error.</li>
+          {% endif %}
           <li><strong>Wrong language</strong>: if a translation is in the wrong language, highlight the entire text, mark it as a major error, and assign the lowest score.</li>
           <li><strong>Consistency</strong>: as you work, pay attention to translation consistency (e.g., for technical terms) across the entire document.</li>
         </ul>
       </li>
     </ul>
-  <p>Rating scale:</p>
   </div>
 </div>

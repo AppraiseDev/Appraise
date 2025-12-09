@@ -186,30 +186,42 @@ $(document).ready(function() {
     // IMPORTANT: Wait for MQM handlers to be initialized by direct-assessment-document-mqm-esa.js
     // This ensures error span functionality is available
     
+    // Check if we should enable toggle functionality (disable if only 1 segment with skip_doc_scores)
+    var enableToggle = typeof SKIP_DOC_SCORES !== 'undefined' && typeof SENTENCE_ITEM_COUNT !== 'undefined'
+        ? (!SKIP_DOC_SCORES || SENTENCE_ITEM_COUNT > 1)
+        : true;
+    
     // Set up toggle functionality - bind click handler to source column that toggles row
     $('.pairwise-row').each(function() {
         var $row = $(this);
         var $hoverable = $row.find('.source-box-hoverable');
         
-        // Use simple click handler that toggles visibility
-        $hoverable.on('click', function(e) {
-            // Don't toggle if clicking on interactive elements
-            if ($(e.target).is('a, button, input, select, textarea, .error-span')) {
-                return;
-            }
-            
-            var $row = $(this).closest('.pairwise-row');
-            var $targetBox = $row.find('.target-box');
-            var $toggleIcons = $row.find('.source-btn-toggle');
-            
-            if ($targetBox.is(':visible')) {
-                $targetBox.slideUp(200);
-                $toggleIcons.removeClass('glyphicon-menu-up').addClass('glyphicon-menu-down');
-            } else {
-                $targetBox.slideDown(200);
-                $toggleIcons.removeClass('glyphicon-menu-down').addClass('glyphicon-menu-up');
-            }
-        });
+        // Only enable toggle if we have multiple segments or doc scores are not skipped
+        if (enableToggle) {
+            // Use simple click handler that toggles visibility
+            $hoverable.on('click', function(e) {
+                // Don't toggle if clicking on interactive elements
+                if ($(e.target).is('a, button, input, select, textarea, .error-span')) {
+                    return;
+                }
+                
+                var $row = $(this).closest('.pairwise-row');
+                var $targetBox = $row.find('.target-box');
+                var $toggleIcons = $row.find('.source-btn-toggle');
+                
+                if ($targetBox.is(':visible')) {
+                    $targetBox.slideUp(200);
+                    $toggleIcons.removeClass('glyphicon-menu-up').addClass('glyphicon-menu-down');
+                } else {
+                    $targetBox.slideDown(200);
+                    $toggleIcons.removeClass('glyphicon-menu-down').addClass('glyphicon-menu-up');
+                }
+            });
+        } else {
+            // For single segment with skip_doc_scores, remove hoverable cursor
+            $hoverable.removeClass('source-box-hoverable');
+            $hoverable.css('cursor', 'default');
+        }
     });
     
     // Delay initialization to allow sliders to be created first
@@ -289,34 +301,42 @@ $(document).ready(function() {
                 // Show completion tick
                 $row.find('.source-btn-done').show();
                 
-                // Hide current row sliders
-                $row.find('.target-box').slideUp(200);
-                $row.find('.source-btn-toggle')
-                    .removeClass('glyphicon-menu-up')
-                    .addClass('glyphicon-menu-down');
+                // Check if we should auto-advance (skip if only 1 segment with skip_doc_scores)
+                var shouldAutoAdvance = typeof SKIP_DOC_SCORES !== 'undefined' && typeof SENTENCE_ITEM_COUNT !== 'undefined' 
+                    ? (!SKIP_DOC_SCORES || SENTENCE_ITEM_COUNT > 1)
+                    : true;
                 
-                // Find next unannotated row and expand it
-                var $nextRow = $row.nextAll('.pairwise-row').filter(function() {
-                    var $r = $(this);
-                    var itemId = $r.data('item-id');
-                    var $box1 = $r.find('#item-' + itemId + '-1');
-                    var $box2 = $r.find('#item-' + itemId + '-2');
-                    var box1Completed = $box1.data('item-completed') === 'True' || $box1.data('item-completed') === true;
-                    var box2Completed = $box2.data('item-completed') === 'True' || $box2.data('item-completed') === true;
-                    return !(box1Completed && box2Completed);
-                }).first();
-                
-                if ($nextRow.length > 0) {
-                    $nextRow.find('.target-box').slideDown(200);
-                    $nextRow.find('.source-btn-toggle')
-                        .removeClass('glyphicon-menu-down')
-                        .addClass('glyphicon-menu-up');
+                if (shouldAutoAdvance) {
+                    // Hide current row sliders
+                    $row.find('.target-box').slideUp(200);
+                    $row.find('.source-btn-toggle')
+                        .removeClass('glyphicon-menu-up')
+                        .addClass('glyphicon-menu-down');
                     
-                    // Scroll to next row
-                    $('html, body').animate({
-                        scrollTop: $nextRow.offset().top - 100
-                    }, 300);
+                    // Find next unannotated row and expand it
+                    var $nextRow = $row.nextAll('.pairwise-row').filter(function() {
+                        var $r = $(this);
+                        var itemId = $r.data('item-id');
+                        var $box1 = $r.find('#item-' + itemId + '-1');
+                        var $box2 = $r.find('#item-' + itemId + '-2');
+                        var box1Completed = $box1.data('item-completed') === 'True' || $box1.data('item-completed') === true;
+                        var box2Completed = $box2.data('item-completed') === 'True' || $box2.data('item-completed') === true;
+                        return !(box1Completed && box2Completed);
+                    }).first();
+                    
+                    if ($nextRow.length > 0) {
+                        $nextRow.find('.target-box').slideDown(200);
+                        $nextRow.find('.source-btn-toggle')
+                            .removeClass('glyphicon-menu-down')
+                            .addClass('glyphicon-menu-up');
+                        
+                        // Scroll to next row
+                        $('html, body').animate({
+                            scrollTop: $nextRow.offset().top - 100
+                        }, 300);
+                    }
                 }
+                // If not auto-advancing (single segment with skip_doc_scores), keep sliders visible
             }
         });
     });
@@ -339,6 +359,10 @@ $(document).ready(function() {
 
 // Separate function to initialize row states after sliders are ready
 function initializePairwiseRows() {
+    // Check if we should keep sliders visible (single segment with skip_doc_scores)
+    var keepSlidersVisible = typeof SKIP_DOC_SCORES !== 'undefined' && typeof SENTENCE_ITEM_COUNT !== 'undefined'
+        && SKIP_DOC_SCORES && SENTENCE_ITEM_COUNT === 1;
+    
     // Initialize row states based on completion status
     var first_unannotated_found = false;
     $('.pairwise-row').each(function() {
@@ -389,18 +413,27 @@ function initializePairwiseRows() {
                 }
             }
             
-            // 4. Hide sliders by default (collapsed state)
-            $targetBox.hide();
-            $row.find('.source-btn-toggle').removeClass('glyphicon-menu-up').addClass('glyphicon-menu-down');
+            // 4. Hide sliders by default (collapsed state) UNLESS it's a single segment with skip_doc_scores
+            if (keepSlidersVisible) {
+                // Keep sliders visible for single segment
+                $targetBox.addClass('active').show();
+                $row.addClass('active');
+                $row.find('.source-btn-toggle').removeClass('glyphicon-menu-down').addClass('glyphicon-menu-up');
+            } else {
+                // Hide sliders normally
+                $targetBox.hide();
+                $row.find('.source-btn-toggle').removeClass('glyphicon-menu-up').addClass('glyphicon-menu-down');
+            }
         } else {
             // For uncompleted items:
             // Hide tick icon
             $doneTick.hide();
             
-            // First unannotated item should be expanded
-            if (!first_unannotated_found) {
+            // First unannotated item should be expanded (or if single segment with skip_doc_scores, always expanded)
+            if (!first_unannotated_found || keepSlidersVisible) {
                 first_unannotated_found = true;
-                $targetBox.show();
+                $targetBox.addClass('active').show();
+                $row.addClass('active');
                 $row.find('.source-btn-toggle')
                     .removeClass('glyphicon-menu-down')
                     .addClass('glyphicon-menu-up');

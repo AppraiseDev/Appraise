@@ -2523,7 +2523,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     else:
         priming_question_texts = [
             '<p>'
-            f'Below you see two document translations from two different systems, A and B, in {target_language}. '
+            f'Below you see two document translations of a document from {source_language} into {target_language}, '
+            'produced by systems A and B. '
             'Your task is to rate each translation using the scale below, based on two criteria: <br/>'
             '</p>'
             '<p>'
@@ -2535,8 +2536,10 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     if pairwise_esa:
         if not monolingual_task:
             priming_question_texts = [
+                '<p>'
                 f'Below you see a document in {source_language} and two different translations in {target_language}. '
                 'Your task:'
+                '</p>'
                 '<ol>'
                 '<li>Read the source text and two competing translations.</li>'
                 '<li>Highlight all translation errors in each translation.</li>'
@@ -2545,11 +2548,14 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             ]
         else:
             priming_question_texts = [
-                f'Below you see two different translations of a document in {target_language}. '
+                '<p>'
+                f'Below you see two different translations of a document from {source_language} into {target_language}, '
+                'produced by systems A and B. '
                 'Your task:'
+                '</p>'
                 '<ol>'
                 '<li>Read two competing translations.</li>'
-                '<li>Highlight all translation errors in each translation.</li>'
+                '<li>Highlight all translation errors you notice in each translation.</li>'
                 '<li>Rate each translation using the scale provided below.</li>'
                 '</ol>'
             ]
