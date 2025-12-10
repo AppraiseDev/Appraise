@@ -394,7 +394,11 @@ $(document).ready(function() {
                 // After successful submission, move to next item
                 move_to_next_item(item_box);
                 // Check if all segments are now complete
-                checkAllSegmentsCompleted();
+                var allCompleted = checkAllSegmentsCompleted();
+                if (allCompleted) {
+                    var scoreValue = item_box.find('input[name="score"]').val();
+                    prepopulateDocumentScoreFromSingleSentence(scoreValue);
+                }
             });
         } else {
             item_box.find('form').submit();
@@ -483,6 +487,7 @@ $(document).ready(function() {
     
     // Initial check
     checkAllSegmentsCompleted();
+    prepopulateDocumentScoreIfNeeded();
 
     $('#button-full-screen').click(toggle_full_screen);
     if (Cookies.get('full-screen') != 'no') {
@@ -511,6 +516,102 @@ $(document).ready(function() {
     $('#button-open-unannotated').click(open_all_unannotated_items);
     $('#button-close-all').click(close_all_items_except_current);
 });
+
+function _has_single_sentence_document() {
+    var sentenceCount = $('.item-box').not('.document-box').filter(function() {
+        return !$(this).hasClass('pseudoquotelike');
+    }).length;
+    return sentenceCount === 1;
+}
+
+function _get_document_item_box() {
+    return $('.item-box.document-box').first();
+}
+
+function prepopulateDocumentScoreFromSingleSentence(scoreValue) {
+    if (!_has_single_sentence_document()) {
+        return;
+    }
+
+    var numericScore = parseFloat(scoreValue);
+    if (isNaN(numericScore) || numericScore === -1) {
+        return;
+    }
+
+    var $documentItem = _get_document_item_box();
+    if (!$documentItem.length) {
+        return;
+    }
+
+    var docCompletedValue = $documentItem.attr('data-item-completed');
+    if (docCompletedValue === true || String(docCompletedValue).toLowerCase() === 'true') {
+        return;
+    }
+
+    var $docScoreInput = $documentItem.find('input[name="score"]');
+    var docScore = parseFloat($docScoreInput.val());
+    var docScoreUnset = isNaN(docScore) || docScore === -1;
+
+    var $documentSlider = $documentItem.find('.slider');
+
+    var sliderTouched = false;
+    var sliderAutoFilled = true;
+
+    if ($documentSlider.length) {
+        var sliderId = $documentSlider.attr('id') || '';
+        var sliderInstance = sliderId ? (scalarSliderRegistry[sliderId] || null) : null;
+        if (sliderInstance && sliderInstance.isTouched && sliderInstance.isTouched()) {
+            sliderTouched = true;
+        }
+        if ($documentSlider.data('scalarAutoFilled') !== true) {
+            sliderAutoFilled = false;
+        }
+    } else {
+        sliderAutoFilled = false;
+    }
+
+    if (!docScoreUnset && sliderTouched && !sliderAutoFilled) {
+        return;
+    }
+
+    $docScoreInput.val(numericScore);
+
+    if ($documentSlider.length) {
+        if ($documentSlider.hasClass('scalar-slider')) {
+            var sliderId = $documentSlider.attr('id') || '';
+            var sliderInstance = sliderId ? (scalarSliderRegistry[sliderId] || null) : null;
+            if (sliderInstance && sliderInstance.setValue) {
+                sliderInstance.setTouched(true);
+                sliderInstance.setValue(numericScore, false);
+                $documentSlider.data('scalarAutoFilled', true);
+            }
+        } else {
+            $documentSlider.slider('option', 'value', numericScore);
+        }
+    }
+
+    $documentItem.attr('data-item-score', numericScore);
+}
+
+function prepopulateDocumentScoreIfNeeded() {
+    if (!_has_single_sentence_document()) {
+        return;
+    }
+
+    var $sentenceItem = $('.item-box').not('.document-box').filter(function() {
+        return !$(this).hasClass('pseudoquotelike');
+    }).first();
+
+    if (!$sentenceItem.length) {
+        return;
+    }
+
+    var sentenceScore = $sentenceItem.find('input[name="score"]').val();
+
+    console.log('Prepopulating document score from single sentence:', sentenceScore);
+
+    prepopulateDocumentScoreFromSingleSentence(sentenceScore);
+}
 
 -->
 </script>
@@ -569,7 +670,7 @@ $(document).ready(function() {
         <div class="col-sm-6">
             <p class="pull-left control-box">
             <button id="button-toggle-instructions" class="btn btn-info btn-sm">Hide instructions</button>
-            <button id="button-show-tracking" class="btn btn-info btn-sm">Hide tracking</button>
+            <!--<button id="button-show-tracking" class="btn btn-info btn-sm">Hide tracking</button>-->
             <button id="button-full-screen" class="btn btn-info btn-sm">Narrow screen</button>
             </p>
         </div>

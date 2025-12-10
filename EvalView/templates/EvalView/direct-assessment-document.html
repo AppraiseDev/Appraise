@@ -11,6 +11,28 @@
 .slider-box { font-size:16px; width:100%; }
 .slider-box .slider-grid { font-size:14px; width:100%; color:#777; }
 
+.slider-bubble {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 5px;
+    padding: 5px 10px;
+    background-color: #555;
+    color: white;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 14px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 1000;
+    visibility: hidden;
+}
+
+.slider-bubble.hidden {
+    visibility: hidden;
+}
+
 .sqm-labels { margin-bottom:10px; }
 .sqm-label-first { padding-right:1px !important; }
 .sqm-label-last { padding-left:1px !important; }
@@ -361,6 +383,83 @@ function applyScoreToSliderElement($slider, scoreValue, autoFilled) {
     $slider.slider('option', 'value', numericValue);
 }
 
+function initializeSliderBubbles() {
+    var sliders = $('.slider.scalar-slider');
+    
+    sliders.each(function(index) {
+        var $slider = $(this);
+        var $handle = $slider.find('.ui-slider-handle');
+        
+        if (!$handle.length) {
+            return;
+        }
+        
+        if ($handle.find('.slider-bubble').length) {
+            return;
+        }
+        
+        var $bubble = $('<div class="slider-bubble">0</div>');
+        $handle.append($bubble);
+        
+        var sliderId = $slider.attr('id') || '';
+        var sliderInstance = sliderId ? getScalarSliderInstanceById(sliderId) : null;
+        
+        var updateBubble = function() {
+            // Use setTimeout to ensure we get the value AFTER the slider has snapped
+            setTimeout(function() {
+                var displayValue = 1;
+                
+                if (sliderInstance && sliderInstance.discreteValues && sliderInstance.discreteValues.length > 0) {
+                    // Get current slider value (0-100 range)
+                    var currentValue = $slider.slider('value');
+                    
+                    // Find closest discrete value
+                    var discreteValues = sliderInstance.discreteValues;
+                    var closestIndex = 0;
+                    var minDiff = Math.abs(currentValue - discreteValues[0]);
+                    
+                    for (var i = 1; i < discreteValues.length; i++) {
+                        var diff = Math.abs(currentValue - discreteValues[i]);
+                        if (diff < minDiff) {
+                            minDiff = diff;
+                            closestIndex = i;
+                        }
+                    }
+                    
+                    // Display value is index + 1 (so 0-9 becomes 1-10)
+                    displayValue = closestIndex + 1;
+                } else {
+                    // Fallback: assume 0-100 maps to 1-10
+                    var rawValue = $slider.slider('value');
+                    displayValue = Math.max(1, Math.min(10, Math.round(rawValue / 10) + 1));
+                }
+                
+                $bubble.text(displayValue);
+            }, 0);
+        };
+        
+        $handle.on('mousedown touchstart', function(e) {
+            $bubble.css('visibility', 'visible');
+            updateBubble();
+        });
+        
+        $handle.on('mouseup touchend focusout', function(e) {
+            setTimeout(function() {
+                $bubble.css('visibility', 'hidden');
+            }, 100);
+        });
+        
+        // Use both 'slide' and 'change' events
+        $slider.on('slide change', function(e, ui) {
+            $bubble.css('visibility', 'visible');
+            updateBubble();
+        });
+        
+        // Initially hidden
+        $bubble.css('visibility', 'hidden');
+    });
+}
+
 $(document).ready(function() {
     // This sets the same starting time for all items, but it is set again when
     // an item is expanded by clicking on it.
@@ -394,6 +493,12 @@ $(document).ready(function() {
         }
         $('.scalar-slider').slider(fallbackOptions);
     }
+    
+    // Initialize slider bubbles after a short delay to ensure handles are rendered
+    setTimeout(function() {
+        initializeSliderBubbles();
+    }, 100);
+    
     $('.button-reset').click(reset_form);
     if (ENABLE_UNRESTRICTED_ANNOTATION) {
         $('.source-box').clickToggle(_show_target_box, _hide_target_box);
@@ -436,6 +541,8 @@ $(document).ready(function() {
     if (! _all_sentences_scored())
         _disable_document_box();
 
+    prepopulateDocumentScoreIfNeeded();
+
     $('#button-open-all').click(open_all_items);
     $('#button-open-unannotated').click(open_all_unannotated_items);
     $('#button-close-all').click(close_all_items_except_current);
@@ -453,6 +560,9 @@ $(document).ready(function() {
         $('.question-box').first().find('.additional-instructions').hide();
         $('#button-toggle-instructions').text('Show instructions');
     }
+    
+    // Initialize bubbles for document-level slider (always visible)
+    initializeSliderBubbles();
 });
 
 function _all_sentences_scored() {
@@ -481,6 +591,9 @@ function _show_target_box() {
         item_box.find('.toggleable').animate({height: 'toggle'}, 0);
         item_box.addClass('active');
         _change_item_toggle_icon(item_box, 'up');
+        
+        // Initialize slider bubbles for this item after animation completes
+        initializeSliderBubbles();
     }
     // Reset start timestamp
     item_box.find('input[name="start_timestamp"]').val(Date.now()/1000.0);
@@ -588,6 +701,12 @@ function submit_form(e) {
     //console.log('score=', score, 'prevscore=', prev_score);
     if (score == prev_score) {
         e.preventDefault();
+
+        if (_all_sentences_scored()) {
+            _enable_document_box();
+            prepopulateDocumentScoreFromSingleSentence(score);
+        }
+
         _hide_target_box.call(item_box);
         _show_target_box.call(item_box.next());
         return true;
@@ -631,8 +750,10 @@ function submit_form(e) {
                     // Change submit button label to 'Update'
                     item_box.find('button[name="next_button"]').text('Update');
 
-                    if (_all_sentences_scored())
+                    if (_all_sentences_scored()) {
                         _enable_document_box();
+                        prepopulateDocumentScoreFromSingleSentence(score);
+                    }
                 } else {
                     _change_item_status_icon(item_box, 'none');
 
@@ -671,8 +792,10 @@ function submit_form(e) {
         var citem_idx = $('#current-item-id');
         citem_idx.text( parseInt(citem_idx.text()) + 1 );
 
-        if (_all_sentences_scored())
+        if (_all_sentences_scored()) {
             _enable_document_box();
+            prepopulateDocumentScoreFromSingleSentence(score);
+        }
     }
 
     return true;
@@ -766,6 +889,98 @@ function _show_error_box(item_box, msg) {
         '<span aria-hidden="true">&times;</span>' +
         '</button>Oops... ' + msg + '</div>'
     );
+}
+
+function _has_single_sentence_document() {
+    var sentenceCount = $('.item-box.quotelike').filter(function() {
+        return !$(this).hasClass('pseudoquotelike');
+    }).length;
+    return sentenceCount === 1;
+}
+
+function _get_document_item_box() {
+    return $('.item-box').filter(function() {
+        var $box = $(this);
+        if ($box.hasClass('quotelike') || $box.hasClass('pseudoquotelike')) {
+            return false;
+        }
+        return $box.find('input[name="score"]').length && $box.find('.document-box').length;
+    }).first();
+}
+
+function prepopulateDocumentScoreFromSingleSentence(scoreValue) {
+    if (!_has_single_sentence_document()) {
+        return;
+    }
+
+    var numericScore = parseFloat(scoreValue);
+    if (isNaN(numericScore) || numericScore === -1) {
+        return;
+    }
+
+    var $documentItem = _get_document_item_box();
+    if (!$documentItem.length) {
+        return;
+    }
+
+    var docCompletedValue = $documentItem.data('item-completed');
+    if (docCompletedValue === true || String(docCompletedValue).toLowerCase() === 'true') {
+        return;
+    }
+
+    var $docScoreInput = $documentItem.find('input[name="score"]');
+    var docScore = parseFloat($docScoreInput.val());
+    var docScoreUnset = isNaN(docScore) || docScore === -1;
+
+    var $documentSlider = $documentItem.find('.document-box .slider');
+
+    var sliderTouched = false;
+    var sliderAutoFilled = true;
+
+    if ($documentSlider.length) {
+        var sliderId = $documentSlider.attr('id') || '';
+        var sliderInstance = sliderId ? getScalarSliderInstanceById(sliderId) : null;
+        if (sliderInstance && sliderInstance.isTouched()) {
+            sliderTouched = true;
+        }
+        if ($documentSlider.data('scalarAutoFilled') !== true) {
+            sliderAutoFilled = false;
+        }
+    } else {
+        sliderAutoFilled = false;
+    }
+
+    if (!docScoreUnset && sliderTouched && !sliderAutoFilled) {
+        return;
+    }
+
+    $docScoreInput.val(numericScore);
+
+    if ($documentSlider.length) {
+        applyScoreToSliderElement($documentSlider, numericScore, true);
+    }
+
+    $documentItem.data('item-score', numericScore);
+}
+
+function prepopulateDocumentScoreIfNeeded() {
+    if (!_has_single_sentence_document()) {
+        return;
+    }
+
+    var $sentenceItem = $('.item-box.quotelike').filter(function() {
+        return !$(this).hasClass('pseudoquotelike');
+    }).first();
+
+    if (!$sentenceItem.length) {
+        return;
+    }
+
+    var sentenceScore = $sentenceItem.find('input[name="score"]').val();
+
+    console.log('Prepopulating document score from single sentence:', sentenceScore);
+
+    prepopulateDocumentScoreFromSingleSentence(sentenceScore);
 }
 
 -->
@@ -912,7 +1127,7 @@ function _show_error_box(item_box, msg) {
         <div class="source-box source-box-hoverable">
             <div class="row">
                 {% if not monolingual %}
-                <div class="col-sm-6">
+                <div class="col-sm-6 source-text">
                     <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
                     <span title="Source sentence #{{ item.itemID|add:"1" }}">
                         {% if source_item_type == 'video' %}
@@ -926,7 +1141,7 @@ function _show_error_box(item_box, msg) {
                 </div>
                 {% endif %}
 
-                <div class="{% if not monolingual %}col-sm-6{% else %}col-sm-11{% endif %}">
+                <div class="{% if not monolingual %}col-sm-6{% else %}col-sm-11{% endif %} target-text">
                   {% if monolingual %}
                     <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
                   {% endif %}
