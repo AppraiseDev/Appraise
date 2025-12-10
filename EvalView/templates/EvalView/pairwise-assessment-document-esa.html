@@ -1142,7 +1142,7 @@ function _show_error_box(text, timeout = 2000) {
             {% if mqm_type == "MQM" %}
             {% include 'EvalView/_instructions-mqm.html' %}
             {% elif mqm_type == "ESA" %}
-            <p><em>Note</em>: You first evaluate each sentence individually, but you should use the entire translation as context.</p>
+            <p><em>Note</em>: You evaluate each sentence individually, but you should use the entire translation as context.</p>
             {% with mono=monolingual %}
                 {% include 'EvalView/_instructions-esa-contrastive.html' %}
             {% endwith %}

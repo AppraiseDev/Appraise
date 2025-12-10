@@ -671,11 +671,9 @@ function prepopulateDocumentScoreIfNeeded() {
             Unknown instructions for "{{ mqm_type }}".
             {% endif %}
             
-            <div class="row">
-                <div class="col-sm-12">
-                    {% include 'EvalView/_scalar_instructions.html' %}
-                </div>
-            </div>
+            <p><em>Note</em>: You evaluate each sentence individually, but you should use the entire translation as context.</p>
+            <p>Rating scale:</p>
+            {% include 'EvalView/_scalar_instructions.html' %}
             </div>
         </div>
     </div>
