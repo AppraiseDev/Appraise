@@ -319,7 +319,14 @@ $(document).ready(function() {
                     hiddenInput: hiddenSelector,
                     onValueChange: function(storedValue) {
                         if (hiddenSelector) {
-                            $(hiddenSelector).val(storedValue);
+                            // For non-contrastive ESA (wmtLayout=false), convert 1-10 display to 0-100 storage
+                            // This matches pairwise-assessment-document-esa behavior
+                            var valueToStore = storedValue;
+                            if (!wmtLayout && scalarSliderOptions.min === 1) {
+                                // Convert display value (1-10) to storage value (0, 11, 22, 33... 100)
+                                valueToStore = Math.round((storedValue - 1) * 100 / 9);
+                            }
+                            $(hiddenSelector).val(valueToStore);
                         }
                     }
                 });
@@ -332,8 +339,14 @@ $(document).ready(function() {
                     if ($hiddenInput && $hiddenInput.length) {
                         var existing = parseFloat($hiddenInput.val());
                         if (!isNaN(existing) && existing >= 0) {
+                            // For non-contrastive ESA, convert stored value back to display value
+                            var displayValue = existing;
+                            if (!wmtLayout && scalarSliderOptions.min === 1) {
+                                // Convert storage value (0, 11, 22... 100) to display value (1-10)
+                                displayValue = Math.round((existing * 9 / 100) + 1);
+                            }
                             instance.setTouched(true);
-                            instance.setValue(existing, false);
+                            instance.setValue(displayValue, false);
                         } else {
                             instance.reset();
                         }

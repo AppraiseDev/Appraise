@@ -102,11 +102,35 @@ function usesHundredPointScale() {
 }
 
 function getMinScoreWithoutErrors() {
-    return usesHundredPointScale() ? 80 : 8;
+    return usesHundredPointScale() ? 75 : 8;
 }
 
 function getScoreThresholdDisplay() {
-    return usesHundredPointScale() ? '8 (slider value 80)' : '8';
+    return usesHundredPointScale() ? '80' : '8';
+}
+
+// Helper functions for non-contrastive ESA scalar slider (stores 0, 11, 22, 33... 100 but displays 1-10)
+// This matches pairwise-assessment-document-esa behavior exactly
+function displayToStorageValue(displayValue, isContrastiveEsa) {
+    // For contrastive ESA: keep 1-10 scale as is
+    // For non-contrastive ESA: convert display value (1-10) to storage value (0, 11.11, 22.22... 100)
+    // This matches pairwise which uses min:0, max:100, valueCount:10
+    if (isContrastiveEsa) {
+        return displayValue;
+    }
+    // Map 1-10 to 0-100 with 9 steps: (displayValue - 1) * 100 / 9
+    // Values: 1→0, 2→11.11, 3→22.22, 4→33.33, 5→44.44, 6→55.56, 7→66.67, 8→77.78, 9→88.89, 10→100
+    return Math.round((displayValue - 1) * 100 / 9);
+}
+
+function storageToDisplayValue(storageValue, isContrastiveEsa) {
+    // For contrastive ESA: keep 1-10 scale as is
+    // For non-contrastive ESA: convert storage value (0, 11.11, 22.22... 100) to display value (1-10)
+    if (isContrastiveEsa) {
+        return storageValue;
+    }
+    // Map 0-100 back to 1-10: (storageValue * 9 / 100) + 1
+    return Math.round((storageValue * 9 / 100) + 1);
 }
 
 var MQM_HANDLERS = {}
@@ -439,8 +463,19 @@ class MQMItemHandler {
 
         this.el_slider.slider({
             orientation: "horizontal", range: "min", change: (event) => {
-                // update score in the form
-                this.el.find("input[name='score']").val(this.el_slider.slider('value'))
+                // Get the slider value (always in display range for UI)
+                let sliderValue = this.el_slider.slider('value');
+                
+                // For non-contrastive ESA, convert display value to storage value
+                let scoreToStore = sliderValue;
+                if (!this.contrastive_esa && MQM_TYPE === "ESA") {
+                    // Convert from 1-10 display range to 0-100 storage range (0, 11, 22, 33... 100)
+                    // Round slider value first in case it's fractional
+                    scoreToStore = displayToStorageValue(Math.round(sliderValue), this.contrastive_esa);
+                }
+                
+                // update score in the form with the storage value
+                this.el.find("input[name='score']").val(scoreToStore)
 
                 // if this was triggered by human then mark it as unsaved
                 if (event.originalEvent) {
@@ -450,6 +485,12 @@ class MQMItemHandler {
             }
         })
         let score = parseFloat(this.el.children('#score-payload').html())
+        
+        // Convert stored score to slider position for non-contrastive ESA
+        if (score != -1 && !this.contrastive_esa && MQM_TYPE === "ESA") {
+            // Convert from storage value (0, 11, 22... 100) to display value (1-10) for slider
+            score = storageToDisplayValue(score, this.contrastive_esa);
+        }
 
     
         // Extract diff information from the HTML before processing
@@ -517,7 +558,7 @@ class MQMItemHandler {
         if (MQM_TYPE == "MQM") {
             this.el_slider.slider('value', 0);   
         }
-        // set previous value
+        // set previous value (score has already been converted to display value if needed)
         if (score != -1) {
             this.el_slider.slider('value', score);
         }
@@ -964,14 +1005,20 @@ class MQMItemHandler {
         // slider bubble handling
         if (this.contrastive_esa) {
             this.el_slider.find(".ui-slider-handle").append("<div class='slider-bubble'>10</div>")
+        } else if (MQM_TYPE === "ESA" && !usesHundredPointScale()) {
+            // Non-contrastive ESA with ScalarSlider: display 1-10
+            this.el_slider.find(".ui-slider-handle").append("<div class='slider-bubble'>10</div>")
         } else {
             this.el_slider.find(".ui-slider-handle").append("<div class='slider-bubble'>100</div>")
         }
         let refresh_bubble = () => {
             var value = this.el_slider.slider('value')
-            // Divide by 10 and get ceiled value
+            // For both contrastive and non-contrastive ESA, display 1-10
             if (this.contrastive_esa) {
                 value = Math.min(10, Math.ceil((value + 0.1) / 10));
+            } else if (MQM_TYPE === "ESA" && !usesHundredPointScale()) {
+                // Non-contrastive ESA with ScalarSlider: slider value is already 1-10, just round/ceil for display
+                value = Math.min(10, Math.ceil(value));
             }
             this.el_slider.find(".slider-bubble").text(value)
         }
@@ -986,14 +1033,19 @@ class MQMItemHandler {
         })
 
         this.el_slider.find(".ui-slider-handle").on("mouseup ontouchend", async () => {
-            let value = this.el_slider.slider('value')
-            if (this.contrastive_esa) {
-                value = Math.min(10, Math.ceil((value + 0.1) / 10));
-            }
+            // Validation on mouseup is disabled for non-WMTLayout mode
+            // Only validate during form submission via validate_form()
             if (this.tutorial) {
-                // do nothing, we don't validate during tutorial
-            } else if (usesHundredPointScale() && this.mqm.length == 0 && value < 66) {
-                alert(`You assigned a score of ${value} without highlighting any errors. Please, highlight errors first.`)
+                // do nothing during tutorial
+                return;
+            }
+            
+            // Only show alert for WMTLayout mode (100-point scale)
+            if (usesHundredPointScale() && !this.contrastive_esa) {
+                let value = this.el_slider.slider('value');
+                if (this.mqm.length == 0 && value < 66) {
+                    alert(`You assigned a score of ${value} without highlighting any errors. Please, highlight errors first.`)
+                }
             }
         })
 
@@ -1070,6 +1122,13 @@ class MQMItemHandler {
         this.el.find('.button-submit').toggle(MQM_TYPE == "MQM")
         this.el.attr("data-item-completed", "False")
         this.el_slider.find(".slider-bubble").remove()
+        
+        // Reset scalar slider if it exists
+        let sliderId = this.el_slider.attr('id');
+        if (sliderId && typeof scalarSliderRegistry !== 'undefined' && scalarSliderRegistry[sliderId]) {
+            scalarSliderRegistry[sliderId].reset();
+        }
+        
         this.initialize()
         // if we reset then we automatically hide the next doc button
         toggle_doc_button(false)
@@ -1160,8 +1219,14 @@ class MQMItemHandler {
         if (MQM_TYPE === "ESA") {
             const rawScore = Number.parseFloat(this.el.find("input[name='score']").val());
             const scoreUnset = Number.isNaN(rawScore) || rawScore < 0;
-            if (!scoreUnset && rawScore < getMinScoreWithoutErrors() && !this.hasActualErrors()) {
-                alert(`Scores below ${getScoreThresholdDisplay()} require at least one error span annotation.`);
+            
+            // For non-contrastive ESA, the stored score is in 0-100 range, so threshold is 75 (matches pairwise)
+            // For contrastive ESA, the stored score is in 1-10 range, so threshold is 8
+            let threshold = this.contrastive_esa ? 8 : 75;
+            
+            if (!scoreUnset && rawScore < threshold && !this.hasActualErrors()) {
+                // Display threshold is always 8 for user-facing message
+                alert(`Scores below 8 require at least one error span annotation.`);
                 return false;
             }
         }
