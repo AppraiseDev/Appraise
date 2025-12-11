@@ -1040,7 +1040,9 @@ function _show_error_box(item_box, msg) {
             {% endfor %}
             <div class="additional-instructions">
             {% if scalar_slider %}
+                {% if not skip_doc_scores %}
                 <p><em>Note</em>: You evaluate each sentence individually, but you should use the entire translation as context.</p>
+                {% endif %}
                 <p>Rating scale:</p>
                 {% with mono=monolingual %}
                 {% include 'EvalView/_scalar_instructions.html' %}
