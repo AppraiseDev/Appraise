@@ -21,7 +21,6 @@ from EvalData.models import DataAssessmentResult
 from EvalData.models import DirectAssessmentDocumentResult
 from EvalData.models import PairwiseAssessmentDocumentResult
 from EvalData.models import PairwiseAssessmentResult
-from EvalData.models import seconds_to_timedelta
 from EvalData.models import TASK_DEFINITIONS
 from EvalData.models import TaskAgenda
 from EvalData.models.direct_assessment_document import DirectAssessmentDocumentTask
@@ -48,7 +47,7 @@ def _format_timestamp_strings(epoch_seconds):
     if epoch_seconds is None:
         return ('Never', '')
 
-    dt_value = datetime(1970, 1, 1) + seconds_to_timedelta(epoch_seconds)
+    dt_value = datetime.fromtimestamp(epoch_seconds)
     full_value = str(dt_value).split('.')[0]
     trimmed_value = ':'.join(full_value.split(':')[:-1])
     return (full_value, trimmed_value)
@@ -204,8 +203,8 @@ def _collect_campaign_status_rows(campaign, result_type, campaign_opts):
 
             reliability = stat_reliable_testing(data_rows, campaign_opts, result_type)
             annotations = len({row[6] for row in data_rows})
-            start_times = [row[0] for row in data_rows]
-            end_times = [row[1] for row in data_rows]
+            start_times = [row[0] for row in data_rows if row[0] > 0]
+            end_times = [row[1] for row in data_rows if row[1] > 0]
             first_epoch = min(start_times) if start_times else None
             last_epoch = max(end_times) if end_times else None
             first_full, first_trim = _format_timestamp_strings(first_epoch)
@@ -582,11 +581,11 @@ def campaign_status_esa(campaign) -> str:
                 else:
                     out_str += f"<td>{user.username} 🛠️</td>"
                 out_str += f"<td>{_data_uniq_len}/{total_count} ({_data_uniq_len / total_count:.0%})</td>"
-                first_modified = min([x.start_time for x in _data])
-                last_modified = max([x.end_time for x in _data])
+                first_modified = min([x.start_time for x in _data if x.start_time > 0])
+                last_modified = max([x.end_time for x in _data if x.end_time > 0])
 
-                first_modified_str = str(datetime(1970, 1, 1) + seconds_to_timedelta(first_modified)).split('.')[0]
-                last_modified_str = str(datetime(1970, 1, 1) + seconds_to_timedelta(last_modified)).split('.')[0]
+                first_modified_str = str(datetime.fromtimestamp(first_modified)).split('.')[0]
+                last_modified_str = str(datetime.fromtimestamp(last_modified)).split('.')[0]
                 # remove seconds
                 first_modified_str = ":".join(first_modified_str.split(":")[:-1])
                 last_modified_str = ":".join(last_modified_str.split(":")[:-1])
@@ -598,7 +597,7 @@ def campaign_status_esa(campaign) -> str:
                 out_str += f"<td>{annotation_time_upper}</td>"
 
                 # consider time that's in any action within 10 minutes
-                times = sorted([item.start_time for item in _data] + [item.end_time for item in _data])
+                times = sorted([t for item in _data for t in [item.start_time, item.end_time] if t > 0])
                 annotation_time = sum([b-a for a, b in zip(times, times[1:]) if (b-a) < 10*60])
                 annotation_time = f'{int(floor(annotation_time / 3600)):0>2d}h {int(floor((annotation_time % 3600) / 60)):0>2d}m'
 
