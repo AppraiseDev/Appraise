@@ -247,7 +247,8 @@ $(document).ready(function() {
         
         console.log('Scores:', score1, score2);
         
-        if (!score1 || score1 == -1 || score1 === '-1' || !score2 || score2 == -1 || score2 === '-1') {
+        if (score1 === '' || score1 === null || score1 === undefined || score1 == -1 || score1 === '-1' || 
+            score2 === '' || score2 === null || score2 === undefined || score2 == -1 || score2 === '-1') {
             alert('Please score both translations before submitting.');
             return false;
         }
@@ -256,12 +257,20 @@ $(document).ready(function() {
         var numScore1 = parseFloat(score1);
         var numScore2 = parseFloat(score2);
         
+        // Determine threshold and display value based on scale_100 setting
+        var threshold = 75;
+        var displayThreshold = 8;
+        if (typeof scale100Enabled !== 'undefined' && scale100Enabled) {
+            threshold = 80;
+            displayThreshold = 80;
+        }
+        
         // Get handlers to check if document-level (handler won't exist for document-level)
         var handler1 = MQM_HANDLERS[$itemBox1.data('item-id')];
         var handler2 = MQM_HANDLERS[$itemBox2.data('item-id')];
         
         // Only validate if handler exists (document-level items don't have handlers)
-        if (handler1 && !isNaN(numScore1) && numScore1 < 75) {
+        if (handler1 && !isNaN(numScore1) && numScore1 < threshold) {
             var mqm1Data = [];
             try {
                 mqm1Data = JSON.parse($itemBox1.find('input[name="mqm"]').val() || '[]');
@@ -272,13 +281,13 @@ $(document).ready(function() {
             });
             
             if (actualErrors1.length === 0) {
-                alert('Translation A has a score lower than 8 but no error spans marked. Please mark errors before submitting.');
+                alert('Translation A has a score lower than ' + displayThreshold + ' but no error spans marked. Please mark errors before submitting.');
                 return false;
             }
         }
         
         // Only validate if handler exists (document-level items don't have handlers)
-        if (handler2 && !isNaN(numScore2) && numScore2 < 75) {
+        if (handler2 && !isNaN(numScore2) && numScore2 < threshold) {
             var mqm2Data = [];
             try {
                 mqm2Data = JSON.parse($itemBox2.find('input[name="mqm"]').val() || '[]');
@@ -289,7 +298,7 @@ $(document).ready(function() {
             });
             
             if (actualErrors2.length === 0) {
-                alert('Translation B has a score lower than 8 but no error spans marked. Please mark errors before submitting.');
+                alert('Translation B has a score lower than ' + displayThreshold + ' but no error spans marked. Please mark errors before submitting.');
                 return false;
             }
         }

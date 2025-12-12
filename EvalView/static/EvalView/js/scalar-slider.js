@@ -225,13 +225,64 @@
     if (!this.touched) {
       this.$range.addClass(this.options.unsetClass);
       this.$handle.addClass(this.options.unsetClass);
+      // Clear any inline styles
+      this.$range.css({'background': '', 'background-color': ''});
+      this.$handle.css({'background': '', 'background-color': '', 'border-color': '', 'color': ''});
       return;
     }
 
-    var qualityClass = this.getQualityClass(value);
-    if (qualityClass) {
-      this.$range.addClass(qualityClass);
-      this.$handle.addClass(qualityClass);
+    // Check if we have more than 10 discrete values (scale_100 mode)
+    var useGradient = this.discreteValues.length > 10;
+    
+    if (useGradient) {
+      // Calculate color gradient dynamically for scale_100 mode
+      var numericValue = toNumber(value, 0);
+      var percentage = numericValue / this.options.max;
+      
+      // Interpolate between red (0) and green (100)
+      // Red: #d82e28, Orange: #f07f46, Yellow: #f5c46b, Yellow-green: #b7e276, Green: #2db034
+      var r, g, b;
+      if (percentage <= 0.2) {
+        // Red to orange (0-20)
+        var t = percentage * 5;
+        r = Math.round(216 * (1 - t) + 240 * t);
+        g = Math.round(46 * (1 - t) + 127 * t);
+        b = Math.round(40 * (1 - t) + 70 * t);
+      } else if (percentage <= 0.4) {
+        // Orange to yellow (20-40)
+        var t = (percentage - 0.2) * 5;
+        r = Math.round(240 * (1 - t) + 245 * t);
+        g = Math.round(127 * (1 - t) + 196 * t);
+        b = Math.round(70 * (1 - t) + 107 * t);
+      } else if (percentage <= 0.6) {
+        // Yellow to yellow-green (40-60)
+        var t = (percentage - 0.4) * 5;
+        r = Math.round(245 * (1 - t) + 183 * t);
+        g = Math.round(196 * (1 - t) + 226 * t);
+        b = Math.round(107 * (1 - t) + 118 * t);
+      } else {
+        // Yellow-green to green (60-100)
+        var t = (percentage - 0.6) * 2.5;
+        r = Math.round(183 * (1 - t) + 45 * t);
+        g = Math.round(226 * (1 - t) + 176 * t);
+        b = Math.round(118 * (1 - t) + 52 * t);
+      }
+      
+      var color = 'rgb(' + r + ',' + g + ',' + b + ')';
+      var textColor = percentage < 0.3 || percentage > 0.85 ? '#fff' : '#2f3b11';
+      
+      this.$range.css({'background': color, 'background-color': color});
+      this.$handle.css({'background': color, 'background-color': color, 'border-color': color, 'color': textColor});
+    } else {
+      // Use traditional quality classes for 10-step mode
+      var qualityClass = this.getQualityClass(value);
+      if (qualityClass) {
+        this.$range.addClass(qualityClass);
+        this.$handle.addClass(qualityClass);
+      }
+      // Clear any inline styles
+      this.$range.css({'background': '', 'background-color': ''});
+      this.$handle.css({'background': '', 'background-color': '', 'border-color': '', 'color': ''});
     }
   };
 

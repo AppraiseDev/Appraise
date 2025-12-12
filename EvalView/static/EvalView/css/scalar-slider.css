@@ -5,15 +5,10 @@
 
 .scalar-slider .ui-slider-range {
   background: #729fcf;
-  transition: background-color 0.15s ease-in-out;
 }
 
 .scalar-slider .ui-slider-handle {
   border-color: #729fcf;
-  transition:
-    background-color 0.15s ease-in-out,
-    border-color 0.15s ease-in-out,
-    color 0.15s ease-in-out;
 }
 
 .slider-box {
