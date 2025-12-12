@@ -239,37 +239,47 @@
       var numericValue = toNumber(value, 0);
       var percentage = numericValue / this.options.max;
       
-      // Interpolate between red (0) and green (100)
-      // Red: #d82e28, Orange: #f07f46, Yellow: #f5c46b, Yellow-green: #b7e276, Green: #2db034
-      var r, g, b;
-      if (percentage <= 0.2) {
-        // Red to orange (0-20)
-        var t = percentage * 5;
-        r = Math.round(216 * (1 - t) + 240 * t);
-        g = Math.round(46 * (1 - t) + 127 * t);
-        b = Math.round(40 * (1 - t) + 70 * t);
-      } else if (percentage <= 0.4) {
-        // Orange to yellow (20-40)
-        var t = (percentage - 0.2) * 5;
-        r = Math.round(240 * (1 - t) + 245 * t);
-        g = Math.round(127 * (1 - t) + 196 * t);
-        b = Math.round(70 * (1 - t) + 107 * t);
-      } else if (percentage <= 0.6) {
-        // Yellow to yellow-green (40-60)
-        var t = (percentage - 0.4) * 5;
-        r = Math.round(245 * (1 - t) + 183 * t);
-        g = Math.round(196 * (1 - t) + 226 * t);
-        b = Math.round(107 * (1 - t) + 118 * t);
-      } else {
-        // Yellow-green to green (60-100)
-        var t = (percentage - 0.6) * 2.5;
-        r = Math.round(183 * (1 - t) + 45 * t);
-        g = Math.round(226 * (1 - t) + 176 * t);
-        b = Math.round(118 * (1 - t) + 52 * t);
-      }
+      // Color stops from CSS quality-option-1 through quality-option-10
+      // Each represents 10% of the scale (0-9, 10-19, ..., 90-100)
+      var colorStops = [
+        {r: 216, g: 46, b: 40},   // #d82e28 - option-1 (0-9)
+        {r: 225, g: 104, b: 75},  // #e1684b - option-2 (10-19)
+        {r: 240, g: 127, b: 70},  // #f07f46 - option-3 (20-29)
+        {r: 240, g: 173, b: 78},  // #f0ad4e - option-4 (30-39)
+        {r: 245, g: 196, b: 107}, // #f5c46b - option-5 (40-49)
+        {r: 211, g: 231, b: 98},  // #d3e762 - option-6 (50-59)
+        {r: 183, g: 226, b: 118}, // #b7e276 - option-7 (60-69)
+        {r: 142, g: 220, b: 141}, // #8edc8d - option-8 (70-79)
+        {r: 94, g: 191, b: 100},  // #5ebf64 - option-9 (80-89)
+        {r: 45, g: 176, b: 52}    // #2db034 - option-10 (90-100)
+      ];
+      
+      // Find which segment we're in (0-9)
+      var segment = Math.min(Math.floor(percentage * 10), 9);
+      var nextSegment = Math.min(segment + 1, 9);
+      
+      // Calculate position within the segment (0.0 to 1.0)
+      var segmentPosition = (percentage * 10) - segment;
+      
+      // Interpolate between the two color stops
+      var color1 = colorStops[segment];
+      var color2 = colorStops[nextSegment];
+      
+      var r = Math.round(color1.r * (1 - segmentPosition) + color2.r * segmentPosition);
+      var g = Math.round(color1.g * (1 - segmentPosition) + color2.g * segmentPosition);
+      var b = Math.round(color1.b * (1 - segmentPosition) + color2.b * segmentPosition);
       
       var color = 'rgb(' + r + ',' + g + ',' + b + ')';
-      var textColor = percentage < 0.3 || percentage > 0.85 ? '#fff' : '#2f3b11';
+      
+      // Determine text color based on segment for better readability
+      var textColor = '#2f3b11';
+      if (segment === 0 || segment === 1) {
+        textColor = '#fff'; // White text for dark red/orange
+      } else if (segment === 9) {
+        textColor = '#fff'; // White text for dark green
+      } else if (segment === 8) {
+        textColor = '#14351a'; // Darker text for lighter green
+      }
       
       this.$range.css({'background': color, 'background-color': color});
       this.$handle.css({'background': color, 'background-color': color, 'border-color': color, 'color': textColor});

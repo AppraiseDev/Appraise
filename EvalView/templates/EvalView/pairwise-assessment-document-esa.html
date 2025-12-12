@@ -502,16 +502,19 @@ function prepopulateDocumentScoresIfNeeded() {
         return;
     }
 
-    var $sentenceItem = $('.item-box.quotelike').filter(function() {
-        return !$(this).hasClass('pseudoquotelike');
-    }).first();
-
-    if (!$sentenceItem.length) {
+    // In pairwise ESA, we have a pairwise-row containing two item-boxes
+    var $pairwiseRow = $('.pairwise-row').first();
+    if (!$pairwiseRow.length) {
         return;
     }
 
-    var sentenceScore1 = $sentenceItem.find('input[name="score1"]').val();
-    var sentenceScore2 = $sentenceItem.find('input[name="score2"]').val();
+    var $itemBoxes = $pairwiseRow.find('.item-box');
+    if ($itemBoxes.length !== 2) {
+        return;
+    }
+
+    var sentenceScore1 = $itemBoxes.eq(0).find('input[name="score"]').val();
+    var sentenceScore2 = $itemBoxes.eq(1).find('input[name="score"]').val();
 
     console.log('Prepopulating document scores from single sentence:', sentenceScore1, sentenceScore2);
 
@@ -1172,6 +1175,17 @@ function _show_error_box(text, timeout = 2000) {
     setTimeout(() => { obj.fadeOut(700, () => { obj.remove() }) }, timeout);
 }
 
+function toggle_doc_button(visible) {
+    // Override the version in direct-assessment-document-mqm-esa.js
+    // to add prepopulation of document scores from single sentence
+    $("#button-next-doc").toggle(visible);
+    
+    // When enabling the document button (all segments scored), prepopulate document scores
+    if (visible && _has_single_sentence_document()) {
+        prepopulateDocumentScoresIfNeeded();
+    }
+}
+
 -->
 </script>
 
@@ -1491,13 +1505,13 @@ function _show_error_box(text, timeout = 2000) {
             <div class="row">
             <div class="col-sm-6">
                 <small class="segment-label">{{ candidate1_label }}</small>
-                {% with sliderid=item.itemID slidernum=1 mono=monolingual scale_100=scale_100 %}
+                {% with sliderid=item.itemID slidernum=1 sep="-" mono=monolingual scale_100=scale_100 doclvl=doc_guidelines %}
                 {% include 'EvalView/_scalar_slider.html' %}
                 {% endwith %}
             </div>
             <div class="col-sm-6">
                 <small class="segment-label">{{ candidate2_label }}</small>
-                {% with sliderid=item.itemID slidernum=2 mono=monolingual scale_100=scale_100 %}
+                {% with sliderid=item.itemID slidernum=2 sep="-" mono=monolingual scale_100=scale_100 doclvl=doc_guidelines %}
                 {% include 'EvalView/_scalar_slider.html' %}
                 {% endwith %}
             </div>

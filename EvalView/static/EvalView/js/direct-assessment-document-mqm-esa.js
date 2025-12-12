@@ -194,8 +194,8 @@ $(document).ready(() => {
     $(".item-box").each((_i, el) => {
         let $el = $(el);
         
-        // Skip document-level items (those with document-box class)
-        if ($el.hasClass('document-box')) {
+        // Skip document-level items (those with document-box class or containing document-box)
+        if ($el.hasClass('document-box') || $el.find('.document-box').length > 0) {
             console.log("Skipping MQM handler for document-level item:", $el.attr("data-item-id"));
             return;
         }
