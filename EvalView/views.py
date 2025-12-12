@@ -2395,6 +2395,9 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     escape_br = 'escapebr' in campaign_opts
     highlight_style = 'highlightstyle' in campaign_opts
     scalar_slider = 'scalarslider' in campaign_opts
+    scale_100 = 'scale100' in campaign_opts
+    if scale_100:
+        scalar_slider = True
     collect_browser_info = 'collectbrowserinfo' in campaign_opts
     disable_mobile = 'disablemobile' in campaign_opts
     pairwise_esa = 'pairwiseesa' in campaign_opts
@@ -2505,6 +2508,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     doc_guidelines = 'doclvlguideline' in campaign_opts
     guidelines_popup = ('guidelinepopup' in campaign_opts or 'guidelinespopup' in campaign_opts)
     skip_doc_scores = 'skipdocumentscores' in campaign_opts
+    slider_bubble = 'sliderbubble' in campaign_opts
 
     # new guidelines
     if not monolingual_task:
@@ -2607,6 +2611,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'monolingual': monolingual_task,
         'sqm': use_sqm,
         'scalar_slider': scalar_slider,
+        'scale_100': scale_100,
         'static_context': static_context,
         'guidelines_popup': guidelines_popup,
         'doc_guidelines': doc_guidelines,
@@ -2615,6 +2620,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'collect_browser_info': collect_browser_info,
         'disable_mobile': disable_mobile,
         'skip_doc_scores': skip_doc_scores,
+        'slider_bubble': slider_bubble,
     }
     
     # Add ESA-specific context

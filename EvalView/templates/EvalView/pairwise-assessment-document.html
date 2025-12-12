@@ -72,6 +72,7 @@
 
 <link rel="stylesheet" href="{% static 'EvalView/css/jquery-ui.css' %}">
 <link rel="stylesheet" href="{% static 'EvalView/css/scalar-slider.css' %}">
+<link rel="stylesheet" href="{% static 'EvalView/css/direct-assessment-document-mqm-esa.css' %}">
 <script src="{% static 'EvalView/js/jquery-ui.min.js' %}"></script>
 <script src="{% static 'EvalView/js/js.cookie-2.2.1.min.js' %}"></script>
 <script src="{% static 'EvalView/js/scalar-slider.js' %}"></script>
@@ -96,6 +97,8 @@ var ENABLE_COLOR_LABELS = false;
 var ENABLE_UNRESTRICTED_ANNOTATION = true;
 
 var scalarSliderEnabled = {{ scalar_slider|yesno:"true,false" }};
+var sliderBubbleEnabled = {{ slider_bubble|yesno:"true,false" }};
+var scale100Enabled = {{ scale_100|yesno:"true,false" }};
 var scalarSliderOptions = {
     enabled: scalarSliderEnabled,
     valueCount: 10,
@@ -310,10 +313,14 @@ function initializeScalarSliders() {
         var $element = $(this);
         var sliderId = $element.attr('id') || '';
         var hiddenSelector = sliderId ? '#' + sliderId.replace('slider', 'score') : null;
+        
+        // Check if this slider should use continuous 0-100 scale
+        var isScale100 = $element.attr('data-scale-100') === 'true';
+        var sliderValueCount = isScale100 ? 101 : scalarSliderOptions.valueCount;
 
         var instance = Appraise.ScalarSlider.create($element, {
             enabled: true,
-            valueCount: scalarSliderOptions.valueCount,
+            valueCount: sliderValueCount,
             min: scalarSliderOptions.min,
             max: scalarSliderOptions.max,
             hiddenInput: hiddenSelector,
@@ -481,6 +488,75 @@ function prepopulateDocumentScoresIfNeeded() {
     prepopulateDocumentScoresFromSingleSentence(sentenceScore1, sentenceScore2);
 }
 
+function initializeSliderBubbles() {
+    $('.slider').each(function() {
+        var $slider = $(this);
+        var $handle = $slider.find('.ui-slider-handle');
+        
+        if ($handle.length === 0) {
+            return;
+        }
+        
+        // Check if bubble already exists
+        if ($handle.find('.slider-bubble').length > 0) {
+            return;
+        }
+        
+        // Determine if this is a scalar slider (0-100) or regular (0-10)
+        var isScalar = $slider.hasClass('scalar-slider');
+        var maxValue = isScalar ? 100 : 10;
+        
+        // Create bubble
+        $handle.append("<div class='slider-bubble'>" + maxValue + "</div>");
+        var $bubble = $handle.find('.slider-bubble');
+        
+        // Hide by default
+        $bubble.hide();
+        
+        // Create refresh function
+        var refreshBubble = function() {
+            var value = $slider.slider('value');
+            if (value === null || value === undefined) {
+                return;
+            }
+            
+            // For scalar sliders (0-100 storage), check if we need to convert display
+            if (isScalar && !scale100Enabled) {
+                // Convert from 0-100 storage to 1-10 display
+                // Formula: (storageValue * 9 / 100) + 1
+                value = Math.round((value * 9 / 100) + 1);
+                value = Math.max(1, Math.min(10, value)); // Clamp to 1-10
+            } else {
+                // For regular sliders or scale_100 sliders, just round
+                value = Math.round(value);
+            }
+            
+            $bubble.text(value);
+        };
+        
+        // Show bubble on mousedown/touchstart
+        $handle.on('mousedown.sliderbubble touchstart.sliderbubble', function() {
+            $bubble.show();
+            refreshBubble();
+        });
+        
+        // Hide bubble on mouseup/touchend/focusout
+        $handle.on('mouseup.sliderbubble touchend.sliderbubble focusout.sliderbubble', function() {
+            setTimeout(function() {
+                $bubble.hide();
+                refreshBubble();
+            }, 1);
+        });
+        
+        // Update bubble during slide
+        $slider.on('slide.sliderbubble', function() {
+            $bubble.show();
+            refreshBubble();
+            setTimeout(refreshBubble, 1);
+        });
+    });
+}
+
 $(document).ready(function() {
     // This sets the same starting time for all items, but it is set again when
     // an item is expanded by clicking on it.
@@ -513,6 +589,11 @@ $(document).ready(function() {
             fallbackOptions.step = parseFloat(fallbackStep.toFixed(6));
         }
         $('.scalar-slider').slider(fallbackOptions);
+    }
+
+    // Initialize slider bubbles if enabled
+    if (sliderBubbleEnabled) {
+        initializeSliderBubbles();
     }
 
     $('.button-reset').click(reset_form);
@@ -1044,7 +1125,7 @@ function _show_error_box(item_box, msg) {
                 <p><em>Note</em>: You evaluate each sentence individually, but you should use the entire translation as context.</p>
                 {% endif %}
                 <p>Rating scale:</p>
-                {% with mono=monolingual %}
+                {% with mono=monolingual scale_100=scale_100 %}
                 {% include 'EvalView/_scalar_instructions.html' %}
                 {% endwith %}
             {% elif sqm %}
@@ -1174,8 +1255,8 @@ function _show_error_box(item_box, msg) {
         <input name="item_id" type="hidden" value="{{ item.itemID }}" />
         <input name="task_id" type="hidden" value="{{ item.id }}" />
         <input name="document_id" type="hidden" value="{{ item.documentID }}" />
-        <input name="score1" type="hidden" value="{{ scores.score1 }}" id="score1{{ item.itemID }}" />
-        <input name="score2" type="hidden" value="{{ scores.score2 }}" id="score2{{ item.itemID }}" />
+        <input name="score1" type="hidden" value="{{ scores.score1 }}" id="score1-{{ item.itemID }}" />
+        <input name="score2" type="hidden" value="{{ scores.score2 }}" id="score2-{{ item.itemID }}" />
         <input name="ajax" type="hidden" value="False" />
 
         {% if not item.isCompleteDocument %}
@@ -1202,7 +1283,7 @@ function _show_error_box(item_box, msg) {
 
             <div class="row half-slider target-box toggleable">
             {% if scalar_slider %}
-                {% with sliderid=item.itemID slidernum=1 mono=monolingual doclvl=doc_guidelines %}
+                {% with sliderid=item.itemID slidernum=1 sep="-" mono=monolingual scale_100=scale_100 %}
                 {% include 'EvalView/_scalar_slider.html' %}
                 {% endwith %}
             {% elif sqm %}
@@ -1224,7 +1305,7 @@ function _show_error_box(item_box, msg) {
 
             <div class="row half-slider target-box toggleable">
             {% if scalar_slider %}
-                {% with sliderid=item.itemID slidernum=2 mono=monolingual doclvl=doc_guidelines %}
+                {% with sliderid=item.itemID slidernum=2 sep="-" mono=monolingual scale_100=scale_100 %}
                 {% include 'EvalView/_scalar_slider.html' %}
                 {% endwith %}
             {% elif sqm %}
@@ -1337,7 +1418,7 @@ function _show_error_box(item_box, msg) {
                     <p>{{text|safe}}</p>
                     {% endfor %}
                     {% if scalar_slider %}
-                        {% with mono=monolingual %}
+                        {% with mono=monolingual scale_100=scale_100 %}
                         {% include 'EvalView/_scalar_instructions.html' %}
                         {% endwith %}
                     {% elif sqm %}
@@ -1354,7 +1435,7 @@ function _show_error_box(item_box, msg) {
             <div class="col-sm-6">
                 <small class="segment-label">{{ candidate1_label }} in {{ target_language }}</small>
             {% if scalar_slider %}
-                {% with sliderid=item.itemID slidernum=1 mono=monolingual doclvl=doc_guidelines %}
+                {% with sliderid=item.itemID slidernum=1 sep="-" mono=monolingual scale_100=scale_100 %}
                 {% include 'EvalView/_scalar_slider.html' %}
                 {% endwith %}
             {% elif sqm %}
@@ -1370,7 +1451,7 @@ function _show_error_box(item_box, msg) {
             <div class="col-sm-6">
                 <small class="segment-label">{{ candidate2_label }} in {{ target_language }}</small>
             {% if scalar_slider %}
-                {% with sliderid=item.itemID slidernum=2 mono=monolingual doclvl=doc_guidelines %}
+                {% with sliderid=item.itemID slidernum=2 sep="-" mono=monolingual scale_100=scale_100 %}
                 {% include 'EvalView/_scalar_slider.html' %}
                 {% endwith %}
             {% elif sqm %}

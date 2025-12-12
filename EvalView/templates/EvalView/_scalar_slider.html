@@ -1,6 +1,14 @@
 <div class="slider-box">
   <table class="slider-grid scalar-slider-grid">
   <tr>
+    {% if scale_100 %}
+    <td class="col-xs-1" style="text-align:left;font-size:x-small;padding:0 15px;">0</td>
+    <td class="col-xs-2" style="text-align:center;font-size:x-small;">20</td>
+    <td class="col-xs-2" style="text-align:center;font-size:x-small;">40</td>
+    <td class="col-xs-2" style="text-align:center;font-size:x-small;">60</td>
+    <td class="col-xs-2" style="text-align:center;font-size:x-small;">80</td>
+    <td class="col-xs-1" style="text-align:right;font-size:x-small;padding:0 15px;">100</td>
+    {% else %}
     <td class="col-xs-1">1</td>
     <td class="col-xs-1">2</td>
     <td class="col-xs-1">3</td>
@@ -11,18 +19,19 @@
     <td class="col-xs-1">8</td>
     <td class="col-xs-1">9</td>
     <td class="col-xs-1">10</td>
+    {% endif %}
   </tr>
   </table>
 </div>
 <div class="col-sm-12 slider-bar">
-  <div id="slider{{ slidernum }}{{ sliderid }}" class="slider slider{{ slidernum }} scalar-slider" data-discrete-count="10" data-discrete-min="0" data-discrete-max="100"></div>
-  <table class="sqm-labels" style="color:#777; margin-top:1ex; font-size:x-small; width:100%;">
+  <div id="slider{{ slidernum }}{% if sep %}{{ sep }}{% endif %}{{ sliderid }}" class="slider scalar-slider slider{{ slidernum }}" data-discrete-count="10" data-discrete-min="0" data-discrete-max="100" data-scale-100="{{ scale_100|yesno:'true,false' }}"></div>
+  <table class="sqm-labels" style="font-size:x-small;">
     <tr>
-      <td class="sqm-label col-xs-2" style="vertical-align:top;text-align:center;">Not acceptable</td>
-      <td class="sqm-label col-xs-2" style="vertical-align:top;text-align:center;">Borderline</td>
-      <td class="sqm-label col-xs-2" style="vertical-align:top;text-align:center;">Acceptable</td>
-      <td class="sqm-label col-xs-2" style="vertical-align:top;text-align:center;">Good</td>
-      <td class="sqm-label col-xs-2" style="vertical-align:top;text-align:center;">Very good</td>
+      <td class="sqm-label col-xs-2">Not acceptable</td>
+      <td class="sqm-label col-xs-2">Borderline</td>
+      <td class="sqm-label col-xs-2">Acceptable</td>
+      <td class="sqm-label col-xs-2">Good</td>
+      <td class="sqm-label col-xs-2">Very good</td>
     </tr>
   </table>
 </div>
