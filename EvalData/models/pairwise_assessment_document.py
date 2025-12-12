@@ -27,7 +27,7 @@ from EvalData.models.base_models import TextSegmentWithTwoTargets
 # TODO: Unclear if these are needed?
 # from Appraise.settings import STATIC_URL, BASE_CONTEXT
 
-MAX_DOCUMENTID_LENGTH = 100
+MAX_DOCUMENTID_LENGTH = 200
 
 LOGGER = _get_logger(name=__name__)
 
@@ -428,15 +428,11 @@ class PairwiseAssessmentDocumentTask(BaseMetadata):
                 current_length_text = len(item['segmentText'])
 
                 if current_length_id > max_length_id:
-                    print('New max length ID:', current_length_id, item['segmentID'])
+                    print(f"New max segmentID length, max={current_length_id}, id={item['segmentID']}")
                     max_length_id = current_length_id
 
                 if current_length_text > max_length_text:
-                    print(
-                        'New max length text:',
-                        current_length_text,
-                        item['segmentText'].encode('utf-8'),
-                    )
+                    print(f"New max segmentText length, max={current_length_text}, id={item['segmentID']}")
                     max_length_text = current_length_text
 
                 item_targets = item['targets']
@@ -478,8 +474,6 @@ class PairwiseAssessmentDocumentTask(BaseMetadata):
             for new_item in new_items:
                 new_item.metadata = batch_meta
                 new_item.save()
-            # batch_meta.textpairwithcontext_set.add(*new_items, bulk=False)
-            # batch_meta.save()
 
             new_task = PairwiseAssessmentDocumentTask(
                 campaign=campaign,
@@ -490,8 +484,6 @@ class PairwiseAssessmentDocumentTask(BaseMetadata):
             )
             new_task.save()
 
-            # for new_item in new_items:
-            #    new_task.items.add(new_item)
             new_task.items.add(*new_items)
             new_task.save()
 
@@ -500,11 +492,10 @@ class PairwiseAssessmentDocumentTask(BaseMetadata):
             )
             LOGGER.info(_msg)
 
-        _msg = 'Max length ID={0}, text={1}'.format(max_length_id, max_length_text)
-        LOGGER.info(_msg)
+        print(f"Max length ID={max_length_id}, text={max_length_text}")
 
         t2 = datetime.now()
-        print(t2 - t1)
+        print(f"Total processing time: {t2 - t1}")
 
     # pylint: disable=E1101
     def is_valid(self):
