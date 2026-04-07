@@ -1077,6 +1077,9 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
     campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
     contrastive_esa = 'contrastiveesa' in campaign_opts
     wmt_layout = 'wmtlayout' in campaign_opts
+    scale_100 = 'scale100' in campaign_opts
+    if scale_100:
+        wmt_layout = True
 
     # POST means that we want to store
     if request.method == "POST":
@@ -1264,8 +1267,9 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
         'ui_lang': "enu",
         'mqm_type': 'ESA' if 'esa' in campaign_opts else "MQM",
         'guidelines': guidelines,
-        'scalar_slider': 'scalarslider' in campaign_opts,
+        'scalar_slider': 'scalarslider' in campaign_opts or scale_100,
         'wmt_layout': wmt_layout,
+        'scale_100': scale_100,
     }
 
     if ajax:
@@ -1285,7 +1289,7 @@ def direct_assessment_document_mqmesa(campaign, current_task, request):
 
     if contrastive_esa:
         html_page = 'EvalView/direct-assessment-document-mqm-esa-contrastive.html'
-    if wmt_layout:
+    elif wmt_layout and not scale_100:
         html_page = 'EvalView/direct-assessment-document-mqm-esa-wmt.html'
     else:
         html_page = 'EvalView/direct-assessment-document-mqm-esa.html'

@@ -51,7 +51,6 @@ ul.scalar-instructions { padding-left: 10px; padding-top:5px; }
 .toggleable.active { display:block; }
 
 .target-text { padding: 0 !important; }
-.target-box .col-sm-10 { overflow: hidden; }
 .target-box .row { padding-top:0; }
 .target-box.active { display:block; }
 .target-box .btn { margin-top:10px; min-width:71px; margin-right:5px; }
@@ -774,7 +773,7 @@ function prepopulateDocumentScoreIfNeeded() {
                 <div class="col-sm-10">
                     <div class="row esa_slider">
             {% if scalar_slider %}
-                {% with sliderid=item.itemID %}
+                {% with sliderid=item.itemID scale_100=scale_100 %}
                 {% include 'EvalView/_scalar_slider.html' %}
                 {% endwith %}
             {% else %}
@@ -835,7 +834,7 @@ function prepopulateDocumentScoreIfNeeded() {
             <div class="row">
                 <div class="col-sm-12">
             {% if scalar_slider %}
-                {% with sliderid=item.itemID %}
+                {% with sliderid=item.itemID scale_100=scale_100 %}
                 {% include 'EvalView/_scalar_slider.html' %}
                 {% endwith %}
             {% else %}
