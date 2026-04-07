@@ -594,8 +594,17 @@ function prepopulateDocumentScoreFromSingleSentence(scoreValue) {
             var sliderId = $documentSlider.attr('id') || '';
             var sliderInstance = sliderId ? (scalarSliderRegistry[sliderId] || null) : null;
             if (sliderInstance && sliderInstance.setValue) {
+                // Convert storage value to display value for non-contrastive ESA
+                // (storage range 0-100 must be mapped to display range 1-10)
+                var displayValue = numericScore;
+                if (!wmtLayout && scalarSliderOptions.min === 1) {
+                    displayValue = storageToDisplayValue(numericScore, false);
+                }
                 sliderInstance.setTouched(true);
-                sliderInstance.setValue(numericScore, false);
+                sliderInstance.setValue(displayValue, false);
+                // Re-set hidden input to correct storage value
+                // (setValue overwrites it with the display value)
+                $docScoreInput.val(numericScore);
                 $documentSlider.data('scalarAutoFilled', true);
             }
         } else {
