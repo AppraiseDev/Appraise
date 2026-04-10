@@ -1044,7 +1044,7 @@ class MQMItemHandler {
             if (usesHundredPointScale() && !this.contrastive_esa) {
                 let value = this.el_slider.slider('value');
                 if (this.mqm.length == 0 && value < 66) {
-                    alert(`You assigned a score of ${value} without highlighting any errors. Please, highlight errors first.`)
+                    _show_error_box(`You assigned a score of ${value} without highlighting any errors. Please highlight errors first.`, 4000)
                 }
             }
         })
@@ -1219,14 +1219,30 @@ class MQMItemHandler {
         if (MQM_TYPE === "ESA") {
             const rawScore = Number.parseFloat(this.el.find("input[name='score']").val());
             const scoreUnset = Number.isNaN(rawScore) || rawScore < 0;
+
+            if (scoreUnset) {
+                _show_error_box("Please set a score before submitting.", 3000);
+                return false;
+            }
             
             // For non-contrastive ESA, the stored score is in 0-100 range, so threshold is 75 (matches pairwise)
             // For contrastive ESA, the stored score is in 1-10 range, so threshold is 8
-            let threshold = this.contrastive_esa ? 8 : 75;
+            // For Scale100/WMT layout, both storage and display are 0-100, threshold is 80
+            let threshold, displayThreshold;
+            if (usesHundredPointScale()) {
+                threshold = 80;
+                displayThreshold = 80;
+            } else if (this.contrastive_esa) {
+                threshold = 8;
+                displayThreshold = 8;
+            } else {
+                // Non-contrastive ESA: storage 0-100, display 1-10
+                threshold = 75;
+                displayThreshold = 8;
+            }
             
             if (!scoreUnset && rawScore < threshold && !this.hasActualErrors()) {
-                // Display threshold is always 8 for user-facing message
-                alert(`Scores below 8 require at least one error span annotation.`);
+                _show_error_box("Scores below " + displayThreshold + " require at least one error span annotation.", 4000);
                 return false;
             }
         }

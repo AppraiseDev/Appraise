@@ -82,6 +82,9 @@ function submit_pairwise_row($row, $itemBox1, $itemBox2) {
                     if (typeof _enable_document_box === 'function') {
                         _enable_document_box();
                     }
+                    if (typeof prepopulateDocumentScoresFromSingleSentence === 'function') {
+                        prepopulateDocumentScoresFromSingleSentence(data['score1'], data['score2']);
+                    }
                 }
             } else {
                 // Show error
@@ -249,7 +252,7 @@ $(document).ready(function() {
         
         if (score1 === '' || score1 === null || score1 === undefined || score1 == -1 || score1 === '-1' || 
             score2 === '' || score2 === null || score2 === undefined || score2 == -1 || score2 === '-1') {
-            alert('Please score both translations before submitting.');
+            _show_error_box('Please score both translations before submitting.', 3000);
             return false;
         }
         
@@ -281,7 +284,7 @@ $(document).ready(function() {
             });
             
             if (actualErrors1.length === 0) {
-                alert('Translation A has a score lower than ' + displayThreshold + ' but no error spans marked. Please mark errors before submitting.');
+                _show_error_box('Translation A has a score lower than ' + displayThreshold + ' but no error spans marked. Please mark errors before submitting.', 4000);
                 return false;
             }
         }
@@ -298,7 +301,7 @@ $(document).ready(function() {
             });
             
             if (actualErrors2.length === 0) {
-                alert('Translation B has a score lower than ' + displayThreshold + ' but no error spans marked. Please mark errors before submitting.');
+                _show_error_box('Translation B has a score lower than ' + displayThreshold + ' but no error spans marked. Please mark errors before submitting.', 4000);
                 return false;
             }
         }
