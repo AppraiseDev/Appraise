@@ -118,11 +118,12 @@ var ENABLE_COLOR_LABELS = true;
 var ENABLE_UNRESTRICTED_ANNOTATION = true;
 
 var scalarSliderEnabled = {{ scalar_slider|yesno:"true,false" }};
+var scale100 = {{ scale_100|yesno:"true,false" }};
 var scalarSliderOptions = {
     enabled: scalarSliderEnabled,
-    valueCount: 10,
-    min: 0,
-    max: 100
+    valueCount: scale100 ? 101 : 10,
+    min: scale100 ? 0 : 0,
+    max: scale100 ? 100 : 100
 };
 var scalarSliderRegistry = {};
 var collectBrowserInfo = {{ collect_browser_info|yesno:"true,false" }};
@@ -688,7 +689,7 @@ function submit_form(e) {
     var score = item_box.find('input[name="score"]').val();
     var index = item_box.data('item-id');
     if (score == -1) {
-        alert('Sentence #' + (index + 1) + ' has no score. ' +
+        _show_error_box(item_box, 'Sentence #' + (index + 1) + ' has no score. ' +
             'Please score all candidate sentences. Thanks!');
         return false;
     }
@@ -807,13 +808,13 @@ function last_form() {
     var score = item_box.find('input[name="score"]').val();
     var index = item_box.data('item-id');
     if (score == -1) {
-        alert('Please score the document translation. Thanks!');
+        _show_error_box(item_box, 'Please score the document translation. Thanks!');
         return false;
     }
     // It is a security check, but this should never occur, because the last
     // item is disabled if there is at least one sentence that is not scored
     if (!_all_sentences_scored()) {
-        alert('Please score all sentences from the document first. Thanks!');
+        _show_error_box(item_box, 'Please score all sentences from the document first. Thanks!');
         return false;
     }
     // Add end timestamp
@@ -882,13 +883,18 @@ function toggle_instructions() {
 }
 
 function _show_error_box(item_box, msg) {
+    // Remove any existing error boxes to prevent stacking
+    $('.alert-danger.alert-dismissible.appraise-error').remove();
     // A hideable error box with a custom message displayed right above the item box
-    item_box.before(
-        '<div class="alert alert-danger alert-dismissible" role="alert">' +
+    var $box = $(
+        '<div class="alert alert-danger alert-dismissible appraise-error" role="alert">' +
         '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
         '<span aria-hidden="true">&times;</span>' +
         '</button>Oops... ' + msg + '</div>'
     );
+    item_box.before($box);
+    // Auto-fade after 3 seconds
+    setTimeout(function() { $box.fadeOut(700, function() { $box.remove(); }); }, 3000);
 }
 
 function _has_single_sentence_document() {
@@ -1173,7 +1179,7 @@ function prepopulateDocumentScoreIfNeeded() {
 
                 <div class="col-sm-10">
             {% if scalar_slider %}
-                {% with sliderid=item.itemID mono=monolingual %}
+                {% with sliderid=item.itemID mono=monolingual scale_100=scale_100 %}
                 {% include 'EvalView/_scalar_slider.html' %}
                 {% endwith %}
             {% elif sqm %}
@@ -1223,7 +1229,7 @@ function prepopulateDocumentScoreIfNeeded() {
             <div class="row">
                 <div class="col-sm-12">
             {% if scalar_slider %}
-                {% with sliderid=item.itemID mono=monolingual %}
+                {% with sliderid=item.itemID mono=monolingual scale_100=scale_100 %}
                 {% include 'EvalView/_scalar_slider.html' %}
                 {% endwith %}
             {% elif sqm %}

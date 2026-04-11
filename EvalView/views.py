@@ -865,6 +865,7 @@ def direct_assessment_document(request, code=None, campaign_name=None):
     speech_translation = 'speechtranslation' in campaign_opts
     static_context = 'staticcontext' in campaign_opts
     use_sqm = 'sqm' in campaign_opts
+    scale_100 = 'scale100' in campaign_opts
     ui_language = 'enu'
     doc_guidelines = 'doclvlguideline' in campaign_opts
 
@@ -1046,7 +1047,8 @@ def direct_assessment_document(request, code=None, campaign_name=None):
         'static_context': static_context,
         'sqm': use_sqm,
         'ui_lang': ui_language,
-        'scalar_slider': 'scalarslider' in campaign_opts,
+        'scalar_slider': 'scalarslider' in campaign_opts or scale_100,
+        'scale_100': scale_100,
         'collect_browser_info': 'collectbrowserinfo' in campaign_opts,
         'disable_mobile': 'disablemobile' in campaign_opts,
     }
