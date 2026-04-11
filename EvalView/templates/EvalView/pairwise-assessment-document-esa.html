@@ -90,6 +90,44 @@ body.show-diffs .mqm_char.diff-del {
 .pairwise-row { padding: 0 10px; }
 .source-text-display { padding-bottom: 20px; }
 
+.source-btn-comment {
+    color: #888;
+    font-size: 0.85em;
+    margin-left: 4px;
+    cursor: default;
+}
+
+.seg-comment-input {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 4px 8px;
+    font-size: 0.85em;
+    color: #555;
+    resize: vertical;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    min-height: 4em;
+}
+.seg-comment-input:focus {
+    border-color: #aaa;
+    outline: none;
+}
+
+#doc-comment-input {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 4px 8px;
+    font-size: 0.85em;
+    color: #555;
+    resize: vertical;
+}
+#doc-comment-input:focus {
+    border-color: #aaa;
+    outline: none;
+}
+
 {% if monolingual %}
 /* Hide [MISSING] span in monolingual mode */
 .span_missing { display: none !important; }
@@ -144,6 +182,11 @@ var browserInfoValue = '';
 var disableMobile = {{ disable_mobile|yesno:"true,false" }};
 var disableMobileMinWidth = 770;
 var disableMobileAlertId = 'mobile-disabled-alert';
+var commentsSegEnabled = {{ comments_seg|yesno:"true,false" }};
+var commentsDocEnabled = {{ comments_doc|yesno:"true,false" }};
+// Whether comments are mandatory (set to true to enforce non-empty comments)
+var commentsSegRequired = false;
+var commentsDocRequired = true;
 
 String.prototype.rot13 = function() {
     return this.replace(/[a-zA-Z]/g, function(c) {
@@ -1254,6 +1297,21 @@ function toggle_doc_button(visible) {
             </div>
         </div>
     </div>
+
+    {% if comments_seg or comments_doc %}
+    <div class="row">
+        <div class="col-sm-12">
+            <p style="margin: 10px 10px 0; color: #555;"><strong>Comments:</strong>
+            {% if comments_seg %}
+            Please note important observations and flag issues with translations or the source in the comment section under each segment.
+            {% endif %}
+            {% if comments_doc %}
+            A document-level comment summarizing key quality differences and recurring patterns is <strong>required</strong> before submitting.
+            {% endif %}
+            </p>
+        </div>
+    </div>
+    {% endif %}
     <div class="row">
         <div class="col-sm-12">
             <p class="pull-left control-box">
@@ -1394,17 +1452,30 @@ function toggle_doc_button(visible) {
             <!-- Status column with toggle functionality -->
             <div class="col-sm-1 source-box-hoverable">
                 <span class="source-btn-done glyphicon glyphicon-ok" style="display:none;"></span>
+                <span class="source-btn-comment glyphicon glyphicon-comment" style="display:none;" title="Comment added"></span>
             </div>
         </div>
     </div>
     
     <!-- Collapsible content with sliders and submit button -->
     <div class="row target-box toggleable">
-        <!-- Empty column for source -->
+        <!-- Source column: segment comment if enabled, otherwise empty -->
         {% if not monolingual %}
-        <div class="col-sm-3"></div>
+        <div class="col-sm-3">
+            {% if comments_seg %}
+            <textarea class="seg-comment-input" data-item-id="{{ item.itemID }}"
+                      placeholder="Comment on translations..."
+                      rows="1">{{ scores.comment }}</textarea>
+            {% endif %}
+        </div>
         {% else %}
-        <div class="col-sm-1"></div>
+        <div class="col-sm-1">
+            {% if comments_seg %}
+            <textarea class="seg-comment-input" data-item-id="{{ item.itemID }}"
+                      placeholder="Comment on translations..."
+                      rows="1">{{ scores.comment }}</textarea>
+            {% endif %}
+        </div>
         {% endif %}
         
         <!-- Translation A slider -->
@@ -1486,6 +1557,7 @@ function toggle_doc_button(visible) {
         <input name="document_id" type="hidden" value="{{ item.documentID }}" />
         <input name="score1" type="hidden" value="{{ scores.score1 }}" id="score1-{{ item.itemID }}" />
         <input name="score2" type="hidden" value="{{ scores.score2 }}" id="score2-{{ item.itemID }}" />
+        <input name="comment" type="hidden" value="" id="comment-{{ item.itemID }}" />
         <input name="ajax" type="hidden" value="False" />
 
         {% if not skip_doc_scores %}
@@ -1517,6 +1589,16 @@ function toggle_doc_button(visible) {
                 {% endwith %}
             </div>
             </div>
+
+            {% if comments_doc %}
+            <div class="row doc-comment-box" style="margin-top: 10px;">
+                <div class="col-sm-12">
+                    <textarea id="doc-comment-input"
+                              placeholder="Summarize key quality differences, recurring issues, and overall impressions (required)"
+                              rows="2">{{ scores.comment }}</textarea>
+                </div>
+            </div>
+            {% endif %}
 
             <table class="action-box">
                 <tr>

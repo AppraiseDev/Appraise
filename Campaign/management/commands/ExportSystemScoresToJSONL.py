@@ -275,6 +275,7 @@ class Command(BaseCommand):
         # Get campaign options to check for PairwiseESA
         campaign_opts = str(campaign.campaignOptions).lower().split(";")
         is_pairwise_esa = "pairwiseesa" in campaign_opts
+        has_comments = "commentsseg" in campaign_opts or "commentsdoc" in campaign_opts
 
         # Query results
         qs = PairwiseAssessmentDocumentResult.objects.filter(
@@ -317,6 +318,12 @@ class Command(BaseCommand):
                 'mqm2',  # mqm_annotations_2
             ])
         
+        # Add comment field if comments are enabled
+        if has_comments:
+            attributes.extend([
+                'comment',  # annotator_comment
+            ])
+        
         if include_context:
             attributes.extend([
                 'item__contextLeft',  # context_left
@@ -349,8 +356,12 @@ class Command(BaseCommand):
             mqm1_idx = 20 if is_pairwise_esa else None
             mqm2_idx = 21 if is_pairwise_esa else None
             
-            # Context indices (after MQM if both are present)
-            context_offset = 20 + (2 if is_pairwise_esa else 0)
+            # Comment index (after MQM if both are present)
+            comment_offset = 20 + (2 if is_pairwise_esa else 0)
+            comment_idx = comment_offset if has_comments else None
+            
+            # Context indices (after MQM and comment if present)
+            context_offset = 20 + (2 if is_pairwise_esa else 0) + (1 if has_comments else 0)
             
             json_obj = {
                 'annotator': result[0],
@@ -381,6 +392,10 @@ class Command(BaseCommand):
             # Add MQM annotations for target1 if PairwiseESA
             if is_pairwise_esa:
                 json_obj['targets'][0]['mqm_annotations'] = result[mqm1_idx]
+
+            # Add comment if comments are enabled
+            if has_comments:
+                json_obj['comment'] = result[comment_idx]
 
             # Add second target if it exists
             if result[target2_id_idx] is not None and result[target2_score_idx] is not None:

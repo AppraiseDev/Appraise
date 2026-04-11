@@ -2190,6 +2190,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         score2 = request.POST.get('score2', None)
         mqm1 = request.POST.get('mqm1', None)
         mqm2 = request.POST.get('mqm2', None)
+        comment = request.POST.get('comment', '')
         item_id = request.POST.get('item_id', None)
         task_id = request.POST.get('task_id', None)
         document_id = request.POST.get('document_id', None)
@@ -2256,6 +2257,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
                         result_data['mqm1'] = mqm1
                     if mqm2:
                         result_data['mqm2'] = mqm2
+                    if comment:
+                        result_data['comment'] = comment
                     
                     PairwiseAssessmentDocumentResult.objects.create(**result_data)
                     print('Item {} (itemID={}) saved'.format(task_id, item_id))
@@ -2293,6 +2296,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
                             current_result.mqm1 = mqm1
                         if mqm2:
                             current_result.mqm2 = mqm2
+                        current_result.comment = comment
                         utc_now = datetime.utcnow().replace(tzinfo=utc)
                         current_result.dateCompleted = utc_now
                         current_result.save()
@@ -2337,6 +2341,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
                                 result_data['mqm1'] = mqm1
                             if mqm2:
                                 result_data['mqm2'] = mqm2
+                            if comment:
+                                result_data['comment'] = comment
                             
                             PairwiseAssessmentDocumentResult.objects.create(**result_data)
                             _msg = 'Item {} (itemID={}) saved, although it was not the next item'.format(
@@ -2407,10 +2413,13 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
     collect_browser_info = 'collectbrowserinfo' in campaign_opts
     disable_mobile = 'disablemobile' in campaign_opts
     pairwise_esa = 'pairwiseesa' in campaign_opts
+    comments_seg = 'commentsseg' in campaign_opts
+    comments_doc = 'commentsdoc' in campaign_opts
     
     print(f"DEBUG: campaign_opts={campaign_opts}")
     print(f"DEBUG: pairwise_esa={pairwise_esa}")
     print(f"DEBUG: target_language_code={target_language_code}, is_char_based={is_char_based}")
+    print(f"DEBUG: comments_seg={comments_seg}, comments_doc={comments_doc}")
 
     # Get item scores from the latest corresponding results
     block_scores = []
@@ -2459,6 +2468,7 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             # to avoid undefined errors in the template
             'mqm1': '[]',
             'mqm2': '[]',
+            'comment': '',
             'start_timestamp': '',
             'end_timestamp': '',
         }
@@ -2490,6 +2500,9 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
                 
                 item_scores['start_timestamp'] = result.start_time if result.start_time else ''
                 item_scores['end_timestamp'] = result.end_time if result.end_time else ''
+
+            if result:
+                item_scores['comment'] = getattr(result, 'comment', '') or ''
         
         print(f"DEBUG: item_scores mqm1={repr(item_scores['mqm1'])}, mqm2={repr(item_scores['mqm2'])}")
         block_scores.append(item_scores)
@@ -2627,6 +2640,8 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         'disable_mobile': disable_mobile,
         'skip_doc_scores': skip_doc_scores,
         'slider_bubble': slider_bubble,
+        'comments_seg': comments_seg,
+        'comments_doc': comments_doc,
     }
     
     # Add ESA-specific context

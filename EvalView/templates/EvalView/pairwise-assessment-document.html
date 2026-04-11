@@ -63,6 +63,43 @@
 
 .campaign-info-box { font-style: italic; font-size: small; color: rgb(183, 183, 183); font-weight: 100; margin-top: -20px; margin-bottom: 20px; }
 
+.source-btn-comment {
+    color: #888;
+    font-size: 0.85em;
+    margin-left: 4px;
+    cursor: default;
+}
+
+.seg-comment-input {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 4px 8px;
+    font-size: 0.85em;
+    color: #555;
+    resize: vertical;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    min-height: 4em;
+}
+.seg-comment-input:focus {
+    border-color: #aaa;
+    outline: none;
+}
+#doc-comment-input {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 4px 8px;
+    font-size: 0.85em;
+    color: #555;
+    resize: vertical;
+}
+#doc-comment-input:focus {
+    border-color: #aaa;
+    outline: none;
+}
+
 /* .col-lg-1, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-md-1, .col-md-10, .col-md-11, .col-md-12, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-sm-1, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-xs-1, .col-xs-10, .col-xs-11, .col-xs-12, .col-xs-2, .col-xs-3, .col-xs-4, .col-xs-5, .col-xs-6, .col-xs-7, .col-xs-8, .col-xs-9 { padding-left:10px; padding-right:10px; } */
 
 /* Uncomment if ENABLE_UNRESTRICTED_ANNOTATION is set to false */
@@ -112,6 +149,11 @@ var browserInfoValue = '';
 var disableMobile = {{ disable_mobile|yesno:"true,false" }};
 var disableMobileMinWidth = 770;
 var disableMobileAlertId = 'mobile-disabled-alert';
+var commentsSegEnabled = {{ comments_seg|yesno:"true,false" }};
+var commentsDocEnabled = {{ comments_doc|yesno:"true,false" }};
+// Whether comments are mandatory (set to true to enforce non-empty comments)
+var commentsSegRequired = false;
+var commentsDocRequired = true;
 
 String.prototype.rot13 = function() {
     return this.replace(/[a-zA-Z]/g, function(c) {
@@ -599,6 +641,11 @@ $(document).ready(function() {
     $('.button-match').click(match_sliders);
     if (ENABLE_UNRESTRICTED_ANNOTATION) {
         $('.source-box').clickToggle(_show_target_box, _hide_target_box);
+        // Allow clicking the status column (tick/comment icons) to toggle too
+        $('.item-box .col-sm-1.source-box-hoverable').on('click', function(e) {
+            if ($(e.target).is('button, input, select, textarea')) return;
+            $(this).closest('.item-box').find('.source-box').trigger('click');
+        });
     } else {
         $('.source-box').removeClass('source-box-hoverable');
         $('.source-btn-toggle').hide(0);
@@ -618,6 +665,11 @@ $(document).ready(function() {
         if(is_completed == "True") {
             // Show a tick icon
             item_box.find('.source-btn-done').show();
+            // Show comment indicator if comment exists
+            var $commentBox = item_box.find('.seg-comment-input');
+            if ($commentBox.length && $commentBox.val().trim()) {
+                item_box.find('.source-btn-comment').show();
+            }
             var score = $(this).val();
             var slider = $('#' + this.id.replace('score', 'slider'));
             if (slider.length) {
@@ -849,6 +901,14 @@ function submit_form(e) {
     var button_type = $(this).attr('type');
     var button_text = $(this).text();
 
+    // Sync segment comment from textarea to hidden input
+    if (typeof commentsSegEnabled !== 'undefined' && commentsSegEnabled) {
+        var $commentBox = item_box.find('.seg-comment-input');
+        if ($commentBox.length) {
+            item_box.find('input[name="comment"]').val($commentBox.val() || '');
+        }
+    }
+
     // Validate form
     var score1 = item_box.find('input[name="score1"]').val();
     var score2 = item_box.find('input[name="score2"]').val();
@@ -909,6 +969,13 @@ function submit_form(e) {
                 console.log('Success, saved=', data.saved, 'next_item=', data.item_id);
                 if (data.saved) {
                     _change_item_status_icon(item_box, 'ok');
+                    // Show comment indicator if comment was provided
+                    var $commentBox = item_box.find('.seg-comment-input');
+                    if ($commentBox.length && $commentBox.val().trim()) {
+                        item_box.find('.source-btn-comment').show();
+                    } else {
+                        item_box.find('.source-btn-comment').hide();
+                    }
                     // Update counters
                     $('#items-left-counter').text(data.items_left_in_block);
                     $('#current-item-id').text(data.item_id);
@@ -970,6 +1037,17 @@ function submit_form(e) {
 
 function last_form() {
     var item_box = $(this).closest('.item-box');
+
+    // Validate document comment if required
+    if (typeof commentsDocEnabled !== 'undefined' && commentsDocEnabled) {
+        var $docComment = $('#doc-comment-input');
+        if ($docComment.length && !$docComment.val().trim()) {
+            alert('Please provide a document comment before submitting.');
+            return false;
+        }
+        // Sync doc comment to hidden form input
+        item_box.find('input[name="comment"]').val($docComment.val() || '');
+    }
     
     // If skip_doc_scores is enabled, auto-fill with dummy scores
     if (SKIP_DOC_SCORES) {
@@ -1135,6 +1213,20 @@ function _show_error_box(item_box, msg) {
             </div>
         </div>
     </div>
+    {% if comments_seg or comments_doc %}
+    <div class="row">
+        <div class="col-sm-12">
+            <p style="margin: 10px 10px 0; color: #555;"><strong>Comments:</strong>
+            {% if comments_seg %}
+            Please note important observations and flag issues with translations or the source in the comment section under each segment.
+            {% endif %}
+            {% if comments_doc %}
+            A document-level comment summarizing key quality differences and recurring patterns is <strong>required</strong> before submitting.
+            {% endif %}
+            </p>
+        </div>
+    </div>
+    {% endif %}
     <div class="row">
         <div class="col-sm-12">
             <p class="pull-left control-box">
@@ -1256,6 +1348,7 @@ function _show_error_box(item_box, msg) {
         <input name="document_id" type="hidden" value="{{ item.documentID }}" />
         <input name="score1" type="hidden" value="{{ scores.score1 }}" id="score1-{{ item.itemID }}" />
         <input name="score2" type="hidden" value="{{ scores.score2 }}" id="score2-{{ item.itemID }}" />
+        <input name="comment" type="hidden" value="" id="comment-{{ item.itemID }}" />
         <input name="ajax" type="hidden" value="False" />
 
         {% if not item.isCompleteDocument %}
@@ -1268,10 +1361,24 @@ function _show_error_box(item_box, msg) {
                     <span title="Source sentence #{{ item.itemID|add:"1" }}">
                         <p>{{ scores.segment_text|safe }}</p>
                     </span>
+                    {% if comments_seg %}
+                    <div class="target-box toggleable" style="display:none;">
+                        <textarea class="seg-comment-input" data-item-id="{{ item.itemID }}"
+                                  placeholder="Comment on translations..."
+                                  rows="1">{{ scores.comment }}</textarea>
+                    </div>
+                    {% endif %}
                 </div>
                 {% else %}
                 <div class="source-box col-sm-1">
                     <span class="pull-left source-btn-toggle glyphicon glyphicon-menu-down"></span>
+                    {% if comments_seg %}
+                    <div class="target-box toggleable" style="display:none;">
+                        <textarea class="seg-comment-input" data-item-id="{{ item.itemID }}"
+                                  placeholder="Comment on translations..."
+                                  rows="1">{{ scores.comment }}</textarea>
+                    </div>
+                    {% endif %}
                 </div>
                 {% endif %}
 
@@ -1319,8 +1426,9 @@ function _show_error_box(item_box, msg) {
             </div>
 
                 </div>
-                <div class="col-sm-1">
+                <div class="col-sm-1 source-box-hoverable">
                     <span class="source-btn-done glyphicon glyphicon-ok"></span>
+                    <span class="source-btn-comment glyphicon glyphicon-comment" style="display:none;" title="Comment added"></span>
 
                     <div class="target-box toggleable">
                         {% if not scalar_slider %}
@@ -1464,6 +1572,16 @@ function _show_error_box(item_box, msg) {
             {% endif %}
             </div>
             </div>
+
+            {% if comments_doc %}
+            <div class="row doc-comment-box" style="margin-top: 10px;">
+                <div class="col-sm-12">
+                    <textarea id="doc-comment-input"
+                              placeholder="Summarize key quality differences, recurring issues, and overall impressions (required)"
+                              rows="2">{{ scores.comment }}</textarea>
+                </div>
+            </div>
+            {% endif %}
 
             <table class="action-box">
                 <tr>

@@ -40,6 +40,26 @@ function submit_pairwise_row($row, $itemBox1, $itemBox2) {
     // Add ajax flag
     data['ajax'] = 'True';
     
+    // Add segment comment if enabled
+    if (typeof commentsSegEnabled !== 'undefined' && commentsSegEnabled) {
+        var $commentBox = $row.find('.seg-comment-input');
+        if ($commentBox.length) {
+            data['comment'] = $commentBox.val() || '';
+        }
+    }
+    
+    // Validate segment comment if required
+    if (typeof commentsSegRequired !== 'undefined' && commentsSegRequired) {
+        if (!data['comment'] || !data['comment'].trim()) {
+            if (typeof _show_error_box === 'function') {
+                _show_error_box('Please provide a comment for this segment before submitting.', 4000);
+            } else {
+                alert('Please provide a comment for this segment before submitting.');
+            }
+            return $.Deferred().reject().promise();
+        }
+    }
+    
     console.log('Submitting combined pairwise data:', data);
     
     // Show spinner
@@ -58,8 +78,8 @@ function submit_pairwise_row($row, $itemBox1, $itemBox2) {
             console.log('Pairwise submission success:', response);
             
             if (response.saved) {
-                // Update status icon
-                $statusIcon.removeClass('glyphicon-refresh').addClass('glyphicon-ok');
+                // Hide status spinner (header tick is the persistent indicator)
+                $statusIcon.removeClass('glyphicon-refresh').addClass('glyphicon-ok').hide();
                 
                 // Update counters if they exist
                 if (response.items_left_in_block !== undefined) {
@@ -104,6 +124,19 @@ function submit_pairwise_row($row, $itemBox1, $itemBox2) {
 
 // Override submit_finish_document for pairwise mode
 async function submit_finish_document_pairwise(override_tutorial_check=false) {
+    // Validate document comment if required
+    if (typeof commentsDocRequired !== 'undefined' && commentsDocRequired) {
+        var $docComment = $('#doc-comment-input');
+        if ($docComment.length && !$docComment.val().trim()) {
+            if (typeof _show_error_box === 'function') {
+                _show_error_box('Please provide a document comment before submitting.', 4000);
+            } else {
+                alert('Please provide a document comment before submitting.');
+            }
+            return false;
+        }
+    }
+
     // Get all pairwise rows
     var $rows = $('.pairwise-row');
     
@@ -151,6 +184,18 @@ async function submit_finish_document_pairwise(override_tutorial_check=false) {
         }
         
         // Trigger hidden form if all is good
+        // Add document comment to hidden form if enabled
+        if (typeof commentsDocEnabled !== 'undefined' && commentsDocEnabled) {
+            var $docComment = $('#doc-comment-input');
+            if ($docComment.length) {
+                var $commentInput = $("#form-next-doc").find('input[name="comment"]');
+                if (!$commentInput.length) {
+                    $('<input>').attr({type: 'hidden', name: 'comment', value: $docComment.val()}).appendTo('#form-next-doc');
+                } else {
+                    $commentInput.val($docComment.val());
+                }
+            }
+        }
         $("#form-next-doc").trigger("submit");
     } catch (error) {
         console.error('Error submitting pairwise items:', error);
@@ -313,6 +358,14 @@ $(document).ready(function() {
                 // Show completion tick
                 $row.find('.source-btn-done').show();
                 
+                // Show comment indicator if comment was provided
+                var $commentBox = $row.find('.seg-comment-input');
+                if ($commentBox.length && $commentBox.val().trim()) {
+                    $row.find('.source-btn-comment').show();
+                } else {
+                    $row.find('.source-btn-comment').hide();
+                }
+                
                 // Check if we should auto-advance (skip if only 1 segment with skip_doc_scores)
                 var shouldAutoAdvance = typeof SKIP_DOC_SCORES !== 'undefined' && typeof SENTENCE_ITEM_COUNT !== 'undefined' 
                     ? (!SKIP_DOC_SCORES || SENTENCE_ITEM_COUNT > 1)
@@ -358,6 +411,25 @@ $(document).ready(function() {
     $("#button-next-doc").on("click", function() {
         submit_finish_document_pairwise(false);
     });
+
+    // Sync document comment to hidden input on doc form submit
+    $("#button-doc").on("click", function() {
+        if (typeof commentsDocEnabled !== 'undefined' && commentsDocEnabled) {
+            var $docComment = $('#doc-comment-input');
+            if ($docComment.length) {
+                var $form = $(this).closest('form');
+                $form.find('input[name="comment"]').val($docComment.val() || '');
+                if (typeof commentsDocRequired !== 'undefined' && commentsDocRequired && !$docComment.val().trim()) {
+                    if (typeof _show_error_box === 'function') {
+                        _show_error_box('Please provide a document comment before submitting.', 4000);
+                    } else {
+                        alert('Please provide a document comment before submitting.');
+                    }
+                    return false;
+                }
+            }
+        }
+    });
     
     // Override skip-tutorial if it exists
     $("#skip-tutorial").off("click");
@@ -369,6 +441,7 @@ $(document).ready(function() {
     });
 });
 
+// Helper: update comment preview for a collapsed row
 // Separate function to initialize row states after sliders are ready
 function initializePairwiseRows() {
     // Check if we should keep sliders visible (single segment with skip_doc_scores)
@@ -394,11 +467,18 @@ function initializePairwiseRows() {
         
         if (bothCompleted) {
             // For completed items:
-            // 1. Show tick icon
+            // 1. Show tick icon (header only, hide status-indicator to avoid duplicate)
             $doneTick.show();
+            $row.find('.status-indicator').hide();
             
             // 2. Change button text to "Update"
             $button.text('Update');
+            
+            // 2b. Show comment indicator if comment exists
+            var $commentBox = $row.find('.seg-comment-input');
+            if ($commentBox.length && $commentBox.val().trim()) {
+                $row.find('.source-btn-comment').show();
+            }
             
             // 3. Restore slider values from saved scores
             var score1 = $itemBox1.data('item-score');

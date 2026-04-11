@@ -543,6 +543,13 @@ class PairwiseAssessmentDocumentResult(BaseMetadata):
         verbose_name=_('MQM (2)'), help_text=_('MQM JSON string'), default="[]"
     )
 
+    comment = models.TextField(
+        verbose_name=_('Comment'),
+        help_text=_('Annotator comment'),
+        blank=True,
+        default='',
+    )
+
     start_time = models.FloatField(
         verbose_name=_('Start time'), help_text=_('(in seconds)')
     )
