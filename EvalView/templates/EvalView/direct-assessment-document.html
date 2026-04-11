@@ -892,7 +892,13 @@ function _show_error_box(item_box, msg) {
         '<span aria-hidden="true">&times;</span>' +
         '</button>Oops... ' + msg + '</div>'
     );
-    item_box.before($box);
+    // For document-level items, insert before the slider/action area instead of above the guidelines
+    var $docBox = item_box.find('.target-box.document-box');
+    if ($docBox.length) {
+        $docBox.before($box);
+    } else {
+        item_box.before($box);
+    }
     // Auto-fade after 3 seconds
     setTimeout(function() { $box.fadeOut(700, function() { $box.remove(); }); }, 3000);
 }

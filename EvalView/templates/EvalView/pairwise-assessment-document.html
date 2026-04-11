@@ -646,6 +646,10 @@ $(document).ready(function() {
             if ($(e.target).is('button, input, select, textarea')) return;
             $(this).closest('.item-box').find('.source-box').trigger('click');
         });
+        // Prevent comment textarea clicks from bubbling up and toggling the row
+        $('.seg-comment-input').on('click', function(e) {
+            e.stopPropagation();
+        });
     } else {
         $('.source-box').removeClass('source-box-hoverable');
         $('.source-btn-toggle').hide(0);
@@ -914,7 +918,7 @@ function submit_form(e) {
     var score2 = item_box.find('input[name="score2"]').val();
     var index = item_box.data('item-id');
     if ((score1 == -1) || (score2 == -1)) {
-        alert('Sentence #' + (index + 1) + ' misses a score. ' +
+        _show_error_box(item_box, 'Sentence #' + (index + 1) + ' misses a score. ' +
             'Please score all candidate sentences. Thanks!');
         return false;
     }
@@ -1042,7 +1046,7 @@ function last_form() {
     if (typeof commentsDocEnabled !== 'undefined' && commentsDocEnabled) {
         var $docComment = $('#doc-comment-input');
         if ($docComment.length && !$docComment.val().trim()) {
-            alert('Please provide a document comment before submitting.');
+            _show_error_box(item_box, 'Please provide a document comment before submitting.');
             return false;
         }
         // Sync doc comment to hidden form input
@@ -1075,13 +1079,13 @@ function last_form() {
     var score2 = item_box.find('input[name="score2"]').val();
     var index = item_box.data('item-id');
     if (score1 == -1 || score2 == -1) {
-        alert('Please score the document translations. Thanks!');
+        _show_error_box(item_box, 'Please score the document translations. Thanks!');
         return false;
     }
     // It is a security check, but this should never occur, because the last
     // item is disabled if there is at least one sentence that is not scored
     if (!_all_sentences_scored()) {
-        alert('Please score all sentences from the document first. Thanks!');
+        _show_error_box(item_box, 'Please score all sentences from the document first. Thanks!');
         return false;
     }
     // Add end timestamp
@@ -1145,13 +1149,24 @@ function match_sliders() {
 }
 
 function _show_error_box(item_box, msg) {
+    // Remove any existing error boxes to prevent stacking
+    $('.alert-danger.alert-dismissible.appraise-error').remove();
     // A hideable error box with a custom message displayed right above the item box
-    item_box.before(
-        '<div class="alert alert-danger alert-dismissible" role="alert">' +
+    var $box = $(
+        '<div class="alert alert-danger alert-dismissible appraise-error" role="alert">' +
         '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
         '<span aria-hidden="true">&times;</span>' +
         '</button>Oops... ' + msg + '</div>'
     );
+    // For document-level items, insert before the slider/action area instead of above the guidelines
+    var $docBox = item_box.find('.target-box.document-box');
+    if ($docBox.length) {
+        $docBox.before($box);
+    } else {
+        item_box.before($box);
+    }
+    // Auto-fade after 3 seconds
+    setTimeout(function() { $box.fadeOut(700, function() { $box.remove(); }); }, 3000);
 }
 
 -->
