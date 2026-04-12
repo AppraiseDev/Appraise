@@ -365,8 +365,8 @@ def campaign_status(request, campaign_name, sort_key=None):
             content_type='text/plain',
         )
 
-    # special handling for ESA
-    if "esa" in campaign_opts:
+    # special handling for ESA (only for DirectAssessmentDocument, not contrastive)
+    if "esa" in campaign_opts and campaign.get_campaign_type() == 'DirectAssessmentDocumentTask':
         return campaign_status_esa(campaign)
     if "newcampaignstatuspage" in campaign_opts:
         return campaign_status_new(
