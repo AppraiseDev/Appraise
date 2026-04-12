@@ -134,86 +134,6 @@ function submit_contrastive_row($row, $itemBox1, $itemBox2, $itemBox3) {
     });
 }
 
-// Override submit_finish_document for contrastive mode
-async function submit_finish_document_contrastive(override_tutorial_check) {
-    override_tutorial_check = override_tutorial_check || false;
-
-    // Validate document comment if required
-    if (typeof commentsDocRequired !== 'undefined' && commentsDocRequired) {
-        var $docComment = $('#doc-comment-input');
-        if ($docComment.length && !$docComment.val().trim()) {
-            if (typeof _show_error_box === 'function') {
-                _show_error_box('Please provide a document comment before submitting.', 4000);
-            } else {
-                alert('Please provide a document comment before submitting.');
-            }
-            return false;
-        }
-    }
-
-    // Get all contrastive rows
-    var $rows = $('.contrastive-row');
-
-    // Validate all forms if not skipping tutorial check
-    if (!override_tutorial_check && typeof MQM_HANDLERS !== 'undefined') {
-        var allValid = true;
-        $rows.each(function() {
-            var $row = $(this);
-            var itemId = $row.data('item-id');
-
-            for (var k = 1; k <= NUM_CANDIDATES; k++) {
-                var $itemBox = $row.find('#item-' + itemId + '-' + k);
-                var handler = MQM_HANDLERS[$itemBox.data('item-id')];
-                if (handler && !handler.validate_form()) {
-                    allValid = false;
-                    return false;
-                }
-            }
-            if (!allValid) return false;
-        });
-
-        if (!allValid) {
-            return false;
-        }
-    }
-
-    // Prevent multiclicks
-    $("#button-next-doc").prop('disabled', true);
-
-    $("#form-next-doc > input[name='end_timestamp']").val(Date.now() / 1000);
-
-    // Submit each row
-    try {
-        for (var i = 0; i < $rows.length; i++) {
-            var $row = $($rows[i]);
-            var itemId = $row.data('item-id');
-            var $itemBox1 = $row.find('#item-' + itemId + '-1');
-            var $itemBox2 = $row.find('#item-' + itemId + '-2');
-            var $itemBox3 = $row.find('#item-' + itemId + '-3');
-
-            await submit_contrastive_row($row, $itemBox1, $itemBox2, $itemBox3);
-        }
-
-        // Add document comment to hidden form if enabled
-        if (typeof commentsDocEnabled !== 'undefined' && commentsDocEnabled) {
-            var $docComment = $('#doc-comment-input');
-            if ($docComment.length) {
-                var $commentInput = $("#form-next-doc").find('input[name="comment"]');
-                if (!$commentInput.length) {
-                    $('<input>').attr({type: 'hidden', name: 'comment', value: $docComment.val()}).appendTo('#form-next-doc');
-                } else {
-                    $commentInput.val($docComment.val());
-                }
-            }
-        }
-        $("#form-next-doc").trigger("submit");
-    } catch (error) {
-        console.error('Error submitting contrastive items:', error);
-        await new Promise(function(resolve) { setTimeout(resolve, 5000); });
-        $("#button-next-doc").prop('disabled', false);
-    }
-}
-
 // Initialize when DOM is ready
 $(document).ready(function() {
     // Check if toggle functionality should be enabled
@@ -373,12 +293,6 @@ $(document).ready(function() {
         });
     });
 
-    // Override the button-next-doc handler
-    $("#button-next-doc").off("click");
-    $("#button-next-doc").on("click", function() {
-        submit_finish_document_contrastive(false);
-    });
-
     // Sync document comment to hidden input on doc form submit
     $("#button-doc").on("click", function() {
         var $form = $(this).closest('form');
@@ -408,7 +322,7 @@ $(document).ready(function() {
         $("#skip-tutorial").prop('disabled', true);
         $(".button-submit-contrastive").trigger("click");
         $(".slider").slider('value', 0);
-        submit_finish_document_contrastive(true);
+        $("#button-doc").trigger("click");
     });
 });
 
@@ -490,5 +404,154 @@ function initializeContrastiveRows() {
                 $row.find('.source-btn-toggle').removeClass('glyphicon-menu-up').addClass('glyphicon-menu-down');
             }
         }
+    });
+}
+
+
+// ============================================================
+// Contrastive diff highlighting on hover
+// ============================================================
+
+/**
+ * Wrap plain text inside a target-text div with per-character spans for SQM mode.
+ * ESA mode already has .mqm_char spans from MQMItemHandler.
+ */
+function wrapTargetTextInCharSpans($targetText) {
+    // Skip if already wrapped (ESA mode or already processed)
+    if ($targetText.children('.mqm_char').length > 0 || $targetText.children('.diff-char').length > 0) {
+        return;
+    }
+    var text = $targetText.text();
+    var html = '';
+    var charIndex = 0;
+    for (var i = 0; i < text.length; i++) {
+        var ch = text[i];
+        if (ch === '\n') {
+            html += '<br>';
+        } else {
+            html += '<span class="diff-char" char_id="' + charIndex + '">' + ch + '</span>';
+            charIndex++;
+        }
+    }
+    $targetText.html(html);
+}
+
+/**
+ * Get the translation number (1, 2, or 3) from an item-box's data-item-id.
+ * data-item-id format: "XXXXX-N" where N is 1, 2, or 3.
+ */
+function getTranslationNumber($itemBox) {
+    var itemId = $itemBox.attr('data-item-id') || '';
+    return itemId.charAt(itemId.length - 1);
+}
+
+/**
+ * Get the char spans inside a target-text (works for both ESA .mqm_char and SQM .diff-char).
+ */
+function getCharSpans($itemBox) {
+    var $target = $itemBox.find('.target-text');
+    var $chars = $target.children('.mqm_char').not('.span_missing');
+    if ($chars.length === 0) {
+        $chars = $target.children('.diff-char');
+    }
+    return $chars;
+}
+
+/**
+ * Apply diff highlighting classes to char spans based on a diff map array.
+ * cssClass is one of: 'contrastive-diff-vs-second', 'contrastive-diff-vs-third'.
+ * For the hovered item, we call this twice (once per other translation) and
+ * upgrade to 'contrastive-diff-both' where both apply.
+ */
+function applyDiffClasses($chars, diffMap, cssClass) {
+    if (!diffMap || !$chars.length) return;
+    var len = Math.min($chars.length, diffMap.length);
+    for (var i = 0; i < len; i++) {
+        if (diffMap[i]) {
+            var el = $chars.eq(i);
+            // Check if already has the other diff class -> upgrade to both
+            if (cssClass === 'contrastive-diff-vs-second' && el.hasClass('contrastive-diff-vs-third')) {
+                el.removeClass('contrastive-diff-vs-third').addClass('contrastive-diff-both');
+            } else if (cssClass === 'contrastive-diff-vs-third' && el.hasClass('contrastive-diff-vs-second')) {
+                el.removeClass('contrastive-diff-vs-second').addClass('contrastive-diff-both');
+            } else if (!el.hasClass('contrastive-diff-both')) {
+                el.addClass(cssClass);
+            }
+        }
+    }
+}
+
+/**
+ * Remove all contrastive diff classes from all char spans in a row.
+ */
+function clearDiffClasses($row) {
+    $row.find('.contrastive-diff-vs-second, .contrastive-diff-vs-third, .contrastive-diff-both')
+        .removeClass('contrastive-diff-vs-second contrastive-diff-vs-third contrastive-diff-both');
+}
+
+/**
+ * Initialize contrastive diff hover handlers for all rows.
+ * Called once at page load.
+ */
+function initContrastiveDiffHover() {
+    // Wrap SQM target text in char spans if needed
+    $('.contrastive-row .item-box').each(function() {
+        wrapTargetTextInCharSpans($(this).find('.target-text'));
+    });
+
+    // Set up hover handlers on each item-box within a contrastive row
+    $('.contrastive-row .item-box').on('mouseenter', function() {
+        if (!$('body').hasClass('show-contrastive-diffs')) return;
+
+        var $hoveredBox = $(this);
+        var $row = $hoveredBox.closest('.contrastive-row');
+        var hoveredNum = getTranslationNumber($hoveredBox);
+
+        // Find the other two item-boxes in this row
+        var others = [];
+        $row.find('.item-box').each(function() {
+            if (getTranslationNumber($(this)) !== hoveredNum) {
+                others.push($(this));
+            }
+        });
+        if (others.length < 2) return;
+
+        // Sort others by their translation number
+        others.sort(function(a, b) {
+            return getTranslationNumber(a).localeCompare(getTranslationNumber(b));
+        });
+        var $otherY = others[0]; // "second" = yellow
+        var $otherZ = others[1]; // "third" = teal
+        var numY = getTranslationNumber($otherY);
+        var numZ = getTranslationNumber($otherZ);
+
+        // Parse diff maps from the hovered box
+        var diffVsY = $hoveredBox.data('diff-vs-' + numY);
+        var diffVsZ = $hoveredBox.data('diff-vs-' + numZ);
+
+        // Parse diff maps from the other boxes (vs hovered)
+        var diffYvsHovered = $otherY.data('diff-vs-' + hoveredNum);
+        var diffZvsHovered = $otherZ.data('diff-vs-' + hoveredNum);
+
+        // Clear any previous highlights
+        clearDiffClasses($row);
+
+        // Apply to hovered box: yellow for vs-Y, teal for vs-Z, green for overlap
+        var $hoveredChars = getCharSpans($hoveredBox);
+        applyDiffClasses($hoveredChars, diffVsY, 'contrastive-diff-vs-second');
+        applyDiffClasses($hoveredChars, diffVsZ, 'contrastive-diff-vs-third');
+
+        // Apply to other Y: yellow (same color as hovered-vs-Y perspective)
+        var $charsY = getCharSpans($otherY);
+        applyDiffClasses($charsY, diffYvsHovered, 'contrastive-diff-vs-second');
+
+        // Apply to other Z: teal (same color as hovered-vs-Z perspective)
+        var $charsZ = getCharSpans($otherZ);
+        applyDiffClasses($charsZ, diffZvsHovered, 'contrastive-diff-vs-third');
+    });
+
+    $('.contrastive-row .item-box').on('mouseleave', function() {
+        var $row = $(this).closest('.contrastive-row');
+        clearDiffClasses($row);
     });
 }

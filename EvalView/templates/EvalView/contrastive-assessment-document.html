@@ -105,6 +105,24 @@ ul.scalar-instructions { padding-left: 10px; padding-top:5px; }
 {% if monolingual %}
 .span_missing { display: none !important; }
 {% endif %}
+
+/* Contrastive diff highlighting — only active when toggle is ON */
+body.show-contrastive-diffs .contrastive-diff-vs-second {
+    background-color: #fff3cd !important;
+}
+body.show-contrastive-diffs .contrastive-diff-vs-third {
+    background-color: #d1ecf1 !important;
+}
+body.show-contrastive-diffs .contrastive-diff-both {
+    background-color: #c3e6cb !important;
+}
+/* Selection and MQM error spans override diff highlights */
+body.show-contrastive-diffs .mqm_char[selected],
+body.show-contrastive-diffs .diff-char[selected] {
+    background-color: #ccc !important;
+}
+/* diff-char cursor for SQM mode */
+.diff-char { cursor: default; }
 </style>
 
 <link rel="stylesheet" href="{% static 'EvalView/css/direct-assessment-document-mqm-esa.css' %}">
@@ -414,6 +432,10 @@ $(document).ready(function() {
     // Initialize contrastive rows (handles toggle, auto-advance, submit)
     initializeContrastiveRows();
 
+    // Initialize diff hover after a short delay to let ESA MQMItemHandler finish
+    // wrapping characters asynchronously
+    setTimeout(function() { initContrastiveDiffHover(); }, 500);
+
     // Update slider bars for already-annotated items in document-box
     $('input[name^="score"]').each(function() {
         var item_box = $(this).closest('.item-box');
@@ -442,6 +464,12 @@ $(document).ready(function() {
     if (Cookies.get('show-instructions') == 'no') {
         $('.question-box').first().find('.additional-instructions').hide();
         $('#button-toggle-instructions').text('Show instructions');
+    }
+
+    $('#button-toggle-diffs').click(toggle_contrastive_diffs);
+    if (localStorage.getItem('appraise-contrastive-diffs-show') === 'yes') {
+        $('body').addClass('show-contrastive-diffs');
+        $('#button-toggle-diffs').text('Hide diffs');
     }
 
     $('#button-open-all').click(open_all_items);
@@ -488,6 +516,20 @@ function toggle_instructions() {
     if (isHidden) { $instructionsContent.show(); $('#button-toggle-instructions').text('Hide instructions'); }
     else { $instructionsContent.hide(); $('#button-toggle-instructions').text('Show instructions'); }
     Cookies.set('show-instructions', isHidden ? 'yes' : 'no', { sameSite: 'strict' });
+}
+
+function toggle_contrastive_diffs() {
+    var isActive = $('body').hasClass('show-contrastive-diffs');
+    if (isActive) {
+        $('body').removeClass('show-contrastive-diffs');
+        // Remove any lingering diff classes
+        $('.contrastive-diff-vs-second, .contrastive-diff-vs-third, .contrastive-diff-both').removeClass('contrastive-diff-vs-second contrastive-diff-vs-third contrastive-diff-both');
+        $('#button-toggle-diffs').text('Show diffs');
+    } else {
+        $('body').addClass('show-contrastive-diffs');
+        $('#button-toggle-diffs').text('Hide diffs');
+    }
+    localStorage.setItem('appraise-contrastive-diffs-show', isActive ? 'no' : 'yes');
 }
 
 function update_score() {
@@ -553,13 +595,6 @@ function _show_error_box(contextOrText, textOrTimeout, timeoutArg) {
     $("body").append(obj);
     obj.fadeIn(200);
     setTimeout(function() { obj.fadeOut(700, function() { obj.remove(); }); }, timeout);
-}
-
-function toggle_doc_button(visible) {
-    $("#button-next-doc").toggle(visible);
-    if (visible && _has_single_sentence_document()) {
-        prepopulateDocumentScoresIfNeeded();
-    }
 }
 
 -->
@@ -645,8 +680,9 @@ function toggle_doc_button(visible) {
     <div class="row">
         <div class="col-sm-12">
             <p class="pull-left control-box">
-            <button id="button-toggle-instructions" class="btn btn-info btn-sm">Hide instructions</button>
-            <button id="button-full-screen" class="btn btn-info btn-sm">Narrow screen</button>
+            <button id="button-toggle-instructions" class="btn btn-info btn-sm" title="Show or hide the task instructions panel at the top of the page">Hide instructions</button>
+            <button id="button-full-screen" class="btn btn-info btn-sm" title="Toggle between wide (full-width) and narrow (centered) page layout">Narrow screen</button>
+            <button id="button-toggle-diffs" class="btn btn-info btn-sm" title="Highlight differences between translations on hover. Yellow = differs from one other translation, teal = differs from the other, green = differs from both.">Show diffs</button>
             </p>
             <p class="pull-right control-box">
             <button id="button-open-all" class="btn btn-default btn-sm">Expand all items</button>
@@ -718,7 +754,9 @@ function toggle_doc_button(visible) {
                      class="item-box"
                      data-item-id="{{ item.itemID }}-1"
                      data-item-completed="{{ scores.completed }}"
-                     data-item-score="{{ scores.score1 }}">
+                     data-item-score="{{ scores.score1 }}"
+                     data-diff-vs-2='{{ scores.diff_1vs2 }}'
+                     data-diff-vs-3='{{ scores.diff_1vs3 }}'>
 
                     {% if contrastive_esa %}
                     {{ scores.mqm1|default:"[]"|json_script:"mqm-payload" }}
@@ -752,7 +790,9 @@ function toggle_doc_button(visible) {
                      class="item-box"
                      data-item-id="{{ item.itemID }}-2"
                      data-item-completed="{{ scores.completed }}"
-                     data-item-score="{{ scores.score2 }}">
+                     data-item-score="{{ scores.score2 }}"
+                     data-diff-vs-1='{{ scores.diff_2vs1 }}'
+                     data-diff-vs-3='{{ scores.diff_2vs3 }}'>
 
                     {% if contrastive_esa %}
                     {{ scores.mqm2|default:"[]"|json_script:"mqm-payload" }}
@@ -786,7 +826,9 @@ function toggle_doc_button(visible) {
                      class="item-box"
                      data-item-id="{{ item.itemID }}-3"
                      data-item-completed="{{ scores.completed }}"
-                     data-item-score="{{ scores.score3 }}">
+                     data-item-score="{{ scores.score3 }}"
+                     data-diff-vs-1='{{ scores.diff_3vs1 }}'
+                     data-diff-vs-2='{{ scores.diff_3vs2 }}'>
 
                     {% if contrastive_esa %}
                     {{ scores.mqm3|default:"[]"|json_script:"mqm-payload" }}
@@ -1013,29 +1055,5 @@ function toggle_doc_button(visible) {
 {% endif %}
 
 {% endfor %}
-
-<form id="form-next-doc" action="{{action_url}}" method="post">
-    {% csrf_token %}
-    <input name="start_timestamp" type="hidden" value="" />
-    <input name="end_timestamp" type="hidden" value="" />
-    <input name="ajax" type="hidden" value="False" />
-</form>
-
-<button
-    class="btn btn-primary btn-success"
-    style="margin-left: auto; margin-right: auto; display: block;"
-    id="button-next-doc"
->
-    Continue to next document
-</button>
-
-<button
-    class="btn btn-primary"
-    style="margin-left: auto; margin-right: auto; display: none;"
-    id="button-next-doc-fake"
-    title="Please first complete all segments in the document (error marking + rating)"
->
-    Continue to next document (submit all segments first)
-</button>
 
 {% endblock %}

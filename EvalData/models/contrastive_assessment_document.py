@@ -127,6 +127,34 @@ class TextSegmentWithThreeTargetsWithContext(TextSegment):
     def is_valid(self):
         return super(TextSegmentWithThreeTargetsWithContext, self).is_valid()
 
+    def compute_pairwise_diff_maps(self, char_based=False):
+        """
+        Compute per-character diff maps for all 3 translation pairs.
+
+        Returns a dict with 6 JSON-encoded diff map strings:
+            "1vs2", "2vs1", "1vs3", "3vs1", "2vs3", "3vs2"
+        Each value is a JSON array with one entry per character:
+        null (no diff), "sub", "ins", or "del".
+        """
+        import json
+        from EvalData.models.base_models import compute_char_diff_map
+
+        t1 = self.target1Text or ''
+        t2 = self.target2Text or ''
+        t3 = self.target3Text or ''
+
+        d1vs2, d2vs1 = compute_char_diff_map(t1, t2, char_based=char_based)
+        d1vs3, d3vs1 = compute_char_diff_map(t1, t3, char_based=char_based)
+        d2vs3, d3vs2 = compute_char_diff_map(t2, t3, char_based=char_based)
+
+        return {
+            'diff_1vs2': json.dumps(d1vs2),
+            'diff_2vs1': json.dumps(d2vs1),
+            'diff_1vs3': json.dumps(d1vs3),
+            'diff_3vs1': json.dumps(d3vs1),
+            'diff_2vs3': json.dumps(d2vs3),
+            'diff_3vs2': json.dumps(d3vs2),
+        }
 
 @AnnotationTaskRegistry.register
 class ContrastiveAssessmentDocumentTask(BaseMetadata):

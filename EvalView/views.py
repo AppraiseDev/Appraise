@@ -2949,6 +2949,7 @@ def contrastive_assessment_document(request, code=None, campaign_name=None):
         return redirect('dashboard')
 
     target_language_code = current_task.marketTargetLanguageCode()
+    is_char_based = target_language_code in CHAR_BASED_LANGUAGE_CODES
 
     campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
     scalar_slider = 'scalarslider' in campaign_opts
@@ -2995,6 +2996,9 @@ def contrastive_assessment_document(request, code=None, campaign_name=None):
             'start_timestamp': '',
             'end_timestamp': '',
         }
+
+        diff_maps = item.compute_pairwise_diff_maps(char_based=is_char_based)
+        item_scores.update(diff_maps)
 
         if result:
             if contrastive_esa:
@@ -3086,10 +3090,6 @@ def contrastive_assessment_document(request, code=None, campaign_name=None):
             'For the final step, please look again at each translated document. '
             'Provide one final, overall rating for each translation candidate, judging it as a whole. '
         ]
-    if use_sqm:
-        priming_question_texts = priming_question_texts[:1]
-        document_question_texts = document_question_texts[:1]
-
     sentence_item_count = len([item for item in block_items if not item.isCompleteDocument])
 
     context = {
@@ -3119,6 +3119,7 @@ def contrastive_assessment_document(request, code=None, campaign_name=None):
         'comments_seg': comments_seg,
         'comments_doc': comments_doc,
         'contrastive_esa': contrastive_esa,
+        'is_char_based': is_char_based,
     }
 
     if contrastive_esa:

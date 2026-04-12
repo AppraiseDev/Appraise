@@ -850,3 +850,92 @@ class TextSegmentWithTwoTargets(TextSegment):
                 return False
 
         return super(TextSegmentWithTwoTargets, self).is_valid()
+
+
+def compute_char_diff_map(text_a, text_b, char_based=False):
+    """
+    Compute per-character diff maps between two texts using SequenceMatcher.
+
+    Returns (diff_map_a, diff_map_b) where each is a list with one entry per
+    character. Entries are None (no diff), "sub", "ins", or "del".
+
+    Args:
+        text_a: First text (plain, already HTML-escaped if needed).
+        text_b: Second text.
+        char_based: If True, diff at character level. If False, diff at word
+                    level and expand back to character positions.
+    """
+    if not text_a and not text_b:
+        return ([], [])
+    if not text_a:
+        return ([], ["ins"] * len(text_b))
+    if not text_b:
+        return (["del"] * len(text_a), [])
+
+    if char_based:
+        toks_a = list(text_a)
+        toks_b = list(text_b)
+    else:
+        toks_a = text_a.split()
+        toks_b = text_b.split()
+
+    matcher = SequenceMatcher(None, toks_a, toks_b)
+
+    diff_map_a = [None] * len(text_a)
+    diff_map_b = [None] * len(text_b)
+
+    if char_based:
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag == 'replace':
+                for k in range(i1, i2):
+                    diff_map_a[k] = "sub"
+                for k in range(j1, j2):
+                    diff_map_b[k] = "sub"
+            elif tag == 'insert':
+                for k in range(j1, j2):
+                    diff_map_b[k] = "ins"
+            elif tag == 'delete':
+                for k in range(i1, i2):
+                    diff_map_a[k] = "del"
+    else:
+        # Word-based: map word indices back to character positions.
+        # Build char offset arrays for each word.
+        def word_char_ranges(text, tokens):
+            ranges = []
+            pos = 0
+            for i, tok in enumerate(tokens):
+                start = text.index(tok, pos)
+                end = start + len(tok)
+                # Include trailing space in the range (except last word)
+                if i < len(tokens) - 1:
+                    next_start = text.index(tokens[i + 1], end)
+                    end = next_start
+                ranges.append((start, end))
+                pos = end
+            return ranges
+
+        ranges_a = word_char_ranges(text_a, toks_a)
+        ranges_b = word_char_ranges(text_b, toks_b)
+
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+            if tag == 'replace':
+                for wi in range(i1, i2):
+                    s, e = ranges_a[wi]
+                    for k in range(s, e):
+                        diff_map_a[k] = "sub"
+                for wi in range(j1, j2):
+                    s, e = ranges_b[wi]
+                    for k in range(s, e):
+                        diff_map_b[k] = "sub"
+            elif tag == 'insert':
+                for wi in range(j1, j2):
+                    s, e = ranges_b[wi]
+                    for k in range(s, e):
+                        diff_map_b[k] = "ins"
+            elif tag == 'delete':
+                for wi in range(i1, i2):
+                    s, e = ranges_a[wi]
+                    for k in range(s, e):
+                        diff_map_a[k] = "del"
+
+    return (diff_map_a, diff_map_b)
