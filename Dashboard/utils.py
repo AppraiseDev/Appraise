@@ -14,6 +14,7 @@ from uuid import UUID
 from scipy.stats import mannwhitneyu  # type: ignore
 
 from Appraise.settings import SECRET_KEY
+from EvalData.models import ContrastiveAssessmentDocumentResult
 from EvalData.models import DataAssessmentResult
 from EvalData.models import DirectAssessmentContextResult
 from EvalData.models import DirectAssessmentDocumentResult
@@ -78,6 +79,7 @@ def run_quality_control(username):
     if (
         result_type is PairwiseAssessmentResult
         or result_type is PairwiseAssessmentDocumentResult
+        or result_type is ContrastiveAssessmentDocumentResult
     ):
         _data = _data.values_list(
             'start_time',

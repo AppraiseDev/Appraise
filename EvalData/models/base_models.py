@@ -93,6 +93,7 @@ class ObjectID(models.Model):
 
             # TODO: Hack
             from EvalData.models import (
+                ContrastiveAssessmentDocumentTask,
                 DataAssessmentTask,
                 DirectAssessmentTask,
                 DirectAssessmentContextTask,

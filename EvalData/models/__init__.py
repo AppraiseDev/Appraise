@@ -12,6 +12,7 @@ from .direct_assessment_document import *
 from .multi_modal_assessment import *
 from .pairwise_assessment import *
 from .pairwise_assessment_document import *
+from .contrastive_assessment_document import *
 from .task_agenda import *
 
 # Task definitions: user-friendly name, task class, task result class, URL name
@@ -78,6 +79,15 @@ TASK_DEFINITIONS = (
         TextPairWithDomain,
         'evaldata_dataassessmenttasks',
         'evaldata_dataassessmentresults',
+    ),
+    (
+        'ContrastiveDocument',
+        ContrastiveAssessmentDocumentTask,
+        ContrastiveAssessmentDocumentResult,
+        'contrastive-assessment-document',
+        TextSegmentWithThreeTargetsWithContext,
+        'evaldata_contrastiveassessmentdocumenttasks',
+        'evaldata_contrastiveassessmentdocumentresults',
     ),
 )
 

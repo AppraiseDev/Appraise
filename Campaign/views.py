@@ -19,6 +19,7 @@ from Appraise.utils import _get_logger, _compute_user_total_annotation_time
 from Campaign.utils import _get_campaign_instance
 from EvalData.models import DataAssessmentResult
 from EvalData.models import DirectAssessmentDocumentResult
+from EvalData.models import ContrastiveAssessmentDocumentResult
 from EvalData.models import PairwiseAssessmentDocumentResult
 from EvalData.models import PairwiseAssessmentResult
 from EvalData.models import TASK_DEFINITIONS
@@ -136,6 +137,7 @@ def _collect_campaign_status_rows(campaign, result_type, campaign_opts):
             if (
                 result_type is PairwiseAssessmentResult
                 or result_type is PairwiseAssessmentDocumentResult
+                or result_type is ContrastiveAssessmentDocumentResult
             ):
                 data_rows = list(
                     data_qs.values_list(

@@ -850,6 +850,82 @@ class PairwiseAssessmentDocumentResultAdmin(BaseMetadataAdmin):
     ) + BaseMetadataAdmin.fieldsets  # type: ignore
 
 
+class ContrastiveAssessmentDocumentTaskAdmin(BaseMetadataAdmin):
+    """
+    Model admin for ContrastiveAssessmentDocumentTask instances.
+    """
+
+    list_display = [
+        'dataName',
+        'batchNo',
+        'campaign',
+        'requiredAnnotations',
+    ] + BaseMetadataAdmin.list_display  # type: ignore
+    list_filter = [
+        'campaign__campaignName',
+        'campaign__batches__market__targetLanguageCode',
+        'campaign__batches__market__sourceLanguageCode',
+        'batchData',
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
+    search_fields = [
+        'campaign__campaignName',
+        'assignedTo',
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
+
+    fieldsets = (
+        (
+            None,
+            {
+                'fields': (
+                    [
+                        'batchData',
+                        'batchNo',
+                        'campaign',
+                        'items',
+                        'requiredAnnotations',
+                        'assignedTo',
+                    ]
+                )
+            },
+        ),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
+
+
+class ContrastiveAssessmentDocumentResultAdmin(BaseMetadataAdmin):
+    """
+    Model admin for ContrastiveAssessmentDocumentResult instances.
+    """
+
+    list_display = [
+        '__str__',
+        'score1',
+        'score2',
+        'score3',
+        'start_time',
+        'end_time',
+        'duration',
+        'item_type',
+    ] + BaseMetadataAdmin.list_display  # type: ignore
+    list_filter = [
+        'item__itemType',
+        'task__completed',
+        'item__isCompleteDocument',
+    ] + BaseMetadataAdmin.list_filter  # type: ignore
+    search_fields = [
+        # nothing model specific
+    ] + BaseMetadataAdmin.search_fields  # type: ignore
+
+    readonly_fields = ('item', 'task')
+
+    fieldsets = (
+        (
+            None,
+            {'fields': (['score1', 'score2', 'score3', 'start_time', 'end_time'])},
+        ),
+        ('Related', {'fields': (['item', 'task'])}),
+    ) + BaseMetadataAdmin.fieldsets  # type: ignore
+
+
 class DataAssessmentTaskAdmin(BaseMetadataAdmin):
     """
     Model admin for DataAssessmentTask instances.
@@ -942,6 +1018,10 @@ admin.site.register(PairwiseAssessmentResult, PairwiseAssessmentResultAdmin)
 admin.site.register(PairwiseAssessmentDocumentTask, PairwiseAssessmentDocumentTaskAdmin)
 admin.site.register(
     PairwiseAssessmentDocumentResult, PairwiseAssessmentDocumentResultAdmin
+)
+admin.site.register(ContrastiveAssessmentDocumentTask, ContrastiveAssessmentDocumentTaskAdmin)
+admin.site.register(
+    ContrastiveAssessmentDocumentResult, ContrastiveAssessmentDocumentResultAdmin
 )
 admin.site.register(WorkAgenda, WorkAgendaAdmin)
 admin.site.register(TaskAgenda, TaskAgendaAdmin)

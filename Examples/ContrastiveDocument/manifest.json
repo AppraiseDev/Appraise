@@ -1,0 +1,14 @@
+{
+    "CAMPAIGN_URL": "http://127.0.0.1:8000/dashboard/sso/",
+    "CAMPAIGN_NAME": "example20contrastivedoc",
+    "CAMPAIGN_KEY": "c3w",
+    "CAMPAIGN_NO": 20,
+    "REDUNDANCY": 1,
+
+    "TASKS_TO_ANNOTATORS": [
+        ["eng", "deu", "uniform",  1, 1]
+    ],
+
+    "TASK_TYPE": "ContrastiveDocument",
+    "TASK_OPTIONS": "SQM;ScalarSlider"
+}

@@ -566,8 +566,7 @@ class MQMItemHandler {
         // handle character alignment estimation
         if (!this.source_is_multimodal) {
 
-            // Check if we're in contrastive mode with shared source text
-            let $sharedSource = $("#shared-source-text-content");
+            // Check if we're in contrastive or pairwise mode
             if (this.contrastive_esa) {
                 let len_src;
                 
@@ -600,33 +599,31 @@ class MQMItemHandler {
                         len_src = parseInt($rowSourceDisplay.attr("data-char-count"))
                     }
                 } else {
-                    // Original contrastive mode: Initialize shared source text only once
-                    if (!$sharedSource.children(".mqm_char_src").length) {
-                        // Handle <br/> tags in source text like we do for target
+                    // Contrastive mode: wrap the visible source-text-display in the same row
+                    let $contrastiveRow = this.el.closest(".contrastive-row");
+                    let $rowSourceDisplay = $contrastiveRow.find(".source-text-display");
+                    
+                    if (!$rowSourceDisplay.children(".mqm_char_src").length) {
                         let src_segments = this.text_source_orig.split(/(<br\s*\/?>)/gi);
                         let src_char_index = 0;
                         let html_source = src_segments.map((segment) => {
-                            // If this is a br tag, preserve it as-is
                             if (segment.match(/^<br\s*\/?>$/i)) {
                                 return segment;
                             }
-                            // Otherwise, split into characters and wrap in spans
                             return segment.split("").map((v) => {
                                 if (v == "\n") {
-                                    return "<br>" // preserve newlines
+                                    return "<br>";
                                 }
-                                let span = `<span class="mqm_char_src" id="source_char_${src_char_index}" char_id="${src_char_index}">${v}</span>`;
+                                let span = `<span class="mqm_char_src" char_id="${src_char_index}">${v}</span>`;
                                 src_char_index++;
                                 return span;
                             }).join("");
-                        }).join("")
-                        $sharedSource.html(html_source)
-                        // Store the character count on the element for reuse
-                        $sharedSource.attr("data-char-count", src_char_index)
+                        }).join("");
+                        $rowSourceDisplay.html(html_source);
+                        $rowSourceDisplay.attr("data-char-count", src_char_index);
                         len_src = src_char_index;
                     } else {
-                        // Use stored character count
-                        len_src = parseInt($sharedSource.attr("data-char-count"))
+                        len_src = parseInt($rowSourceDisplay.attr("data-char-count"));
                     }
                 }
                 
@@ -634,9 +631,10 @@ class MQMItemHandler {
 
                 let len_tgt = this.text_target_char_count;
                 
-                // Collect all other target texts for cross-highlighting
+                // Collect other target texts within the same row for cross-highlighting
+                let $currentRow = this.el.closest(".contrastive-row, .pairwise-row");
                 let other_targets = [];
-                $(".item-box").each((idx, other_el) => {
+                $currentRow.find(".item-box").each((idx, other_el) => {
                     let $other_el = $(other_el);
                     // Skip if this is the current item
                     if ($other_el.attr("data-item-id") === this.el.attr("data-item-id")) {
@@ -772,56 +770,92 @@ class MQMItemHandler {
                         })
                     })
                 } else {
-                    // Original contrastive mode: highlight across all items
+                    // Contrastive mode: highlight within the same contrastive row
+                    let $contrastiveRow = this.el.closest(".contrastive-row");
+                    let $rowSource = $contrastiveRow.find(".source-text-display .mqm_char_src");
+                    let row_len_src = $rowSource.length;
+                    
                     this.el_target.children(".mqm_char").each((i, el) => {
-                        // on hover
                         $(el).on("mouseenter", () => {
                             if (!TRACKING_ENABLED) return;
                             
-                            // get char position from attribute
                             let tgt_char_i = Number.parseInt($(el).attr("char_id"))
-                            // approximate position in source
-                            let src_char_i = Math.floor(tgt_char_i * len_src / len_tgt)
-                            // remove underline from all mqm
-                            $sharedSource.children(".mqm_char_src").css("text-decoration", "")
-
+                            let src_char_i = Math.floor(tgt_char_i * row_len_src / len_tgt)
+                            
+                            // Clear all underlines in this row
+                            $rowSource.css("text-decoration", "")
+                            
                             let highlight_width = Math.floor(16 / 2)
-                            // set underline to the corresponding character and its neighbours in source (green tones)
+                            
+                            // Highlight corresponding position in row source
                             for (let range = highlight_width; range > 0; range--) {
-                                // extrapolate range between #161 and #5d5 (green tones)
-                                let color_r = (Math.floor((range-1)/highlight_width * (0x5 - 0x1))+0x1).toString(16)
-                                let color_g = (Math.floor((range-1)/highlight_width * (0xd - 0x6))+0x6).toString(16)
-                                let color_b = (Math.floor((range-1)/highlight_width * (0x5 - 0x1))+0x1).toString(16)
-                                for (let i = Math.max(0, src_char_i - range); i <= Math.min(len_src, src_char_i + range); i++) {
-                                    $sharedSource.children(`#source_char_${i}`).css("text-decoration", `underline 20% #${color_r}${color_g}${color_b} solid`)
+                                let color = (Math.floor((range-1)/highlight_width * (0xd - 0x1))+0x1).toString(16)
+                                for (let i = Math.max(0, src_char_i - range); i <= Math.min(row_len_src - 1, src_char_i + range); i++) {
+                                    $rowSource.eq(i).css("text-decoration", `underline 10% #${color}${color}${color} solid`)
                                 }
                             }
                             
-                            // Highlight corresponding positions in other target texts
+                            // Highlight corresponding positions in other targets within same row
                             other_targets.forEach((other_target) => {
                                 let other_char_i = Math.floor(tgt_char_i * other_target.char_count / len_tgt)
-                                // Remove previous highlighting from other target
                                 other_target.element.children(".mqm_char").css("text-decoration", "")
                                 
-                                // Apply graduated underline to other target (green tones)
                                 for (let range = highlight_width; range > 0; range--) {
-                                    // extrapolate range between #161 and #5d5 (green tones)
-                                    let color_r = (Math.floor((range-1)/highlight_width * (0x5 - 0x1))+0x1).toString(16)
-                                    let color_g = (Math.floor((range-1)/highlight_width * (0xd - 0x6))+0x6).toString(16)
-                                    let color_b = (Math.floor((range-1)/highlight_width * (0x5 - 0x1))+0x1).toString(16)
+                                    let color = (Math.floor((range-1)/highlight_width * (0xd - 0x1))+0x1).toString(16)
                                     for (let i = Math.max(0, other_char_i - range); i <= Math.min(other_target.char_count - 1, other_char_i + range); i++) {
-                                        other_target.element.children(`.mqm_char[char_id="${i}"]`).css("text-decoration", `underline 15% #${color_r}${color_g}${color_b} solid`)
+                                        other_target.element.children(`.mqm_char[char_id="${i}"]`).css("text-decoration", `underline 10% #${color}${color}${color} solid`)
                                     }
                                 }
                             });
                         })
-                        // on leave remove all decorations
                         $(el).on("mouseleave", () => {
-                            $sharedSource.children(".mqm_char_src").css("text-decoration", "")
-                            // Remove decorations from all other targets
+                            $rowSource.css("text-decoration", "")
                             other_targets.forEach((other_target) => {
                                 other_target.element.children(".mqm_char").css("text-decoration", "")
                             });
+                        })
+                    })
+                    
+                    // Add reciprocal hover handlers for source text
+                    $rowSource.each((i, el) => {
+                        $(el).on("mouseenter", () => {
+                            if (!TRACKING_ENABLED) return;
+                            
+                            let src_char_i = Number.parseInt($(el).attr("char_id"))
+                            
+                            $rowSource.css("text-decoration", "")
+                            
+                            let highlight_width = Math.floor(16 / 2)
+                            
+                            // Highlight source character itself
+                            for (let range = highlight_width; range > 0; range--) {
+                                let color = (Math.floor((range-1)/highlight_width * (0xd - 0x1))+0x1).toString(16)
+                                for (let i = Math.max(0, src_char_i - range); i <= Math.min(row_len_src - 1, src_char_i + range); i++) {
+                                    $rowSource.eq(i).css("text-decoration", `underline 10% #${color}${color}${color} solid`)
+                                }
+                            }
+                            
+                            // Highlight corresponding position in all targets within same row
+                            let $allTargets = $contrastiveRow.find(".item-box .target-text");
+                            $allTargets.each((idx, tgt_el) => {
+                                let $tgt = $(tgt_el);
+                                let $chars = $tgt.children(".mqm_char").not(".span_missing");
+                                let tgt_len = $chars.length;
+                                if (tgt_len === 0) return;
+                                let tgt_char_i = Math.floor(src_char_i * tgt_len / row_len_src)
+                                $chars.css("text-decoration", "")
+                                
+                                for (let range = highlight_width; range > 0; range--) {
+                                    let color = (Math.floor((range-1)/highlight_width * (0xd - 0x1))+0x1).toString(16)
+                                    for (let i = Math.max(0, tgt_char_i - range); i <= Math.min(tgt_len - 1, tgt_char_i + range); i++) {
+                                        $chars.eq(i).css("text-decoration", `underline 10% #${color}${color}${color} solid`)
+                                    }
+                                }
+                            });
+                        })
+                        $(el).on("mouseleave", () => {
+                            $rowSource.css("text-decoration", "")
+                            $contrastiveRow.find(".item-box .target-text .mqm_char").css("text-decoration", "")
                         })
                     })
                 }

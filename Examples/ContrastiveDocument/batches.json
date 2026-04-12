@@ -1,0 +1,118 @@
+[
+  {
+    "items": [
+      {
+        "_block": -1,
+        "_item": 0,
+        "documentID": "doc-001",
+        "isCompleteDocument": false,
+        "itemID": 0,
+        "itemType": "TGT",
+        "segmentID": "src-eng-deu",
+        "segmentText": "Macedonians go to polls in referendum on changing country's name",
+        "targets": [
+          {
+            "_itemAll": 0,
+            "_target": 0,
+            "targetID": "systemA",
+            "targetText": "Mazedonier gehen an die Urnen in Referendum \u00fcber die \u00c4nderung des Namens des Landes",
+            "targetContextLeft": ""
+          },
+          {
+            "_itemAll": 1,
+            "_target": 1,
+            "targetID": "systemB",
+            "targetText": "Mazedonier in Referendum \u00fcber die \u00c4nderung des Namens des Landes",
+            "targetContextLeft": ""
+          },
+          {
+            "_itemAll": 2,
+            "_target": 2,
+            "targetID": "systemC",
+            "targetText": "Mazedonier gehen zu den Urnen f\u00fcr ein Referendum zur Namens\u00e4nderung ihres Landes",
+            "targetContextLeft": ""
+          }
+        ],
+        "targetsSize": 3
+      },
+      {
+        "_block": -1,
+        "_item": 1,
+        "documentID": "doc-001",
+        "isCompleteDocument": false,
+        "itemID": 1,
+        "itemType": "TGT",
+        "segmentID": "src-eng-deu",
+        "segmentText": "Voters will vote Sunday on whether to change their country's name to the Republic of North Macedonia.",
+        "targets": [
+          {
+            "_itemAll": 3,
+            "_target": 0,
+            "targetID": "systemA",
+            "targetText": "Die W\u00e4hler werden am Sonntag dar\u00fcber abstimmen, ob sie den Namen ihres Landes in Republik Nordmakedonien \u00e4ndern wollen.",
+            "targetContextLeft": ""
+          },
+          {
+            "_itemAll": 4,
+            "_target": 1,
+            "targetID": "systemB",
+            "targetText": "Die werden am Sonntag dar\u00fcber abstimmen, sie den Namen ihres Landes in Republik Nordmakedonien \u00e4ndern wollen.",
+            "targetContextLeft": ""
+          },
+          {
+            "_itemAll": 5,
+            "_target": 2,
+            "targetID": "systemC",
+            "targetText": "Am Sonntag stimmen die W\u00e4hler dar\u00fcber ab, ob der Landesname in Republik Nordmazedonien ge\u00e4ndert werden soll.",
+            "targetContextLeft": ""
+          }
+        ],
+        "targetsSize": 3
+      },
+      {
+        "_block": -1,
+        "_item": 2,
+        "documentID": "doc-001",
+        "isCompleteDocument": true,
+        "itemID": 2,
+        "itemType": "TGT",
+        "segmentID": "src-eng-deu",
+        "segmentText": "",
+        "targets": [
+          {
+            "_itemAll": 6,
+            "_target": 0,
+            "targetID": "systemA",
+            "targetText": "",
+            "targetContextLeft": ""
+          },
+          {
+            "_itemAll": 7,
+            "_target": 1,
+            "targetID": "systemB",
+            "targetText": "",
+            "targetContextLeft": ""
+          },
+          {
+            "_itemAll": 8,
+            "_target": 2,
+            "targetID": "systemC",
+            "targetText": "",
+            "targetContextLeft": ""
+          }
+        ],
+        "targetsSize": 3
+      }
+    ],
+    "sourceLanguage": "eng",
+    "targetLanguage": "deu",
+    "task": {
+      "batchNo": 1,
+      "batchSize": 3,
+      "randomSeed": 123456,
+      "requiredAnnotations": 1,
+      "sourceLanguage": "eng",
+      "targetLanguage": "deu"
+    }
+  }
+]

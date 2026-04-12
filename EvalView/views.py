@@ -34,6 +34,8 @@ from EvalData.models import PairwiseAssessmentDocumentResult
 from EvalData.models import PairwiseAssessmentDocumentTask
 from EvalData.models import PairwiseAssessmentResult
 from EvalData.models import PairwiseAssessmentTask
+from EvalData.models import ContrastiveAssessmentDocumentResult
+from EvalData.models import ContrastiveAssessmentDocumentTask
 from EvalData.models import TaskAgenda
 
 # pylint: disable=import-error
@@ -2676,4 +2678,474 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
         template = 'EvalView/pairwise-assessment-document-newui.html'
     else:
         template = 'EvalView/pairwise-assessment-document.html'
+    return render(request, template, context)
+
+
+@login_required
+def contrastive_assessment_document(request, code=None, campaign_name=None):
+    """
+    Contrastive assessment document annotation view supporting up to 3 system
+    outputs at once.
+    """
+    t1 = datetime.now()
+
+    campaign = None
+    if campaign_name:
+        campaign = Campaign.objects.filter(campaignName=campaign_name)
+        if not campaign.exists():
+            _msg = 'No campaign named "%s" exists, redirecting to dashboard'
+            LOGGER.info(_msg, campaign_name)
+            return redirect('dashboard')
+
+        campaign = campaign[0]
+
+    LOGGER.info(
+        'Rendering contrastive assessment document view for user "%s".',
+        request.user.username or "Anonymous",
+    )
+
+    current_task = None
+
+    # Try to identify TaskAgenda for current user.
+    agendas = TaskAgenda.objects.filter(user=request.user)
+
+    if campaign:
+        agendas = agendas.filter(campaign=campaign)
+
+    for agenda in agendas:
+        LOGGER.info('Identified work agenda %s', agenda)
+
+        tasks_to_complete = []
+        for serialized_open_task in agenda.serialized_open_tasks():
+            open_task = serialized_open_task.get_object_instance()
+
+            if open_task is None:
+                continue
+
+            if open_task.next_item_for_user(request.user) is not None:
+                current_task = open_task
+                if not campaign:
+                    campaign = agenda.campaign
+            else:
+                tasks_to_complete.append(serialized_open_task)
+
+        modified = False
+        for task in tasks_to_complete:
+            modified = agenda.complete_open_task(task) or modified
+
+        if modified:
+            agenda.save()
+
+    if not current_task and agendas.count() > 0:
+        LOGGER.info('Work agendas completed, redirecting to dashboard')
+        LOGGER.info('- code=%s, campaign=%s', code, campaign)
+        return redirect('dashboard')
+
+    if not current_task:
+        current_task = ContrastiveAssessmentDocumentTask.get_task_for_user(
+            user=request.user
+        )
+
+    if not current_task:
+        if code is None or campaign is None:
+            LOGGER.info('No current task detected, redirecting to dashboard')
+            LOGGER.info('- code=%s, campaign=%s', code, campaign)
+            return redirect('dashboard')
+
+        LOGGER.info(
+            'Identifying next task for code "%s", campaign="%s"',
+            code,
+            campaign,
+        )
+        next_task = ContrastiveAssessmentDocumentTask.get_next_free_task_for_language(
+            code, campaign, request.user
+        )
+
+        if next_task is None:
+            LOGGER.info('No next task detected, redirecting to dashboard')
+            return redirect('dashboard')
+
+        next_task.assignedTo.add(request.user)
+        next_task.save()
+
+        current_task = next_task
+
+    if current_task:
+        if not campaign:
+            campaign = current_task.campaign
+
+        elif campaign.campaignName != current_task.campaign.campaignName:
+            _msg = 'Incompatible campaign given, using item campaign instead!'
+            LOGGER.info(_msg)
+            campaign = current_task.campaign
+
+    t2 = datetime.now()
+    ajax = False
+    item_saved = False
+    error_msg = ''
+    if request.method == "POST":
+        score1 = request.POST.get('score1', None)
+        score2 = request.POST.get('score2', None)
+        score3 = request.POST.get('score3', None)
+        mqm1 = request.POST.get('mqm1', None)
+        mqm2 = request.POST.get('mqm2', None)
+        mqm3 = request.POST.get('mqm3', None)
+        comment = request.POST.get('comment', '')
+        item_id = request.POST.get('item_id', None)
+        task_id = request.POST.get('task_id', None)
+        document_id = request.POST.get('document_id', None)
+        start_timestamp = request.POST.get('start_timestamp', None)
+        end_timestamp = request.POST.get('end_timestamp', None)
+        browser_info = request.POST.get('browser_info', None)
+        ajax = bool(request.POST.get('ajax', None) == 'True')
+
+        LOGGER.info(
+            'score1=%s, score2=%s, score3=%s, item_id=%s',
+            score1, score2, score3, item_id,
+        )
+
+        if score1 and item_id and start_timestamp and end_timestamp:
+            duration = float(end_timestamp) - float(start_timestamp)
+            LOGGER.info(
+                'start=%s, end=%s, duration=%s',
+                start_timestamp, end_timestamp, duration,
+            )
+
+            (
+                current_item,
+                block_items,
+                block_results,
+            ) = current_task.next_document_for_user(
+                request.user, return_statistics=False
+            )
+
+            if current_item.documentID == document_id:
+                if current_item.itemID == int(item_id) and current_item.id == int(
+                    task_id
+                ):
+                    utc_now = datetime.utcnow().replace(tzinfo=utc)
+                    result_data = {
+                        'score1': score1,
+                        'score2': score2,
+                        'score3': score3,
+                        'start_time': float(start_timestamp),
+                        'end_time': float(end_timestamp),
+                        'item': current_item,
+                        'task': current_task,
+                        'createdBy': request.user,
+                        'activated': False,
+                        'completed': True,
+                        'dateCompleted': utc_now,
+                    }
+                    if browser_info:
+                        result_data['browser_info'] = browser_info
+                    if mqm1:
+                        result_data['mqm1'] = mqm1
+                    if mqm2:
+                        result_data['mqm2'] = mqm2
+                    if mqm3:
+                        result_data['mqm3'] = mqm3
+                    if comment:
+                        result_data['comment'] = comment
+
+                    ContrastiveAssessmentDocumentResult.objects.create(**result_data)
+                    item_saved = True
+
+                else:
+                    current_result = None
+                    for result in block_results:
+                        if not result:
+                            continue
+                        if result.item.itemID == int(item_id) and result.item.id == int(
+                            task_id
+                        ):
+                            current_result = result
+                            break
+
+                    if current_result:
+                        current_result.score1 = score1
+                        current_result.score2 = score2
+                        current_result.score3 = score3
+                        current_result.start_time = float(start_timestamp)
+                        current_result.end_time = float(end_timestamp)
+                        if browser_info:
+                            current_result.browser_info = browser_info
+                        if mqm1:
+                            current_result.mqm1 = mqm1
+                        if mqm2:
+                            current_result.mqm2 = mqm2
+                        if mqm3:
+                            current_result.mqm3 = mqm3
+                        current_result.comment = comment
+                        utc_now = datetime.utcnow().replace(tzinfo=utc)
+                        current_result.dateCompleted = utc_now
+                        current_result.save()
+                        item_saved = True
+
+                    else:
+                        found_item = False
+                        for item in block_items:
+                            if item.itemID == int(item_id) and item.id == int(task_id):
+                                found_item = item
+                                break
+
+                        if found_item:
+                            utc_now = datetime.utcnow().replace(tzinfo=utc)
+                            result_data = {
+                                'score1': score1,
+                                'score2': score2,
+                                'score3': score3,
+                                'start_time': float(start_timestamp),
+                                'end_time': float(end_timestamp),
+                                'item': found_item,
+                                'task': current_task,
+                                'createdBy': request.user,
+                                'activated': False,
+                                'completed': True,
+                                'dateCompleted': utc_now,
+                            }
+                            if browser_info:
+                                result_data['browser_info'] = browser_info
+                            if mqm1:
+                                result_data['mqm1'] = mqm1
+                            if mqm2:
+                                result_data['mqm2'] = mqm2
+                            if mqm3:
+                                result_data['mqm3'] = mqm3
+                            if comment:
+                                result_data['comment'] = comment
+
+                            ContrastiveAssessmentDocumentResult.objects.create(**result_data)
+                            item_saved = True
+
+                        else:
+                            error_msg = (
+                                'We did not expect this item to be submitted. '
+                                'If you used backward/forward buttons in your browser, '
+                                'please reload the page and try again.'
+                            )
+
+            else:
+                error_msg = (
+                    'We did not expect an item from this document to be submitted. '
+                    'If you used backward/forward buttons in your browser, '
+                    'please reload the page and try again.'
+                )
+
+    t3 = datetime.now()
+
+    (
+        current_item,
+        completed_items,
+        completed_blocks,
+        completed_items_in_block,
+        block_items,
+        block_results,
+        total_blocks,
+    ) = current_task.next_document_for_user(request.user)
+
+    if not current_item:
+        LOGGER.info('No current item detected, redirecting to dashboard')
+        return redirect('dashboard')
+
+    target_language_code = current_task.marketTargetLanguageCode()
+
+    campaign_opts = set((campaign.campaignOptions or "").lower().split(";"))
+    scalar_slider = 'scalarslider' in campaign_opts
+    scale_100 = 'scale100' in campaign_opts
+    if scale_100:
+        scalar_slider = True
+    collect_browser_info = 'collectbrowserinfo' in campaign_opts
+    disable_mobile = 'disablemobile' in campaign_opts
+    contrastive_esa = 'esa' in campaign_opts
+    comments_seg = 'commentsseg' in campaign_opts
+    comments_doc = 'commentsdoc' in campaign_opts
+    monolingual_task = 'monolingual' in campaign_opts
+    use_sqm = 'sqm' in campaign_opts
+    skip_doc_scores = 'skipdocumentscores' in campaign_opts
+    slider_bubble = 'sliderbubble' in campaign_opts
+
+    block_scores = []
+    _default_score = -1
+    for item, result in zip(block_items, block_results):
+        _source_text = escape(item.segmentText)
+        _candidate1_text = escape(item.target1Text) if item.target1Text else ''
+        _candidate2_text = escape(item.target2Text) if item.target2Text else ''
+        _candidate3_text = escape(item.target3Text) if item.target3Text else ''
+
+        _source_text = _source_text.replace("\n", "<br/>")
+        _candidate1_text = _candidate1_text.replace("\n", "<br/>")
+        _candidate2_text = _candidate2_text.replace("\n", "<br/>")
+        _candidate3_text = _candidate3_text.replace("\n", "<br/>")
+
+        item_scores = {
+            'completed': bool(result and result.score1 > -1),
+            'current_item': bool(item.id == current_item.id),
+            'score1': result.score1 if result else _default_score,
+            'score2': result.score2 if result else _default_score,
+            'score3': result.score3 if result else _default_score,
+            'candidate1_text': _candidate1_text,
+            'candidate2_text': _candidate2_text,
+            'candidate3_text': _candidate3_text,
+            'segment_text': _source_text,
+            'mqm1': '[]',
+            'mqm2': '[]',
+            'mqm3': '[]',
+            'comment': '',
+            'start_timestamp': '',
+            'end_timestamp': '',
+        }
+
+        if result:
+            if contrastive_esa:
+                mqm1_value = getattr(result, 'mqm1', '[]')
+                mqm2_value = getattr(result, 'mqm2', '[]')
+                mqm3_value = getattr(result, 'mqm3', '[]')
+                if mqm1_value and mqm1_value != '[]':
+                    item_scores['mqm1'] = mqm1_value
+                if mqm2_value and mqm2_value != '[]':
+                    item_scores['mqm2'] = mqm2_value
+                if mqm3_value and mqm3_value != '[]':
+                    item_scores['mqm3'] = mqm3_value
+            item_scores['comment'] = getattr(result, 'comment', '') or ''
+            item_scores['start_timestamp'] = result.start_time if result.start_time else ''
+            item_scores['end_timestamp'] = result.end_time if result.end_time else ''
+
+        block_scores.append(item_scores)
+
+    _msg = 'completed_items=%s, completed_blocks=%s'
+    LOGGER.info(_msg, completed_items, completed_blocks)
+
+    source_language = current_task.marketSourceLanguage()
+    target_language = current_task.marketTargetLanguage()
+
+    t4 = datetime.now()
+
+    reference_label = 'Source text'
+    candidate1_label = 'Translation A'
+    candidate2_label = 'Translation B'
+    candidate3_label = 'Translation C'
+
+    if not monolingual_task:
+        priming_question_texts = [
+            '<p>'
+            f'Below is a document in {source_language} presented sentence by sentence. '
+            f'Each source sentence has been translated by three different systems, A, B, and C, into {target_language}. '
+            'Your task is to rate each translation using the scale below, based on three criteria: <br/>'
+            '</p>'
+            '<p>'
+            f'<strong>Naturalness</strong>: Does the translation sound fluent in {target_language}?<br/>'
+            f'<strong>Accuracy</strong>: Does the translation correctly preserve the meaning of the source text?<br/>'
+            f'<strong>Coherence</strong>: Does the sentence translation fit well in the document context?<br/>'
+            '</p>'
+        ]
+    else:
+        priming_question_texts = [
+            '<p>'
+            f'Below you see three document translations of a document from {source_language} into {target_language}, '
+            'produced by systems A, B, and C. '
+            'Your task is to rate each translation using the scale below, based on two criteria: <br/>'
+            '</p>'
+            '<p>'
+            f'<strong>Naturalness</strong>: Does the translation sound fluent in {target_language}?<br/>'
+            f'<strong>Coherence</strong>: Does the sentence translation fit well in the document context?<br/>'
+            '</p>'
+        ]
+
+    if contrastive_esa:
+        if not monolingual_task:
+            priming_question_texts = [
+                '<p>'
+                f'Below you see a document in {source_language} and three different translations in {target_language}. '
+                'Your task:'
+                '</p>'
+                '<ol>'
+                '<li>Read the source text and three competing translations.</li>'
+                '<li>Highlight all translation errors in each translation.</li>'
+                '<li>Rate each translation using the scale provided below.</li>'
+                '</ol>'
+            ]
+        else:
+            priming_question_texts = [
+                '<p>'
+                f'Below you see three different translations of a document from {source_language} into {target_language}, '
+                'produced by systems A, B, and C. '
+                'Your task:'
+                '</p>'
+                '<ol>'
+                '<li>Read three competing translations.</li>'
+                '<li>Highlight all translation errors you notice in each translation.</li>'
+                '<li>Rate each translation using the scale provided below.</li>'
+                '</ol>'
+            ]
+
+    if skip_doc_scores:
+        document_question_texts = []
+    else:
+        document_question_texts = [
+            'For the final step, please look again at each translated document. '
+            'Provide one final, overall rating for each translation candidate, judging it as a whole. '
+        ]
+    if use_sqm:
+        priming_question_texts = priming_question_texts[:1]
+        document_question_texts = document_question_texts[:1]
+
+    sentence_item_count = len([item for item in block_items if not item.isCompleteDocument])
+
+    context = {
+        'active_page': 'contrastive-assessment-document',
+        'item_id': current_item.itemID,
+        'task_id': current_item.id,
+        'document_id': current_item.documentID,
+        'completed_blocks': completed_blocks,
+        'total_blocks': total_blocks,
+        'items_left_in_block': len(block_items) - completed_items_in_block,
+        'source_language': source_language,
+        'target_language': target_language,
+        'debug_times': (t2 - t1, t3 - t2, t4 - t3, t4 - t1),
+        'template_debug': 'debug' in request.GET,
+        'campaign': campaign.campaignName,
+        'datask_id': current_task.id,
+        'trusted_user': current_task.is_trusted_user(request.user),
+        'monolingual': monolingual_task,
+        'sqm': use_sqm,
+        'scalar_slider': scalar_slider,
+        'scale_100': scale_100,
+        'sentence_item_count': sentence_item_count,
+        'collect_browser_info': collect_browser_info,
+        'disable_mobile': disable_mobile,
+        'skip_doc_scores': skip_doc_scores,
+        'slider_bubble': slider_bubble,
+        'comments_seg': comments_seg,
+        'comments_doc': comments_doc,
+        'contrastive_esa': contrastive_esa,
+    }
+
+    if contrastive_esa:
+        context['mqm_type'] = 'ESA'
+        context['items_completed'] = completed_items
+        context['items_total'] = current_task.items.count()
+        context['docs_completed'] = completed_blocks
+        context['docs_total'] = total_blocks
+
+    if ajax:
+        ajax_context = {'saved': item_saved, 'error_msg': error_msg}
+        context.update(ajax_context)
+        context.update(BASE_CONTEXT)
+        return JsonResponse(context)
+
+    page_context = {
+        'items': zip(block_items, block_scores),
+        'num_items': len(block_items),
+        'reference_label': reference_label,
+        'candidate1_label': candidate1_label,
+        'candidate2_label': candidate2_label,
+        'candidate3_label': candidate3_label,
+        'priming_question_texts': priming_question_texts,
+        'document_question_texts': document_question_texts,
+    }
+    context.update(page_context)
+    context.update(BASE_CONTEXT)
+
+    template = 'EvalView/contrastive-assessment-document.html'
     return render(request, template, context)

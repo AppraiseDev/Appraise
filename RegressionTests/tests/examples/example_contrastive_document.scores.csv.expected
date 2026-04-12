@@ -1,0 +1,9 @@
+engdeu1401,systemA,0,TGT,eng,deu,10,doc-001,False
+engdeu1401,systemB,0,TGT,eng,deu,20,doc-001,False
+engdeu1401,systemC,0,TGT,eng,deu,30,doc-001,False
+engdeu1401,systemA,1,TGT,eng,deu,40,doc-001,False
+engdeu1401,systemB,1,TGT,eng,deu,50,doc-001,False
+engdeu1401,systemC,1,TGT,eng,deu,60,doc-001,False
+engdeu1401,systemA,2,TGT,eng,deu,70,doc-001,True
+engdeu1401,systemB,2,TGT,eng,deu,80,doc-001,True
+engdeu1401,systemC,2,TGT,eng,deu,90,doc-001,True

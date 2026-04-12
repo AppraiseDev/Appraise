@@ -67,7 +67,7 @@ fi
 #
 # Setup a database for regression tests.
 log "Using database: $APPRAISE_DATABASE"
-sed -ri.bak "s/development\\.db/$APPRAISE_DATABASE/g" "$APPRAISE_ROOT/Appraise/settings.py"
+sed -ri.bak "s/db\\.sqlite3/$APPRAISE_DATABASE/g" "$APPRAISE_ROOT/Appraise/settings.py"
 
 # Prepare database
 $APPRAISE_PYTHON manage.py migrate --database $APPRAISE_DB_NAME
@@ -148,6 +148,9 @@ time_total=$(format_time $time_start $time_end)
 
 # Restore the original development database in Appraise settings
 test -e Appraise/settings.py.bak && mv Appraise/settings.py.bak Appraise/settings.py
+
+# Remove the regression test database
+test -e "$APPRAISE_DATABASE" && rm -f "$APPRAISE_DATABASE"
 
 
 ##########################################################################

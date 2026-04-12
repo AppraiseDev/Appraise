@@ -7,6 +7,8 @@ from django.core.management.base import CommandError
 
 from Campaign.models import Campaign
 from EvalData.models import (
+    ContrastiveAssessmentDocumentTask,
+    ContrastiveAssessmentDocumentResult,
     DirectAssessmentDocumentTask,
     DirectAssessmentDocumentResult,
     PairwiseAssessmentDocumentTask,
@@ -70,6 +72,21 @@ class Command(BaseCommand):
             self._export_pairwise_results(
                 campaign,
                 pairwise_tasks,
+                options['include_inactive'],
+                options['include_context'],
+            )
+
+        # Check if campaign has ContrastiveAssessmentDocument tasks
+        contrastive_tasks = ContrastiveAssessmentDocumentTask.objects.filter(
+            campaign=campaign
+        )
+        if options['completed_only']:
+            contrastive_tasks = contrastive_tasks.filter(completed=True)
+
+        if contrastive_tasks.exists():
+            self._export_contrastive_results(
+                campaign,
+                contrastive_tasks,
                 options['include_inactive'],
                 options['include_context'],
             )
@@ -416,5 +433,122 @@ class Command(BaseCommand):
                 json_obj['targets'][0]['target_context_left'] = result[context_offset + 2]
                 if len(json_obj['targets']) > 1:
                     json_obj['targets'][1]['target_context_left'] = result[context_offset + 3]
+
+            sys.stdout.write(json.dumps(json_obj, ensure_ascii=False) + '\n')
+
+    def _export_contrastive_results(self, campaign, tasks, include_inactive, include_context):
+        """Export ContrastiveAssessmentDocument results to JSONL."""
+        task_ids = list(tasks.values_list('id', flat=True))
+
+        campaign_opts = str(campaign.campaignOptions).lower().split(";")
+        is_esa = "esa" in campaign_opts
+        has_comments = "commentsseg" in campaign_opts or "commentsdoc" in campaign_opts
+
+        qs = ContrastiveAssessmentDocumentResult.objects.filter(
+            task__id__in=task_ids,
+            completed=True,
+            item__itemType__in=('TGT', 'CHK', 'BAD', 'REF'),
+        )
+
+        if not include_inactive:
+            qs = qs.filter(createdBy__is_active=True)
+
+        attributes = [
+            'createdBy__username',       # 0 annotator
+            'item__segmentID',           # 1 segment_id
+            'item__segmentText',         # 2 source_text
+            'item__target1ID',           # 3 target1_system_id
+            'item__target1Text',         # 4 target1_text
+            'item__target2ID',           # 5 target2_system_id
+            'item__target2Text',         # 6 target2_text
+            'item__target3ID',           # 7 target3_system_id
+            'item__target3Text',         # 8 target3_text
+            'score1',                    # 9
+            'score2',                    # 10
+            'score3',                    # 11
+            'item__itemID',              # 12 item_id
+            'item__itemType',            # 13 item_type
+            'item__metadata__market__sourceLanguageCode',  # 14
+            'item__metadata__market__targetLanguageCode',  # 15
+            'item__documentID',          # 16
+            'item__isCompleteDocument',   # 17
+            'start_time',               # 18
+            'end_time',                  # 19
+            'task__batchNo',             # 20
+            'item_id',                   # 21 item_database_id
+            'task__campaign__campaignName',  # 22
+        ]
+
+        next_idx = 23
+
+        if is_esa:
+            attributes.extend(['mqm1', 'mqm2', 'mqm3'])
+            mqm1_idx, mqm2_idx, mqm3_idx = next_idx, next_idx + 1, next_idx + 2
+            next_idx += 3
+        else:
+            mqm1_idx = mqm2_idx = mqm3_idx = None
+
+        if has_comments:
+            attributes.append('comment')
+            comment_idx = next_idx
+            next_idx += 1
+        else:
+            comment_idx = None
+
+        if include_context:
+            attributes.extend([
+                'item__contextLeft',
+                'item__contextRight',
+                'item__target1ContextLeft',
+                'item__target2ContextLeft',
+                'item__target3ContextLeft',
+            ])
+            context_offset = next_idx
+        else:
+            context_offset = None
+
+        attributes = tuple(attributes)
+
+        for result in qs.values_list(*attributes):
+            targets = [
+                {'target_id': result[3], 'target_text': result[4], 'score': result[9]},
+                {'target_id': result[5], 'target_text': result[6], 'score': result[10]},
+                {'target_id': result[7], 'target_text': result[8], 'score': result[11]},
+            ]
+
+            if is_esa:
+                targets[0]['mqm_annotations'] = result[mqm1_idx]
+                targets[1]['mqm_annotations'] = result[mqm2_idx]
+                targets[2]['mqm_annotations'] = result[mqm3_idx]
+
+            json_obj = {
+                'annotator': result[0],
+                'source_id': result[1],
+                'source_text': result[2],
+                'targets': targets,
+                'item_id': result[12],
+                'item_type': result[13],
+                'source_language': result[14],
+                'target_language': result[15],
+                'document_id': result[16],
+                'is_complete_document': result[17],
+                'start_time': result[18],
+                'end_time': result[19],
+                'duration': round(result[19] - result[18], 1) if result[18] and result[19] else None,
+                'batch_number': result[20],
+                'item_database_id': result[21],
+                'campaign_name': result[22],
+                'task_type': 'ContrastiveDocument',
+            }
+
+            if has_comments and comment_idx is not None:
+                json_obj['comment'] = result[comment_idx]
+
+            if include_context and context_offset is not None:
+                json_obj['context_left'] = result[context_offset]
+                json_obj['context_right'] = result[context_offset + 1]
+                targets[0]['target_context_left'] = result[context_offset + 2]
+                targets[1]['target_context_left'] = result[context_offset + 3]
+                targets[2]['target_context_left'] = result[context_offset + 4]
 
             sys.stdout.write(json.dumps(json_obj, ensure_ascii=False) + '\n')
