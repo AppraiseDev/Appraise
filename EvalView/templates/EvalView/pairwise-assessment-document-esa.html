@@ -99,7 +99,7 @@ body.show-diffs .mqm_char.diff-del {
 
 .seg-comment-input {
     width: 100%;
-    border: 1px solid #ddd;
+    border: 2px solid #5bc0de;
     border-radius: 3px;
     padding: 4px 8px;
     font-size: 0.85em;
@@ -110,13 +110,14 @@ body.show-diffs .mqm_char.diff-del {
     min-height: 4em;
 }
 .seg-comment-input:focus {
-    border-color: #aaa;
+    border-color: #31b0d5;
     outline: none;
+    box-shadow: 0 0 4px rgba(91, 192, 222, 0.5);
 }
 
 #doc-comment-input {
     width: 100%;
-    border: 1px solid #ddd;
+    border: 2px solid #5bc0de;
     border-radius: 3px;
     padding: 4px 8px;
     font-size: 0.85em;
@@ -124,8 +125,18 @@ body.show-diffs .mqm_char.diff-del {
     resize: vertical;
 }
 #doc-comment-input:focus {
-    border-color: #aaa;
+    border-color: #31b0d5;
     outline: none;
+    box-shadow: 0 0 4px rgba(91, 192, 222, 0.5);
+}
+.instruction_comment {
+    background-color: #5cb85c;
+    color: white;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 90%;
+    border: 1px solid rgba(0,0,0,0.15);
+    display: inline-block;
 }
 
 {% if monolingual %}
@@ -1301,12 +1312,12 @@ function toggle_doc_button(visible) {
     {% if comments_seg or comments_doc %}
     <div class="row">
         <div class="col-sm-12">
-            <p style="margin: 10px 10px 0; color: #555;"><strong>Comments:</strong>
+            <p style="margin: 10px 10px 0; color: #555;">
             {% if comments_seg %}
-            Please note important observations and flag issues with translations or the source in the comment section under each segment.
+            <span class="instruction_comment">Segment comments</span>: Please help us understand your evaluations. Use the comment box to briefly explain what influenced your scores, and refer to the translations as A and B when comparing them. Point out specific issues or strengths, and explain why one translation is better than the other when relevant.
             {% endif %}
             {% if comments_doc %}
-            A document-level comment summarizing key quality differences and recurring patterns is <strong>required</strong> before submitting.
+            <br><span class="instruction_comment">Document comment</span> (required): Before submitting, share your final comments summarizing your overall assessment of translations A and B across the document. Feel free to share any observations that could help us understand the strengths and weaknesses of each translation, and which one you prefer.
             {% endif %}
             </p>
         </div>
@@ -1464,7 +1475,7 @@ function toggle_doc_button(visible) {
         <div class="col-sm-3">
             {% if comments_seg %}
             <textarea class="seg-comment-input" data-item-id="{{ item.itemID }}"
-                      placeholder="Comment on translations..."
+                      placeholder="Briefly explain your scores. Note specific strengths or issues in A and B..."
                       rows="1">{{ scores.comment }}</textarea>
             {% endif %}
         </div>
@@ -1472,7 +1483,7 @@ function toggle_doc_button(visible) {
         <div class="col-sm-1">
             {% if comments_seg %}
             <textarea class="seg-comment-input" data-item-id="{{ item.itemID }}"
-                      placeholder="Comment on translations..."
+                      placeholder="Briefly explain your scores. Note specific strengths or issues in A and B..."
                       rows="1">{{ scores.comment }}</textarea>
             {% endif %}
         </div>
@@ -1570,6 +1581,11 @@ function toggle_doc_button(visible) {
                     {% with mono=monolingual scale_100=scale_100 %}
                     {% include 'EvalView/_scalar_instructions.html' %}
                     {% endwith %}
+                    {% if comments_doc %}
+                    <p style="margin: 10px 10px 0; color: #555;">
+                    <span class="instruction_comment">Document comment</span> (required): Before submitting, share your final comments summarizing your overall assessment of translations A and B across the document. Feel free to share any observations that could help us understand the strengths and weaknesses of each translation, and which one you prefer.
+                    </p>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -1594,7 +1610,7 @@ function toggle_doc_button(visible) {
             <div class="row doc-comment-box" style="margin-top: 10px;">
                 <div class="col-sm-12">
                     <textarea id="doc-comment-input"
-                              placeholder="Summarize key quality differences, recurring issues, and overall impressions (required)"
+                              placeholder="Summarize overall patterns, strengths/weaknesses of A and B, and your final preference (required)..."
                               rows="2">{{ scores.comment }}</textarea>
                 </div>
             </div>
