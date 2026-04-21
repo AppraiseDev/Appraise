@@ -467,9 +467,12 @@ $(document).ready(function() {
     }
 
     $('#button-toggle-diffs').click(toggle_contrastive_diffs);
-    if (localStorage.getItem('appraise-contrastive-diffs-show') === 'yes') {
+    if (Cookies.get('show-contrastive-diffs') != 'no') {
         $('body').addClass('show-contrastive-diffs');
         $('#button-toggle-diffs').text('Hide diffs');
+    } else {
+        $('body').removeClass('show-contrastive-diffs');
+        $('#button-toggle-diffs').text('Show diffs');
     }
 
     $('#button-open-all').click(open_all_items);
@@ -529,7 +532,7 @@ function toggle_contrastive_diffs() {
         $('body').addClass('show-contrastive-diffs');
         $('#button-toggle-diffs').text('Hide diffs');
     }
-    localStorage.setItem('appraise-contrastive-diffs-show', isActive ? 'no' : 'yes');
+    Cookies.set('show-contrastive-diffs', isActive ? 'no' : 'yes', { sameSite: 'strict' });
 }
 
 function update_score() {
@@ -682,7 +685,7 @@ function _show_error_box(contextOrText, textOrTimeout, timeoutArg) {
             <p class="pull-left control-box">
             <button id="button-toggle-instructions" class="btn btn-info btn-sm" title="Show or hide the task instructions panel at the top of the page">Hide instructions</button>
             <button id="button-full-screen" class="btn btn-info btn-sm" title="Toggle between wide (full-width) and narrow (centered) page layout">Narrow screen</button>
-            <button id="button-toggle-diffs" class="btn btn-info btn-sm" title="Highlight differences between translations on hover. Yellow = differs from one other translation, teal = differs from the other, green = differs from both.">Show diffs</button>
+            <button id="button-toggle-diffs" class="btn btn-info btn-sm" title="Highlight differences between translations on hover. Yellow = differs from one other translation, teal = differs from the other, green = differs from both.">Hide diffs</button>
             </p>
             <p class="pull-right control-box">
             <button id="button-open-all" class="btn btn-default btn-sm">Expand all items</button>
