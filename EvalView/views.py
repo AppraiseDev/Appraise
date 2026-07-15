@@ -2610,6 +2610,37 @@ def pairwise_assessment_document(request, code=None, campaign_name=None):
             ),
         ]
 
+    # DialectsGuidelinesA/B: append a dialect-focus note to the instructions.
+    # Mirrors the segment-level pairwise_assessment view so the campaign option
+    # behaves the same in this document view, but *appends* to the existing
+    # document-level priming text instead of replacing it. When the option is
+    # absent this is a no-op, so it is safe to leave in place for all campaigns.
+    if any('dialectsguidelines' in opt for opt in campaign_opts):
+        dialect = target_language
+        if 'dialectsguidelinesa' in campaign_opts:
+            if target_language_code == 'fra':
+                dialect = 'European French (Européen Français)'
+            if target_language_code == 'por':
+                dialect = 'Brazilian Portuguese (Português do Brasil)'
+            if target_language_code == 'spa':
+                dialect = 'European Spanish (Español Europeo)'
+        elif 'dialectsguidelinesb' in campaign_opts:
+            if target_language_code == 'fra':
+                dialect = 'Canadian French (Français Canadien)'
+            if target_language_code == 'por':
+                dialect = 'European Portuguese (Português Europeu)'
+            if target_language_code == 'spa':
+                dialect = 'Latin American Spanish (Español Latinoamericano)'
+
+        priming_question_texts = priming_question_texts + [
+            '<p>'
+            'Please evaluate the quality of the candidate translations, '
+            "<b class='lang-emph'><u>focusing specifically on the use of the {0} dialect</u></b>. "
+            'Pay close attention to dialect-specific language, including vocabulary, '
+            'idiomatic expressions, and cultural references.'.format(dialect)
+            + '</p>'
+        ]
+
     sentence_item_count = len([item for item in block_items if not item.isCompleteDocument])
 
     # A part of context used in responses to both Ajax and standard POST
