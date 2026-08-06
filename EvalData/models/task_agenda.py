@@ -16,22 +16,7 @@ from django.utils.translation import gettext_lazy as _
 
 from deprecated import add_deprecated_method
 from EvalData.models.base_models import ObjectID
-from EvalData.models.data_assessment import DataAssessmentResult
-from EvalData.models.direct_assessment import DirectAssessmentResult
 from EvalData.models.direct_assessment import DirectAssessmentTask
-from EvalData.models.direct_assessment_context import (
-    DirectAssessmentContextResult,
-)
-from EvalData.models.direct_assessment_document import (
-    DirectAssessmentDocumentResult,
-)
-from EvalData.models.multi_modal_assessment import (
-    MultiModalAssessmentResult,
-)
-from EvalData.models.pairwise_assessment import PairwiseAssessmentResult
-from EvalData.models.pairwise_assessment_document import (
-    PairwiseAssessmentDocumentResult,
-)
 
 # TODO: Unclear if these are needed?
 # from Appraise.settings import STATIC_URL, BASE_CONTEXT
@@ -146,28 +131,36 @@ class TaskAgenda(models.Model):
 
         Returns True upon success, False otherwise.
         """
-        type_to_result_class_mapping = {
-            'DataAssessmentTask': DataAssessmentResult,
-            'DirectAssessmentTask': DirectAssessmentResult,
-            'DirectAssessmentContextTask': DirectAssessmentContextResult,
-            'DirectAssessmentDocumentTask': DirectAssessmentDocumentResult,
-            'MultiModalAssessmentTask': MultiModalAssessmentResult,
-            'PairwiseAssessmentDocumentTask': PairwiseAssessmentDocumentResult,
-            'PairwiseAssessmentTask': PairwiseAssessmentResult,
-        }
+        from EvalData.models import TASK_DEFINITIONS
 
-        result_class = type_to_result_class_mapping.get(
-            self.campaign.get_campaign_type(), None
-        )
+        campaign_type = self.campaign.get_campaign_type()
+        type_to_result_class_mapping = {
+            task_class.__name__: result_class
+            for _, task_class, result_class, *_ in TASK_DEFINITIONS
+        }
+        result_class = type_to_result_class_mapping.get(campaign_type, None)
 
         if not result_class:
             _msg = 'Unknown annotation type {0} for user {1}'.format(
-                self.campaign.get_campaign_type(), self.user
+                campaign_type, self.user
             )
             _lvl = messages.ERROR
             return (False, _msg, _lvl)
 
-        annotated_output_for_user = result_class.objects.filter(createdBy=self.user)
+        task_ids = set(
+            self._open_tasks.filter(typeName=campaign_type).values_list(
+                'primaryID', flat=True
+            )
+        )
+        task_ids.update(
+            self._completed_tasks.filter(typeName=campaign_type).values_list(
+                'primaryID', flat=True
+            )
+        )
+
+        annotated_output_for_user = result_class.objects.filter(
+            createdBy=self.user, task_id__in=task_ids
+        )
 
         if not annotated_output_for_user.exists():
             _msg = 'Nothing to be done for user {0}.'.format(self.user)

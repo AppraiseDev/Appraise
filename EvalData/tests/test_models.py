@@ -3,11 +3,15 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 from Campaign.models import Campaign
+from EvalData.models import ContrastiveAssessmentDocumentResult
+from EvalData.models import ContrastiveAssessmentDocumentTask
 from EvalData.models import Market
 from EvalData.models import Metadata
 from EvalData.models import ObjectID
+from EvalData.models import TASK_DEFINITIONS
 from EvalData.models import TaskAgenda
 from EvalData.models import TextSegment
+from EvalData.models import TextSegmentWithThreeTargetsWithContext
 
 
 class TaskAgendaTests(TestCase):
@@ -54,6 +58,109 @@ class TaskAgendaTests(TestCase):
         agenda.complete_open_task(dummy_task)
         self.assertFalse(dummy_task in agenda._open_tasks.all())
         self.assertTrue(dummy_task in agenda._completed_tasks.all())
+
+
+class TaskAgendaResetTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(username='reset-user')
+        cls.campaign = Campaign.objects.create(
+            campaignName='contrastive-one', createdBy=cls.user
+        )
+        cls.other_campaign = Campaign.objects.create(
+            campaignName='contrastive-two', createdBy=cls.user
+        )
+        market = Market.objects.create(
+            sourceLanguageCode='eng',
+            targetLanguageCode='deu',
+            domainName='TEST',
+            createdBy=cls.user,
+        )
+        metadata = Metadata.objects.create(
+            market=market,
+            corpusName='TEST',
+            versionInfo='1.0',
+            source='TEST',
+            createdBy=cls.user,
+        )
+        item = TextSegmentWithThreeTargetsWithContext.objects.create(
+            itemID=1,
+            itemType='TGT',
+            metadata=metadata,
+            segmentID='1',
+            segmentText='Source',
+            target1ID='system-1',
+            target1Text='Target',
+            documentID='document-1',
+            createdBy=cls.user,
+        )
+        cls.task = ContrastiveAssessmentDocumentTask.objects.create(
+            campaign=cls.campaign,
+            requiredAnnotations=1,
+            batchNo=1,
+            createdBy=cls.user,
+        )
+        cls.other_task = ContrastiveAssessmentDocumentTask.objects.create(
+            campaign=cls.other_campaign,
+            requiredAnnotations=1,
+            batchNo=1,
+            createdBy=cls.user,
+        )
+        cls.task_id = ObjectID.objects.create(
+            typeName=cls.task.__class__.__name__, primaryID=cls.task.id
+        )
+        cls.other_task_id = ObjectID.objects.create(
+            typeName=cls.other_task.__class__.__name__, primaryID=cls.other_task.id
+        )
+        cls.result = ContrastiveAssessmentDocumentResult.objects.create(
+            score1=50,
+            start_time=0,
+            end_time=1,
+            item=item,
+            task=cls.task,
+            createdBy=cls.user,
+            modifiedBy=cls.user,
+        )
+        cls.other_result = ContrastiveAssessmentDocumentResult.objects.create(
+            score1=50,
+            start_time=0,
+            end_time=1,
+            item=item,
+            task=cls.other_task,
+            createdBy=cls.user,
+            modifiedBy=cls.user,
+        )
+        cls.agenda = TaskAgenda.objects.create(
+            user=cls.user, campaign=cls.campaign
+        )
+        cls.agenda._completed_tasks.add(cls.task_id)
+        cls.other_agenda = TaskAgenda.objects.create(
+            user=cls.user, campaign=cls.other_campaign
+        )
+        cls.other_agenda._completed_tasks.add(cls.other_task_id)
+
+    def test_reset_contrastive_agenda_only_retires_its_results(self):
+        reset, _, _ = self.agenda.reset_taskagenda()
+
+        self.assertTrue(reset)
+        shadow_user = User.objects.get(username='reset-user-01')
+        self.result.refresh_from_db()
+        self.other_result.refresh_from_db()
+        self.assertEqual(self.result.createdBy, shadow_user)
+        self.assertEqual(self.result.modifiedBy, shadow_user)
+        self.assertTrue(self.result.retired)
+        self.assertEqual(self.other_result.createdBy, self.user)
+        self.assertEqual(self.other_result.modifiedBy, self.user)
+        self.assertFalse(self.other_result.retired)
+        self.assertIn(self.task_id, self.agenda._open_tasks.all())
+        self.assertNotIn(self.task_id, self.agenda._completed_tasks.all())
+        self.assertIn(self.other_task_id, self.other_agenda._completed_tasks.all())
+
+    def test_all_registered_result_types_support_task_scoping(self):
+        for _, task_class, result_class, *_ in TASK_DEFINITIONS:
+            with self.subTest(task_class=task_class.__name__):
+                task_field = result_class._meta.get_field('task')
+                self.assertIs(task_field.related_model, task_class)
 
 
 class MarketTests(TestCase):
